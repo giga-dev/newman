@@ -1,0 +1,4 @@
+https://registry.hub.docker.com/_/mongo/
+docker run -p 27017:27017 --name rest-mongo -d mongo
+docker kill rest-mongo
+docker rm rest-mongo

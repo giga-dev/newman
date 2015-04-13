@@ -1,0 +1,17 @@
+core-toolbar{
+    background-color:#03a9f4;
+    color:white;
+}
+
+core-header-panel[mode=cover]::shadow #mainContainer{
+   left:180px;
+}
+
+.content{
+   margin:65px 180px 60px 0;
+   background-color:white;
+}
+
+body{
+   background-color:#CCC
+}
