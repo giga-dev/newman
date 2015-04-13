@@ -20,6 +20,6 @@ public class MyApplication extends ResourceConfig {
     private static final Logger logger = LoggerFactory.getLogger(MyApplication.class);
 
     public MyApplication() {
-        super(TestsRepository.class, EntryPoint.class, MultiPartFeature.class, DeclarativeLinkingFeature.class, LoggingFilter.class);
+        super(TestsRepository.class, EntryPoint.class, BroadcasterResource.class, MultiPartFeature.class, DeclarativeLinkingFeature.class, LoggingFilter.class);
     }
 }

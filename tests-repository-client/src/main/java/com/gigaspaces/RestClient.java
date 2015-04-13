@@ -9,6 +9,9 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
+import org.glassfish.jersey.media.sse.EventInput;
+import org.glassfish.jersey.media.sse.EventOutput;
+import org.glassfish.jersey.media.sse.InboundEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -21,6 +24,8 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -35,6 +40,7 @@ public class RestClient {
         try {
             SLF4JBridgeHandler.removeHandlersForRootLogger();
             SLF4JBridgeHandler.install();
+            ExecutorService executor = Executors.newCachedThreadPool();
 
             JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder();
             jerseyClientBuilder.register(MultiPartFeature.class);
@@ -46,12 +52,23 @@ public class RestClient {
             PermResult result = target.request().post(Entity.json(permResult), PermResult.class);
             logger.info("post result : {}", result);
 
-            result = target.request().put(Entity.json(permResult), PermResult.class);
-            logger.info("put result : {} installed", result);
+            // subscribe to broadcast.
+            target = client.target("http://localhost:8080/api/broadcast");
+            EventInput eventInput = target.request().get().readEntity(EventInput.class);
+            executor.execute(() -> {
+                while(!eventInput.isClosed()){
+                    InboundEvent event = eventInput.read();
+                    if(event == null){
+                        return;
+                    }
+                    logger.info("Event: {} {}", event.getName(), event.readData(String.class));
+                }
+            });
 
-            Collection<PermResult> results = target.request().get(new GenericType<Collection<PermResult>>() {});
-            logger.info("all values are : {}", results);
+            // sending event.
+            String message = target.request().post(Entity.text("*foo*"), String.class);
 
+            logger.info("client broadcast {}", message);
 
             target = client.target("http://localhost:8080/api/tests");
             Response response = target.request().get();
@@ -60,16 +77,6 @@ public class RestClient {
             logger.info("all ids are : {}", batch);
             logger.info("all ids links : {}", response.getLinks());
 
-
-//            Client client = jerseyClientBuilder.build();
-//            WebTarget target = client.target("http://localhost:8080/api/entry-point/testJSON");
-//            Result result = target.request().post(null, Result.class);
-//            logger.info("result: {}", result);
-//
-//            target = client.target("http://localhost:8080/api/entry-point/testJSON1");
-//            result = target.request().post(Entity.text("foo"), Result.class);
-//            logger.info("result1: {}", result);
-//
 
             final FileDataBodyPart filePart = new FileDataBodyPart("my_pom", new File("pom.xml"));
 
