@@ -36,6 +36,12 @@ public class BroadcasterResource {
 
         broadcaster.broadcast(event);
 
+        event = eventBuilder.name("message-to-client")
+                .mediaType(MediaType.TEXT_PLAIN_TYPE)
+                .data(String.class, message)
+                .build();
+        broadcaster.broadcast(event);
+
         return "Message '" + message + "' has been broadcast.";
     }
 
