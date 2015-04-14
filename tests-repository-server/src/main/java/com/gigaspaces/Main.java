@@ -1,16 +1,21 @@
 package com.gigaspaces;
 
 
+import org.eclipse.jetty.security.*;
+import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.security.Constraint;
 import org.mongodb.morphia.logging.MorphiaLoggerFactory;
 import org.mongodb.morphia.logging.slf4j.SLF4JLoggerImplFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+
+import java.util.Collections;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -18,14 +23,41 @@ public class Main {
     public static void main(String[] args) throws Exception {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
+
         MorphiaLoggerFactory.registerLogger(SLF4JLoggerImplFactory.class);
+
+        Server server = new Server(8080);
+        /* security */
+        LoginService loginService = new HashLoginService("MyRealm",
+                "tests-repository-server/src/test/resources/realm.properties");
+        server.addBean(loginService);
+
+        ConstraintSecurityHandler security = new ConstraintSecurityHandler();
+        server.setHandler(security);
+
+        Constraint constraint = new Constraint();
+        constraint.setName("auth");
+        constraint.setAuthenticate(true);
+        constraint.setRoles(new String[]{"user", "admin"});
+//        constraint.setRoles(new String[]{"admin"});
+
+        ConstraintMapping mapping = new ConstraintMapping();
+        mapping.setPathSpec("/*");
+        mapping.setConstraint(constraint);
+
+        security.setConstraintMappings(Collections.singletonList(mapping));
+        security.setAuthenticator(new BasicAuthenticator());
+        security.setLoginService(loginService);
+        /* security */
+
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
-
+        // security
+        context.setSecurityHandler(security);
 
         DefaultServlet defaultServlet = new DefaultServlet();
         ServletHolder holderPwd = new ServletHolder("default", defaultServlet);
-        holderPwd.setInitParameter("resourceBase", "./web");
+        holderPwd.setInitParameter("resourceBase", "./tests-repository-server/web");
         holderPwd.setInitOrder(2);
         context.addServlet(holderPwd, "/*");
 
@@ -40,7 +72,6 @@ public class Main {
         webSocketHolder.setInitOrder(1);
 
 
-        Server server = new Server(8080);
         try {
 
 
@@ -55,7 +86,10 @@ public class Main {
 
 //            server.addConnector(https);
 
+
+
             server.setHandler(context);
+
 
             server.start();
             for (Connector connector : server.getConnectors()) {

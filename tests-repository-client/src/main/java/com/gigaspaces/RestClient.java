@@ -4,6 +4,7 @@ package com.gigaspaces;
 import com.gigaspaces.beans.Batch;
 import com.gigaspaces.beans.PermResult;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
@@ -40,8 +41,10 @@ public class RestClient {
             SLF4JBridgeHandler.install();
             ExecutorService executor = Executors.newCachedThreadPool();
 
+
             JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
-                    .register(MultiPartFeature.class).register(SseFeature.class);
+                    .register(MultiPartFeature.class).register(SseFeature.class)
+                    .register(HttpAuthenticationFeature.basic("root", "root"));
 
             Client client = jerseyClientBuilder.build();
             WebTarget target = client.target("http://localhost:8080/api/tests/perm");
@@ -54,9 +57,9 @@ public class RestClient {
             target = client.target("http://localhost:8080/api/broadcast");
             EventInput eventInput = target.request().get().readEntity(EventInput.class);
             executor.execute(() -> {
-                while(!eventInput.isClosed()){
+                while (!eventInput.isClosed()) {
                     InboundEvent event = eventInput.read();
-                    if(event == null){
+                    if (event == null) {
                         return;
                     }
                     logger.info("Event: {} {}", event.getName(), event.readData(String.class));

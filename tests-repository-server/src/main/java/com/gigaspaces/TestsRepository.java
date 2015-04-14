@@ -14,6 +14,8 @@ import org.mongodb.morphia.query.QueryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
  */
 @Singleton
 @Path("tests")
+@PermitAll
 public class TestsRepository implements TestsRepositoryIfc {
 
     private static final Logger logger = LoggerFactory.getLogger(TestsRepository.class);
@@ -51,6 +54,7 @@ public class TestsRepository implements TestsRepositoryIfc {
     @Override
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("admin")
     public Response ls(@DefaultValue("0") @QueryParam("offset") int offset, @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
         return Response.ok().entity(new Batch<String>(permResultDAO.findIds(permResultDAO.createQuery().offset(offset).limit(limit)).stream().map(ObjectId::toString).collect(Collectors.toList()), offset, limit)).build();
     }

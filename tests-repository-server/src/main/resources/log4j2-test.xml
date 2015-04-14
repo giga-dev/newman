@@ -9,6 +9,7 @@
         <Logger name="com.gigaspaces" level="TRACE"/>
         <Logger name="org.glassfish.jersey" level="TRACE"/>
         <Logger name="org.eclipse.jetty" level="INFO"/>
+        <Logger name="org.eclipse.jetty.security" level="TRACE"/>
         <!--<Logger name="org.eclipse.jetty" level="TRACE"/>-->
         <!--<Logger name="org.eclipse.jetty.server.HttpConnection" level="TRACE"/>-->
         <Root level="error">
