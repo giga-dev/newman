@@ -3,6 +3,7 @@ package com.gigaspaces;
 
 import com.gigaspaces.beans.Batch;
 import com.gigaspaces.beans.PermResult;
+import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.BodyPart;
@@ -14,7 +15,11 @@ import org.glassfish.jersey.media.sse.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import sun.net.www.protocol.https.DefaultHostnameVerifier;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -42,19 +47,28 @@ public class RestClient {
             ExecutorService executor = Executors.newCachedThreadPool();
 
 
+            SslConfigurator sslConfig = SslConfigurator.newInstance()
+                    .trustStoreFile("./tests-repository-server/keys/server.keystore")
+                    .trustStorePassword("password")
+                    .keyStoreFile("./tests-repository-server/keys/server.keystore")
+                    .keyPassword("password");
+
+            SSLContext sslContext = sslConfig.createSSLContext();
             JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
+                    .sslContext(sslContext)
+                    .hostnameVerifier((s, sslSession) -> true)
                     .register(MultiPartFeature.class).register(SseFeature.class)
                     .register(HttpAuthenticationFeature.basic("root", "root"));
 
             Client client = jerseyClientBuilder.build();
-            WebTarget target = client.target("http://localhost:8080/api/tests/perm");
+            WebTarget target = client.target("https://localhost:8443/api/tests/perm");
             PermResult permResult = new PermResult();
             permResult.setPermutation(UUID.randomUUID().toString());
             PermResult result = target.request().post(Entity.json(permResult), PermResult.class);
             logger.info("post result : {}", result);
 
             // subscribe to broadcast.
-            target = client.target("http://localhost:8080/api/broadcast");
+            target = client.target("https://localhost:8443/api/broadcast");
             EventInput eventInput = target.request().get().readEntity(EventInput.class);
             executor.execute(() -> {
                 while (!eventInput.isClosed()) {
@@ -77,7 +91,7 @@ public class RestClient {
 
             logger.info("client broadcast {}", message);
 
-            target = client.target("http://localhost:8080/api/tests");
+            target = client.target("https://localhost:8443/api/tests");
             Response response = target.request().get();
             response.bufferEntity();
             Batch batch = response.readEntity(Batch.class);
@@ -90,7 +104,7 @@ public class RestClient {
                     .field("foo", "bar")
                     .bodyPart(filePart);
 //
-            target = client.target("http://localhost:8080/api/tests/post");
+            target = client.target("https://localhost:8443/api/tests/post");
             final Response res = target.request()
                     .post(Entity.entity(multipart, multipart.getMediaType()));
             logger.info("response {}", res);

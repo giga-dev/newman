@@ -5,10 +5,12 @@ import org.eclipse.jetty.security.*;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.security.Constraint;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.mongodb.morphia.logging.MorphiaLoggerFactory;
 import org.mongodb.morphia.logging.slf4j.SLF4JLoggerImplFactory;
 import org.slf4j.Logger;
@@ -75,16 +77,21 @@ public class Main {
         try {
 
 
-//            SslContextFactory sslContextFactory = new SslContextFactory(false);
+            SslContextFactory sslContextFactory = new SslContextFactory(false);
+            sslContextFactory.setKeyStorePath("./tests-repository-server/keys/server.keystore");
+            sslContextFactory.setKeyStorePassword("password");
+            sslContextFactory.setKeyManagerPassword("password");
+            sslContextFactory.setTrustStorePath("./tests-repository-server/keys/server.keystore");
+            sslContextFactory.setTrustStorePassword("password");
+            sslContextFactory.setNeedClientAuth(true);
+            sslContextFactory.setWantClientAuth(true);
+
+            ServerConnector https = new ServerConnector(server, sslContextFactory);
+            https.setName("https");
+            https.setPort(8443);
 
 
-//
-//            ServerConnector https = new ServerConnector(server, sslContextFactory);
-//            https.setName("https");
-//            https.setPort(8443);
-
-
-//            server.addConnector(https);
+            server.addConnector(https);
 
 
 
