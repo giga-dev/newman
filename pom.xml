@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.gigaspaces</groupId>
-    <artifactId>tests-repository</artifactId>
+    <artifactId>newman</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
-    <name>tests-repository</name>
+    <name>newman test framework</name>
     <url>http://gigaspaces.com</url>
 
     <repositories>
@@ -31,9 +31,9 @@
         <junit.version>4.12</junit.version>
     </properties>
     <modules>
-        <module>tests-repository-common</module>
-        <module>tests-repository-client</module>
-        <module>tests-repository-server</module>
+        <module>newman-common</module>
+        <module>newman-client</module>
+        <module>newman-server</module>
     </modules>
 
     <dependencies>
