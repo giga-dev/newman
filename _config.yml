@@ -1,0 +1,8 @@
+name: Newman
+baseurl: /newman
+markdown: redcarpet
+exclude: [vendor]
+
+collections:
+ docs:
+ output: true
