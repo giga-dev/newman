@@ -11,6 +11,6 @@ Newman is a framework for distributing test load across multiple agents. It's na
 ## Quick start.
 
 1. git clone.
-2. generate keys `(cd newman-server/bin/keysgen.sh)`
+2. generate keys `(cd newman-server/bin/keysgen.sh)`.
 3. run the server using maven, from newman-server type `mvn exec:java`.
 4. run the client using maven, from newman-client type `mvn exec:exec`.
