@@ -8,19 +8,19 @@ Newman is a framework for distributing test load across multiple agents. It's na
 [online docs](http://giga-dev.github.io/newman/docs/index.html)
 
 
-## Quick start.
+## How to build and run.
 
-1. git clone `git@github.com:giga-dev/newman.git`.
-2. generate keys `(cd newman-server/bin/keysgen.sh)`.
-3. run the server using maven, from newman-server type `mvn exec:java`.
-4. run the client using maven, from newman-client type `mvn exec:exec`.
+1. Run `git clone git@github.com:giga-dev/newman.git`.
+2. Generate the server private/public keys with the command `(cd newman-server/bin/keysgen.sh)`.
+3. Run the server using maven, from newman-server type `mvn exec:java`.
+4. Run the client using maven, from newman-client type `mvn exec:exec`.
 
 
 ## Update the online docs.
 
-1. git clone `git@github.com:giga-dev/newman.git` gh-pages.
-2. cd gh-pages.
-3. git branch gh-pages.
+1. Download the docs using the cmd `git clone git@github.com:giga-dev/newman.git gh-pages`.
+2. Change directory to the docs dir with the command `cd gh-pages`.
+3. Change the branch to the docs branch dir with the command `git branch gh-pages`.
 4. From there it is just simple [jekyll](http://jekyllrb.com/) project.
-    * Run the preprocessor with `jekyll serve`.
-    * Edit commit and push, Github will process the file and update the view.
+    * run the preprocessor with `jekyll serve`.
+    * edit commit and push, Github will process the file and update the view.
