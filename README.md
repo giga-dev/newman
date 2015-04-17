@@ -10,7 +10,7 @@ Newman is a framework for distributing test load across multiple agents. It's na
 
 ## Quick start.
 
-1. git clone git@github.com:giga-dev/newman.git.
+1. git clone `git@github.com:giga-dev/newman.git`.
 2. generate keys `(cd newman-server/bin/keysgen.sh)`.
 3. run the server using maven, from newman-server type `mvn exec:java`.
 4. run the client using maven, from newman-client type `mvn exec:exec`.
@@ -18,7 +18,7 @@ Newman is a framework for distributing test load across multiple agents. It's na
 
 ## Update the online docs.
 
-1. git clone git@github.com:giga-dev/newman.git gh-pages.
+1. git clone `git@github.com:giga-dev/newman.git` gh-pages.
 2. cd gh-pages.
 3. git branch gh-pages.
 4. From there it is just simple [jekyll](http://jekyllrb.com/) project.
