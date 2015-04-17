@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/giga-dev/newman.svg?branch=master)](https://github.com/giga-dev/newman) 
+[![Build Status](https://travis-ci.org/giga-dev/newman.svg?branch=master)](https://travis-ci.org/giga-dev/newman) 
 
 
 # Hello, Newman...
