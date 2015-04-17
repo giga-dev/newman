@@ -36,6 +36,31 @@
             <artifactId>jul-to-slf4j</artifactId>
         </dependency>
     </dependencies>
+
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-classpath</argument>
+                        <classpath/>
+                        <argument>com.gigaspaces.newman.RestClient</argument>
+                    </arguments>
+                    <workingDirectory>../newman-server</workingDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
+
 </project>

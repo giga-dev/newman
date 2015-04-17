@@ -40,12 +40,13 @@ public class RestClient {
             SLF4JBridgeHandler.removeHandlersForRootLogger();
             SLF4JBridgeHandler.install();
             ExecutorService executor = Executors.newCachedThreadPool();
-
+            String path = new File(".").getAbsolutePath();
+            logger.info("running from {}", path);
 
             SslConfigurator sslConfig = SslConfigurator.newInstance()
-                    .trustStoreFile("./newman-server/keys/server.keystore")
+                    .trustStoreFile("keys/server.keystore")
                     .trustStorePassword("password")
-                    .keyStoreFile("./newman-server/keys/server.keystore")
+                    .keyStoreFile("keys/server.keystore")
                     .keyPassword("password");
 //
             SSLContext sslContext = sslConfig.createSSLContext();

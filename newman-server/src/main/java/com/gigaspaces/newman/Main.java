@@ -31,7 +31,7 @@ public class Main {
         Server server = new Server(8080);
         /* security */
         LoginService loginService = new HashLoginService("MyRealm",
-                "newman-server/src/test/resources/realm.properties");
+                "src/test/resources/realm.properties");
         server.addBean(loginService);
 
         ConstraintSecurityHandler security = new ConstraintSecurityHandler();
@@ -59,7 +59,7 @@ public class Main {
 
         DefaultServlet defaultServlet = new DefaultServlet();
         ServletHolder holderPwd = new ServletHolder("default", defaultServlet);
-        holderPwd.setInitParameter("resourceBase", "./newman-server/web");
+        holderPwd.setInitParameter("resourceBase", "./web");
         holderPwd.setInitOrder(2);
         context.addServlet(holderPwd, "/*");
 
@@ -78,10 +78,10 @@ public class Main {
 
 
             SslContextFactory sslContextFactory = new SslContextFactory(false);
-            sslContextFactory.setKeyStorePath("./newman-server/keys/server.keystore");
+            sslContextFactory.setKeyStorePath("./keys/server.keystore");
             sslContextFactory.setKeyStorePassword("password");
             sslContextFactory.setKeyManagerPassword("password");
-            sslContextFactory.setTrustStorePath("./newman-server/keys/server.keystore");
+            sslContextFactory.setTrustStorePath("./keys/server.keystore");
             sslContextFactory.setTrustStorePassword("password");
 
             ServerConnector https = new ServerConnector(server, sslContextFactory);
