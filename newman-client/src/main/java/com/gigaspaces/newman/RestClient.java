@@ -7,6 +7,10 @@ import com.gigaspaces.newman.beans.JobRequest;
 import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.client.rx.RxClient;
+import org.glassfish.jersey.client.rx.RxWebTarget;
+import org.glassfish.jersey.client.rx.java8.RxCompletionStage;
+import org.glassfish.jersey.client.rx.java8.RxCompletionStageInvoker;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -17,9 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -56,13 +58,24 @@ public class RestClient {
                     .register(MultiPartFeature.class).register(SseFeature.class)
                     .register(HttpAuthenticationFeature.basic("root", "root"));
 
-            Client client = jerseyClientBuilder.build();
-            WebTarget target = client.target("https://localhost:8443/api/newman/job");
+            RxClient<RxCompletionStageInvoker> client = RxCompletionStage.from(jerseyClientBuilder.build());
+            RxWebTarget<RxCompletionStageInvoker> target = client.target("https://localhost:8443/api/newman/job");
+
             String jobId = target.request().put(Entity.json(new JobRequest()), String.class);
             logger.info("added job {} ", jobId);
 
-            Batch<Job> jobs = target.request().get(new GenericType<Batch<Job>>(){});
+            Batch<Job> jobs = target.request().get(new GenericType<Batch<Job>>() {
+            });
             logger.info("query jobs returns: {}", jobs);
+
+//            query jobs async
+            target.request().rx().get(new GenericType<Batch<Job>>() {
+            }).thenAccept(jobBatch -> {
+                logger.info("async query jobs returns: {}", jobs);
+            }).exceptionally(throwable -> {
+                logger.error(throwable.toString(), throwable);
+                return null;
+            });
 
             // subscribe to broadcast.
             target = client.target("https://localhost:8443/api/broadcast");
@@ -74,6 +87,7 @@ public class RestClient {
                         return;
                     }
                     logger.info("Event: {} {}", event.getName(), event.readData(String.class));
+                    return;
                 }
             });
             // register listener only to events named "message-to-client".
@@ -89,7 +103,6 @@ public class RestClient {
             logger.info("client broadcast {}", message);
 
 
-
             final FileDataBodyPart filePart = new FileDataBodyPart("my_pom", new File("pom.xml"));
 
             final MultiPart multipart = new FormDataMultiPart()
@@ -100,12 +113,13 @@ public class RestClient {
             final Response res = target.request()
                     .post(Entity.entity(multipart, multipart.getMediaType()));
             logger.info("response {}", res);
-
-
+            eventInput.close();
+            eventSource.close();
+            client.close();
+            logger.info("eventSource is open {}", eventSource.isOpen());
+            executor.shutdownNow();
         } catch (Exception e) {
-
-            e.printStackTrace();
-
+            logger.error(e.toString(), e);
         }
 
     }
