@@ -64,8 +64,9 @@ public class RestClient {
             String jobId = target.request().put(Entity.json(new JobRequest()), String.class);
             logger.info("added job {} ", jobId);
 
-            Batch<Job> jobs = target.request().get(new GenericType<Batch<Job>>() {
-            });
+            Response rs = target.request().get();
+            rs.readEntity(new GenericType<Batch<Job>>() {});
+            Batch<Job> jobs = target.request().get(new GenericType<Batch<Job>>() {});
             logger.info("query jobs returns: {}", jobs);
 
 //            query jobs async

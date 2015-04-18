@@ -22,7 +22,7 @@ public class NewmanApp extends ResourceConfig {
 
     public NewmanApp() {
         super(NewmanResource.class, BroadcasterResource.class, RolesAllowedDynamicFeature.class,
-                MultiPartFeature.class, DeclarativeLinkingFeature.class, EntityFilteringFeature.class, LoggingFilter.class);
+                MultiPartFeature.class, DeclarativeLinkingFeature.class, LoggingFilter.class);
 //        property(ServerProperties.TRACING, "ALL");
     }
 }

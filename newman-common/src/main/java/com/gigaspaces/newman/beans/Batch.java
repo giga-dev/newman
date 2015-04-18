@@ -1,7 +1,8 @@
 package com.gigaspaces.newman.beans;
 
-import org.glassfish.jersey.linking.InjectLinkNoFollow;
-
+import org.mongodb.morphia.annotations.Transient;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -10,50 +11,28 @@ import java.util.List;
  */
 public class Batch<T> {
 
-    @InjectLinkNoFollow
     private List<T> values;
     private int offset;
     private int limit;
-
-/*
     @Transient
-    @InjectLink(resource = TestsRepositoryIfc.class,
-            method = "ls",
-            bindings = {
-                    @Binding(name = "offset", value = "${instance.offset}"),
-                    @Binding(name = "limit", value = "${instance.limit}")
-            },
-            style = InjectLink.Style.ABSOLUTE)
-    private URI self;
-
-    @Transient
-    @InjectLink(resource = TestsRepositoryIfc.class,
-            method = "ls",
-            bindings = {
-                    @Binding(name = "offset", value = "${instance.offset - instance.limit}"),
-                    @Binding(name = "limit", value = "${instance.limit}")
-            },
-            condition="${0 < instance.offset}",
-            style = InjectLink.Style.ABSOLUTE)
     private URI back;
     @Transient
-    @InjectLink(resource = TestsRepositoryIfc.class,
-            method = "ls",
-            bindings = {
-                    @Binding(name = "offset", value = "${instance.offset + instance.limit}"),
-                    @Binding(name = "limit", value = "${instance.limit}")
-            },
-            style = InjectLink.Style.ABSOLUTE)
+    private URI self;
+    @Transient
     private URI next;
-*/
 
     public Batch() {
     }
 
-    public Batch(List<T> values, int offset, int limit) {
+    public Batch(List<T> values, int offset, int limit, UriInfo uriInfo) {
         this.values = values;
         this.offset = offset;
         this.limit = limit;
+        if(0 < offset){
+            this.back = uriInfo.getAbsolutePathBuilder().queryParam("offset", Math.max(0, offset - limit)).queryParam("limit", limit).build();
+        }
+        this.self = uriInfo.getAbsolutePathBuilder().queryParam("offset", offset).queryParam("limit", limit).build();
+        this.next = uriInfo.getAbsolutePathBuilder().queryParam("offset", offset + limit).queryParam("limit", limit).build();
     }
 
 
@@ -81,7 +60,7 @@ public class Batch<T> {
         this.limit = limit;
     }
 
-    /*public URI getSelf() {
+    public URI getSelf() {
         return self;
     }
 
@@ -111,18 +90,9 @@ public class Batch<T> {
                 "values=" + values +
                 ", offset=" + offset +
                 ", limit=" + limit +
-                ", self=" + self +
                 ", back=" + back +
+                ", self=" + self +
                 ", next=" + next +
-                '}';
-    }*/
-
-    @Override
-    public String toString() {
-        return "Batch{" +
-                "values=" + values +
-                ", offset=" + offset +
-                ", limit=" + limit +
                 '}';
     }
 }

@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.PermitAll;
 import javax.inject.Singleton;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
 
 /**
@@ -36,8 +38,8 @@ public class NewmanResource {
         mongoClient = new MongoClient("localhost");
         morphia = new Morphia().map(Job.class, Agent.class, Build.class, Test.class);
         ds = morphia.createDatastore(mongoClient, DB);
-        ds.ensureIndexes(); //creates all defined with @Indexed
-        ds.ensureCaps(); //creates all collections for @Entity(cap=@CappedAt(...))
+        ds.ensureIndexes();
+        ds.ensureCaps();
         jobDAO = new JobDAO(morphia, mongoClient, DB);
         testDAO = new TestDAO(morphia, mongoClient, DB);
     }
@@ -46,8 +48,10 @@ public class NewmanResource {
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
 //    @RolesAllowed("admin")
-    public Batch<Job> jobs(@DefaultValue("0") @QueryParam("offset") int offset, @DefaultValue("30") @QueryParam("limit") int limit) {
-        return new Batch<Job>(jobDAO.find(jobDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit);
+    public Batch<Job> jobs(@DefaultValue("0") @QueryParam("offset") int offset,
+                           @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
+        return new Batch<>(jobDAO.find(jobDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit
+                , uriInfo);
     }
 
     @PUT
@@ -56,16 +60,17 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public String update(JobRequest jobRequest) {
         Job job = new Job();
-
         jobDAO.save(job);
         return job.getId();
     }
 
     @GET
-    @Path("job/{jobId}/test")
+    @Path("job/test/{jobId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Batch<Test> tests(@PathParam("jobId") String jobId, @DefaultValue("0") @QueryParam("offset") int offset, @DefaultValue("30") @QueryParam("limit") int limit) {
-        return new Batch<Test>(testDAO.find(testDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit);
+    public Batch<Test> tests(@PathParam("jobId") String jobId, @DefaultValue("0") @QueryParam("offset") int offset,
+                             @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
+        return new Batch<>(testDAO.find(testDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit
+                , uriInfo);
     }
 
     @POST
