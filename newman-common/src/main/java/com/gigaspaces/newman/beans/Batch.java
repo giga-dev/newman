@@ -21,6 +21,7 @@ public class Batch<T> {
     @Transient
     private URI next;
 
+    @SuppressWarnings("unused")
     public Batch() {
     }
 
@@ -48,6 +49,7 @@ public class Batch<T> {
         return offset;
     }
 
+    @SuppressWarnings("unused")
     public int getLimit() {
         return limit;
     }
@@ -56,6 +58,7 @@ public class Batch<T> {
         this.offset = offset;
     }
 
+    @SuppressWarnings("unused")
     public void setLimit(int limit) {
         this.limit = limit;
     }

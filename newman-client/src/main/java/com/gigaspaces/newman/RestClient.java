@@ -64,16 +64,12 @@ public class RestClient {
             String jobId = target.request().put(Entity.json(new JobRequest()), String.class);
             logger.info("added job {} ", jobId);
 
-            Response rs = target.request().get();
-            rs.readEntity(new GenericType<Batch<Job>>() {});
             Batch<Job> jobs = target.request().get(new GenericType<Batch<Job>>() {});
             logger.info("query jobs returns: {}", jobs);
 
 //            query jobs async
             target.request().rx().get(new GenericType<Batch<Job>>() {
-            }).thenAccept(jobBatch -> {
-                logger.info("async query jobs returns: {}", jobs);
-            }).exceptionally(throwable -> {
+            }).thenAccept(jobBatch -> logger.info("async query jobs returns: {}", jobs)).exceptionally(throwable -> {
                 logger.error(throwable.toString(), throwable);
                 return null;
             });
@@ -82,6 +78,7 @@ public class RestClient {
             target = client.target("https://localhost:8443/api/broadcast");
             EventInput eventInput = target.request().get().readEntity(EventInput.class);
             executor.execute(() -> {
+                //noinspection LoopStatementThatDoesntLoop
                 while (!eventInput.isClosed()) {
                     InboundEvent event = eventInput.read();
                     if (event == null) {
