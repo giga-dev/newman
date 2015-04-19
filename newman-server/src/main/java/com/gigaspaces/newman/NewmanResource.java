@@ -17,6 +17,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
+import java.util.zip.ZipInputStream;
 
 /**
  * Created by Barak Bar Orion
@@ -56,38 +57,67 @@ public class NewmanResource {
 
     @PUT
     @Path("job")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public String update(JobRequest jobRequest) {
+    public Job update(JobRequest jobRequest) {
         Job job = new Job();
         jobDAO.save(job);
-        return job.getId();
+        return job;
+    }
+
+
+    @PUT
+    @Path("test")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Test addTest(Test test) {
+        testDAO.save(test);
+        return test;
     }
 
     @GET
-    @Path("job/test/{jobId}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Batch<Test> tests(@PathParam("jobId") String jobId, @DefaultValue("0") @QueryParam("offset") int offset,
-                             @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
-        return new Batch<>(testDAO.find(testDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit
+    @Path("test")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<Test> tests(@DefaultValue("0") @QueryParam("offset") int offset,
+                             @DefaultValue("30") @QueryParam("limit") int limit, @QueryParam("jobId") String jobId, @Context UriInfo uriInfo) {
+        logger.info("jobId is {}", jobId);
+        return new Batch<>(testDAO.find(testDAO.createQuery().field("jobId").equal(jobId).offset(offset).limit(limit)).asList(), offset, limit
                 , uriInfo);
     }
 
     @POST
-    @Path("test/{id}")
-    public String updateTest(final FormDataMultiPart multiPart) {
-        //todo read the form and extract the log and the result.
-        InputStream is = multiPart.getField("my_pom").getValueAs(InputStream.class);
-        logger.info("my pom input stream is {}", is);
+    @Path("build/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Build uploadBuild(final @PathParam("id") String id, final FormDataMultiPart multiPart) {
+
+        InputStream is = multiPart.getField("testsuite-1.5.zip").getValueAs(InputStream.class);
+        ZipInputStream zipInputStream = new ZipInputStream(is);
+        logger.info("testsuite-1.5.zip stream is {}, build is {}", is, id);
         try {
             is.close();
         } catch (Exception e) {
             logger.error(e.toString(), e);
         }
-        String foo = multiPart.getField("foo").getValue();
-        logger.info("foo's value is {}", foo);
-        return "foo";
+        Build build = new Build();
+        build.setId(id);
+        return build;
     }
+
+//    @POST
+//    @Path("test/{id}")
+//    public String updateTest(final FormDataMultiPart multiPart) {
+//        //todo read the form and extract the log and the result.
+//        InputStream is = multiPart.getField("my_pom").getValueAs(InputStream.class);
+//        logger.info("my pom input stream is {}", is);
+//        try {
+//            is.close();
+//        } catch (Exception e) {
+//            logger.error(e.toString(), e);
+//        }
+//        String foo = multiPart.getField("foo").getValue();
+//        logger.info("foo's value is {}", foo);
+//        return "foo";
+//    }
 
 
 }

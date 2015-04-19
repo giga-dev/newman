@@ -4,6 +4,7 @@ import org.glassfish.jersey.media.sse.EventOutput;
 import org.glassfish.jersey.media.sse.OutboundEvent;
 import org.glassfish.jersey.media.sse.SseBroadcaster;
 import org.glassfish.jersey.media.sse.SseFeature;
+import org.glassfish.jersey.server.ChunkedOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,22 @@ public class BroadcasterResource {
     @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger(BroadcasterResource.class);
 
-    private SseBroadcaster broadcaster = new SseBroadcaster();
+    private final SseBroadcaster broadcaster;
+
+    public BroadcasterResource() {
+        this.broadcaster = new SseBroadcaster(){
+            @Override
+            public void onException(ChunkedOutput<OutboundEvent> chunkedOutput, Exception exception) {
+                logger.error(exception.toString(), exception);
+                remove(chunkedOutput);
+            }
+
+            @Override
+            public void onClose(ChunkedOutput<OutboundEvent> chunkedOutput) {
+                remove(chunkedOutput);
+            }
+        };
+    }
 
     @POST
     @Produces(MediaType.TEXT_PLAIN)
@@ -41,7 +57,7 @@ public class BroadcasterResource {
                 .data(String.class, message)
                 .build();
         broadcaster.broadcast(event);
-
+        broadcaster.closeAll();
         return "Message '" + message + "' has been broadcast.";
     }
 

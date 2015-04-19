@@ -42,8 +42,6 @@ public class RestClient {
             SLF4JBridgeHandler.removeHandlersForRootLogger();
             SLF4JBridgeHandler.install();
             ExecutorService executor = Executors.newCachedThreadPool();
-            String path = new File(".").getAbsolutePath();
-            logger.info("running from {}", path);
 
             SslConfigurator sslConfig = SslConfigurator.newInstance()
                     .trustStoreFile("keys/server.keystore")
