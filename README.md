@@ -25,10 +25,10 @@ Newman is a framework for distributing test load across multiple agents. It's na
     * run the preprocessor with `jekyll serve`.
     * edit commit and push, Github will process the file and update the view.
     
-## Newman High Level Diagram
+## Newman High Level Diagram.
 
 ![Newman-High-Level.jpg](/docs/diagrams/Newman-High-Level.jpg)
 
-## Newman Agent Flow
+## Newman Agent Flow.
 
 ![Newman-Agent-State-Machine.jpg](/docs/diagrams/Newman-Agent-State-Machine.jpg)
