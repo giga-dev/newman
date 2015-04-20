@@ -2,8 +2,10 @@ package com.gigaspaces.newman.beans;
 
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Index;
+import org.mongodb.morphia.annotations.Indexed;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * Created by Barak Bar Orion
@@ -13,9 +15,11 @@ import java.time.LocalDateTime;
 public class Agent {
     @Id
     private String id;
+    @Indexed(unique=true, dropDups=true)
+    private String name;
     private String host;
     private String jobId;
-    private LocalDateTime lastTouchTime;
+    private Date lastTouchTime;
 
     public Agent() {
     }
@@ -26,6 +30,14 @@ public class Agent {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getHost() {
@@ -44,11 +56,11 @@ public class Agent {
         this.jobId = jobId;
     }
 
-    public LocalDateTime getLastTouchTime() {
+    public Date getLastTouchTime() {
         return lastTouchTime;
     }
 
-    public void setLastTouchTime(LocalDateTime lastTouchTime) {
+    public void setLastTouchTime(Date lastTouchTime) {
         this.lastTouchTime = lastTouchTime;
     }
 
@@ -56,6 +68,7 @@ public class Agent {
     public String toString() {
         return "Agent{" +
                 "id='" + id + '\'' +
+                ", name='" + name + '\'' +
                 ", host='" + host + '\'' +
                 ", jobId='" + jobId + '\'' +
                 ", lastTouchTime=" + lastTouchTime +

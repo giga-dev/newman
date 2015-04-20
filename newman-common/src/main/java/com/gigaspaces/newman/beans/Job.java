@@ -4,7 +4,7 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 import java.net.URI;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * Created by Barak Bar Orion
@@ -15,13 +15,15 @@ public class Job {
     @Id
     private String id;
     private Build build;
-    private LocalDateTime submitTime;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private Date submitTime;
+    private Date startTime;
+    private Date endTime;
     private URI testURI;
     private String submittedBy;
+    private State state;
 
     public Job() {
+        state = State.READY;
     }
 
     public String getId() {
@@ -40,27 +42,27 @@ public class Job {
         this.build = build;
     }
 
-    public LocalDateTime getSubmitTime() {
+    public Date getSubmitTime() {
         return submitTime;
     }
 
-    public void setSubmitTime(LocalDateTime submitTime) {
+    public void setSubmitTime(Date submitTime) {
         this.submitTime = submitTime;
     }
 
-    public LocalDateTime getStartTime() {
+    public Date getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(LocalDateTime startTime) {
+    public void setStartTime(Date startTime) {
         this.startTime = startTime;
     }
 
-    public LocalDateTime getEndTime() {
+    public Date getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(LocalDateTime endTime) {
+    public void setEndTime(Date endTime) {
         this.endTime = endTime;
     }
 
@@ -80,6 +82,14 @@ public class Job {
         this.submittedBy = submittedBy;
     }
 
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
     @Override
     public String toString() {
         return "Job{" +
@@ -90,6 +100,7 @@ public class Job {
                 ", endTime=" + endTime +
                 ", testURI=" + testURI +
                 ", submittedBy='" + submittedBy + '\'' +
+                ", state=" + state +
                 '}';
     }
 }

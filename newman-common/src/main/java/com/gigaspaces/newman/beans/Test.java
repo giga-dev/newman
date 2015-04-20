@@ -4,7 +4,7 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 import java.net.URI;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,6 +14,7 @@ import java.util.List;
 @Entity
 public class Test {
     enum Status {PENDING, SUCCESS, FAIL}
+
     @Id
     private String id;
     private String name;
@@ -22,8 +23,8 @@ public class Test {
     private String errorMessage;
     private List<URI> logs;
     private String agentId;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private Date startTime;
+    private Date endTime;
 
     public Test() {
     }
@@ -84,19 +85,19 @@ public class Test {
         this.agentId = agentId;
     }
 
-    public LocalDateTime getStartTime() {
+    public Date getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(LocalDateTime startTime) {
+    public void setStartTime(Date startTime) {
         this.startTime = startTime;
     }
 
-    public LocalDateTime getEndTime() {
+    public Date getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(LocalDateTime endTime) {
+    public void setEndTime(Date endTime) {
         this.endTime = endTime;
     }
 

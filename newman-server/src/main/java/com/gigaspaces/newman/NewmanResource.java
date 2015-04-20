@@ -1,6 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.dao.AgentDAO;
 import com.gigaspaces.newman.dao.BuildDAO;
 import com.gigaspaces.newman.dao.JobDAO;
 import com.gigaspaces.newman.dao.TestDAO;
@@ -10,6 +11,7 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +20,10 @@ import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -38,6 +42,7 @@ public class NewmanResource {
     private final JobDAO jobDAO;
     private final TestDAO testDAO;
     private final BuildDAO buildDAO;
+    private final AgentDAO agentDAO;
 
     public NewmanResource() {
         mongoClient = new MongoClient("localhost");
@@ -48,6 +53,7 @@ public class NewmanResource {
         jobDAO = new JobDAO(morphia, mongoClient, DB);
         testDAO = new TestDAO(morphia, mongoClient, DB);
         buildDAO = new BuildDAO(morphia, mongoClient, DB);
+        agentDAO = new AgentDAO(morphia, mongoClient, DB);
     }
 
     @GET
@@ -64,10 +70,19 @@ public class NewmanResource {
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Job update(JobRequest jobRequest) {
-        Job job = new Job();
-        jobDAO.save(job);
-        return job;
+    public Job createJob(JobRequest jobRequest, @Context SecurityContext sc) {
+        Build build = buildDAO.findOne(buildDAO.createQuery().field("_id").equal(new ObjectId(jobRequest.getBuildId())));
+        if (build != null) {
+            Job job = new Job();
+            job.setBuild(build);
+            job.setState(State.READY);
+            job.setSubmitTime(new Date());
+            job.setSubmittedBy(sc.getUserPrincipal().getName());
+            jobDAO.save(job);
+            return job;
+        } else {
+            return null;
+        }
     }
 
 
@@ -84,7 +99,7 @@ public class NewmanResource {
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Test> getJobTests(@DefaultValue("0") @QueryParam("offset") int offset,
-                             @DefaultValue("30") @QueryParam("limit") int limit, @QueryParam("jobId") String jobId, @Context UriInfo uriInfo) {
+                                   @DefaultValue("30") @QueryParam("limit") int limit, @QueryParam("jobId") String jobId, @Context UriInfo uriInfo) {
         return new Batch<>(testDAO.find(testDAO.createQuery().field("jobId").equal(jobId).offset(offset).limit(limit)).asList(), offset, limit
                 , uriInfo);
     }
@@ -98,13 +113,53 @@ public class NewmanResource {
 
 
     @POST
-    @Path("agent")
+    @Path("subscribe")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Build uploadBuild(final Agent agent) {
-        Query<Build> query = buildDAO.createQuery();
+    public Job subscribe(final Agent agent) {
+        Query<Job> query = jobDAO.createQuery();
         query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
-        return buildDAO.findOne(query);
+        Job job = jobDAO.findOne(query);
+        if (job != null) {
+            UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
+                    .set("lastTouchTime", new Date())
+                    .set("jobId", job.getId());
+            if(agent.getHost() != null){
+                updateOps.add("host", agent.getHost());
+            }
+            agentDAO.getDatastore().updateFirst(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, true);
+        }
+        return job;
+    }
+
+    @GET
+    @Path("subscribe")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<Agent> getSubscriptions(@DefaultValue("0") @QueryParam("offset") int offset,
+                                   @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
+        return new Batch<>(agentDAO.find(agentDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit
+                , uriInfo);
+    }
+
+
+    @GET
+    @Path("ping/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String ping(@PathParam("name") final String name) {
+        Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
+        if (agent == null) {
+            throw new BadRequestException("Unknown agent " + name);
+        } else if (agent.getJobId() == null) {
+            throw new BadRequestException("Agent not working");
+        } else {
+            return agent.getJobId();
+        }
+    }
+    @GET
+    @Path("agent/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Agent getAgent(@PathParam("name") final String name) {
+        return agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
     }
 
     @PUT
@@ -115,6 +170,7 @@ public class NewmanResource {
         buildDAO.save(build);
         return build;
     }
+
     @POST
     @Path("build/{id}")
     @Produces(MediaType.APPLICATION_JSON)

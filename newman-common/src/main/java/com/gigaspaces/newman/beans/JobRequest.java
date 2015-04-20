@@ -11,6 +11,7 @@ import org.mongodb.morphia.annotations.Id;
 public class JobRequest {
     @Id
     private String id;
+    private String buildId;
 
     public JobRequest() {
     }
@@ -21,5 +22,21 @@ public class JobRequest {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getBuildId() {
+        return buildId;
+    }
+
+    public void setBuildId(String buildId) {
+        this.buildId = buildId;
+    }
+
+    @Override
+    public String toString() {
+        return "JobRequest{" +
+                "id='" + id + '\'' +
+                ", buildId='" + buildId + '\'' +
+                '}';
     }
 }

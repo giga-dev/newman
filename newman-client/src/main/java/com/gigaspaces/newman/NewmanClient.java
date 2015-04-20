@@ -28,28 +28,35 @@ public class NewmanClient {
     private final String uri;
 
     public static void main(String[] args) {
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+        final String URI = "https://localhost:8443/api/newman";
+        SslConfigurator sslConfig = SslConfigurator.newInstance()
+                .trustStoreFile("keys/server.keystore")
+                .trustStorePassword("password")
+                .keyStoreFile("keys/server.keystore")
+                .keyPassword("password");
+
+        SSLContext sslContext = sslConfig.createSSLContext();
+        JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
+                .sslContext(sslContext)
+                .hostnameVerifier((s, sslSession) -> true)
+                .register(MultiPartFeature.class).register(SseFeature.class)
+                .register(HttpAuthenticationFeature.basic("root", "root"));
+
+        RxClient<RxCompletionStageInvoker> restClient = RxCompletionStage.from(jerseyClientBuilder.build());
+        NewmanClient newmanClient = new NewmanClient(restClient, URI);
         try {
-            SLF4JBridgeHandler.removeHandlersForRootLogger();
-            SLF4JBridgeHandler.install();
-            final String URI = "https://localhost:8443/api/newman";
-            SslConfigurator sslConfig = SslConfigurator.newInstance()
-                    .trustStoreFile("keys/server.keystore")
-                    .trustStorePassword("password")
-                    .keyStoreFile("keys/server.keystore")
-                    .keyPassword("password");
 
-            SSLContext sslContext = sslConfig.createSSLContext();
-            JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
-                    .sslContext(sslContext)
-                    .hostnameVerifier((s, sslSession) -> true)
-                    .register(MultiPartFeature.class).register(SseFeature.class)
-                    .register(HttpAuthenticationFeature.basic("root", "root"));
-
-            RxClient<RxCompletionStageInvoker> restClient = RxCompletionStage.from(jerseyClientBuilder.build());
-            NewmanClient newmanClient = new NewmanClient(restClient, URI);
-            Job job = newmanClient.createJob(new JobRequest()).toCompletableFuture().get();
+            Build build = newmanClient.createBuild(new Build()).toCompletableFuture().get();
+            logger.debug("create a new build {}", build);
+            build = newmanClient.getBuild(build.getId()).toCompletableFuture().get();
+            logger.debug("got build {}", build);
+            JobRequest jobRequest = new JobRequest();
+            jobRequest.setBuildId(build.getId());
+            Job job = newmanClient.createJob(jobRequest).toCompletableFuture().get();
             logger.debug("creating new Job {}", job);
-            Batch<Job> jobs = newmanClient.jobs().toCompletableFuture().get();
+            Batch<Job> jobs = newmanClient.getJobs().toCompletableFuture().get();
             logger.debug("jobs are: {}", jobs);
             for (int i = 0; i < 100; i++) {
                 Test test = new Test();
@@ -65,16 +72,21 @@ public class NewmanClient {
                 logger.debug("read test by id {}, {}", test.getId(), t);
 
             }
-            Build build = newmanClient.createBuild(new Build()).toCompletableFuture().get();
-            logger.debug("create a new build {}", build);
-            build = newmanClient.getBuild(build.getId()).toCompletableFuture().get();
-            logger.debug("got build {}", build);
+
             Agent agent = new Agent();
-            agent.setId("foo");
-            build = newmanClient.subscribe(agent).toCompletableFuture().get();
-            logger.debug("agent {} subscribe to {}", agent.getId(), build);
+            agent.setName("foo");
+            job = newmanClient.subscribe(agent).toCompletableFuture().get();
+            logger.debug("agent {} subscribe to {}", agent.getName(), job);
+            agent = newmanClient.getAgent(agent.getName()).toCompletableFuture().get();
+            String jobId = newmanClient.ping(agent.getName()).toCompletableFuture().get();
+            logger.debug("agent {} is working on job {}", agent.getName(), jobId);
+
+            Batch<Agent> subscriptions = newmanClient.getSubscriptions(0, 100).toCompletableFuture().get();
+            logger.debug("subscriptions {}", subscriptions);
         } catch (Exception e) {
             logger.error(e.toString(), e);
+        } finally {
+            newmanClient.close();
         }
     }
 
@@ -83,19 +95,19 @@ public class NewmanClient {
         this.uri = uri;
     }
 
-    public CompletionStage<Batch<Job>> jobs(int offset, int limit) {
+    public CompletionStage<Batch<Job>> getJobs(int offset, int limit) {
         return restClient.target(uri).path("job").queryParam("offset", offset).queryParam("limit", limit).request()
                 .rx().get(new GenericType<Batch<Job>>() {
                 });
     }
 
-    public CompletionStage<Batch<Job>> jobs(int limit) {
+    public CompletionStage<Batch<Job>> getJobs(int limit) {
         return restClient.target(uri).path("job").queryParam("limit", limit).request()
                 .rx().get(new GenericType<Batch<Job>>() {
                 });
     }
 
-    public CompletionStage<Batch<Job>> jobs() {
+    public CompletionStage<Batch<Job>> getJobs() {
         return restClient.target(uri).path("job").request().rx().get(new GenericType<Batch<Job>>() {
         });
     }
@@ -120,31 +132,31 @@ public class NewmanClient {
     }
 
 
-    public CompletionStage<Build> createBuild(Build build){
+    public CompletionStage<Build> createBuild(Build build) {
         return restClient.target(uri).path("build").request().rx().put(Entity.json(build), Build.class);
     }
 
-    public CompletionStage<Build> getBuild(String id){
+    public CompletionStage<Build> getBuild(String id) {
         return restClient.target(uri).path("build").path(id).request().rx().get(Build.class);
     }
 
-    //todo continue implement
-
-    public CompletionStage<Build> subscribe(Agent agent) {
-        return restClient.target(uri).path("agent").request().rx().post(Entity.json(agent), Build.class);
+    public CompletionStage<Job> subscribe(Agent agent) {
+        return restClient.target(uri).path("subscribe").request().rx().post(Entity.json(agent), Job.class);
     }
 
-    public CompletionStage<Void> ping(String agentId) {
-        return restClient.target(uri).path("agent").path(agentId).request().rx().get(Void.class);
+    //todo
+    public CompletionStage<Batch<Agent>> getSubscriptions(int offset, int limit) {
+        return restClient.target(uri).path("subscribe").queryParam("offset", offset).queryParam("limit", limit).request()
+                .rx().get(new GenericType<Batch<Agent>>() {
+                });
     }
 
-    public CompletionStage<Build> build(String id) {
-        return restClient.target(uri).path("build").path(id).request().rx().get(Build.class);
+    public CompletionStage<String> ping(String agentName) {
+        return restClient.target(uri).path("ping").path(agentName).request().rx().get(String.class);
     }
 
-
-    public CompletionStage<Test> get(String agentId) {
-        return restClient.target(uri).path("test").request().rx().post(Entity.text(agentId), Test.class);
+    public CompletionStage<Agent> getAgent(String agentName) {
+        return restClient.target(uri).path("agent").path(agentName).request().rx().get(Agent.class);
     }
 
     public void close() {
