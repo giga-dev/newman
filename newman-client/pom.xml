@@ -59,7 +59,7 @@
                     <arguments>
                         <argument>-classpath</argument>
                         <classpath/>
-                        <argument>com.gigaspaces.newman.RestClient</argument>
+                        <argument>com.gigaspaces.newman.NewmanClient</argument>
                     </arguments>
                     <workingDirectory>../newman-server</workingDirectory>
                 </configuration>
