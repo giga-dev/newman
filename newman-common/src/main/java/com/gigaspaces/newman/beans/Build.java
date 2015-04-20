@@ -17,8 +17,10 @@ public class Build {
     private Map<String, String> shas;
     private String branch;
     private URI uri;
+    private State state;
 
     public Build() {
+        state = State.READY;
     }
 
     public String getId() {
@@ -53,6 +55,14 @@ public class Build {
         this.uri = uri;
     }
 
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
     @Override
     public String toString() {
         return "Build{" +
@@ -60,6 +70,7 @@ public class Build {
                 ", shas=" + shas +
                 ", branch='" + branch + '\'' +
                 ", uri=" + uri +
+                ", state=" + state +
                 '}';
     }
 }

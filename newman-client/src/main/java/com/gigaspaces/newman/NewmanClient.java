@@ -60,7 +60,19 @@ public class NewmanClient {
             }
             Batch<Test> tests = newmanClient.getTests(job.getId(), 0, 30).toCompletableFuture().get();
             logger.debug("tests are {}", tests);
+            for (Test test : tests.getValues()) {
+                Test t = newmanClient.getTest(test.getId()).toCompletableFuture().get();
+                logger.debug("read test by id {}, {}", test.getId(), t);
 
+            }
+            Build build = newmanClient.createBuild(new Build()).toCompletableFuture().get();
+            logger.debug("create a new build {}", build);
+            build = newmanClient.getBuild(build.getId()).toCompletableFuture().get();
+            logger.debug("got build {}", build);
+            Agent agent = new Agent();
+            agent.setId("foo");
+            build = newmanClient.subscribe(agent).toCompletableFuture().get();
+            logger.debug("agent {} subscribe to {}", agent.getId(), build);
         } catch (Exception e) {
             logger.error(e.toString(), e);
         }
@@ -103,13 +115,23 @@ public class NewmanClient {
                 });
     }
 
-    //todo continue implement
-    public CompletionStage<Test> test(String id) {
+    public CompletionStage<Test> getTest(String id) {
         return restClient.target(uri).path("test").path(id).request().rx().get(Test.class);
     }
 
-    public CompletionStage<Void> subscribe(Agent agent) {
-        return restClient.target(uri).path("agent").request().rx().post(Entity.json(agent), Void.class);
+
+    public CompletionStage<Build> createBuild(Build build){
+        return restClient.target(uri).path("build").request().rx().put(Entity.json(build), Build.class);
+    }
+
+    public CompletionStage<Build> getBuild(String id){
+        return restClient.target(uri).path("build").path(id).request().rx().get(Build.class);
+    }
+
+    //todo continue implement
+
+    public CompletionStage<Build> subscribe(Agent agent) {
+        return restClient.target(uri).path("agent").request().rx().post(Entity.json(agent), Build.class);
     }
 
     public CompletionStage<Void> ping(String agentId) {

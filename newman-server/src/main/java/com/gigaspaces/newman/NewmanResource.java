@@ -1,12 +1,15 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.dao.BuildDAO;
 import com.gigaspaces.newman.dao.JobDAO;
 import com.gigaspaces.newman.dao.TestDAO;
 import com.mongodb.MongoClient;
+import org.bson.types.ObjectId;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +37,7 @@ public class NewmanResource {
     private final Datastore ds;
     private final JobDAO jobDAO;
     private final TestDAO testDAO;
+    private final BuildDAO buildDAO;
 
     public NewmanResource() {
         mongoClient = new MongoClient("localhost");
@@ -43,6 +47,7 @@ public class NewmanResource {
         ds.ensureCaps();
         jobDAO = new JobDAO(morphia, mongoClient, DB);
         testDAO = new TestDAO(morphia, mongoClient, DB);
+        buildDAO = new BuildDAO(morphia, mongoClient, DB);
     }
 
     @GET
@@ -78,12 +83,56 @@ public class NewmanResource {
     @GET
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
-    public Batch<Test> tests(@DefaultValue("0") @QueryParam("offset") int offset,
+    public Batch<Test> getJobTests(@DefaultValue("0") @QueryParam("offset") int offset,
                              @DefaultValue("30") @QueryParam("limit") int limit, @QueryParam("jobId") String jobId, @Context UriInfo uriInfo) {
-        logger.info("jobId is {}", jobId);
         return new Batch<>(testDAO.find(testDAO.createQuery().field("jobId").equal(jobId).offset(offset).limit(limit)).asList(), offset, limit
                 , uriInfo);
     }
+
+    @GET
+    @Path("test/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Test getTest(@PathParam("id") String id) {
+        return testDAO.findOne(testDAO.createQuery().field("_id").equal(new ObjectId(id)));
+    }
+
+
+    @POST
+    @Path("agent")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Build uploadBuild(final Agent agent) {
+        Query<Build> query = buildDAO.createQuery();
+        query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
+        return buildDAO.findOne(query);
+    }
+
+    @PUT
+    @Path("build")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Build createBuild(final Build build) {
+        buildDAO.save(build);
+        return build;
+    }
+    @POST
+    @Path("build/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Build updateBuild(final @PathParam("id") String id, final Build build) {
+        build.setId(id);
+        buildDAO.save(build);
+        return build;
+    }
+
+    @GET
+    @Path("build/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Build getBuild(final @PathParam("id") String id) {
+        return buildDAO.findOne(buildDAO.createQuery().field("_id").equal(new ObjectId(id)));
+    }
+
 
     @POST
     @Path("build/{id}")
