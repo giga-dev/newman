@@ -12,6 +12,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import org.mongodb.morphia.query.UpdateResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,8 +92,17 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Test addTest(Test test) {
-        testDAO.save(test);
-        return test;
+        if(test.getJobId() == null){
+            throw new BadRequestException("can't add test with no jobId: " +  test);
+        }
+        if(jobDAO.exists(jobDAO.createQuery().field("_id").equal(new ObjectId(test.getJobId())))) {
+            test.setStatus(Test.Status.PENDING);
+            test.setScheduledAt(new Date());
+            testDAO.save(test);
+            return test;
+        }else{
+            throw new BadRequestException("Can't add test, job does not exists: " +  test);
+        }
     }
 
     @GET
@@ -120,15 +130,15 @@ public class NewmanResource {
         Query<Job> query = jobDAO.createQuery();
         query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
         Job job = jobDAO.findOne(query);
-        if (job != null) {
-            UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
-                    .set("lastTouchTime", new Date())
-                    .set("jobId", job.getId());
-            if(agent.getHost() != null){
-                updateOps.add("host", agent.getHost());
-            }
-            agentDAO.getDatastore().updateFirst(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, true);
+        UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
+                .set("lastTouchTime", new Date());
+        if (agent.getHost() != null) {
+            updateOps.add("host", agent.getHost());
         }
+        if (job != null) {
+            updateOps.set("jobId", job.getId());
+        }
+        agentDAO.getDatastore().updateFirst(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, true);
         return job;
     }
 
@@ -136,30 +146,60 @@ public class NewmanResource {
     @Path("subscribe")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Agent> getSubscriptions(@DefaultValue("0") @QueryParam("offset") int offset,
-                                   @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
+                                         @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
         return new Batch<>(agentDAO.find(agentDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit
                 , uriInfo);
     }
 
 
     @GET
-    @Path("ping/{name}")
+    @Path("ping/{name}/{jobId}/{testId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String ping(@PathParam("name") final String name) {
-        Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
+    public String ping(@PathParam("name") final String name, @PathParam("jobId") final String jobId
+            , @PathParam("testId") final String testId) {
+        UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date());
+        Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(name), updateOps, false, false);
         if (agent == null) {
-            throw new BadRequestException("Unknown agent " + name);
-        } else if (agent.getJobId() == null) {
-            throw new BadRequestException("Agent not working");
+            logger.error("Unknown agent " + name);
+            return null;
+        }
+        if (agent.getJobId() == null) {
+            logger.error("Agent {} not working on job {} test {}", agent, jobId, testId);
+            return null;
         } else {
             return agent.getJobId();
         }
     }
+
     @GET
     @Path("agent/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     public Agent getAgent(@PathParam("name") final String name) {
         return agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
+    }
+
+    @POST
+    @Path("agent/{name}/{jobId}")
+    @Produces(MediaType.APPLICATION_JSON)
+
+    public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId){
+        Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
+        if (agent == null) {
+//            throw new BadRequestException("Unknown agent " + name);
+            logger.error("bad request unknown agent {}", name);
+            return null;
+        }
+        if(!jobId.equals(agent.getJobId())){
+//            throw new BadRequestException("Agent agent is not on job " + jobId + " " + agent);
+            logger.error("Agent agent is not on job {} {} ", jobId, agent);
+            return null;
+        }
+        agent.setLastTouchTime(new Date());
+        Query<Test> query = testDAO.createQuery();
+        query.and(query.criteria("jobId").equal(jobId), query.criteria("status").equal(Test.Status.PENDING));
+        UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
+                .set("assignedAgent", name).set("startTime", new Date());
+        return testDAO.getDatastore().findAndModify(query, updateOps, false, false);
     }
 
     @PUT

@@ -45,6 +45,7 @@ public class NewmanClient {
                 .register(HttpAuthenticationFeature.basic("root", "root"));
 
         RxClient<RxCompletionStageInvoker> restClient = RxCompletionStage.from(jerseyClientBuilder.build());
+
         NewmanClient newmanClient = new NewmanClient(restClient, URI);
         try {
 
@@ -78,11 +79,16 @@ public class NewmanClient {
             job = newmanClient.subscribe(agent).toCompletableFuture().get();
             logger.debug("agent {} subscribe to {}", agent.getName(), job);
             agent = newmanClient.getAgent(agent.getName()).toCompletableFuture().get();
-            String jobId = newmanClient.ping(agent.getName()).toCompletableFuture().get();
-            logger.debug("agent {} is working on job {}", agent.getName(), jobId);
 
             Batch<Agent> subscriptions = newmanClient.getSubscriptions(0, 100).toCompletableFuture().get();
             logger.debug("subscriptions {}", subscriptions);
+
+
+            Test test = newmanClient.getReadyTest(agent.getName(), job.getId()).toCompletableFuture().get();
+
+            String jobId = newmanClient.ping(agent.getName(), job.getId(), test.getId()).toCompletableFuture().get();
+            logger.debug("agent {} is working on job {}", agent.getName(), jobId);
+
         } catch (Exception e) {
             logger.error(e.toString(), e);
         } finally {
@@ -144,19 +150,22 @@ public class NewmanClient {
         return restClient.target(uri).path("subscribe").request().rx().post(Entity.json(agent), Job.class);
     }
 
-    //todo
     public CompletionStage<Batch<Agent>> getSubscriptions(int offset, int limit) {
         return restClient.target(uri).path("subscribe").queryParam("offset", offset).queryParam("limit", limit).request()
                 .rx().get(new GenericType<Batch<Agent>>() {
                 });
     }
 
-    public CompletionStage<String> ping(String agentName) {
-        return restClient.target(uri).path("ping").path(agentName).request().rx().get(String.class);
+    public CompletionStage<String> ping(String agentName, String jobId, String testId) {
+        return restClient.target(uri).path("ping").path(agentName).path(jobId).path(testId).request().rx().get(String.class);
     }
 
     public CompletionStage<Agent> getAgent(String agentName) {
         return restClient.target(uri).path("agent").path(agentName).request().rx().get(Agent.class);
+    }
+
+    public CompletionStage<Test> getReadyTest(String agentName, String jobId) {
+        return restClient.target(uri).path("agent").path(agentName).path(jobId).request().rx().post(Entity.text(""), Test.class);
     }
 
     public void close() {

@@ -13,7 +13,8 @@ import java.util.List;
  */
 @Entity
 public class Test {
-    enum Status {PENDING, SUCCESS, FAIL}
+
+    public enum Status {PENDING, SUCCESS, FAIL, RUNNING}
 
     @Id
     private String id;
@@ -22,9 +23,10 @@ public class Test {
     private Status status;
     private String errorMessage;
     private List<URI> logs;
-    private String agentId;
+    private String assignedAgent;
     private Date startTime;
     private Date endTime;
+    private Date scheduledAt;
 
     public Test() {
     }
@@ -77,12 +79,12 @@ public class Test {
         this.logs = logs;
     }
 
-    public String getAgentId() {
-        return agentId;
+    public String getAssignedAgent() {
+        return assignedAgent;
     }
 
-    public void setAgentId(String agentId) {
-        this.agentId = agentId;
+    public void setAssignedAgent(String assignedAgent) {
+        this.assignedAgent = assignedAgent;
     }
 
     public Date getStartTime() {
@@ -101,6 +103,14 @@ public class Test {
         this.endTime = endTime;
     }
 
+    public Date getScheduledAt() {
+        return scheduledAt;
+    }
+
+    public void setScheduledAt(Date scheduledAt) {
+        this.scheduledAt = scheduledAt;
+    }
+
     @Override
     public String toString() {
         return "Test{" +
@@ -110,9 +120,10 @@ public class Test {
                 ", status=" + status +
                 ", errorMessage='" + errorMessage + '\'' +
                 ", logs=" + logs +
-                ", agentId='" + agentId + '\'' +
+                ", assignedAgent='" + assignedAgent + '\'' +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
+                ", scheduledAt=" + scheduledAt +
                 '}';
     }
 }
