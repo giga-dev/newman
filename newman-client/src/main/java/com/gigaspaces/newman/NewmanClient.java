@@ -85,7 +85,7 @@ public class NewmanClient {
 
 
             Test test = newmanClient.getReadyTest(agent.getName(), job.getId()).toCompletableFuture().get();
-
+            logger.info("getReadyTest({}, {}) returns {}", agent.getName(), job.getId(), test);
             String jobId = newmanClient.ping(agent.getName(), job.getId(), test.getId()).toCompletableFuture().get();
             logger.debug("agent {} is working on job {}", agent.getName(), jobId);
 

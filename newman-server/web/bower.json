@@ -18,6 +18,11 @@
     "polymer": "Polymer/polymer#~0.5.5",
     "core-icons": "Polymer/core-icons#~0.5.5",
     "core-elements": "Polymer/core-elements#~0.5.5",
-    "paper-elements": "Polymer/paper-elements#~0.5.5"
+    "paper-elements": "Polymer/paper-elements#~0.5.5",
+    "page.js": "~1.6.3",
+    "more-routing": "Polymore/more-routing#~0.5.0",
+    "core-list": "Polymer/core-list#~0.5.5",
+    "core-image": "Polymer/core-image#~0.5.5",
+    "Faker": "~2.1.2"
   }
 }

@@ -12,7 +12,6 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
-import org.mongodb.morphia.query.UpdateResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,8 +62,8 @@ public class NewmanResource {
 //    @RolesAllowed("admin")
     public Batch<Job> jobs(@DefaultValue("0") @QueryParam("offset") int offset,
                            @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
-        return new Batch<>(jobDAO.find(jobDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit
-                , uriInfo);
+        return new Batch<>(jobDAO.find(jobDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit,
+                false, uriInfo);
     }
 
     @PUT
@@ -92,16 +91,16 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Test addTest(Test test) {
-        if(test.getJobId() == null){
-            throw new BadRequestException("can't add test with no jobId: " +  test);
+        if (test.getJobId() == null) {
+            throw new BadRequestException("can't add test with no jobId: " + test);
         }
-        if(jobDAO.exists(jobDAO.createQuery().field("_id").equal(new ObjectId(test.getJobId())))) {
+        if (jobDAO.exists(jobDAO.createQuery().field("_id").equal(new ObjectId(test.getJobId())))) {
             test.setStatus(Test.Status.PENDING);
             test.setScheduledAt(new Date());
             testDAO.save(test);
             return test;
-        }else{
-            throw new BadRequestException("Can't add test, job does not exists: " +  test);
+        } else {
+            throw new BadRequestException("Can't add test, job does not exists: " + test);
         }
     }
 
@@ -109,9 +108,17 @@ public class NewmanResource {
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Test> getJobTests(@DefaultValue("0") @QueryParam("offset") int offset,
-                                   @DefaultValue("30") @QueryParam("limit") int limit, @QueryParam("jobId") String jobId, @Context UriInfo uriInfo) {
-        return new Batch<>(testDAO.find(testDAO.createQuery().field("jobId").equal(jobId).offset(offset).limit(limit)).asList(), offset, limit
-                , uriInfo);
+                                   @DefaultValue("30") @QueryParam("limit") int limit,
+                                   @DefaultValue("false") @QueryParam("all") boolean all,
+                                   @QueryParam("jobId") String jobId, @Context UriInfo uriInfo) {
+        Query<Test> query = testDAO.createQuery();
+        if (jobId != null) {
+            query.field("jobId").equal(jobId);
+        }
+        if (!all) {
+            query.offset(offset).limit(limit);
+        }
+        return new Batch<>(testDAO.find(query).asList(), offset, limit, all, uriInfo);
     }
 
     @GET
@@ -147,8 +154,8 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Agent> getSubscriptions(@DefaultValue("0") @QueryParam("offset") int offset,
                                          @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
-        return new Batch<>(agentDAO.find(agentDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit
-                , uriInfo);
+        return new Batch<>(agentDAO.find(agentDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit,
+                false, uriInfo);
     }
 
 
@@ -182,14 +189,14 @@ public class NewmanResource {
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
 
-    public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId){
+    public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
         Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
         if (agent == null) {
 //            throw new BadRequestException("Unknown agent " + name);
             logger.error("bad request unknown agent {}", name);
             return null;
         }
-        if(!jobId.equals(agent.getJobId())){
+        if (!jobId.equals(agent.getJobId())) {
 //            throw new BadRequestException("Agent agent is not on job " + jobId + " " + agent);
             logger.error("Agent agent is not on job {} {} ", jobId, agent);
             return null;

@@ -25,15 +25,19 @@ public class Batch<T> {
     public Batch() {
     }
 
-    public Batch(List<T> values, int offset, int limit, UriInfo uriInfo) {
+    public Batch(List<T> values, int offset, int limit, boolean all, UriInfo uriInfo) {
         this.values = values;
         this.offset = offset;
         this.limit = limit;
-        if(0 < offset){
-            this.back = uriInfo.getAbsolutePathBuilder().queryParam("offset", Math.max(0, offset - limit)).queryParam("limit", limit).build();
+        if(all){
+            this.self = uriInfo.getAbsolutePathBuilder().queryParam("all", true).build();
+        }else {
+            if (0 < offset) {
+                this.back = uriInfo.getAbsolutePathBuilder().queryParam("offset", Math.max(0, offset - limit)).queryParam("limit", limit).build();
+            }
+            this.self = uriInfo.getAbsolutePathBuilder().queryParam("offset", offset).queryParam("limit", limit).build();
+            this.next = uriInfo.getAbsolutePathBuilder().queryParam("offset", offset + limit).queryParam("limit", limit).build();
         }
-        this.self = uriInfo.getAbsolutePathBuilder().queryParam("offset", offset).queryParam("limit", limit).build();
-        this.next = uriInfo.getAbsolutePathBuilder().queryParam("offset", offset + limit).queryParam("limit", limit).build();
     }
 
 
