@@ -171,4 +171,23 @@ public class NewmanClient {
     public void close() {
         restClient.close();
     }
+
+    public static NewmanClient create(String user, String pw) {
+        final String URI = "https://localhost:8443/api/newman";
+        SslConfigurator sslConfig = SslConfigurator.newInstance()
+                .trustStoreFile("keys/server.keystore")
+                .trustStorePassword("password")
+                .keyStoreFile("keys/server.keystore")
+                .keyPassword("password");
+
+        SSLContext sslContext = sslConfig.createSSLContext();
+        JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
+                .sslContext(sslContext)
+                .hostnameVerifier((s, sslSession) -> true)
+                .register(MultiPartFeature.class).register(SseFeature.class)
+                .register(HttpAuthenticationFeature.basic(user, pw));
+
+        RxClient<RxCompletionStageInvoker> restClient = RxCompletionStage.from(jerseyClientBuilder.build());
+        return new NewmanClient(restClient, URI);
+    }
 }

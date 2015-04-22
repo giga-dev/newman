@@ -34,6 +34,7 @@
         <module>newman-common</module>
         <module>newman-client</module>
         <module>newman-server</module>
+        <module>newman-agent</module>
     </modules>
 
     <dependencies>
