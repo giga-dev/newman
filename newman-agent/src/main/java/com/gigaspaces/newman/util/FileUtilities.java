@@ -1,6 +1,5 @@
 package com.gigaspaces.newman.util;
 
-import com.sun.deploy.util.SystemUtils;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.FileUtils;
