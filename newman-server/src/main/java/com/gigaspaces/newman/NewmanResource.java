@@ -185,10 +185,22 @@ public class NewmanResource {
         return agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
     }
 
+    @GET
+    @Path("agent")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<Agent> getAgents(@DefaultValue("0") @QueryParam("offset") int offset,
+                                  @DefaultValue("30") @QueryParam("limit") int limit,
+                                  @DefaultValue("false") @QueryParam("all") boolean all, @Context UriInfo uriInfo) {
+        Query<Agent> query = agentDAO.createQuery();
+        if (!all) {
+            query.offset(offset).limit(limit);
+        }
+        return new Batch<>(agentDAO.find(query).asList(), offset, limit, all, uriInfo);
+    }
+
     @POST
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
-
     public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
         Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
         if (agent == null) {
@@ -207,6 +219,20 @@ public class NewmanResource {
         UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
                 .set("assignedAgent", name).set("startTime", new Date());
         return testDAO.getDatastore().findAndModify(query, updateOps, false, false);
+    }
+
+
+    @GET
+    @Path("build")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<Build> getBuilds(@DefaultValue("0") @QueryParam("offset") int offset,
+                                  @DefaultValue("30") @QueryParam("limit") int limit,
+                                  @DefaultValue("false") @QueryParam("all") boolean all, @Context UriInfo uriInfo) {
+        Query<Build> query = buildDAO.createQuery();
+        if (!all) {
+            query.offset(offset).limit(limit);
+        }
+        return new Batch<>(buildDAO.find(query).asList(), offset, limit, all, uriInfo);
     }
 
     @PUT

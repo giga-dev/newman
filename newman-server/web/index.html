@@ -1,9 +1,10 @@
 <html>
 <head>
     <title>server</title>
-
-    <meta name="viewport"
-          content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
 
     <script src="../components/webcomponentsjs/webcomponents.js"></script>
     <link rel="import" href="../components/core-icons/core-icons.html">
@@ -14,9 +15,14 @@
     <link rel="import" href="../components/core-item/core-item.html">
     <link rel="import" href="../components/core-pages/core-pages.html">
     <link rel="import" href="../components/paper-icon-button/paper-icon-button.html">
-    <link rel="import" href="../components/font-roboto/roboto.html">
+    <!--<link rel="import" href="../components/font-roboto/roboto.html">-->
+    <link rel="stylesheet" href="robot.css">
+
     <link rel="import" href="routes.html">
-    <link rel="import" href="tests-list.html">
+    <link rel="import" href="tests.html">
+    <link rel="import" href="jobs.html">
+    <link rel="import" href="builds.html">
+    <link rel="import" href="agents.html">
 
     <script>
 
@@ -38,6 +44,7 @@
 
 
 
+
     </script>
     <style>
         .icon-larger{
@@ -51,26 +58,25 @@
 
 <body unresolved fullbleed fit layout vertical>
 <template is="auto-binding" id="app">
-
     <core-drawer-panel id="drawerPanel">
         <core-header-panel drawer>
             <core-toolbar>Menu</core-toolbar>
             <more-route-selector>
                 <core-menu>
                     <core-item label="Home" route="home">
-                        <a href="{{urlFor('home')}}"></a>
+                        <a href="{{urlFor('home')}}" core-drawer-toggle></a>
                     </core-item>
-                    <core-item label="Build" route="builds">
-                        <a href="{{urlFor('builds')}}"></a>
+                    <core-item label="Builds" route="builds">
+                        <a href="{{urlFor('builds')}}" core-drawer-toggle></a>
                     </core-item>
                     <core-item label="Jobs" route="jobs">
-                        <a href="{{urlFor('jobs')}}"></a>
+                        <a href="{{urlFor('jobs')}}" core-drawer-toggle></a>
                     </core-item>
                     <core-item label="Agents" route="agents">
-                        <a href="{{urlFor('agents')}}"></a>
+                        <a href="{{urlFor('agents')}}" core-drawer-toggle></a>
                     </core-item>
                     <core-item label="Tests" route="tests">
-                        <a href="{{urlFor('tests')}}"></a>
+                        <a href="{{urlFor('tests')}}" core-drawer-toggle></a>
                     </core-item>
                 </core-menu>
             </more-route-selector>
@@ -89,28 +95,38 @@
                         <section route="home">
                             <h1>Home</h1>
 
-                            <div>This is the home section</div>
+                            <div>This is the home section.</div>
+                            <br>
+
+                            <h1>Nothing there yet.</h1>
                         </section>
                         <section route="builds">
                             <h1>Builds</h1>
-
-                            <div>This is the builds section</div>
+                            <builds-table url="api/newman/build"></builds-table>
                         </section>
                         <section route="jobs">
                             <h1>Jobs</h1>
-
-                            <div>This is the jobs section</div>
+                            <jobs-table url="api/newman/job?all=true"></jobs-table>
                         </section>
                         <section route="agents">
                             <h1>Agents</h1>
-
-                            <div>This is the agents section</div>
+                            <agent-table url="api/newman/agent?all=true"></agent-table>
                         </section>
                         <section route="tests">
                             <h1>Tests</h1>
-                            <div>
-                                <tests-list url="api/newman/test?all=true"></tests-list>
-                            </div>
+                            <tests-table url="api/newman/test?all=true"></tests-table>
+                        </section>
+                        <section route="job">
+                            <h1>Details for job {{route('job').params.id}}.</h1>
+
+                            <h2>All the tests of {{route('job').params.id}}.</h2>
+                            <tests-table url="api/newman/test?jobId={{route('job').params.id}}&all=true"></tests-table>
+                        </section>
+                        <section route="build">
+                            <h1>Details for build {{route('build').params.id}}</h1>
+
+                            <h2>build {{route('build').params.id}} participate in the following jobs</h2>
+                            <jobs-table url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
                         </section>
                     </core-pages>
                 </more-route-selector>
@@ -118,7 +134,6 @@
         </core-header-panel>
     </core-drawer-panel>
 </template>
-<!--<script src="../components/page.js/page.js"></script>-->
 <script src="app.js"></script>
 </body>
 </html>

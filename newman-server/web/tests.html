@@ -1,0 +1,64 @@
+<script src="../components/webcomponentsjs/webcomponents.js"></script>
+
+<link rel="import" href="routes.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+
+<polymer-element name="tests-table" attributes="url">
+    <template>
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <!--<link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap-theme.css">-->
+        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
+                   withCredentials="true"></core-ajax>
+        <div class="content" flex>
+            <form class="form-inline">
+                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter" class="form-control">
+            </form>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped table-bordered table-condensed">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>JobId</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template repeat="{{item in data}}">
+                            <tr>
+                                <td>{{item.name}}</td>
+                                <td><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <script>
+    Polymer({
+      applyAuthorStyles: true,
+      praise: 'cool',
+      filter: null,
+      allValues: [],
+      data: [],
+      runFilter: function(){
+          this.data  = this.applyFilter(this.filter, this.allValues);
+      },
+      ajaxResponse: function(event,resp){
+           this.allValues = resp.response.values;
+           this.runFilter();
+      },
+      applyFilter: function(filter, values){
+            if(values && filter != null && filter != undefined){
+                return values.filter(function(value){
+                    return value.name != undefined && value.name != null && -1 < value.name.indexOf(filter);
+                    });
+            }else{
+                return values;
+            }
+      },
+    });
+
+
+    </script>
+</polymer-element>
