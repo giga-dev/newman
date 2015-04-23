@@ -2,6 +2,9 @@ language: java
 jdk:
   - oraclejdk8
 
+before_script:
+  - npm install -g bower
+
 script: "./build.sh"
 
 # white list
