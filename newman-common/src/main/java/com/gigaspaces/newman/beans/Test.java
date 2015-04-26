@@ -4,6 +4,7 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -18,8 +19,12 @@ public class Test {
 
     @Id
     private String id;
-    private String name;
     private String jobId;
+    private int localId;
+    private String name;
+    private Collection<String> arguments;
+    private String testType;
+    private long timeout;
     private Status status;
     private String errorMessage;
     private List<URI> logs;
@@ -47,12 +52,20 @@ public class Test {
         this.name = name;
     }
 
+    public Collection<String> getArguments() {
+        return arguments;
+    }
+
     public String getJobId() {
         return jobId;
     }
 
     public void setJobId(String jobId) {
         this.jobId = jobId;
+    }
+
+    public int getLocalId() {
+        return localId;
     }
 
     public Status getStatus() {
@@ -110,6 +123,15 @@ public class Test {
     public void setScheduledAt(Date scheduledAt) {
         this.scheduledAt = scheduledAt;
     }
+
+    public long getTimeout() {
+        return timeout;
+    }
+
+    public String getTestType() {
+        return testType;
+    }
+
 
     @Override
     public String toString() {
