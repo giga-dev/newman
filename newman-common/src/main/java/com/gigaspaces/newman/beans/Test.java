@@ -56,6 +56,10 @@ public class Test {
         return arguments;
     }
 
+    public void setArguments(Collection<String> arguments) {
+        this.arguments = arguments;
+    }
+
     public String getJobId() {
         return jobId;
     }
@@ -66,6 +70,10 @@ public class Test {
 
     public int getLocalId() {
         return localId;
+    }
+
+    public void setLocalId(int localId) {
+        this.localId = localId;
     }
 
     public Status getStatus() {
@@ -128,10 +136,17 @@ public class Test {
         return timeout;
     }
 
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
+    }
+
     public String getTestType() {
         return testType;
     }
 
+    public void setTestType(String testType) {
+        this.testType = testType;
+    }
 
     @Override
     public String toString() {

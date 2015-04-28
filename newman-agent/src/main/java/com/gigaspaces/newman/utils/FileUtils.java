@@ -2,6 +2,7 @@ package com.gigaspaces.newman.utils;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -36,11 +37,12 @@ public class FileUtils {
     }
 
     public static void delete(Path path) throws IOException {
-        if (Files.isDirectory(path)) {
+        /*if (Files.isDirectory(path)) {
             for (Path f : Files.newDirectoryStream(path))
                 delete(f);
         }
-        Files.delete(path);
+        Files.delete(path);*/
+        org.apache.commons.io.FileUtils.deleteDirectory(path.toFile());
     }
 
     public static String readTextFile(Path file) throws IOException {
@@ -66,7 +68,18 @@ public class FileUtils {
         }
     }
 
-    public static void zip(Path sourceFolder, Path targetZipFile) {
-        // TODO: Implement
+    public static void zip(Path sourceFolder, Path targetZipFile) throws IOException {
+        try {
+            ZipFile zipFile = new ZipFile(targetZipFile.toFile());
+            ZipParameters zipParameters = new ZipParameters();
+            zipParameters.setIncludeRootFolder(false);
+            zipFile.addFolder(sourceFolder.toFile(), zipParameters);
+        } catch (ZipException e) {
+            throw new IOException("Failed to zip " + sourceFolder + " into " + targetZipFile, e);
+        }
+    }
+
+    public static void copyFile(Path source, Path target) throws IOException {
+        org.apache.commons.io.FileUtils.copyFile(source.toFile(), target.toFile());
     }
 }

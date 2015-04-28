@@ -9,8 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static com.gigaspaces.newman.utils.FileUtils.*;
 
@@ -20,9 +21,11 @@ public class JobExecutor {
 
     private final Job job;
     private final Path jobFolder;
+    private final Path newmanFolder;
 
     public JobExecutor(Job job, String basePath) {
         this.job = job;
+        this.newmanFolder = Paths.get(basePath);
         this.jobFolder = append(basePath, "job-" + job.getId());
     }
 
@@ -30,17 +33,21 @@ public class JobExecutor {
         return job;
     }
 
-    public void setup() {
+    public boolean setup() {
         logger.info("Starting setup for job {}...", job.getId());
         try {
             logger.info("Creating job folder {}", jobFolder);
             createFolder(jobFolder);
 
             Path resourcesFolder = createFolder(append(jobFolder, "resources"));
+            if (job.getResources() == null){
+                logger.warn("The job {} has no resources", job.getId());
+                return false;
+            }
             logger.info("Downloading {} resources into {}...", job.getResources().size(), resourcesFolder);
-            for (String resource : job.getResources()) {
+            for (URI resource : job.getResources()) {
                 logger.info("Downloading {}...", resource);
-                download(new URL(resource), resourcesFolder);
+                download(resource.toURL(), resourcesFolder);
             }
 
             logger.info("Extracting Newman Artifacts...");
@@ -54,10 +61,13 @@ public class JobExecutor {
                 throw new IOException("Setup script " + result.getExitCode() == null ? "timed out" : "returned " + result.getExitCode());
 
             logger.info("Setup for job {} completed successfully", job.getId());
+            return true;
         } catch (IOException e) {
             logger.error("Setup for job {} has failed: {}", job.getId(), e);
+            return false;
         } catch (InterruptedException e) {
             logger.error("Setup for job {} was interrupted", job.getId());
+            return false;
         }
     }
 
@@ -84,7 +94,13 @@ public class JobExecutor {
             testResult.setEndTime(scriptResult.getEndTime());
             if (scriptResult.getExitCode() != null) {
                 testResult.setPassed(scriptResult.getExitCode() == 0);
-                testResult.setErrorMessage(readTextFile(append(testFolder, "error.txt")));
+                try {
+                    String errorMessage = readTextFile(append(testFolder, "error.txt"));
+                    testResult.setErrorMessage(errorMessage);
+                }
+                catch (IOException e){
+                    testResult.setErrorMessage("No error.txt file");
+                }
             } else {
                 // test timed out
                 testResult.setPassed(false);
@@ -99,8 +115,17 @@ public class JobExecutor {
         }
 
         // Pack & upload output files (logs, etc.)
-        zip(outputFolder, append(testFolder, "output.zip"));
+        try {
+            zip(outputFolder, append(testFolder, "output.zip"));
+        } catch (IOException e) {
+            logger.warn("Failed to zip output folder folder {}", outputFolder);
+        }
         // TODO: Where should the output.zip be uploaded to? synchronously?
+        /*try {
+            FileUtils.copyFile(append(testFolder, "output.zip"), append(append(newmanFolder, "logs"), "output" + test.getLocalId() + ".zip"));
+        } catch (IOException e) {
+            logger.warn("Failed to upload output zip");
+        }*/
 
         // Cleanup:
         try {

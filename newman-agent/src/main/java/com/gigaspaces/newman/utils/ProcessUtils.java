@@ -19,7 +19,8 @@ public class ProcessUtils {
             throws IOException, InterruptedException {
         // Setup:
         ProcessBuilder processBuilder = new ProcessBuilder(file.toString());
-        processBuilder.command().addAll(arguments);
+        if (arguments != null)
+            processBuilder.command().addAll(arguments);
         processBuilder.directory(workingFolder.toFile());
         processBuilder.redirectErrorStream(true);
         if (outputPath != null)

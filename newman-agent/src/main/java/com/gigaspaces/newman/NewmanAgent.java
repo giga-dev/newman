@@ -1,17 +1,18 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Agent;
-import com.gigaspaces.newman.beans.Job;
-import com.gigaspaces.newman.beans.Test;
-import com.gigaspaces.newman.beans.TestResult;
+import com.gigaspaces.newman.beans.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  @author Boris
@@ -21,12 +22,12 @@ import java.util.concurrent.TimeUnit;
 public class NewmanAgent {
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanAgent.class);
-
+    AtomicInteger localId = new AtomicInteger(1); //TODO rm this var
     private final NewmanAgentConfig config;
     private final ThreadPoolExecutor workers;
     private final String name;
     private final NewmanClient client;
-    private volatile boolean active;
+    private volatile boolean active = true;
 
     public static void main(String[] args) {
 
@@ -35,6 +36,9 @@ public class NewmanAgent {
             agent.start();
         } catch (InterruptedException e) {
             logger.info("Agent was interrupted");
+        }
+        catch (Exception e) {
+            logger.error("Agent was stopped unexpectedly", e);
         }
         finally {
             agent.close();
@@ -56,7 +60,13 @@ public class NewmanAgent {
         while (active){
             Job job = waitForJob();
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
-            jobExecutor.setup();
+            boolean setupFinished = jobExecutor.setup();
+            if (!setupFinished){
+                logger.error("Setup of job {} failed, will wait for a new job", job.getId());
+                jobExecutor.teardown();
+                //TODO inform the server that agent is not working on this job
+                continue;
+            }
 
             // Submit workers:
             for (int i =0; i < config.getNumOfWorkers(); i++) {
@@ -94,7 +104,8 @@ public class NewmanAgent {
 
         while (true){
             try {
-                Job job = client.subscribe(agent).toCompletableFuture().get();
+                //TODO rm comment
+                Job job = createMockJob()/*client.subscribe(agent).toCompletableFuture().get()*/;
                 if (job != null)
                     return job;
                 logger.info("Agent did not find a job to run, will try again in {} ms", config.getJobPollInterval());
@@ -107,7 +118,11 @@ public class NewmanAgent {
 
     private Test findTest(Job job)  {
         try {
-            return client.getReadyTest(name, job.getId()).toCompletableFuture().get();
+            // TODO rm comment and the mock if
+            if (localId.get() % 6 == 0 ){
+                return null;
+            }
+            return createMockTest(job.getId(), name)/*client.getReadyTest(name, job.getId()).toCompletableFuture().get()*/;
         } catch (InterruptedException e) {
             logger.info("Worker #{} was interrupted while waiting for test");
             return null;
@@ -121,5 +136,45 @@ public class NewmanAgent {
         logger.info("Test #" + testResult.getTestId() + (testResult.isPassed() ? " passed" : " failed"));
         // TODO: Report test;
         // TODO: Upload test logs;
+    }
+
+    //TODO rm this method
+    public Test createMockTest(String jobId, String agentId) throws ExecutionException,InterruptedException {
+        Test t = new Test();
+
+        t.setJobId(jobId);
+        t.setId(UUID.randomUUID().toString());
+        t.setStatus(Test.Status.RUNNING);
+        t.setAssignedAgent(agentId);
+        t.setTimeout(1000 * 60);
+        t.setTestType("junit");
+        t.setLocalId(localId.getAndIncrement());
+        Collection<String> args = new ArrayList<>();
+        String testName = "com.gigaspaces.test.newman.NewmanBasicMockTest";
+        String methodName = "testMock";
+        args.add(testName);
+        args.add(methodName);
+        t.setArguments(args);
+
+        return t;
+    }
+
+    //TODO rm this method
+    public Job createMockJob() throws ExecutionException {
+        Job j = new Job();
+
+        URI artifactsURI = URI.create("http://tarzan/users/boris/newman/newman-artifacts.zip");
+        URI buildURI = URI.create("http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13500-203/xap-premium/1.5/gigaspaces-xap-premium-10.2.0-m1-b13500-203.zip");
+        URI testsURI = URI.create("http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13500-203/testsuite-1.5.zip");
+        Collection<URI> collection = new ArrayList<>();
+        collection.add(artifactsURI);
+        collection.add(buildURI);
+        collection.add(testsURI);
+        j.setResources(collection);
+
+        j.setId(UUID.randomUUID().toString());
+        j.setSubmittedBy("mock");
+        j.setState(State.READY);
+        return j;
     }
 }

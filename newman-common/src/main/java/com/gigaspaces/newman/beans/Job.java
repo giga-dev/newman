@@ -4,9 +4,7 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Barak Bar Orion
@@ -17,7 +15,7 @@ public class Job {
     @Id
     private String id;
     private Build build;
-    private Collection<String> resources;
+    private Collection<URI> resources;
     private Date submitTime;
     private Date startTime;
     private Date endTime;
@@ -107,11 +105,11 @@ public class Job {
                 '}';
     }
 
-    public Collection<String> getResources() {
+    public Collection<URI> getResources() {
         return resources;
     }
 
-    public void setResources(Collection<String> resources) {
+    public void setResources(Collection<URI> resources) {
         this.resources = resources;
     }
 }
