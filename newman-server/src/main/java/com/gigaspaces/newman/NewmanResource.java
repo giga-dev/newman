@@ -140,7 +140,7 @@ public class NewmanResource {
         UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
                 .set("lastTouchTime", new Date());
         if (agent.getHost() != null) {
-            updateOps.add("host", agent.getHost());
+            updateOps.set("host", agent.getHost());
         }
         if (job != null) {
             updateOps.set("jobId", job.getId());
