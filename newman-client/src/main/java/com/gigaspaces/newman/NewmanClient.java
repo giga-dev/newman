@@ -16,6 +16,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
+import java.net.InetAddress;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -76,6 +77,7 @@ public class NewmanClient {
 
             Agent agent = new Agent();
             agent.setName("foo");
+            agent.setHost(InetAddress.getLocalHost().getCanonicalHostName());
             job = newmanClient.subscribe(agent).toCompletableFuture().get();
             logger.debug("agent {} subscribe to {}", agent.getName(), job);
             agent = newmanClient.getAgent(agent.getName()).toCompletableFuture().get();

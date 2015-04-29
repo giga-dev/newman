@@ -1,6 +1,7 @@
 package com.gigaspaces.newman;
 
 
+import com.gigaspaces.newman.config.Config;
 import org.eclipse.jetty.security.*;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Connector;
@@ -28,6 +29,8 @@ public class Main {
 
         MorphiaLoggerFactory.registerLogger(SLF4JLoggerImplFactory.class);
 
+        Config config = Config.fromArgs(args);
+
         Server server = new Server(8080);
         /* security */
         LoginService loginService = new HashLoginService("MyRealm",
@@ -53,6 +56,7 @@ public class Main {
         /* security */
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setInitParameter("config", config.asJSON());
         context.setContextPath("/");
         // security
         context.setSecurityHandler(security);

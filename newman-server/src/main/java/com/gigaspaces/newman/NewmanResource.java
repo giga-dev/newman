@@ -1,6 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.config.Config;
 import com.gigaspaces.newman.dao.AgentDAO;
 import com.gigaspaces.newman.dao.BuildDAO;
 import com.gigaspaces.newman.dao.JobDAO;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.inject.Singleton;
+import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -35,7 +37,7 @@ import java.util.zip.ZipInputStream;
 @PermitAll
 public class NewmanResource {
     private static final Logger logger = LoggerFactory.getLogger(NewmanResource.class);
-    private final static String DB = "db";
+
     private final MongoClient mongoClient;
     private final Morphia morphia;
     private final Datastore ds;
@@ -43,17 +45,19 @@ public class NewmanResource {
     private final TestDAO testDAO;
     private final BuildDAO buildDAO;
     private final AgentDAO agentDAO;
+    private final Config config;
 
-    public NewmanResource() {
-        mongoClient = new MongoClient("localhost");
+    public NewmanResource(@Context ServletContext servletContext) {
+        this.config = Config.fromString(servletContext.getInitParameter("config"));
+        mongoClient = new MongoClient(config.getMongo().getHost());
         morphia = new Morphia().map(Job.class, Agent.class, Build.class, Test.class);
-        ds = morphia.createDatastore(mongoClient, DB);
+        ds = morphia.createDatastore(mongoClient, config.getMongo().getDb());
         ds.ensureIndexes();
         ds.ensureCaps();
-        jobDAO = new JobDAO(morphia, mongoClient, DB);
-        testDAO = new TestDAO(morphia, mongoClient, DB);
-        buildDAO = new BuildDAO(morphia, mongoClient, DB);
-        agentDAO = new AgentDAO(morphia, mongoClient, DB);
+        jobDAO = new JobDAO(morphia, mongoClient, config.getMongo().getDb());
+        testDAO = new TestDAO(morphia, mongoClient, config.getMongo().getDb());
+        buildDAO = new BuildDAO(morphia, mongoClient, config.getMongo().getDb());
+        agentDAO = new AgentDAO(morphia, mongoClient, config.getMongo().getDb());
     }
 
     @GET

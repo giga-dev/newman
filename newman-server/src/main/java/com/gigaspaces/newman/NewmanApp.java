@@ -9,7 +9,10 @@ import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Context;
 
 /**
  * Created by Barak Bar Orion
@@ -19,6 +22,8 @@ import javax.ws.rs.ApplicationPath;
 public class NewmanApp extends ResourceConfig {
     @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger(NewmanApp.class);
+
+
 
     public NewmanApp() {
         super(NewmanResource.class, BroadcasterResource.class, RolesAllowedDynamicFeature.class,
