@@ -27,6 +27,14 @@ public class JobRequest {
         this.buildId = buildId;
     }
 
+    public String getSuiteId() {
+        return suiteId;
+    }
+
+    public void setSuiteId(String suiteId) {
+        this.suiteId = suiteId;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
