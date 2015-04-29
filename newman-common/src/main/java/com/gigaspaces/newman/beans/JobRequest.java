@@ -27,14 +27,6 @@ public class JobRequest {
         this.buildId = buildId;
     }
 
-    public Collection<URI> getResources() {
-        return resources;
-    }
-
-    public void setResources(Collection<URI> resources) {
-        this.resources = resources;
-    }
-
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
