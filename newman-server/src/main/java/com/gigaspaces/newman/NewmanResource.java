@@ -78,6 +78,7 @@ public class NewmanResource {
             job.setState(State.READY);
             job.setSubmitTime(new Date());
             job.setSubmittedBy(sc.getUserPrincipal().getName());
+            job.setResources(jobRequest.getResources());
             jobDAO.save(job);
             return job;
         } else {

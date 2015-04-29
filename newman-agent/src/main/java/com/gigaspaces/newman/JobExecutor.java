@@ -21,11 +21,9 @@ public class JobExecutor {
 
     private final Job job;
     private final Path jobFolder;
-    private final Path newmanFolder;
 
     public JobExecutor(Job job, String basePath) {
         this.job = job;
-        this.newmanFolder = Paths.get(basePath);
         this.jobFolder = append(basePath, "job-" + job.getId());
     }
 
@@ -76,7 +74,8 @@ public class JobExecutor {
         final Path testFolder = append(jobFolder, "test-" + test.getLocalId());
         final Path outputFolder = append(testFolder, "output");
         final TestResult testResult = new TestResult();
-        testResult.setTestId(test.getLocalId());
+        testResult.setTestId(test.getId());
+        testResult.setLocalId(test.getLocalId());
 
         try {
             logger.info("Creating test folder - {}", testFolder);

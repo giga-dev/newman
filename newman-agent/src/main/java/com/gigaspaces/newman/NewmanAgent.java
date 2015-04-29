@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class NewmanAgent {
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanAgent.class);
-    AtomicInteger localId = new AtomicInteger(1); //TODO rm this var
     private final NewmanAgentConfig config;
     private final ThreadPoolExecutor workers;
     private final String name;
@@ -104,8 +103,7 @@ public class NewmanAgent {
 
         while (true){
             try {
-                //TODO rm comment
-                Job job = createMockJob()/*client.subscribe(agent).toCompletableFuture().get()*/;
+                Job job = client.subscribe(agent).toCompletableFuture().get();
                 if (job != null)
                     return job;
                 logger.info("Agent did not find a job to run, will try again in {} ms", config.getJobPollInterval());
@@ -118,11 +116,7 @@ public class NewmanAgent {
 
     private Test findTest(Job job)  {
         try {
-            // TODO rm comment and the mock if
-            if (localId.get() % 6 == 0 ){
-                return null;
-            }
-            return createMockTest(job.getId(), name)/*client.getReadyTest(name, job.getId()).toCompletableFuture().get()*/;
+            return client.getReadyTest(name, job.getId()).toCompletableFuture().get();
         } catch (InterruptedException e) {
             logger.info("Worker #{} was interrupted while waiting for test");
             return null;
@@ -136,45 +130,5 @@ public class NewmanAgent {
         logger.info("Test #" + testResult.getTestId() + (testResult.isPassed() ? " passed" : " failed"));
         // TODO: Report test;
         // TODO: Upload test logs;
-    }
-
-    //TODO rm this method
-    public Test createMockTest(String jobId, String agentId) throws ExecutionException,InterruptedException {
-        Test t = new Test();
-
-        t.setJobId(jobId);
-        t.setId(UUID.randomUUID().toString());
-        t.setStatus(Test.Status.RUNNING);
-        t.setAssignedAgent(agentId);
-        t.setTimeout(1000 * 60);
-        t.setTestType("junit");
-        t.setLocalId(localId.getAndIncrement());
-        Collection<String> args = new ArrayList<>();
-        String testName = "com.gigaspaces.test.newman.NewmanBasicMockTest";
-        String methodName = "testMock";
-        args.add(testName);
-        args.add(methodName);
-        t.setArguments(args);
-
-        return t;
-    }
-
-    //TODO rm this method
-    public Job createMockJob() throws ExecutionException {
-        Job j = new Job();
-
-        URI artifactsURI = URI.create("http://tarzan/users/boris/newman/newman-artifacts.zip");
-        URI buildURI = URI.create("http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13500-203/xap-premium/1.5/gigaspaces-xap-premium-10.2.0-m1-b13500-203.zip");
-        URI testsURI = URI.create("http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13500-203/testsuite-1.5.zip");
-        Collection<URI> collection = new ArrayList<>();
-        collection.add(artifactsURI);
-        collection.add(buildURI);
-        collection.add(testsURI);
-        j.setResources(collection);
-
-        j.setId(UUID.randomUUID().toString());
-        j.setSubmittedBy("mock");
-        j.setState(State.READY);
-        return j;
     }
 }

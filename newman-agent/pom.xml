@@ -71,7 +71,7 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>com.gigaspaces.newman.Main</Main-Class>
+                                        <Main-Class>com.gigaspaces.newman.NewmanAgent</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
