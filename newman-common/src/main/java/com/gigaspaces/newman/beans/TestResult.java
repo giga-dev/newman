@@ -4,6 +4,8 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 @Entity
+import com.gigaspaces.newman.beans.utils.ToStringBuilder;
+
 public class TestResult {
     @Id
     private String id;
@@ -58,5 +60,16 @@ public class TestResult {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+                .append("testId", testId)
+                .append("passed", passed)
+                .append("startTime", startTime)
+                .append("endTime", endTime)
+                .append("errorMessage", errorMessage)
+                .toString();
     }
 }

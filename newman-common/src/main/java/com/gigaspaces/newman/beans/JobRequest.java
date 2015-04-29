@@ -1,5 +1,6 @@
 package com.gigaspaces.newman.beans;
 
+import com.gigaspaces.newman.beans.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
@@ -10,22 +11,12 @@ import java.util.Collection;
  * Created by Barak Bar Orion
  * 4/16/15.
  */
-@Entity
 public class JobRequest {
-    @Id
-    private String id;
+
     private String buildId;
-    private Collection<URI> resources;
+    private String suiteId;
 
     public JobRequest() {
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getBuildId() {
@@ -46,10 +37,8 @@ public class JobRequest {
 
     @Override
     public String toString() {
-        return "JobRequest{" +
-                "id='" + id + '\'' +
-                ", buildId='" + buildId + '\'' +
-                ", resources=" + resources +
-                '}';
+        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+                .append("buildId", buildId)
+                .toString();
     }
 }

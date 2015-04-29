@@ -1,5 +1,6 @@
 package com.gigaspaces.newman.beans;
 
+import com.gigaspaces.newman.beans.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
@@ -15,7 +16,7 @@ public class Job {
     @Id
     private String id;
     private Build build;
-    private Collection<URI> resources;
+    private Collection<URI> resources; //TODO remove it
     private Date submitTime;
     private Date startTime;
     private Date endTime;
@@ -91,25 +92,25 @@ public class Job {
         this.state = state;
     }
 
-    @Override
-    public String toString() {
-        return "Job{" +
-                "id='" + id + '\'' +
-                ", build=" + build +
-                ", submitTime=" + submitTime +
-                ", startTime=" + startTime +
-                ", endTime=" + endTime +
-                ", testURI=" + testURI +
-                ", submittedBy='" + submittedBy + '\'' +
-                ", state=" + state +
-                '}';
-    }
-
     public Collection<URI> getResources() {
         return resources;
     }
 
     public void setResources(Collection<URI> resources) {
         this.resources = resources;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+                .append("id", id)
+                .append("build", build)
+                .append("submitTime", submitTime)
+                .append("startTime", startTime)
+                .append("endTime", endTime)
+                .append("testURI", testURI)
+                .append("submittedBy", submittedBy)
+                .append("state", state)
+                .toString();
     }
 }

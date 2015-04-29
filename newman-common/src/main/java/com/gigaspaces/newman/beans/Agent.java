@@ -1,5 +1,6 @@
 package com.gigaspaces.newman.beans;
 
+import com.gigaspaces.newman.beans.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Index;
@@ -66,12 +67,12 @@ public class Agent {
 
     @Override
     public String toString() {
-        return "Agent{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", host='" + host + '\'' +
-                ", jobId='" + jobId + '\'' +
-                ", lastTouchTime=" + lastTouchTime +
-                '}';
+        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+                .append("id", id)
+                .append("name", name)
+                .append("host", host)
+                .append("jobId", jobId)
+                .append("lastTouchTime", lastTouchTime)
+                .toString();
     }
 }
