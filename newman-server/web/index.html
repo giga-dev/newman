@@ -7,6 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
 
     <script src="../components/webcomponentsjs/webcomponents.js"></script>
+
     <link rel="import" href="../components/core-icons/core-icons.html">
     <link rel="import" href="../components/core-toolbar/core-toolbar.html">
     <link rel="import" href="../components/core-header-panel/core-header-panel.html">
@@ -17,12 +18,14 @@
     <link rel="import" href="../components/paper-icon-button/paper-icon-button.html">
     <!--<link rel="import" href="../components/font-roboto/roboto.html">-->
     <link rel="stylesheet" href="robot.css">
+    <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
 
     <link rel="import" href="routes.html">
     <link rel="import" href="tests.html">
     <link rel="import" href="jobs.html">
     <link rel="import" href="builds.html">
     <link rel="import" href="agents.html">
+    <link rel="import" href="mongo-admin.html">
 
     <script>
 
@@ -39,6 +42,8 @@
 	    socket.onerror = function(error){
 	        console.error("error", error);
         }
+
+
 
 
 
@@ -77,6 +82,9 @@
                     </core-item>
                     <core-item label="Tests" route="tests">
                         <a href="{{urlFor('tests')}}" core-drawer-toggle></a>
+                    </core-item>
+                    <core-item label="Mongo Admin" route="mongo-admin">
+                        <a href="{{urlFor('mongo-admin')}}" core-drawer-toggle></a>
                     </core-item>
                 </core-menu>
             </more-route-selector>
@@ -127,6 +135,10 @@
 
                             <h2>build {{route('build').params.id}} participate in the following jobs</h2>
                             <jobs-table url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
+                        </section>
+                        <section route="mongo-admin">
+                            <h1>A very simple Mongo admin {{route('mongo-admin').params.id}}</h1>
+                            <mongo-admin url="api/newman/db"></mongo-admin>
                         </section>
                     </core-pages>
                 </more-route-selector>

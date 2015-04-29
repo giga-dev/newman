@@ -294,13 +294,35 @@ public class NewmanResource {
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         List<String> deleted = new ArrayList<>();
         for (String name : db.listCollectionNames()) {
-            if(!"system.indexes".equals(name)) {
+            if (!"system.indexes".equals(name)) {
                 MongoCollection myCollection = db.getCollection(name);
                 myCollection.drop();
                 deleted.add(name);
             }
         }
         return Response.ok(Entity.json(deleted)).build();
+    }
+
+    @DELETE
+    @Path("db/{collectionName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteCollection(final @PathParam("collectionName") String collectionName) {
+        MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
+        MongoCollection myCollection = db.getCollection(collectionName);
+        if (myCollection != null) {
+            myCollection.drop();
+            return Response.ok(Entity.json(collectionName)).build();
+        }
+        return Response.ok().build();
+    }
+
+    @GET
+    @Path("user")
+    @Produces(MediaType.APPLICATION_JSON)
+    public UserPrefs getCurrentUser(@Context SecurityContext sc){
+        UserPrefs userPrefs = new UserPrefs();
+        userPrefs.setUserName(sc.getUserPrincipal().getName());
+        return userPrefs;
     }
 
     @GET
@@ -310,7 +332,7 @@ public class NewmanResource {
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         List<String> res = new ArrayList<>();
         for (String name : db.listCollectionNames()) {
-            if(!"system.indexes".equals(name)) {
+            if (!"system.indexes".equals(name)) {
                 res.add(name);
             }
         }
