@@ -1,11 +1,10 @@
 package com.gigaspaces.newman.beans;
 
+import com.gigaspaces.newman.beans.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 @Entity
-import com.gigaspaces.newman.beans.utils.ToStringBuilder;
-
 public class TestResult {
     @Id
     private String id;
@@ -16,7 +15,8 @@ public class TestResult {
     private long endTime;
     private String errorMessage;
 
-    public TestResult(){}
+    public TestResult() {
+    }
 
     public int getLocalId() {
         return localId;

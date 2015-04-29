@@ -7,6 +7,8 @@ import com.gigaspaces.newman.dao.BuildDAO;
 import com.gigaspaces.newman.dao.JobDAO;
 import com.gigaspaces.newman.dao.TestDAO;
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.bson.types.ObjectId;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.mongodb.morphia.Datastore;
@@ -20,12 +22,12 @@ import javax.annotation.security.PermitAll;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.*;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -82,7 +84,6 @@ public class NewmanResource {
             job.setState(State.READY);
             job.setSubmitTime(new Date());
             job.setSubmittedBy(sc.getUserPrincipal().getName());
-            job.setResources(jobRequest.getResources());
             jobDAO.save(job);
             return job;
         } else {
@@ -285,6 +286,37 @@ public class NewmanResource {
         build.setId(id);
         return build;
     }
+
+    @DELETE
+    @Path("db")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteCollections() {
+        MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
+        List<String> deleted = new ArrayList<>();
+        for (String name : db.listCollectionNames()) {
+            if(!"system.indexes".equals(name)) {
+                MongoCollection myCollection = db.getCollection(name);
+                myCollection.drop();
+                deleted.add(name);
+            }
+        }
+        return Response.ok(Entity.json(deleted)).build();
+    }
+
+    @GET
+    @Path("db")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getCollections() {
+        MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
+        List<String> res = new ArrayList<>();
+        for (String name : db.listCollectionNames()) {
+            if(!"system.indexes".equals(name)) {
+                res.add(name);
+            }
+        }
+        return Response.ok(Entity.json(res)).build();
+    }
+
 
 //    @POST
 //    @Path("test/{id}")
