@@ -17,6 +17,7 @@ import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import java.net.InetAddress;
+import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -69,10 +70,10 @@ public class NewmanClient {
             }
             Batch<Test> tests = newmanClient.getTests(job.getId(), 0, 30).toCompletableFuture().get();
             logger.debug("tests are {}", tests);
-            for (Test test : tests.getValues()) {
-                Test t = newmanClient.getTest(test.getId()).toCompletableFuture().get();
-                logger.debug("read test by id {}, {}", test.getId(), t);
-            }
+//            for (Test test : tests.getValues()) {
+//                Test t = newmanClient.getTest(test.getId()).toCompletableFuture().get();
+//                logger.debug("read test by id {}, {}", test.getId(), t);
+//            }
 
 
             Agent agent = new Agent();
@@ -86,25 +87,25 @@ public class NewmanClient {
             logger.debug("subscriptions {}", subscriptions);
 
 
-            Test test = newmanClient.getReadyTest(agent.getName(), job.getId()).toCompletableFuture().get();
-            logger.info("getReadyTest({}, {}) returns {}", agent.getName(), job.getId(), test);
-            String jobId = newmanClient.ping(agent.getName(), job.getId(), test.getId()).toCompletableFuture().get();
-            logger.debug("agent {} is working on job {}", agent.getName(), jobId);
-
-            tests = newmanClient.getTests(job.getId(), 0, 1000).toCompletableFuture().get();
-            logger.debug("tests are {}", tests);
+//            Test test = newmanClient.getReadyTest(agent.getName(), job.getId()).toCompletableFuture().get();
+//            logger.info("getReadyTest({}, {}) returns {}", agent.getName(), job.getId(), test);
+//            String jobId = newmanClient.ping(agent.getName(), job.getId(), test.getId()).toCompletableFuture().get();
+//            logger.debug("agent {} is working on job {}", agent.getName(), jobId);
+//
+//            tests = newmanClient.getTests(job.getId(), 0, 1000).toCompletableFuture().get();
+//            logger.debug("tests are {}", tests);
             int i = 0;
             while(true){
-                test = newmanClient.getReadyTest("foo", job.getId()).toCompletableFuture().get();
+                Test test = newmanClient.getReadyTest("foo", job.getId()).toCompletableFuture().get();
                 logger.debug("agent took test {}", test);
                 if(test == null){
                     break;
                 }
-                if(i % 4 == 0) {
+                if(i % 2 == 0) {
                     test.setStatus(Test.Status.SUCCESS);
                     newmanClient.updateTest(test).toCompletableFuture().get();
                     logger.debug("SUCCESS test {}", test);
-                }else if(i % 2 == 0){
+                }else {
                     test.setStatus(Test.Status.FAIL);
                     test.setErrorMessage(new IllegalArgumentException().toString());
                     newmanClient.updateTest(test).toCompletableFuture().get();

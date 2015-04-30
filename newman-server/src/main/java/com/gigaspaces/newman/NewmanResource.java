@@ -2,7 +2,10 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.config.Config;
-import com.gigaspaces.newman.dao.*;
+import com.gigaspaces.newman.dao.AgentDAO;
+import com.gigaspaces.newman.dao.BuildDAO;
+import com.gigaspaces.newman.dao.JobDAO;
+import com.gigaspaces.newman.dao.TestDAO;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -16,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -116,16 +118,27 @@ public class NewmanResource {
         if (test.getId() == null) {
             throw new BadRequestException("can't post test with no testId: " + test);
         }
-        if (testDAO.exists(testDAO.createQuery().field("_id").equal(new ObjectId(test.getId())))) {
-            if(test.getStatus() == Test.Status.FAIL || test.getStatus() == Test.Status.SUCCESS){
-                test.setEndTime(new Date());
-                test.setAssignedAgent(null); //release
-            }
-            testDAO.save(test);
-            return test;
-        } else {
-            throw new BadRequestException("can't find a test with a matching testId: " + test.getId());
+        UpdateOperations<Test> updateOps = testDAO.createUpdateOperations();
+        Test.Status status = test.getStatus();
+        if (status != null) {
+            updateOps.set("status", status);
         }
+        if (test.getErrorMessage() != null) {
+            updateOps.set("errorMessage", test.getErrorMessage());
+        }
+        if (status == Test.Status.FAIL || status == Test.Status.SUCCESS) {
+            updateOps.set("endTime", new Date());
+        }
+        Test result = testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(test.getId())), updateOps, false, false);
+        Query<Test> query = testDAO.createQuery();
+        query.and(query.criteria("jobId").equal(result.getJobId()),
+                query.or(query.criteria("status").equal(Test.Status.PENDING),
+                        query.criteria("status").equal(Test.Status.RUNNING)));
+        if (!testDAO.exists(query)){
+            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.DONE);
+            jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(result.getJobId())), updateJobStatus);
+        }
+        return result;
     }
 
 
@@ -229,12 +242,10 @@ public class NewmanResource {
     public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
         Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
         if (agent == null) {
-//            throw new BadRequestException("Unknown agent " + name);
             logger.error("bad request unknown agent {}", name);
             return null;
         }
         if (!jobId.equals(agent.getJobId())) {
-//            throw new BadRequestException("Agent agent is not on job " + jobId + " " + agent);
             logger.error("Agent agent is not on job {} {} ", jobId, agent);
             return null;
         }
@@ -243,7 +254,13 @@ public class NewmanResource {
         query.and(query.criteria("jobId").equal(jobId), query.criteria("status").equal(Test.Status.PENDING));
         UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
                 .set("assignedAgent", name).set("startTime", new Date());
-        return testDAO.getDatastore().findAndModify(query, updateOps, false, false);
+        Test result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
+
+        if(result != null){
+            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.RUNNING);
+            jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+        }
+        return result;
     }
 
 
@@ -339,7 +356,7 @@ public class NewmanResource {
     @GET
     @Path("user")
     @Produces(MediaType.APPLICATION_JSON)
-    public UserPrefs getCurrentUser(@Context SecurityContext sc){
+    public UserPrefs getCurrentUser(@Context SecurityContext sc) {
         UserPrefs userPrefs = new UserPrefs();
         userPrefs.setUserName(sc.getUserPrincipal().getName());
         return userPrefs;
