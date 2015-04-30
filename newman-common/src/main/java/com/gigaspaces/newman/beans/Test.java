@@ -21,7 +21,6 @@ public class Test {
     @Id
     private String id;
     private String jobId;
-    private int localId; //TODO what is this for?
     private String name;
     private Collection<String> arguments;
     private String testType;
@@ -67,14 +66,6 @@ public class Test {
 
     public void setJobId(String jobId) {
         this.jobId = jobId;
-    }
-
-    public int getLocalId() {
-        return localId;
-    }
-
-    public void setLocalId(int localId) {
-        this.localId = localId;
     }
 
     public Status getStatus() {

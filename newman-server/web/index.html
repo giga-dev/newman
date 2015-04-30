@@ -29,26 +29,19 @@
 
     <script>
 
-        var socket = new WebSocket("wss://localhost:8443/events");
-        socket.onopen = function(){
-	        console.info("Socket has been opened!");
-	        socket.send("foo");
-        }
-        socket.onmessage = function(msg){
-	        console.info("got", msg);
-	    }
-	    socket.onclose = function(){
-	    }
-	    socket.onerror = function(error){
-	        console.error("error", error);
-        }
-
-
-
-
-
-
-
+        <!--var socket = new WebSocket("wss://localhost:8443/events");-->
+        <!--socket.onopen = function(){-->
+	        <!--console.info("Socket has been opened!");-->
+	        <!--socket.send("foo");-->
+        <!--}-->
+        <!--socket.onmessage = function(msg){-->
+	        <!--console.info("got", msg);-->
+	    <!--}-->
+	    <!--socket.onclose = function(){-->
+	    <!--}-->
+	    <!--socket.onerror = function(error){-->
+	        <!--console.error("error", error);-->
+        <!--}-->
 
     </script>
     <style>

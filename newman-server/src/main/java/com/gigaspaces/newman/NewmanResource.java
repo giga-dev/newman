@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -62,7 +63,6 @@ public class NewmanResource {
     @GET
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
-//    @RolesAllowed("admin")
     public Batch<Job> jobs(@DefaultValue("0") @QueryParam("offset") int offset,
                            @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
         return new Batch<>(jobDAO.find(jobDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit,
@@ -116,9 +116,11 @@ public class NewmanResource {
         if (test.getId() == null) {
             throw new BadRequestException("can't post test with no testId: " + test);
         }
-
         if (testDAO.exists(testDAO.createQuery().field("_id").equal(new ObjectId(test.getId())))) {
-            test.setAssignedAgent(null); //release
+            if(test.getStatus() == Test.Status.FAIL || test.getStatus() == Test.Status.SUCCESS){
+                test.setEndTime(new Date());
+                test.setAssignedAgent(null); //release
+            }
             testDAO.save(test);
             return test;
         } else {
@@ -248,6 +250,7 @@ public class NewmanResource {
     @GET
     @Path("build")
     @Produces(MediaType.APPLICATION_JSON)
+//    @RolesAllowed("admin")
     public Batch<Build> getBuilds(@DefaultValue("0") @QueryParam("offset") int offset,
                                   @DefaultValue("30") @QueryParam("limit") int limit,
                                   @DefaultValue("false") @QueryParam("all") boolean all, @Context UriInfo uriInfo) {

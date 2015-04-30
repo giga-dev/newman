@@ -11,28 +11,45 @@
                    withCredentials="true"></core-ajax>
         <div class="content" flex>
             <form class="form-inline">
-                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter" class="form-control">
+                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
+                       class="form-control">
             </form>
             <div class="table-responsive">
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>JobId</th>
-                        </tr>
+                    <tr>
+                        <th>Name</th>
+                        <th>JobId</th>
+                        <th>Status</th>
+                        <th>AssignedAgent</th>
+                        <th>scheduledAt</th>
+                        <th>startTime</th>
+                        <th>endTime</th>
+                        <th>Took</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        <template repeat="{{item in data}}">
-                            <tr>
-                                <td>{{item.name}}</td>
-                                <td><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
-                            </tr>
-                        </template>
+                    <template repeat="{{item in data}}">
+                        <tr>
+                            <td>{{item.name}}</td>
+                            <td><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
+                            <!--class="{{{btn : item != null,  active : item != null , btn-success : item.status == 'SUCCESS', btn-success : item.status == 'RUNNING'}|tokenList}}">-->
+                            <td><button type="button"
+                                        class="btn active {{{'btn-danger' : item.status == 'FAIL', 'btn-warning' : item.status == 'PENDING', 'btn-success' : item.status == 'SUCCESS', 'btn-info' : item.status == 'RUNNING'} | tokenList}}">
+                                {{item.status}}</button></td>
+                            <td>{{item.assignedAgent}}</td>
+                            <td>{{item.scheduledAt | formatDate }}</td>
+                            <td>{{item.startTime | formatDate }}</td>
+                            <td>{{item.endTime | formatDate }}</td>
+                            <td>{{item | formatTotalTime}}</td>
+                        </tr>
+                    </template>
                     </tbody>
                 </table>
             </div>
         </div>
     </template>
+    <script src="../components/moment/moment.js"></script>
 
     <script>
     Polymer({
@@ -57,7 +74,21 @@
                 return values;
             }
       },
+      formatDate: function(date){
+            if(!date){
+                return date;
+            }
+           return moment(new Date(date)).fromNow();
+      },
+      formatTotalTime: function(item){
+            if(!item.endTime || !item.startTime){
+                return null;
+            }
+            return moment.duration(item.endTime - item.startTime).humanize();
+      }
+
     });
+
 
 
     </script>

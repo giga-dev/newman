@@ -69,8 +69,8 @@ public class JobExecutor {
     }
 
     public Test run(Test test) {
-        logger.info("Starting test {}...", test.getLocalId());
-        final Path testFolder = append(jobFolder, "test-" + test.getLocalId());
+        logger.info("Starting test {}...", test.getName());
+        final Path testFolder = append(jobFolder, "test-" + test.getName());
         final Path outputFolder = append(testFolder, "output");
 
         try {

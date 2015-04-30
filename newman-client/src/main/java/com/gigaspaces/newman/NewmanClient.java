@@ -72,8 +72,8 @@ public class NewmanClient {
             for (Test test : tests.getValues()) {
                 Test t = newmanClient.getTest(test.getId()).toCompletableFuture().get();
                 logger.debug("read test by id {}, {}", test.getId(), t);
-
             }
+
 
             Agent agent = new Agent();
             agent.setName("foo");
@@ -90,6 +90,29 @@ public class NewmanClient {
             logger.info("getReadyTest({}, {}) returns {}", agent.getName(), job.getId(), test);
             String jobId = newmanClient.ping(agent.getName(), job.getId(), test.getId()).toCompletableFuture().get();
             logger.debug("agent {} is working on job {}", agent.getName(), jobId);
+
+            tests = newmanClient.getTests(job.getId(), 0, 1000).toCompletableFuture().get();
+            logger.debug("tests are {}", tests);
+            int i = 0;
+            while(true){
+                test = newmanClient.getReadyTest("foo", job.getId()).toCompletableFuture().get();
+                logger.debug("agent took test {}", test);
+                if(test == null){
+                    break;
+                }
+                if(i % 4 == 0) {
+                    test.setStatus(Test.Status.SUCCESS);
+                    newmanClient.updateTest(test).toCompletableFuture().get();
+                    logger.debug("SUCCESS test {}", test);
+                }else if(i % 2 == 0){
+                    test.setStatus(Test.Status.FAIL);
+                    test.setErrorMessage(new IllegalArgumentException().toString());
+                    newmanClient.updateTest(test).toCompletableFuture().get();
+                    logger.debug("FAIL test {}", test);
+                }
+                i += 1;
+            }
+
 
         } catch (Exception e) {
             logger.error(e.toString(), e);
