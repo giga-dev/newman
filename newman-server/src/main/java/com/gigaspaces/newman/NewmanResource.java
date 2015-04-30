@@ -25,9 +25,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.*;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.net.URI;
+import java.util.*;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -292,9 +291,18 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Build updateBuild(final @PathParam("id") String id, final Build build) {
-        build.setId(id);
-        buildDAO.save(build);
-        return build;
+        UpdateOperations<Build> updateOps = buildDAO.createUpdateOperations();
+        if(build.getShas() != null) {
+            updateOps.set("shas", build.getShas());
+        }
+        if(build.getBranch() != null) {
+            updateOps.set("branch", build.getBranch());
+        }
+        if(build.getResources() != null) {
+            updateOps.set("resources", build.getResources());
+        }
+        Query<Build> query = buildDAO.createQuery().field("_id").equal(new ObjectId(id));
+        return buildDAO.getDatastore().findAndModify(query, updateOps);
     }
 
     @GET
