@@ -51,7 +51,9 @@ public class NewmanClient {
         NewmanClient newmanClient = new NewmanClient(restClient, URI);
         try {
 
-            Build build = newmanClient.createBuild(new Build()).toCompletableFuture().get();
+            Build build = new Build();
+            build.setName("The build " + UUID.randomUUID());
+            build = newmanClient.createBuild(build).toCompletableFuture().get();
             logger.debug("create a new build {}", build);
             build = newmanClient.getBuild(build.getId()).toCompletableFuture().get();
             logger.debug("got build {}", build);

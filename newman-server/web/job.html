@@ -1,0 +1,114 @@
+<script src="../components/webcomponentsjs/webcomponents.js"></script>
+
+<link rel="import" href="routes.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+
+<polymer-element name="job-info" attributes="url data">
+    <template>
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
+                   withCredentials="true"></core-ajax>
+
+        <!--private String id;-->
+        <!--private Build build;-->
+        <!--private Date submitTime;-->
+        <!--private Date startTime;-->
+        <!--private Date endTime;-->
+        <!--private URI testURI;-->
+        <!--private String submittedBy;-->
+        <!--private State state;-->
+
+
+        <div class="content" flex>
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Job</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.id}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Build</label>
+
+                    <div class="col-sm-10">
+                        <template if="{{data.build.id}}">
+                            <a href="{{urlFor('build', {id: data.build.id})}}">{{data.build.name}}</a>
+                        </template>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">State</label>
+                    <div class="col-sm-10">
+                        <button type="button"
+                                class="btn active {{{ 'btn-warning' : data.state == 'READY', 'btn-success' : data.state == 'DONE', 'btn-info' : data.state == 'RUNNING'} | tokenList}}">
+                            {{data.state}}</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Submit Time</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.submitTime | formatDate}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Start Time</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.startTime | formatDate}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">End Time</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.endTime | formatDate}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Test URI</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.testURI}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Submitted By</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.submittedBy}}</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </template>
+    <script src="../components/moment/moment.js"></script>
+
+    <script>
+    Polymer({
+      applyAuthorStyles: true,
+      data: null,
+      ajaxResponse: function(event,resp){
+           this.data = resp.response;
+      },
+      formatDate: function(date){
+            if(!date){
+                return date;
+            }
+           return moment(new Date(date)).fromNow();
+      },
+      formatTotalTime: function(item){
+            if(!item.endTime || !item.startTime){
+                return null;
+            }
+            return moment.duration(item.endTime - item.startTime).humanize();
+      }
+
+    });
+
+
+
+
+    </script>
+</polymer-element>

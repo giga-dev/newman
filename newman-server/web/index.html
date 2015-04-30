@@ -22,7 +22,9 @@
 
     <link rel="import" href="routes.html">
     <link rel="import" href="tests.html">
+    <link rel="import" href="test.html">
     <link rel="import" href="jobs.html">
+    <link rel="import" href="job.html">
     <link rel="import" href="builds.html">
     <link rel="import" href="agents.html">
     <link rel="import" href="mongo-admin.html">
@@ -117,10 +119,12 @@
                             <h1>Tests</h1>
                             <tests-table url="api/newman/test?all=true"></tests-table>
                         </section>
+                        <section route="test">
+                            <test-info url="api/newman/test/{{route('test').params.id}}"></test-info>
+                        </section>
                         <section route="job">
-                            <h1>Details for job {{route('job').params.id}}.</h1>
-
-                            <h2>All the tests of {{route('job').params.id}}.</h2>
+                            <job-info url="api/newman/job/{{route('job').params.id}}"></job-info>
+                            <h1>Job Tests</h1>
                             <tests-table url="api/newman/test?jobId={{route('job').params.id}}&all=true"></tests-table>
                         </section>
                         <section route="build">

@@ -1,6 +1,7 @@
 package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.beans.utils.ToStringBuilder;
+import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
@@ -15,6 +16,7 @@ import java.util.*;
 public class Job {
     @Id
     private String id;
+    @Embedded(concreteClass = Build.class)
     private Build build;
     private Date submitTime;
     private Date startTime;

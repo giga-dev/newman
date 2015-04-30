@@ -65,9 +65,26 @@ public class NewmanResource {
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Job> jobs(@DefaultValue("0") @QueryParam("offset") int offset,
-                           @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
-        return new Batch<>(jobDAO.find(jobDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit,
-                false, uriInfo);
+                           @DefaultValue("30") @QueryParam("limit") int limit
+            , @QueryParam("buildId") String buildId
+            , @QueryParam("all") boolean all
+            , @Context UriInfo uriInfo) {
+
+        Query<Job> query = jobDAO.createQuery();
+        if (buildId != null) {
+            query.field("build.id").equal(buildId);
+        }
+        if (!all) {
+            query.offset(offset).limit(limit);
+        }
+        return new Batch<>(jobDAO.find(query).asList(), offset, limit, all, uriInfo);
+    }
+
+    @GET
+    @Path("job/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Job getJob(@PathParam("id") final String id) {
+        return jobDAO.findOne(jobDAO.createQuery().field("_id").equal(new ObjectId(id)));
     }
 
     @PUT
@@ -134,7 +151,7 @@ public class NewmanResource {
                 query.or(query.criteria("status").equal(Test.Status.PENDING),
                         query.criteria("status").equal(Test.Status.RUNNING)));
         if (!testDAO.exists(query)){
-            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.DONE);
+            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.DONE).set("endTime", new Date());
             jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(result.getJobId())), updateJobStatus);
         }
         return result;
@@ -257,7 +274,7 @@ public class NewmanResource {
 
         if(result != null){
             agentUpdateOps.set("currentTest", result.getId());
-            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.RUNNING);
+            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.RUNNING).set("startTime", new Date());
             jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
         }
         agentDAO.updateFirst(agentDAO.createQuery().field("_id").equal(new ObjectId(agent.getId())), agentUpdateOps);

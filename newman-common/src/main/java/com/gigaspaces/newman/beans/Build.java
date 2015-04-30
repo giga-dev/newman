@@ -16,6 +16,7 @@ import java.util.Map;
 public class Build {
     @Id
     private String id;
+    private String name;
     private Map<String, String> shas;
     private String branch;
     private Collection<URI> resources;
@@ -52,10 +53,19 @@ public class Build {
         this.resources = resources;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
                 .append("id", id)
+                .append("name", name)
                 .append("shas", shas)
                 .append("branch", branch)
                 .append("resources", resources)

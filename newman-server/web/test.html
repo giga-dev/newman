@@ -1,0 +1,140 @@
+<script src="../components/webcomponentsjs/webcomponents.js"></script>
+
+<link rel="import" href="routes.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+
+<polymer-element name="test-info" attributes="url data">
+    <template>
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
+                   withCredentials="true"></core-ajax>
+        <div class="content" flex>
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">name</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.name}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">id</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.id}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">jobId</label>
+
+                    <div class="col-sm-10">
+                        <template if="{{data.jobId}}">
+                            <a href="{{urlFor('job', {id: data.jobId})}}">{{data.jobId}}</a>
+                        </template>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">arguments</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.arguments}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">testType</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.testType}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">timeout</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.timeout}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">errorMessage</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.errorMessage}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">status</label>
+                    <div class="col-sm-10">
+                        <button type="button"
+                                class="btn active {{{'btn-danger' : data.status == 'FAIL', 'btn-warning' : data.status == 'PENDING', 'btn-success' : data.status == 'SUCCESS', 'btn-info' : data.status == 'RUNNING'} | tokenList}}">
+                            {{data.status}}</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">logs</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.logs}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">assignedAgent</label>
+                    <!--<template if="{{data.assignedAgent}}">-->
+                        <!--Binds if and only if conditionalValue is truthy.-->
+                    <!--</template>-->
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.assignedAgent}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">startTime</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.startTime | formatDate}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">endTime</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.endTime | formatDate}}</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">scheduledAt</label>
+
+                    <div class="col-sm-10">
+                        <label class="control-label">{{data.scheduledAt |formatDate}}</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </template>
+    <script src="../components/moment/moment.js"></script>
+
+    <script>
+    Polymer({
+      applyAuthorStyles: true,
+      data: null,
+      ajaxResponse: function(event,resp){
+           this.data = resp.response;
+      },
+      formatDate: function(date){
+            if(!date){
+                return date;
+            }
+           return moment(new Date(date)).fromNow();
+      },
+      formatTotalTime: function(item){
+            if(!item.endTime || !item.startTime){
+                return null;
+            }
+            return moment.duration(item.endTime - item.startTime).humanize();
+      }
+
+    });
+
+
+
+
+    </script>
+</polymer-element>

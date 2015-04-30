@@ -30,7 +30,7 @@
                     <tbody>
                     <template repeat="{{item in data}}">
                         <tr>
-                            <td>{{item.name}}</td>
+                            <td><a href="{{urlFor('test', {id: item.id})}}">{{item.name}}</a></td>
                             <td><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
                             <!--class="{{{btn : item != null,  active : item != null , btn-success : item.status == 'SUCCESS', btn-success : item.status == 'RUNNING'}|tokenList}}">-->
                             <td><button type="button"
