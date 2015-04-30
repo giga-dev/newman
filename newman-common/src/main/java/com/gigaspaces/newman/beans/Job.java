@@ -16,7 +16,6 @@ public class Job {
     @Id
     private String id;
     private Build build;
-    private Collection<URI> resources; //TODO remove it
     private Date submitTime;
     private Date startTime;
     private Date endTime;
@@ -90,14 +89,6 @@ public class Job {
 
     public void setState(State state) {
         this.state = state;
-    }
-
-    public Collection<URI> getResources() {
-        return resources;
-    }
-
-    public void setResources(Collection<URI> resources) {
-        this.resources = resources;
     }
 
     @Override

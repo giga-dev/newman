@@ -38,12 +38,12 @@ public class JobExecutor {
             createFolder(jobFolder);
 
             Path resourcesFolder = createFolder(append(jobFolder, "resources"));
-            if (job.getResources() == null){
+            if (job.getBuild().getResources() == null){
                 logger.warn("The job {} has no resources", job.getId());
                 return false;
             }
-            logger.info("Downloading {} resources into {}...", job.getResources().size(), resourcesFolder);
-            for (URI resource : job.getResources()) {
+            logger.info("Downloading {} resources into {}...", job.getBuild().getResources().size(), resourcesFolder);
+            for (URI resource : job.getBuild().getResources()) {
                 logger.info("Downloading {}...", resource);
                 download(resource.toURL(), resourcesFolder);
             }
