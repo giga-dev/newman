@@ -36,6 +36,9 @@ public class MockUtils {
         j.setSubmittedBy("mock");
         j.setState(State.READY);
 
+        Build b = new Build();
+        j.setBuild(b);
+
         return j;
     }
 }
