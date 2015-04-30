@@ -248,7 +248,7 @@ public class NewmanResource {
             logger.error("Agent agent is not on job {} {} ", jobId, agent);
             return null;
         }
-        agent.setLastTouchTime(new Date());
+        UpdateOperations<Agent> agentUpdateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date());
         Query<Test> query = testDAO.createQuery();
         query.and(query.criteria("jobId").equal(jobId), query.criteria("status").equal(Test.Status.PENDING));
         UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
@@ -256,9 +256,11 @@ public class NewmanResource {
         Test result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
 
         if(result != null){
+            agentUpdateOps.set("currentTest", result.getId());
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.RUNNING);
             jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
         }
+        agentDAO.updateFirst(agentDAO.createQuery().field("_id").equal(new ObjectId(agent.getId())), agentUpdateOps);
         return result;
     }
 

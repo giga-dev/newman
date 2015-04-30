@@ -6,7 +6,6 @@
 <polymer-element name="jobs-table" attributes="url">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
-        <!--<link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap-theme.css">-->
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
         <div class="content" flex>
@@ -18,23 +17,26 @@
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <thead>
                     <tr>
+                        <th>State</th>
                         <th>Job Id</th>
                         <th>BuildId</th>
                         <th>Submitted At</th>
                         <th>Tests URI</th>
                         <th>Submitted By</th>
-                        <th>State</th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{item in data}}">
                         <tr>
+                            <td><button type="button"
+                                        class="btn active {{{'btn-warning' : item.state == 'READY', 'btn-success' : item.state == 'DONE', 'btn-info' : item.state == 'RUNNING'} | tokenList}}">
+                                {{item.state}}</button>
+                            </td>
                             <td><a href="{{urlFor('job', {id: item.id})}}">{{item.id}}</a></td>
                             <td><a href="{{urlFor('build', {id: item.build.id})}}">{{item.build.id}}</a></td>
                             <td>{{item.submitTime | formatDate}}</td>
                             <td>{{item.testURI}}</td>
                             <td>{{item.submittedBy}}</td>
-                            <td>{{item.state}}</td>
                         </tr>
                     </template>
                     </tbody>

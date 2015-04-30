@@ -6,7 +6,6 @@
 <polymer-element name="tests-table" attributes="url">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
-        <!--<link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap-theme.css">-->
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
         <div class="content" flex>

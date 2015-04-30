@@ -20,6 +20,7 @@
                         <th>Name</th>
                         <th>Host</th>
                         <th>Job</th>
+                        <th>CurrentTest</th>
                         <th>Last seen</th>
                     </tr>
                     </thead>
@@ -34,6 +35,7 @@
                             <template if="{{!item.jobId}}">
                                 <td></td>
                             </template>
+                            <td>{{item.currentTest}}</td>
                             <td>{{item.lastTouchTime | formatDate}}</td>
                         </tr>
                     </template>

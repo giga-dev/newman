@@ -3,7 +3,6 @@ package com.gigaspaces.newman.beans;
 import com.gigaspaces.newman.beans.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Index;
 import org.mongodb.morphia.annotations.Indexed;
 
 import java.util.Date;
@@ -21,6 +20,7 @@ public class Agent {
     private String host;
     private String jobId;
     private Date lastTouchTime;
+    private String currentTest;
 
     public Agent() {
     }
@@ -65,6 +65,14 @@ public class Agent {
         this.lastTouchTime = lastTouchTime;
     }
 
+    public String getCurrentTest() {
+        return currentTest;
+    }
+
+    public void setCurrentTest(String currentTest) {
+        this.currentTest = currentTest;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
@@ -72,6 +80,7 @@ public class Agent {
                 .append("name", name)
                 .append("host", host)
                 .append("jobId", jobId)
+                .append("currentTest", currentTest)
                 .append("lastTouchTime", lastTouchTime)
                 .toString();
     }
