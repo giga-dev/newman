@@ -2,7 +2,6 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.Job;
 import com.gigaspaces.newman.beans.Test;
-import com.gigaspaces.newman.beans.TestResult;
 import com.gigaspaces.newman.utils.ProcessResult;
 import com.gigaspaces.newman.utils.ProcessUtils;
 import org.slf4j.Logger;
@@ -11,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Date;
 
 import static com.gigaspaces.newman.utils.FileUtils.*;
 
@@ -69,13 +68,10 @@ public class JobExecutor {
         }
     }
 
-    public TestResult run(Test test) {
+    public Test run(Test test) {
         logger.info("Starting test {}...", test.getLocalId());
         final Path testFolder = append(jobFolder, "test-" + test.getLocalId());
         final Path outputFolder = append(testFolder, "output");
-        final TestResult testResult = new TestResult();
-        testResult.setTestId(test.getId());
-        testResult.setLocalId(test.getLocalId());
 
         try {
             logger.info("Creating test folder - {}", testFolder);
@@ -89,28 +85,26 @@ public class JobExecutor {
                     outputFile, test.getTimeout());
 
             // Generate result:
-            testResult.setStartTime(scriptResult.getStartTime());
-            testResult.setEndTime(scriptResult.getEndTime());
+            test.setStartTime(new Date(scriptResult.getStartTime()));
+            test.setEndTime(new Date(scriptResult.getEndTime()));
             if (scriptResult.getExitCode() != null) {
-                testResult.setPassed(scriptResult.getExitCode() == 0);
+                test.setStatus(scriptResult.getExitCode() == 0 ? Test.Status.SUCCESS : Test.Status.FAIL);
                 try {
                     String errorMessage = readTextFile(append(testFolder, "error.txt"));
-                    testResult.setErrorMessage(errorMessage);
+                    test.setErrorMessage(errorMessage);
                 }
                 catch (IOException e){
-                    testResult.setErrorMessage("No error.txt file");
+                    test.setErrorMessage("No error.txt file");
                 }
             } else {
                 // test timed out
-                testResult.setPassed(false);
-                testResult.setErrorMessage("Test exceeded timeout - " + test.getTimeout() + "ms");
+                test.setStatus(Test.Status.FAIL);
+                test.setErrorMessage("Test exceeded timeout - " + test.getTimeout() + "ms");
             }
-        } catch (IOException e) {
-            testResult.setPassed(false);
-            testResult.setErrorMessage("Newman failed to execute test: " + e);
-        } catch (InterruptedException e) {
-            testResult.setPassed(false);
-            testResult.setErrorMessage("Newman was interrupted while executing test");
+        }
+        catch (Throwable t) {
+            test.setStatus(Test.Status.FAIL);
+            test.setErrorMessage("Newman caught " + t + " while executing test");
         }
 
         // Pack & upload output files (logs, etc.)
@@ -133,7 +127,7 @@ public class JobExecutor {
             logger.warn("Failed to delete test folder {}", testFolder);
         }
 
-        return testResult;
+        return test; //return same reference
     }
 
     public void teardown() {

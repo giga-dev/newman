@@ -21,7 +21,7 @@ public class Test {
     @Id
     private String id;
     private String jobId;
-    private int localId;
+    private int localId; //TODO what is this for?
     private String name;
     private Collection<String> arguments;
     private String testType;

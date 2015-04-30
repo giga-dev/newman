@@ -2,10 +2,7 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.config.Config;
-import com.gigaspaces.newman.dao.AgentDAO;
-import com.gigaspaces.newman.dao.BuildDAO;
-import com.gigaspaces.newman.dao.JobDAO;
-import com.gigaspaces.newman.dao.TestDAO;
+import com.gigaspaces.newman.dao.*;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -109,6 +106,26 @@ public class NewmanResource {
             throw new BadRequestException("Can't add test, job does not exists: " + test);
         }
     }
+
+
+    @POST
+    @Path("test")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Test updateTest(final Test test) {
+        if (test.getId() == null) {
+            throw new BadRequestException("can't post test with no testId: " + test);
+        }
+
+        if (testDAO.exists(testDAO.createQuery().field("_id").equal(new ObjectId(test.getId())))) {
+            test.setAssignedAgent(null); //release
+            testDAO.save(test);
+            return test;
+        } else {
+            throw new BadRequestException("can't find a test with a matching testId: " + test.getId());
+        }
+    }
+
 
     @GET
     @Path("test")

@@ -5,6 +5,7 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 @Entity
+@Deprecated //use Test for now
 public class TestResult {
     @Id
     private String id;

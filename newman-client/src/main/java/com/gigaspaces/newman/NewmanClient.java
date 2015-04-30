@@ -128,6 +128,10 @@ public class NewmanClient {
         return restClient.target(uri).path("test").request().rx().put(Entity.json(test), Test.class);
     }
 
+    public CompletionStage<Test> updateTest(Test test) {
+        return restClient.target(uri).path("test").request().rx().post(Entity.json(test), Test.class);
+    }
+
     public CompletionStage<Batch<Test>> getTests(String jobId, int offset, int limit) {
         return restClient.target(uri).path("test").queryParam("offset", offset).queryParam("limit", limit)
                 .queryParam("jobId", jobId).request()

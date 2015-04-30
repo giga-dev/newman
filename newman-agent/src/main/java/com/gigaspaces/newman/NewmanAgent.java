@@ -8,10 +8,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -74,7 +71,7 @@ public class NewmanAgent {
                     logger.info("Starting worker #{} for job {}", id, jobExecutor.getJob().getId());
                     Test test;
                     while ((test = findTest(jobExecutor.getJob())) != null) {
-                        TestResult testResult = jobExecutor.run(test);
+                        Test testResult = jobExecutor.run(test);
                         reportTest(testResult);
                     }
                     logger.info("Finished Worker #{} for job {}", id, jobExecutor.getJob().getId());
@@ -118,16 +115,26 @@ public class NewmanAgent {
         try {
             return client.getReadyTest(name, job.getId()).toCompletableFuture().get();
         } catch (InterruptedException e) {
-            logger.info("Worker #{} was interrupted while waiting for test");
+            logger.info("Worker was interrupted while waiting for test");
             return null;
         } catch (ExecutionException e) {
-            logger.error("Worker #{} failed while waiting for test: " + e);
+            logger.error("Worker failed while waiting for test: " + e);
             return null;
         }
     }
 
-    private void reportTest(TestResult testResult) {
-        logger.info("Test #" + testResult.getTestId() + (testResult.isPassed() ? " passed" : " failed"));
+    private void reportTest(Test testResult) {
+        logger.info("Test #" + testResult.getId() + (testResult.getStatus()));
+
+        try {
+            //update test removes Agent assignment
+            Test updatedTest = client.updateTest(testResult).toCompletableFuture().get();
+        } catch (InterruptedException e) {
+            logger.info("Worker was interrupted while updating test result: {}", testResult);
+        } catch (ExecutionException e) {
+            logger.warn("Worker failed to update test result: {} caught: {}", testResult, e);
+        }
+
         // TODO: Report test;
         // TODO: Upload test logs;
     }
