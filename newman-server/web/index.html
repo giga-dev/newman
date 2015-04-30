@@ -16,7 +16,8 @@
     <link rel="import" href="../components/core-item/core-item.html">
     <link rel="import" href="../components/core-pages/core-pages.html">
     <link rel="import" href="../components/paper-icon-button/paper-icon-button.html">
-    <!--<link rel="import" href="../components/font-roboto/roboto.html">-->
+    <link rel="import" href="../components/core-ajax/core-ajax.html">
+
     <link rel="stylesheet" href="robot.css">
     <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
 
@@ -58,6 +59,8 @@
 
 <body unresolved fullbleed fit layout vertical>
 <template is="auto-binding" id="app">
+    <core-ajax auto url="api/newman/user" handleAs="json" on-core-response="{{ajaxResponse}}"
+               withCredentials="true"></core-ajax>
     <core-drawer-panel id="drawerPanel">
         <core-header-panel drawer>
             <core-toolbar>Menu</core-toolbar>
