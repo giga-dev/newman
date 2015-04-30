@@ -36,7 +36,7 @@ public class MockUtils {
         j.setSubmittedBy("mock");
         j.setState(State.READY);
 
-        Build b = new Build();
+        Build b = createMockBuild();
         j.setBuild(b);
 
         return j;
