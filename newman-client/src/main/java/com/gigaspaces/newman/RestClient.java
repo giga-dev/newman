@@ -43,12 +43,8 @@ public class RestClient {
             SLF4JBridgeHandler.install();
             ExecutorService executor = Executors.newCachedThreadPool();
 
-            SslConfigurator sslConfig = SslConfigurator.newInstance()
-                    .trustStoreFile("keys/server.keystore")
-                    .trustStorePassword("password")
-                    .keyStoreFile("keys/server.keystore")
-                    .keyPassword("password");
-//
+            SslConfigurator sslConfig = SslConfigurator.newInstance();
+
             SSLContext sslContext = sslConfig.createSSLContext();
             JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
                     .sslContext(sslContext)
