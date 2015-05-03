@@ -73,7 +73,12 @@
                     <label class="col-sm-2 control-label">logs</label>
 
                     <div class="col-sm-10">
-                        <label class="control-label">{{data.logs}}</label>
+                        <p>{{data.logs | json}}</p>
+                        <template repeat="{{ key in data.logs }}" if="{{data.logs}}">
+                             <label>Binds if and only if conditionalValue is truthy.</label>
+                            <label class="control-label">{{key}}</label>
+                        </template>
+
                     </div>
                 </div>
                 <div class="form-group">
@@ -108,6 +113,18 @@
                 </div>
             </form>
         </div>
+
+        <h1>Upload a File</h1>
+
+        <form action="{{url}}/log" method="post" enctype="multipart/form-data">
+
+            <p>
+                Select a file : <input type="file" name="file" size="50" />
+            </p>
+
+            <input type="submit" value="Upload It" />
+        </form>
+
     </template>
     <script src="../components/moment/moment.js"></script>
 

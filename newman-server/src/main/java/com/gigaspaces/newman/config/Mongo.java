@@ -9,8 +9,8 @@ public class Mongo {
     private String db;
 
     public Mongo() {
-//        this.host = "localhost";
-        this.host = "pc-lab148";
+        this.host = "localhost";
+//        this.host = "pc-lab148";
         this.db = System.getProperty("user.name");
     }
 

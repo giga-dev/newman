@@ -5,3 +5,7 @@ app.ajaxResponse = function(event, object){
     app.user = object.response;
     app.heading = "Hello " + app.user.userName;
 }
+
+PolymerExpressions.prototype.json = function(object) {
+    return JSON.stringify(object);
+}

@@ -6,7 +6,9 @@
 <polymer-element name="builds-table" attributes="url">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
-        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
+        <core-ajax id="ajax" auto url="{{url}}" handleAs="json"
+                   on-core-response="{{ajaxResponse}}"
+                   on-core-error="{{ajaxError}}"
                    withCredentials="true"></core-ajax>
         <div class="content" flex>
             <form class="form-inline">
@@ -58,6 +60,12 @@
                 return values;
             }
       },
+      ajaxComplete : function(){
+            console.info("ajax complete !!!");
+      },
+      ajaxError : function(event, object){
+            console.info("ajax error", object.response.statusCode);
+      }
     });
 
 

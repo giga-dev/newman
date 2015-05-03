@@ -1,13 +1,12 @@
 package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.beans.utils.ToStringBuilder;
+import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Barak Bar Orion
@@ -27,13 +26,16 @@ public class Test {
     private long timeout;
     private Status status;
     private String errorMessage;
-    private List<URI> logs;
+    /* name, url mapping */
+    @Embedded
+    private Map<String, String> logs;
     private String assignedAgent;
     private Date startTime;
     private Date endTime;
     private Date scheduledAt;
 
     public Test() {
+        logs = new HashMap<>();
     }
 
     public String getId() {
@@ -84,11 +86,11 @@ public class Test {
         this.errorMessage = errorMessage;
     }
 
-    public List<URI> getLogs() {
+    public Map<String, String> getLogs() {
         return logs;
     }
 
-    public void setLogs(List<URI> logs) {
+    public void setLogs(Map<String, String> logs) {
         this.logs = logs;
     }
 

@@ -10,7 +10,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.types.ObjectId;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.*;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
@@ -22,11 +22,19 @@ import javax.annotation.security.PermitAll;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
+import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.*;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
-import java.util.*;
+import java.nio.file.*;
+import java.nio.file.attribute.FileAttribute;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -47,6 +55,7 @@ public class NewmanResource {
     private final BuildDAO buildDAO;
     private final AgentDAO agentDAO;
     private final Config config;
+    private static final String SERVER_UPLOAD_LOCATION_FOLDER = "web/logs";
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
@@ -150,7 +159,7 @@ public class NewmanResource {
         query.and(query.criteria("jobId").equal(result.getJobId()),
                 query.or(query.criteria("status").equal(Test.Status.PENDING),
                         query.criteria("status").equal(Test.Status.RUNNING)));
-        if (!testDAO.exists(query)){
+        if (!testDAO.exists(query)) {
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.DONE).set("endTime", new Date());
             jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(result.getJobId())), updateJobStatus);
         }
@@ -180,6 +189,68 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Test getTest(@PathParam("id") String id) {
         return testDAO.findOne(testDAO.createQuery().field("_id").equal(new ObjectId(id)));
+    }
+
+/*
+    @POST
+    @Path("test/{id}/log")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Test uploadLog(@FormDataParam("file") InputStream fileInputStream,
+                          @FormDataParam("file") FormDataContentDisposition contentDispositionHeader,
+                          @PathParam("id") String id,
+                          @Context UriInfo uriInfo) {
+        String fileName = contentDispositionHeader.getFileName();
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" +id + "/" + fileName;
+        try {
+            saveFile(fileInputStream, filePath);
+            URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
+            String name = getLogName(fileName);
+            UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("logs." + name, uri.toASCIIString());
+            return testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(id)), updateOps);
+        } catch (IOException e) {
+            logger.error("Failed to save log at {} for test {}", filePath, id,  e);
+        }
+        return null;
+    }
+*/
+
+    @POST
+    @Path("test/{id}/log")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Test uploadLog(FormDataMultiPart form,
+                          @PathParam("id") String id,
+                          @Context UriInfo uriInfo) {
+        FormDataBodyPart filePart = form.getField("file");
+        ContentDisposition contentDispositionHeader =  filePart.getContentDisposition();
+        InputStream fileInputStream = filePart.getValueAs(InputStream.class);
+        String fileName = contentDispositionHeader.getFileName();
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" +id + "/" + fileName;
+        try {
+            saveFile(fileInputStream, filePath);
+            URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
+            String name = getLogName(fileName);
+            UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("logs." + name, uri.toASCIIString());
+            return testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(id)), updateOps);
+        } catch (IOException e) {
+            logger.error("Failed to save log at {} for test {}", filePath, id,  e);
+        }
+        return null;
+    }
+
+    @GET
+    @Path("test/{id}/log/{name}")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({MediaType.APPLICATION_OCTET_STREAM })
+    public File downloadLog(@PathParam("id") String id, @PathParam("name") String name) {
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" +id + "/" + name;
+        return new File(filePath);
+    }
+
+
+    private String getLogName(String fileName) {
+        return fileName.replaceAll("\\.[^.]*$", "");
     }
 
 
@@ -272,7 +343,7 @@ public class NewmanResource {
                 .set("assignedAgent", name).set("startTime", new Date());
         Test result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
 
-        if(result != null){
+        if (result != null) {
             agentUpdateOps.set("currentTest", result.getId());
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.RUNNING).set("startTime", new Date());
             jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
@@ -311,13 +382,13 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Build updateBuild(final @PathParam("id") String id, final Build build) {
         UpdateOperations<Build> updateOps = buildDAO.createUpdateOperations();
-        if(build.getShas() != null) {
+        if (build.getShas() != null) {
             updateOps.set("shas", build.getShas());
         }
-        if(build.getBranch() != null) {
+        if (build.getBranch() != null) {
             updateOps.set("branch", build.getBranch());
         }
-        if(build.getResources() != null) {
+        if (build.getResources() != null) {
             updateOps.set("resources", build.getResources());
         }
         Query<Build> query = buildDAO.createQuery().field("_id").equal(new ObjectId(id));
@@ -401,6 +472,17 @@ public class NewmanResource {
             }
         }
         return Response.ok(Entity.json(res)).build();
+    }
+
+    private java.nio.file.Path saveFile(InputStream is, String location) throws IOException {
+        java.nio.file.Path path = Paths.get(location);
+        Files.createDirectories(path.getParent());
+        try {
+            Files.copy(is, Paths.get(location), StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            is.close();
+        }
+        return path;
     }
 
 

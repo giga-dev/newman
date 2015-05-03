@@ -5,17 +5,30 @@ import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.client.rx.RxClient;
+import org.glassfish.jersey.client.rx.RxWebTarget;
 import org.glassfish.jersey.client.rx.java8.RxCompletionStage;
 import org.glassfish.jersey.client.rx.java8.RxCompletionStageInvoker;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.glassfish.jersey.media.sse.SseFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.net.ssl.SSLContext;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.File;
 import java.net.InetAddress;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
@@ -69,6 +82,8 @@ public class NewmanClient {
                 test.setName("test_" + i);
                 test = newmanClient.createTest(test).toCompletableFuture().get();
                 logger.debug("added test {}", test);
+                test = newmanClient.uploadLog(test.getId(), new File("mongo.txt")).toCompletableFuture().get();
+                logger.info("**** Test is {} ", test);
             }
             Batch<Test> tests = newmanClient.getTests(job.getId(), 0, 30).toCompletableFuture().get();
             logger.debug("tests are {}", tests);
@@ -202,6 +217,21 @@ public class NewmanClient {
 
     public void close() {
         restClient.close();
+    }
+
+
+    public CompletionStage<Test> uploadLog(String testId, File log){
+        final FileDataBodyPart filePart = new FileDataBodyPart("file", log);
+
+        final MultiPart multipart = new FormDataMultiPart()
+//                .field("foo", "bar")
+                .bodyPart(filePart);
+
+//        @Path("test/{id}/log")
+        RxWebTarget<RxCompletionStageInvoker> target = restClient.target(uri).path("test").path(testId).path("log");
+        return target.request().rx()
+                .post(Entity.entity(multipart, multipart.getMediaType()), Test.class);
+
     }
 
     public static NewmanClient create(String user, String pw) {
