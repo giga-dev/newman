@@ -2,15 +2,14 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.config.Config;
-import com.gigaspaces.newman.dao.AgentDAO;
-import com.gigaspaces.newman.dao.BuildDAO;
-import com.gigaspaces.newman.dao.JobDAO;
-import com.gigaspaces.newman.dao.TestDAO;
+import com.gigaspaces.newman.dao.*;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.types.ObjectId;
-import org.glassfish.jersey.media.multipart.*;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
@@ -22,16 +21,15 @@ import javax.annotation.security.PermitAll;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
-import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
-import java.nio.file.*;
-import java.nio.file.attribute.FileAttribute;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -54,13 +52,15 @@ public class NewmanResource {
     private final TestDAO testDAO;
     private final BuildDAO buildDAO;
     private final AgentDAO agentDAO;
+    private final SuiteDAO suiteDAO;
     private final Config config;
     private static final String SERVER_UPLOAD_LOCATION_FOLDER = "web/logs";
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
         mongoClient = new MongoClient(config.getMongo().getHost());
-        morphia = new Morphia().map(Job.class, Agent.class, Build.class, Test.class);
+//        morphia = new Morphia().map(Job.class, Agent.class, Build.class, Test.class);
+        morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
         ds = morphia.createDatastore(mongoClient, config.getMongo().getDb());
         ds.ensureIndexes();
         ds.ensureCaps();
@@ -68,6 +68,7 @@ public class NewmanResource {
         testDAO = new TestDAO(morphia, mongoClient, config.getMongo().getDb());
         buildDAO = new BuildDAO(morphia, mongoClient, config.getMongo().getDb());
         agentDAO = new AgentDAO(morphia, mongoClient, config.getMongo().getDb());
+        suiteDAO = new SuiteDAO(morphia, mongoClient, config.getMongo().getDb());
     }
 
     @GET
@@ -223,10 +224,10 @@ public class NewmanResource {
                           @PathParam("id") String id,
                           @Context UriInfo uriInfo) {
         FormDataBodyPart filePart = form.getField("file");
-        ContentDisposition contentDispositionHeader =  filePart.getContentDisposition();
+        ContentDisposition contentDispositionHeader = filePart.getContentDisposition();
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
         String fileName = contentDispositionHeader.getFileName();
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" +id + "/" + fileName;
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + fileName;
         try {
             saveFile(fileInputStream, filePath);
             URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
@@ -234,7 +235,7 @@ public class NewmanResource {
             UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("logs." + name, uri.toASCIIString());
             return testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(id)), updateOps);
         } catch (IOException e) {
-            logger.error("Failed to save log at {} for test {}", filePath, id,  e);
+            logger.error("Failed to save log at {} for test {}", filePath, id, e);
         }
         return null;
     }
@@ -242,9 +243,9 @@ public class NewmanResource {
     @GET
     @Path("test/{id}/log/{name}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces({MediaType.APPLICATION_OCTET_STREAM })
+    @Produces({MediaType.APPLICATION_OCTET_STREAM})
     public File downloadLog(@PathParam("id") String id, @PathParam("name") String name) {
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" +id + "/" + name;
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + name;
         return new File(filePath);
     }
 
@@ -473,6 +474,30 @@ public class NewmanResource {
         }
         return Response.ok(Entity.json(res)).build();
     }
+
+    @POST
+    @Path("suite")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Suite addSuite(Suite suite) {
+        suiteDAO.save(suite);
+        return suite;
+    }
+
+    @GET
+    @Path("suite")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<Suite> getAllSuites(@DefaultValue("0") @QueryParam("offset") int offset,
+                                     @DefaultValue("30") @QueryParam("limit") int limit
+            , @QueryParam("all") boolean all
+            , @Context UriInfo uriInfo) {
+        Query<Suite> query = suiteDAO.createQuery();
+        if (!all) {
+            query.offset(offset).limit(limit);
+        }
+        return new Batch<>(suiteDAO.find(query).asList(), offset, limit, all, uriInfo);
+    }
+
 
     private java.nio.file.Path saveFile(InputStream is, String location) throws IOException {
         java.nio.file.Path path = Paths.get(location);
