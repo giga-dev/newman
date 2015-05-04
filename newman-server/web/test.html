@@ -29,7 +29,7 @@
 
                     <div class="col-sm-10">
                         <template if="{{data.jobId}}">
-                            <a href="{{urlFor('job', {id: data.jobId})}}">{{data.jobId}}</a>
+                            <label class="col-sm-2 control-label" style="text-align:left;padding-left:0px"><a href="{{urlFor('job', {id: data.jobId})}}">{{data.jobId}}</a></label>
                         </template>
                     </div>
                 </div>
@@ -63,29 +63,31 @@
                 </div>
                 <div class="form-group">
                     <label class="col-sm-2 control-label">status</label>
+
                     <div class="col-sm-10">
                         <button type="button"
                                 class="btn active {{{'btn-danger' : data.status == 'FAIL', 'btn-warning' : data.status == 'PENDING', 'btn-success' : data.status == 'SUCCESS', 'btn-info' : data.status == 'RUNNING'} | tokenList}}">
-                            {{data.status}}</button>
+                            {{data.status}}
+                        </button>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="col-sm-2 control-label">logs</label>
 
-                    <div class="col-sm-10">
-                        <p>{{data.logs | json}}</p>
-                        <template repeat="{{ key in data.logs }}" if="{{data.logs}}">
-                             <label>Binds if and only if conditionalValue is truthy.</label>
-                            <label class="control-label">{{key}}</label>
+                    <div class="col-sm-10" style="padding-left:0px">
+                        <template bind if="{{data.logs}}">
+                            <template repeat="{{key, index in data.logs | filterKeys}}">
+                                <div class="col-sm-10">
+                                    <label class="col-sm-2 control-label" style="text-align:left;padding-left:0px"><a
+                                            href="{{data.logs[key]}}">{{key}}</a></label>
+                                </div>
+                            </template>
                         </template>
-
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="col-sm-2 control-label">assignedAgent</label>
-                    <!--<template if="{{data.assignedAgent}}">-->
-                        <!--Binds if and only if conditionalValue is truthy.-->
-                    <!--</template>-->
+
                     <div class="col-sm-10">
                         <label class="control-label">{{data.assignedAgent}}</label>
                     </div>
@@ -119,10 +121,10 @@
         <form action="{{url}}/log" method="post" enctype="multipart/form-data">
 
             <p>
-                Select a file : <input type="file" name="file" size="50" />
+                Select a file : <input type="file" name="file" size="50"/>
             </p>
 
-            <input type="submit" value="Upload It" />
+            <input type="submit" value="Upload It"/>
         </form>
 
     </template>
@@ -149,6 +151,8 @@
       }
 
     });
+
+
 
 
 

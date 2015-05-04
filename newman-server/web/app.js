@@ -9,3 +9,7 @@ app.ajaxResponse = function(event, object){
 PolymerExpressions.prototype.json = function(object) {
     return JSON.stringify(object);
 }
+
+PolymerExpressions.prototype.filterKeys=  function(object){
+    return Object.keys(object);
+}
