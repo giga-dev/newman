@@ -4,6 +4,7 @@ import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -13,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+
 
 public class FileUtils {
 
@@ -82,4 +85,9 @@ public class FileUtils {
     public static void copyFile(Path source, Path target) throws IOException {
         org.apache.commons.io.FileUtils.copyFile(source.toFile(), target.toFile());
     }
+
+    public static Collection listFilesInFolder(final File folder) {
+        return org.apache.commons.io.FileUtils.listFiles(folder, null, true);
+    }
+
 }

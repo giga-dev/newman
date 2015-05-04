@@ -2,6 +2,7 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.Job;
 import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.utils.FileUtils;
 import com.gigaspaces.newman.utils.ProcessResult;
 import com.gigaspaces.newman.utils.ProcessUtils;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 
 import static com.gigaspaces.newman.utils.FileUtils.*;
@@ -20,9 +22,11 @@ public class JobExecutor {
 
     private final Job job;
     private final Path jobFolder;
+    private final Path newmanFolder;
 
     public JobExecutor(Job job, String basePath) {
         this.job = job;
+        newmanFolder = Paths.get(basePath);
         this.jobFolder = append(basePath, "job-" + job.getId());
     }
 
@@ -89,12 +93,15 @@ public class JobExecutor {
             test.setEndTime(new Date(scriptResult.getEndTime()));
             if (scriptResult.getExitCode() != null) {
                 test.setStatus(scriptResult.getExitCode() == 0 ? Test.Status.SUCCESS : Test.Status.FAIL);
-                try {
-                    String errorMessage = readTextFile(append(testFolder, "error.txt"));
-                    test.setErrorMessage(errorMessage);
-                }
-                catch (IOException e){
-                    test.setErrorMessage("No error.txt file");
+                //set error message when test failed
+                if (test.getStatus() == Test.Status.FAIL){
+                    try {
+                        String errorMessage = readTextFile(append(testFolder, "error.txt"));
+                        test.setErrorMessage(errorMessage);
+                    }
+                    catch (IOException e){
+                        test.setErrorMessage("No error.txt file");
+                    }
                 }
             } else {
                 // test timed out
@@ -114,11 +121,11 @@ public class JobExecutor {
             logger.warn("Failed to zip output folder folder {}", outputFolder);
         }
         // TODO: Where should the output.zip be uploaded to? synchronously?
-        /*try {
-            FileUtils.copyFile(append(testFolder, "output.zip"), append(append(newmanFolder, "logs"), "output" + test.getLocalId() + ".zip"));
+        try {
+            FileUtils.copyFile(append(testFolder, "output.zip"), append(append(newmanFolder, "logs"), "output-" + test.getId() + ".zip"));
         } catch (IOException e) {
             logger.warn("Failed to upload output zip");
-        }*/
+        }
 
         // Cleanup:
         try {

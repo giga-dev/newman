@@ -1,15 +1,19 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.gigaspaces.newman.utils.FileUtils.append;
+import static com.gigaspaces.newman.utils.FileUtils.unzip;
 
 /**
  @author Boris
@@ -52,7 +56,8 @@ public class NewmanAgent {
         this.client = NewmanClient.create("root", "root");
     }
 
-    private void start() throws InterruptedException {
+    private void start() throws InterruptedException, ExecutionException, IOException {
+        FileUtils.createFolder(append(config.getNewmanHome(), "logs"));
         while (active){
             Job job = waitForJob();
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
@@ -60,7 +65,9 @@ public class NewmanAgent {
             if (!setupFinished){
                 logger.error("Setup of job {} failed, will wait for a new job", job.getId());
                 jobExecutor.teardown();
-                //TODO inform the server that agent is not working on this job
+                //inform the server that agent is not working on this job
+                Agent agent = client.getAgent(name).toCompletableFuture().get();
+                client.unsubscribe(agent).toCompletableFuture().get();
                 continue;
             }
 
@@ -124,18 +131,25 @@ public class NewmanAgent {
     }
 
     private void reportTest(Test testResult) {
-        logger.info("Test #" + testResult.getId() + (testResult.getStatus()));
+        logger.info("Reporting Test #{} status: {}",testResult.getId(),testResult.getStatus());
 
         try {
             //update test removes Agent assignment
-            Test updatedTest = client.updateTest(testResult).toCompletableFuture().get();
+            client.updateTest(testResult).toCompletableFuture().get();
+            Path logs = append(config.getNewmanHome(), "logs");
+            Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
+            Path testLogsFolder = append(logs, "output-" + testResult.getId());
+            unzip(testLogsFile, testLogsFolder);
+            Collection logFiles = FileUtils.listFilesInFolder(testLogsFolder.toFile());
+            for (Object log : logFiles){
+                client.uploadLog(testResult.getId(), (File)log);
+            }
         } catch (InterruptedException e) {
             logger.info("Worker was interrupted while updating test result: {}", testResult);
         } catch (ExecutionException e) {
             logger.warn("Worker failed to update test result: {} caught: {}", testResult, e);
+        } catch (IOException e) {
+            logger.warn("Worker failed to unzip logs test result caught: {}", e);
         }
-
-        // TODO: Report test;
-        // TODO: Upload test logs;
     }
 }

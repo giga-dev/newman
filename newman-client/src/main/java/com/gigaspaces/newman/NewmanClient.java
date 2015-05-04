@@ -1,7 +1,6 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
-import com.gigaspaces.newman.beans.criteria.Pattern;
 import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -14,17 +13,11 @@ import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.glassfish.jersey.media.sse.SseFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import java.io.File;
-import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -110,6 +103,10 @@ public class NewmanClient {
 
     public CompletionStage<Test> getReadyTest(String agentName, String jobId) {
         return restClient.target(uri).path("agent").path(agentName).path(jobId).request().rx().post(Entity.text(""), Test.class);
+    }
+
+    public CompletionStage<Job> unsubscribe(Agent agent) {
+        return restClient.target(uri).path("unsubscribe").request().rx().post(Entity.json(agent), Job.class);
     }
 
     public CompletionStage<Suite> addSuite(Suite suite) {

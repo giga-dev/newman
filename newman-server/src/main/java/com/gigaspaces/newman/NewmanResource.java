@@ -116,6 +116,23 @@ public class NewmanResource {
         }
     }
 
+    @POST
+    @Path("unsubscribe")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Job unsubscribe(final Agent agent) {
+        String jobId = agent.getJobId();
+        if (jobId == null) {
+            throw new BadRequestException("can't unsubscribe agent without a job " + agent);
+        }
+        Job job = jobDAO.findOne(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)));
+        UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.READY);
+        jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(job.getId())), updateJobStatus);
+        UpdateOperations<Agent> updateAgentOps = agentDAO.createUpdateOperations().set("jobId", "");
+        agentDAO.getDatastore().updateFirst(agentDAO.createQuery().field("name").equal(agent.getName()), updateAgentOps, true);
+        return job;
+    }
+
 
     @PUT
     @Path("test")
