@@ -18,6 +18,8 @@ public class Job {
     private String id;
     @Embedded(concreteClass = Build.class)
     private Build build;
+    @Embedded(concreteClass = Suite.class) //Why isn't this @Reference?
+    private Suite suite;
     private Date submitTime;
     private Date startTime;
     private Date endTime;
@@ -130,11 +132,20 @@ public class Job {
         this.runningTests = runningTests;
     }
 
+    public Suite getSuite() {
+        return suite;
+    }
+
+    public void setSuite(Suite suite) {
+        this.suite = suite;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
                 .append("id", id)
                 .append("build", build)
+                .append("suite", suite)
                 .append("submitTime", submitTime)
                 .append("startTime", startTime)
                 .append("endTime", endTime)

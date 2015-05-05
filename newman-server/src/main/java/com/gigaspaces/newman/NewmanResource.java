@@ -108,9 +108,22 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Job createJob(JobRequest jobRequest, @Context SecurityContext sc) {
         Build build = buildDAO.findOne(buildDAO.createQuery().field("_id").equal(new ObjectId(jobRequest.getBuildId())));
+        Suite suite = null;
+        if (jobRequest.getSuiteId() != null) {
+            suite = suiteDAO.findOne(suiteDAO.createQuery().field("_id").equal(new ObjectId(jobRequest.getSuiteId())));
+        } else {
+            //for now, add empty suite if not defined so to not break the flow.
+            if (suite == null) {
+                suite = new Suite();
+                suite.setName("empty suite created for build " + jobRequest.getBuildId());
+                suite = addSuite(suite);
+            }
+        }
+
         if (build != null) {
             Job job = new Job();
             job.setBuild(build);
+            job.setSuite(suite);
             job.setState(State.READY);
             job.setSubmitTime(new Date());
             job.setSubmittedBy(sc.getUserPrincipal().getName());
