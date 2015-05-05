@@ -59,6 +59,7 @@ public class Main {
 
             Build build = new Build();
             build.setName("The build " + UUID.randomUUID());
+            build.setBranch("master");
             build = newmanClient.createBuild(build).toCompletableFuture().get();
             logger.info("create a new build {}", build);
             build = newmanClient.getBuild(build.getId()).toCompletableFuture().get();

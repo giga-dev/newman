@@ -18,16 +18,18 @@
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <thead>
                         <tr>
-                            <th>Build Id</th>
+                            <th>Build Name</th>
                             <th>Branch</th>
+                            <th>Build Time</th>
                             <th>URI</th>
                         </tr>
                     </thead>
                     <tbody>
                         <template repeat="{{item in data}}">
                             <tr>
-                                <td><a href="{{urlFor('build', {id: item.id})}}">{{item.id}}</a></td>
+                                <td><a href="{{urlFor('build', {id: item.id})}}">{{item.name}}</a></td>
                                 <td>{{item.branch}}</td>
+                                <td>{{item.buildTime | formatDate}}</td>
                                 <td><a href="{{item.uri}}">{{item.uri}}</a></td>
                             </tr>
                         </template>
@@ -36,6 +38,7 @@
             </div>
         </div>
     </template>
+    <script src="../components/moment/moment.js"></script>
 
     <script>
     Polymer({
@@ -65,7 +68,13 @@
       },
       ajaxError : function(event, object){
             console.info("ajax error", object.response.statusCode);
-      }
+      },
+      formatDate: function(date){
+            if(!date){
+                return date;
+            }
+           return moment(new Date(date)).fromNow();
+      },
     });
 
 
