@@ -77,16 +77,22 @@ public class NewmanResource {
                            @DefaultValue("30") @QueryParam("limit") int limit
             , @QueryParam("buildId") String buildId
             , @QueryParam("all") boolean all
+            , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
 
         Query<Job> query = jobDAO.createQuery();
         if (buildId != null) {
             query.field("build.id").equal(buildId);
         }
+        if (orderBy != null) {
+            for (String ob : orderBy) {
+                query.order(ob);
+            }
+        }
         if (!all) {
             query.offset(offset).limit(limit);
         }
-        return new Batch<>(jobDAO.find(query).asList(), offset, limit, all, uriInfo);
+        return new Batch<>(jobDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
     }
 
     @GET
@@ -164,15 +170,15 @@ public class NewmanResource {
             throw new BadRequestException("can't finish test without testId: " + test);
         }
         Test.Status status = test.getStatus();
-        if(status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)){
+        if (status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)) {
             throw new BadRequestException("can't finish test without state set to success or fail state" + test);
         }
         UpdateOperations<Test> testUpdateOps = testDAO.createUpdateOperations();
         UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations();
         testUpdateOps.set("status", status);
-        if(status == Test.Status.FAIL){
+        if (status == Test.Status.FAIL) {
             updateJobStatus.inc("failedTests");
-        }else{
+        } else {
             updateJobStatus.inc("passedTests");
         }
         updateJobStatus.dec("runningTests");
@@ -202,15 +208,21 @@ public class NewmanResource {
     public Batch<Test> getJobTests(@DefaultValue("0") @QueryParam("offset") int offset,
                                    @DefaultValue("30") @QueryParam("limit") int limit,
                                    @DefaultValue("false") @QueryParam("all") boolean all,
+                                   @QueryParam("orderBy") List<String> orderBy,
                                    @QueryParam("jobId") String jobId, @Context UriInfo uriInfo) {
         Query<Test> query = testDAO.createQuery();
         if (jobId != null) {
             query.field("jobId").equal(jobId);
         }
+        if (orderBy != null) {
+            for (String ob : orderBy) {
+                query.order(ob);
+            }
+        }
         if (!all) {
             query.offset(offset).limit(limit);
         }
-        return new Batch<>(testDAO.find(query).asList(), offset, limit, all, uriInfo);
+        return new Batch<>(testDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
     }
 
     @GET
@@ -266,6 +278,7 @@ public class NewmanResource {
     public Job subscribe(final Agent agent) {
         Query<Job> query = jobDAO.createQuery();
         query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
+        query.order("submitTime");
         Job job = jobDAO.findOne(query);
         UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
                 .set("lastTouchTime", new Date());
@@ -283,9 +296,17 @@ public class NewmanResource {
     @Path("subscribe")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Agent> getSubscriptions(@DefaultValue("0") @QueryParam("offset") int offset,
-                                         @DefaultValue("30") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
-        return new Batch<>(agentDAO.find(agentDAO.createQuery().offset(offset).limit(limit)).asList(), offset, limit,
-                false, uriInfo);
+                                         @DefaultValue("30") @QueryParam("limit") int limit
+            , @QueryParam("orderBy") List<String> orderBy
+            , @Context UriInfo uriInfo) {
+        Query<Agent> query = agentDAO.createQuery().offset(offset).limit(limit);
+        if (orderBy != null) {
+            for (String ob : orderBy) {
+                query.order(ob);
+            }
+        }
+        return new Batch<>(agentDAO.find(query).asList(), offset, limit,
+                false, orderBy, uriInfo);
     }
 
 
@@ -320,12 +341,19 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Agent> getAgents(@DefaultValue("0") @QueryParam("offset") int offset,
                                   @DefaultValue("30") @QueryParam("limit") int limit,
-                                  @DefaultValue("false") @QueryParam("all") boolean all, @Context UriInfo uriInfo) {
+                                  @DefaultValue("false") @QueryParam("all") boolean all
+            , @QueryParam("orderBy") List<String> orderBy
+            , @Context UriInfo uriInfo) {
         Query<Agent> query = agentDAO.createQuery();
         if (!all) {
             query.offset(offset).limit(limit);
         }
-        return new Batch<>(agentDAO.find(query).asList(), offset, limit, all, uriInfo);
+        if (orderBy != null) {
+            for (String ob : orderBy) {
+                query.order(ob);
+            }
+        }
+        return new Batch<>(agentDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
     }
 
     @POST
@@ -352,7 +380,7 @@ public class NewmanResource {
             agentUpdateOps.set("currentTest", result.getId());
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
-            if(job.getStartTime() == null) {
+            if (job.getStartTime() == null) {
                 updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
                 jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
             }
@@ -369,12 +397,19 @@ public class NewmanResource {
 //    @RolesAllowed("admin")
     public Batch<Build> getBuilds(@DefaultValue("0") @QueryParam("offset") int offset,
                                   @DefaultValue("30") @QueryParam("limit") int limit,
-                                  @DefaultValue("false") @QueryParam("all") boolean all, @Context UriInfo uriInfo) {
+                                  @DefaultValue("false") @QueryParam("all") boolean all
+            , @QueryParam("orderBy") List<String> orderBy
+            , @Context UriInfo uriInfo) {
         Query<Build> query = buildDAO.createQuery();
         if (!all) {
             query.offset(offset).limit(limit);
         }
-        return new Batch<>(buildDAO.find(query).asList(), offset, limit, all, uriInfo);
+        if (orderBy != null) {
+            for (String ob : orderBy) {
+                query.order(ob);
+            }
+        }
+        return new Batch<>(buildDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
     }
 
     @PUT
@@ -501,12 +536,19 @@ public class NewmanResource {
     public Batch<Suite> getAllSuites(@DefaultValue("0") @QueryParam("offset") int offset,
                                      @DefaultValue("30") @QueryParam("limit") int limit
             , @QueryParam("all") boolean all
+            , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
         Query<Suite> query = suiteDAO.createQuery();
         if (!all) {
             query.offset(offset).limit(limit);
         }
-        return new Batch<>(suiteDAO.find(query).asList(), offset, limit, all, uriInfo);
+        if (orderBy != null) {
+            for (String ob : orderBy) {
+                query.order(ob);
+            }
+        }
+
+        return new Batch<>(suiteDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
     }
 
 

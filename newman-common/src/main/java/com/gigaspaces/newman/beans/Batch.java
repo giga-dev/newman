@@ -2,6 +2,8 @@ package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.beans.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Transient;
+
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
@@ -26,18 +28,28 @@ public class Batch<T> {
     public Batch() {
     }
 
-    public Batch(List<T> values, int offset, int limit, boolean all, UriInfo uriInfo) {
+    public Batch(List<T> values, int offset, int limit, boolean all, List<String> orderBy, UriInfo uriInfo) {
         this.values = values;
         this.offset = offset;
         this.limit = limit;
+        UriBuilder selfBuilder = uriInfo.getAbsolutePathBuilder();
+        UriBuilder backBuilder = uriInfo.getAbsolutePathBuilder();
+        UriBuilder nextBuilder = uriInfo.getAbsolutePathBuilder();
+        if(orderBy != null){
+            for (String ob : orderBy) {
+                selfBuilder.queryParam("orderBy", ob);
+                backBuilder.queryParam("orderBy", ob);
+                nextBuilder.queryParam("orderBy", ob);
+            }
+        }
         if(all){
-            this.self = uriInfo.getAbsolutePathBuilder().queryParam("all", true).build();
+            this.self = selfBuilder.queryParam("all", true).build();
         }else {
             if (0 < offset) {
-                this.back = uriInfo.getAbsolutePathBuilder().queryParam("offset", Math.max(0, offset - limit)).queryParam("limit", limit).build();
+                this.back = backBuilder.queryParam("offset", Math.max(0, offset - limit)).queryParam("limit", limit).build();
             }
-            this.self = uriInfo.getAbsolutePathBuilder().queryParam("offset", offset).queryParam("limit", limit).build();
-            this.next = uriInfo.getAbsolutePathBuilder().queryParam("offset", offset + limit).queryParam("limit", limit).build();
+            this.self = selfBuilder.queryParam("offset", offset).queryParam("limit", limit).build();
+            this.next = nextBuilder.queryParam("offset", offset + limit).queryParam("limit", limit).build();
         }
     }
 
