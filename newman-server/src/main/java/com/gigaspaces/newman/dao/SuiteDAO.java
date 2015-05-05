@@ -1,6 +1,5 @@
 package com.gigaspaces.newman.dao;
 
-import com.gigaspaces.newman.beans.Agent;
 import com.gigaspaces.newman.beans.Suite;
 import com.mongodb.MongoClient;
 import org.bson.types.ObjectId;

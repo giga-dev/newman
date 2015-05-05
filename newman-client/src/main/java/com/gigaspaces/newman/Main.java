@@ -1,7 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
-import com.gigaspaces.newman.beans.criteria.Pattern;
+import com.gigaspaces.newman.beans.criteria.PatternCriteria;
 import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -47,11 +47,16 @@ public class Main {
         try {
 
             Suite suite = new Suite();
-            suite.setCriterias(Arrays.asList(new Pattern("foo")));
+            suite.setName("full regression");
+            suite.setCriteria(PatternCriteria.recursivePackageNameCriteria("com.gigaspaces.test"));
+
             suite = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("suite is {}", suite);
             Batch<Suite> suites = newmanClient.getAllSuites().toCompletableFuture().get();
-            logger.info("suites is {}", suites);
+            logger.info("all suites {}", suites);
+            suite = newmanClient.getSuite(suite.getId()).toCompletableFuture().get();
+            logger.info("got suite {}", suite);
+
             Build build = new Build();
             build.setName("The build " + UUID.randomUUID());
             build = newmanClient.createBuild(build).toCompletableFuture().get();

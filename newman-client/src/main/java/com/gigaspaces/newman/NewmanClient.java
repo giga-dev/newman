@@ -113,6 +113,10 @@ public class NewmanClient {
         return restClient.target(uri).path("suite").request().rx().post(Entity.json(suite), Suite.class);
     }
 
+    public CompletionStage<Suite> getSuite(String id) {
+        return restClient.target(uri).path("suite").path(id).request().rx().get(Suite.class);
+    }
+
     public CompletionStage<Batch<Suite>> getAllSuites() {
         return restClient.target(uri).path("suite").request().rx().get(new GenericType<Batch<Suite>>() {
         });

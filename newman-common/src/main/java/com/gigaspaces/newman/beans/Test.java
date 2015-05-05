@@ -14,7 +14,6 @@ import java.util.*;
  */
 @Entity
 public class Test {
-
     public enum Status {PENDING, SUCCESS, FAIL, RUNNING}
 
     @Id
@@ -33,6 +32,8 @@ public class Test {
     private Date startTime;
     private Date endTime;
     private Date scheduledAt;
+
+    @Embedded private Map<String,String> properties;
 
     public Test() {
         logs = new HashMap<>();
@@ -140,6 +141,14 @@ public class Test {
 
     public void setTestType(String testType) {
         this.testType = testType;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
     }
 
     @Override

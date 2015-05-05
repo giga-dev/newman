@@ -18,8 +18,10 @@ public class Suite {
     @Id
     private String id;
 
+    private String name;
+
     @Embedded
-    private List<Criteria> criterias;
+    private Criteria criteria;
 
     public Suite() {
     }
@@ -32,19 +34,28 @@ public class Suite {
         this.id = id;
     }
 
-    public List<Criteria> getCriterias() {
-        return criterias;
+    public Criteria getCriteria() {
+        return criteria;
     }
 
-    public void setCriterias(List<Criteria> criterias) {
-        this.criterias = criterias;
+    public void setCriteria(Criteria criteria) {
+        this.criteria = criteria;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
                 .append("id", id)
-                .append("criterias", criterias)
+                .append("name", name)
+                .append("criteria", criteria)
                 .toString();
     }
 }

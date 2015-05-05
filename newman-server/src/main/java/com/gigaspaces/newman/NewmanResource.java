@@ -531,6 +531,14 @@ public class NewmanResource {
     }
 
     @GET
+    @Path("suite/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Suite getSuite(final @PathParam("id") String id) {
+        return suiteDAO.findOne(suiteDAO.createQuery().field("_id").equal(new ObjectId(id)));
+    }
+
+    @GET
     @Path("suite")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Suite> getAllSuites(@DefaultValue("0") @QueryParam("offset") int offset,
