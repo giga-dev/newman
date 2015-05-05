@@ -8,6 +8,7 @@ import com.gigaspaces.newman.utils.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
@@ -54,6 +55,16 @@ public class JobExecutor {
             logger.info("Extracting Newman Artifacts...");
             Path artifactsFile = append(resourcesFolder, "newman-artifacts.zip");
             unzip(artifactsFile, jobFolder);
+
+            //chmod in linux to execute scripts
+            if (!isWindows()){
+                String[] scriptExtensions = {"sh"};
+                for(Object script : FileUtils.listFilesInFolder(jobFolder.toFile(), scriptExtensions)){
+                    boolean chmodSuccess = ((File) script).setExecutable(true);
+                    if (!chmodSuccess)
+                        logger.warn("failed to chmod the script file: {}" + script);
+                }
+            }
 
             logger.info("Executing setup script...");
             Path setupScript = append(jobFolder, "job-setup" + SCRIPT_SUFFIX);
@@ -149,6 +160,7 @@ public class JobExecutor {
             }
             logger.info("Deleting job folder {}", jobFolder);
             delete(jobFolder);
+            //TODO consider removing the logs files as well
         } catch (IOException e) {
             logger.error("Teardown for job {} has failed: {}", job.getId(), e);
         } catch (InterruptedException e) {

@@ -90,4 +90,8 @@ public class FileUtils {
         return org.apache.commons.io.FileUtils.listFiles(folder, null, true);
     }
 
+    public static Collection listFilesInFolder(final File folder, String[] extensions) {
+        return org.apache.commons.io.FileUtils.listFiles(folder, extensions, true);
+    }
+
 }
