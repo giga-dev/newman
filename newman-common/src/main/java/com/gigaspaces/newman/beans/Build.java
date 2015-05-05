@@ -6,6 +6,7 @@ import org.mongodb.morphia.annotations.Id;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -20,6 +21,8 @@ public class Build {
     private Map<String, String> shas;
     private String branch;
     private Collection<URI> resources;
+    private Date buildTime;
+
 
     public String getId() {
         return id;
@@ -61,6 +64,14 @@ public class Build {
         this.name = name;
     }
 
+    public Date getBuildTime() {
+        return buildTime;
+    }
+
+    public void setBuildTime(Date buildTime) {
+        this.buildTime = buildTime;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
@@ -69,6 +80,7 @@ public class Build {
                 .append("shas", shas)
                 .append("branch", branch)
                 .append("resources", resources)
+                .append("buildTime", buildTime)
                 .toString();
     }
 }

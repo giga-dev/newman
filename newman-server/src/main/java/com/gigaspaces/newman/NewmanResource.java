@@ -209,30 +209,6 @@ public class NewmanResource {
         return testDAO.findOne(testDAO.createQuery().field("_id").equal(new ObjectId(id)));
     }
 
-/*
-    @POST
-    @Path("test/{id}/log")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Test uploadLog(@FormDataParam("file") InputStream fileInputStream,
-                          @FormDataParam("file") FormDataContentDisposition contentDispositionHeader,
-                          @PathParam("id") String id,
-                          @Context UriInfo uriInfo) {
-        String fileName = contentDispositionHeader.getFileName();
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" +id + "/" + fileName;
-        try {
-            saveFile(fileInputStream, filePath);
-            URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
-            String name = getLogName(fileName);
-            UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("logs." + name, uri.toASCIIString());
-            return testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(id)), updateOps);
-        } catch (IOException e) {
-            logger.error("Failed to save log at {} for test {}", filePath, id,  e);
-        }
-        return null;
-    }
-*/
-
     @POST
     @Path("test/{id}/log")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -390,6 +366,9 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Build createBuild(final Build build) {
+        if(build.getBuildTime() == null){
+            build.setBuildTime(new Date());
+        }
         buildDAO.save(build);
         return build;
     }
@@ -426,7 +405,6 @@ public class NewmanResource {
     @Path("build/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Build uploadBuild(final @PathParam("id") String id, final FormDataMultiPart multiPart) {
-
         InputStream is = multiPart.getField("testsuite-1.5.zip").getValueAs(InputStream.class);
         ZipInputStream zipInputStream = new ZipInputStream(is);
         logger.info("testsuite-1.5.zip stream is {}, build is {}", is, id);
