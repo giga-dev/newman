@@ -1,6 +1,7 @@
 <script src="../components/webcomponentsjs/webcomponents.js"></script>
 
 <link rel="import" href="routes.html">
+<link rel="import" href="test-status.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
 <polymer-element name="tests-table" attributes="url">
@@ -32,10 +33,7 @@
                         <tr>
                             <td><a href="{{urlFor('test', {id: item.id})}}">{{item.name}}</a></td>
                             <td><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
-                            <!--class="{{{btn : item != null,  active : item != null , btn-success : item.status == 'SUCCESS', btn-success : item.status == 'RUNNING'}|tokenList}}">-->
-                            <td><button type="button"
-                                        class="btn active {{{'btn-danger' : item.status == 'FAIL', 'btn-warning' : item.status == 'PENDING', 'btn-success' : item.status == 'SUCCESS', 'btn-info' : item.status == 'RUNNING'} | tokenList}}">
-                                {{item.status}}</button></td>
+                            <td><test-status test="{{item}}"></test-status></td>
                             <td>{{item.assignedAgent}}</td>
                             <td>{{item.scheduledAt | formatDate }}</td>
                             <td>{{item.startTime | formatDate }}</td>

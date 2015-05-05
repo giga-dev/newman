@@ -1,0 +1,42 @@
+<script src="../components/webcomponentsjs/webcomponents.js"></script>
+
+<link rel="import" href="routes.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+
+<polymer-element name="job-progress" attributes="job">
+    <template>
+        <style>
+            div.progress{
+                margin-bottom:0;
+                max-width: 100px;
+            }
+        </style>
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <div class="progress">
+                <div class="progress-bar {{{'progress-bar-success' : job.state == 'DONE', 'progress-bar-info' : job.state == 'RUNNING'} | tokenList}}"
+                     role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width: {{job|progressPercent}}%;">
+                    {{job|progressPercent}}%
+                </div>
+            </div>
+    </template>
+
+    <script>
+    Polymer({
+      applyAuthorStyles: true,
+      job: null,
+      progressPercent : function(job){
+          if(!job || !job.totalTests){
+            return 0;
+          }
+          with(job){
+                if(!totalTests){
+                    return "0";
+                }else{
+                    return (totalTests  * 100) / (failedTests + passedTests);
+                }
+          }
+      }
+    });
+
+    </script>
+</polymer-element>

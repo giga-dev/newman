@@ -5,116 +5,58 @@
 
 <polymer-element name="test-info" attributes="url data">
     <template>
+        <style>
+            ul.unindent {
+            list-style-position: inside;
+            padding-left:0;
+            }
+        </style>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
-        <div class="content" flex>
-            <form class="form-horizontal">
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">name</label>
+        <h3>Details for test {{data.name}}</h3>
+        <dl class="dl-horizontal">
+            <dt>status</dt>
+            <dd>
+                <test-status test="{{data}}"></test-status>
+            </dd>
+            <dt>id</dt>
+            <dd>{{data.id}}</dd>
+            <template bind if="{{data.jobId}}">
+                <dt>jobId</dt>
+                <dd><a href="{{urlFor('job', {id: data.jobId})}}">{{data.jobId}}</a></dd>
+            </template>
+            <dt>arguments</dt>
+            <dd>{{data.arguments}}</dd>
+            <dt>test type</dt>
+            <dd>{{data.testType}}</dd>
+            <dt>timeout</dt>
+            <dd>{{data.timeout | formatTimeout}}</dd>
 
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.name}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">id</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.id}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">jobId</label>
-
-                    <div class="col-sm-10">
-                        <template if="{{data.jobId}}">
-                            <label class="col-sm-2 control-label" style="text-align:left;padding-left:0px"><a href="{{urlFor('job', {id: data.jobId})}}">{{data.jobId}}</a></label>
+            <dt>errorMessage</dt>
+            <dd>{{data.errorMessage}}</dd>
+            <dt>logs</dt>
+            <dd>
+                <template bind if="{{data.logs}}">
+                    <ul class="unindent">
+                        <template repeat="{{key, index in data.logs | filterKeys}}">
+                            <li><a href="{{data.logs[key]}}">{{key}}</a></li>
                         </template>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">arguments</label>
+                    </ul>
+                </template>
+            </dd>
 
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.arguments}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">testType</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.testType}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">timeout</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.timeout}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">errorMessage</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.errorMessage}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">status</label>
-
-                    <div class="col-sm-10">
-                        <button type="button"
-                                class="btn active {{{'btn-danger' : data.status == 'FAIL', 'btn-warning' : data.status == 'PENDING', 'btn-success' : data.status == 'SUCCESS', 'btn-info' : data.status == 'RUNNING'} | tokenList}}">
-                            {{data.status}}
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">logs</label>
-
-                    <div class="col-sm-10" style="padding-left:0px">
-                        <template bind if="{{data.logs}}">
-                            <template repeat="{{key, index in data.logs | filterKeys}}">
-                                <div class="col-sm-10">
-                                    <label class="col-sm-2 control-label" style="text-align:left;padding-left:0px"><a
-                                            href="{{data.logs[key]}}">{{key}}</a></label>
-                                </div>
-                            </template>
-                        </template>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">assignedAgent</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.assignedAgent}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">startTime</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.startTime | formatDate}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">endTime</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.endTime | formatDate}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">scheduledAt</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.scheduledAt |formatDate}}</label>
-                    </div>
-                </div>
-            </form>
-        </div>
+            <dt>Running Tests</dt>
+            <dd>{{data.runningTests}}</dd>
+            <dt>assignedAgent</dt>
+            <dd>{{data.assignedAgent}}</dd>
+            <dt>startTime</dt>
+            <dd>{{data.startTime | formatDate}}</dd>
+            <dt>endTime</dt>
+            <dd>{{data.endTime | formatDate}}</dd>
+            <dt>scheduledAt</dt>
+            <dd>{{data.scheduledAt |formatDate}}</dd>
+        </dl>
 
         <h1>Upload a File</h1>
 
@@ -148,9 +90,20 @@
                 return null;
             }
             return moment.duration(item.endTime - item.startTime).humanize();
+      },
+      formatTimeout: function(timeout){
+            if(!timeout){
+                return null;
+            }
+            return moment.duration(timeout).asSeconds() + " seconds";
       }
 
     });
+
+
+
+
+
 
 
 

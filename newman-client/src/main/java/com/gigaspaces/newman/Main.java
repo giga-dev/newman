@@ -108,12 +108,12 @@ public class Main {
                 }
                 if (i % 2 == 0) {
                     test.setStatus(Test.Status.SUCCESS);
-                    newmanClient.updateTest(test).toCompletableFuture().get();
+                    newmanClient.finishTest(test).toCompletableFuture().get();
                     logger.info("SUCCESS test {}", test);
                 } else {
                     test.setStatus(Test.Status.FAIL);
                     test.setErrorMessage(new IllegalArgumentException().toString());
-                    newmanClient.updateTest(test).toCompletableFuture().get();
+                    newmanClient.finishTest(test).toCompletableFuture().get();
                     logger.info("FAIL test {}", test);
                 }
                 i += 1;

@@ -1,6 +1,7 @@
 <script src="../components/webcomponentsjs/webcomponents.js"></script>
 
 <link rel="import" href="routes.html">
+<link rel="import" href="job-progress.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
 <polymer-element name="jobs-table" attributes="url">
@@ -14,7 +15,8 @@
                        class="form-control">
             </form>
             <div class="table-responsive">
-                <table class="table table-hover table-striped table-bordered table-condensed">
+                <!--<table class="table table-hover table-striped table-bordered table-condensed">-->
+                <table class="table table-bordered table-striped">
                     <thead>
                     <tr>
                         <th>State</th>
@@ -23,22 +25,30 @@
                         <th>Submitted At</th>
                         <th>Tests URI</th>
                         <th>Submitted By</th>
+                        <th>#Tests</th>
+                        <th>#PassedTests</th>
+                        <th>#FailedTests</th>
+                        <th>#RunningTests</th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{item in data}}">
                         <tr>
-                            <td><button type="button"
-                                        class="btn active {{{'btn-warning' : item.state == 'READY', 'btn-success' : item.state == 'DONE', 'btn-info' : item.state == 'RUNNING'} | tokenList}}">
-                                {{item.state}}</button>
+                            <td>
+                                <job-progress job="{{item}}"></job-progress>
                             </td>
                             <td><a href="{{urlFor('job', {id: item.id})}}">{{item.id}}</a></td>
                             <td><a href="{{urlFor('build', {id: item.build.id})}}">{{item.build.id}}</a></td>
                             <td>{{item.submitTime | formatDate}}</td>
                             <td>{{item.testURI}}</td>
                             <td>{{item.submittedBy}}</td>
+                            <td>{{item.totalTests}}</td>
+                            <td>{{item.passedTests}}</td>
+                            <td>{{item.failedTests}}</td>
+                            <td>{{item.runningTests}}</td>
                         </tr>
                     </template>
+
                     </tbody>
                 </table>
             </div>
@@ -73,6 +83,7 @@
             }
       },
     });
+
 
 
 

@@ -135,7 +135,7 @@ public class NewmanAgent {
 
         try {
             //update test removes Agent assignment
-            client.updateTest(testResult).toCompletableFuture().get();
+            client.finishTest(testResult).toCompletableFuture().get();
             Path logs = append(config.getNewmanHome(), "logs");
             Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
             Path testLogsFolder = append(logs, "output-" + testResult.getId());

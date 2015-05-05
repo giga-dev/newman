@@ -1,6 +1,7 @@
 <script src="../components/webcomponentsjs/webcomponents.js"></script>
 
 <link rel="import" href="routes.html">
+<link rel="import" href="job-progress.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
 <polymer-element name="job-info" attributes="url data">
@@ -9,79 +10,34 @@
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
 
-        <!--private String id;-->
-        <!--private Build build;-->
-        <!--private Date submitTime;-->
-        <!--private Date startTime;-->
-        <!--private Date endTime;-->
-        <!--private URI testURI;-->
-        <!--private String submittedBy;-->
-        <!--private State state;-->
+        <h3>Details for job {{data.id}}</h3>
+        <dl class="dl-horizontal">
+            <template if="{{data.build.id}}">
+                <dt>Build</dt>
+                <dd><a href="{{urlFor('build', {id: data.build.id})}}">{{data.build.name}}</a></dd>
+            </template>
+            <dt>State</dt>
+            <dd><job-progress job="{{data}}"></job-progress></dd>
+            <dt>Submit Time</dt>
+            <dd>{{data.submitTime | formatDate}}</dd>
+            <dt>Start Time</dt>
+            <dd>{{data.startTime | formatDate}}</dd>
+            <dt>End Time</dt>
+            <dd>{{data.endTime | formatDate}}</dd>
 
-
-        <div class="content" flex>
-            <form class="form-horizontal">
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">Job</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.id}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">Build</label>
-
-                    <div class="col-sm-10">
-                        <template if="{{data.build.id}}">
-                            <a href="{{urlFor('build', {id: data.build.id})}}">{{data.build.name}}</a>
-                        </template>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">State</label>
-                    <div class="col-sm-10">
-                        <button type="button"
-                                class="btn active {{{ 'btn-warning' : data.state == 'READY', 'btn-success' : data.state == 'DONE', 'btn-info' : data.state == 'RUNNING'} | tokenList}}">
-                            {{data.state}}</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">Submit Time</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.submitTime | formatDate}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">Start Time</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.startTime | formatDate}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">End Time</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.endTime | formatDate}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">Test URI</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.testURI}}</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">Submitted By</label>
-
-                    <div class="col-sm-10">
-                        <label class="control-label">{{data.submittedBy}}</label>
-                    </div>
-                </div>
-            </form>
-        </div>
+            <dt>>Test URI</dt>
+            <dd>{{data.testURI}}</dd>
+            <dt>Submitted By</dt>
+            <dd>{{data.submittedBy}}</dd>
+            <dt>Number Of Tests</dt>
+            <dd>{{data.totalTests}}</dd>
+            <dt>Passed Tests</dt>
+            <dd>{{data.passedTests}}</dd>
+            <dt>Failed Tests</dt>
+            <dd>{{data.failedTests}}</dd>
+            <dt>Running Tests</dt>
+            <dd>{{data.runningTests}}</dd>
+        </dl>
     </template>
     <script src="../components/moment/moment.js"></script>
 

@@ -59,7 +59,6 @@ public class NewmanResource {
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
         mongoClient = new MongoClient(config.getMongo().getHost());
-//        morphia = new Morphia().map(Job.class, Agent.class, Build.class, Test.class);
         morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
         ds = morphia.createDatastore(mongoClient, config.getMongo().getDb());
         ds.ensureIndexes();
@@ -142,7 +141,10 @@ public class NewmanResource {
         if (test.getJobId() == null) {
             throw new BadRequestException("can't add test with no jobId: " + test);
         }
-        if (jobDAO.exists(jobDAO.createQuery().field("_id").equal(new ObjectId(test.getJobId())))) {
+        UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests");
+        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(test.getJobId()))
+                , jobUpdateOps, false, false);
+        if (job != null) {
             test.setStatus(Test.Status.PENDING);
             test.setScheduledAt(new Date());
             testDAO.save(test);
@@ -157,30 +159,39 @@ public class NewmanResource {
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Test updateTest(final Test test) {
+    public Test finishTest(final Test test) {
         if (test.getId() == null) {
-            throw new BadRequestException("can't post test with no testId: " + test);
+            throw new BadRequestException("can't finish test without testId: " + test);
         }
-        UpdateOperations<Test> updateOps = testDAO.createUpdateOperations();
         Test.Status status = test.getStatus();
-        if (status != null) {
-            updateOps.set("status", status);
+        if(status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)){
+            throw new BadRequestException("can't finish test without state set to success or fail state" + test);
         }
+        UpdateOperations<Test> testUpdateOps = testDAO.createUpdateOperations();
+        UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations();
+        testUpdateOps.set("status", status);
+        if(status == Test.Status.FAIL){
+            updateJobStatus.inc("failedTests");
+        }else{
+            updateJobStatus.inc("passedTests");
+        }
+        updateJobStatus.dec("runningTests");
+
         if (test.getErrorMessage() != null) {
-            updateOps.set("errorMessage", test.getErrorMessage());
+            testUpdateOps.set("errorMessage", test.getErrorMessage());
         }
         if (status == Test.Status.FAIL || status == Test.Status.SUCCESS) {
-            updateOps.set("endTime", new Date());
+            testUpdateOps.set("endTime", new Date());
         }
-        Test result = testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(test.getId())), updateOps, false, false);
+        Test result = testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(test.getId())), testUpdateOps, false, false);
         Query<Test> query = testDAO.createQuery();
         query.and(query.criteria("jobId").equal(result.getJobId()),
                 query.or(query.criteria("status").equal(Test.Status.PENDING),
                         query.criteria("status").equal(Test.Status.RUNNING)));
         if (!testDAO.exists(query)) {
-            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.DONE).set("endTime", new Date());
-            jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(result.getJobId())), updateJobStatus);
+            updateJobStatus.set("state", State.DONE).set("endTime", new Date());
         }
+        jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(result.getJobId())), updateJobStatus);
         return result;
     }
 
@@ -339,9 +350,14 @@ public class NewmanResource {
 
         if (result != null) {
             agentUpdateOps.set("currentTest", result.getId());
-            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.RUNNING).set("startTime", new Date());
-            jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
+            Job job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+            if(job.getStartTime() == null) {
+                updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
+                jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+            }
         }
+
         agentDAO.updateFirst(agentDAO.createQuery().field("_id").equal(new ObjectId(agent.getId())), agentUpdateOps);
         return result;
     }
@@ -366,7 +382,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Build createBuild(final Build build) {
-        if(build.getBuildTime() == null){
+        if (build.getBuildTime() == null) {
             build.setBuildTime(new Date());
         }
         buildDAO.save(build);

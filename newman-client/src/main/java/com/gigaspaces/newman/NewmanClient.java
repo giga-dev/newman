@@ -59,7 +59,7 @@ public class NewmanClient {
         return restClient.target(uri).path("test").request().rx().put(Entity.json(test), Test.class);
     }
 
-    public CompletionStage<Test> updateTest(Test test) {
+    public CompletionStage<Test> finishTest(Test test) {
         return restClient.target(uri).path("test").request().rx().post(Entity.json(test), Test.class);
     }
 

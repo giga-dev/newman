@@ -24,6 +24,11 @@ public class Job {
     private URI testURI;
     private String submittedBy;
     private State state;
+    private int totalTests;
+    private int passedTests;
+    private int failedTests;
+    private int runningTests;
+
 
     public Job() {
         state = State.READY;
@@ -93,6 +98,38 @@ public class Job {
         this.state = state;
     }
 
+    public int getTotalTests() {
+        return totalTests;
+    }
+
+    public void setTotalTests(int totalTests) {
+        this.totalTests = totalTests;
+    }
+
+    public int getPassedTests() {
+        return passedTests;
+    }
+
+    public void setPassedTests(int passedTests) {
+        this.passedTests = passedTests;
+    }
+
+    public int getFailedTests() {
+        return failedTests;
+    }
+
+    public void setFailedTests(int failedTests) {
+        this.failedTests = failedTests;
+    }
+
+    public int getRunningTests() {
+        return runningTests;
+    }
+
+    public void setRunningTests(int runningTests) {
+        this.runningTests = runningTests;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
@@ -104,6 +141,10 @@ public class Job {
                 .append("testURI", testURI)
                 .append("submittedBy", submittedBy)
                 .append("state", state)
+                .append("totalTests", state)
+                .append("passedTests", state)
+                .append("failedTests", state)
+                .append("runningTests", state)
                 .toString();
     }
 }
