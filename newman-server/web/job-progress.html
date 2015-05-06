@@ -12,10 +12,11 @@
         </style>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <div class="progress">
-            <div class="progress-bar {{{'progress-bar-success' : job.state == 'DONE', 'progress-bar-info' : job.state == 'RUNNING'} | tokenList}}"
+            <div class="progress-bar {{{'progress-bar-warning' : job.state == 'READY', 'progress-bar-success' : job.state == 'DONE', 'progress-bar-info' : job.state == 'RUNNING'} | tokenList}}"
                  role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
                  style="min-width: {{job.progressPercent}}%;">
-                {{job.progressPercent}}%
+                <template if="{{job.state == 'READY'}}">READY</template>
+                <template if="{{job.state != 'READY'}}">{{job.progressPercent}}%</template>
             </div>
         </div>
     </template>

@@ -18,7 +18,7 @@ public class Job {
     private String id;
     @Embedded(concreteClass = Build.class)
     private Build build;
-    @Embedded(concreteClass = Suite.class) //Why isn't this @Reference?
+    @Embedded(concreteClass = Suite.class) //Why isn't this @Reference?, it should be reference!
     private Suite suite;
     private Date submitTime;
     private Date startTime;

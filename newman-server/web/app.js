@@ -2,12 +2,14 @@ window.app = window.app || {};
 window.app.jobProgressPercent = function(job){
       if(!job){
             return 0;
-       }else if(!job.totalTests){
+      }else if(!job.totalTests){
             job.progressPercent = 0;
             return 0;
       }
       with(job){
-            if(!totalTests){
+            if(state == 'READY'){
+                job.progressPercent = 100;
+            } else if(!totalTests){
                 job.progressPercent = 0;
                 return 0;
             }else{

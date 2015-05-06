@@ -22,14 +22,14 @@
                     <tr>
                         <th>State</th>
                         <th>Job Id</th>
-                        <th>BuildId</th>
+                        <th>Build Id</th>
                         <th>Submitted At</th>
                         <th>Tests URI</th>
                         <th>Submitted By</th>
+                        <th>#Running Tests</th>
                         <th>#Tests</th>
-                        <th>#PassedTests</th>
-                        <th>#FailedTests</th>
-                        <th>#RunningTests</th>
+                        <th>#Passed Tests</th>
+                        <th>#Failed Tests</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -43,10 +43,10 @@
                             <td>{{item.submitTime | formatDate}}</td>
                             <td>{{item.testURI}}</td>
                             <td>{{item.submittedBy}}</td>
+                            <td>{{item.runningTests}}</td>
                             <td>{{item.totalTests}}</td>
                             <td>{{item.passedTests}}</td>
                             <td>{{item.failedTests}}</td>
-                            <td>{{item.runningTests}}</td>
                         </tr>
                     </template>
 
