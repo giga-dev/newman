@@ -87,7 +87,7 @@
             }
       },
       onCreatedJob: function(ev, job){
-            this.allValues.push(job);
+            this.allValues.unshift(job);
             this.runFilter();
       },
       onModifiedJob: function(ev, job){
