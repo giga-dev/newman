@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -72,9 +74,10 @@ public class NewmanAgent {
             }
 
             // Submit workers:
+            List<Future<?>> workersTasks = new ArrayList<>();
             for (int i =0; i < config.getNumOfWorkers(); i++) {
                 final int id = i;
-                workers.submit(() -> {
+                Future<?> worker = workers.submit(() -> {
                     logger.info("Starting worker #{} for job {}", id, jobExecutor.getJob().getId());
                     Test test;
                     while ((test = findTest(jobExecutor.getJob())) != null) {
@@ -83,12 +86,11 @@ public class NewmanAgent {
                     }
                     logger.info("Finished Worker #{} for job {}", id, jobExecutor.getJob().getId());
                 });
+                workersTasks.add(worker);
             }
-
-            // Wait for all workers to complete:
-            while (workers.getActiveCount() != 0){
-                logger.info("Waiting for all workers to complete ({} active workers)...", workers.getActiveCount());
-                Thread.sleep(config.getActiveWorkersPollInterval());
+            for (Future<?> worker : workersTasks){
+                logger.info("Waiting for all workers to complete...");
+                worker.get();
             }
 
             jobExecutor.teardown();
@@ -142,8 +144,10 @@ public class NewmanAgent {
             unzip(testLogsFile, testLogsFolder);
             Collection logFiles = FileUtils.listFilesInFolder(testLogsFolder.toFile());
             for (Object log : logFiles){
-                client.uploadLog(testResult.getId(), (File)log);
+                client.uploadLog(testResult.getId(), (File) log);
             }
+            // removes local test log dir once the logs are published to the server
+            //delete(testLogsFolder);
         } catch (InterruptedException e) {
             logger.info("Worker was interrupted while updating test result: {}", testResult);
         } catch (ExecutionException e) {

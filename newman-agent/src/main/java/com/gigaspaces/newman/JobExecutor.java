@@ -14,6 +14,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.UUID;
 
 import static com.gigaspaces.newman.utils.FileUtils.*;
 
@@ -23,12 +24,12 @@ public class JobExecutor {
 
     private final Job job;
     private final Path jobFolder;
-    private final Path newmanFolder;
+    private final Path newmanLogFolder;
 
     public JobExecutor(Job job, String basePath) {
         this.job = job;
-        newmanFolder = Paths.get(basePath);
-        this.jobFolder = append(basePath, "job-" + job.getId());
+        newmanLogFolder = append(Paths.get(basePath), "logs");
+        this.jobFolder = append(basePath, "job-" + job.getId()+ "-" + UUID.randomUUID()); // generate unique job folder for each execution
     }
 
     public Job getJob() {
@@ -85,7 +86,7 @@ public class JobExecutor {
 
     public Test run(Test test) {
         logger.info("Starting test {}...", test.getName());
-        final Path testFolder = append(jobFolder, "test-" + test.getName());
+        final Path testFolder = append(jobFolder, "test-" + test.getId());
         final Path outputFolder = append(testFolder, "output");
 
         try {
@@ -133,7 +134,7 @@ public class JobExecutor {
         }
         // TODO: Where should the output.zip be uploaded to? synchronously?
         try {
-            FileUtils.copyFile(append(testFolder, "output.zip"), append(append(newmanFolder, "logs"), "output-" + test.getId() + ".zip"));
+            FileUtils.copyFile(append(testFolder, "output.zip"), append(newmanLogFolder , "output-" + test.getId() + ".zip"));
         } catch (IOException e) {
             logger.warn("Failed to upload output zip");
         }
@@ -160,7 +161,6 @@ public class JobExecutor {
             }
             logger.info("Deleting job folder {}", jobFolder);
             delete(jobFolder);
-            //TODO consider removing the logs files as well
         } catch (IOException e) {
             logger.error("Teardown for job {} has failed: {}", job.getId(), e);
         } catch (InterruptedException e) {
