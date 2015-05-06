@@ -316,6 +316,7 @@ public class NewmanResource {
     public Job subscribe(final Agent agent) {
         Query<Job> query = jobDAO.createQuery();
         query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
+        query.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
         query.order("submitTime");
         Job job = jobDAO.findOne(query);
         UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()

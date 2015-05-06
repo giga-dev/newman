@@ -4,6 +4,8 @@ import com.gigaspaces.newman.beans.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.utils.IndexDirection;
 
 import java.net.URI;
 import java.util.*;
@@ -20,6 +22,7 @@ public class Job {
     private Build build;
     @Embedded(concreteClass = Suite.class) //Why isn't this @Reference?, it should be reference!
     private Suite suite;
+    @Indexed
     private Date submitTime;
     private Date startTime;
     private Date endTime;
@@ -152,10 +155,10 @@ public class Job {
                 .append("testURI", testURI)
                 .append("submittedBy", submittedBy)
                 .append("state", state)
-                .append("totalTests", state)
-                .append("passedTests", state)
-                .append("failedTests", state)
-                .append("runningTests", state)
+                .append("totalTests", totalTests)
+                .append("passedTests", passedTests)
+                .append("failedTests", failedTests)
+                .append("runningTests", runningTests)
                 .toString();
     }
 }
