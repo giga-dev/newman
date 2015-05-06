@@ -10,6 +10,11 @@ import org.bson.types.ObjectId;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.sse.EventOutput;
+import org.glassfish.jersey.media.sse.OutboundEvent;
+import org.glassfish.jersey.media.sse.SseBroadcaster;
+import org.glassfish.jersey.media.sse.SseFeature;
+import org.glassfish.jersey.server.ChunkedOutput;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
@@ -45,6 +50,7 @@ import java.util.zip.ZipInputStream;
 public class NewmanResource {
     private static final Logger logger = LoggerFactory.getLogger(NewmanResource.class);
 
+    private final SseBroadcaster broadcaster;
     private final MongoClient mongoClient;
     private final Morphia morphia;
     private final Datastore ds;
@@ -58,6 +64,19 @@ public class NewmanResource {
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
+        this.broadcaster = new SseBroadcaster(){
+            @Override
+            public void onException(ChunkedOutput<OutboundEvent> chunkedOutput, Exception exception) {
+                logger.error(exception.toString(), exception);
+                remove(chunkedOutput);
+            }
+
+            @Override
+            public void onClose(ChunkedOutput<OutboundEvent> chunkedOutput) {
+                remove(chunkedOutput);
+                logger.info("onClose {}", chunkedOutput);
+            }
+        };
         mongoClient = new MongoClient(config.getMongo().getHost());
         morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
         ds = morphia.createDatastore(mongoClient, config.getMongo().getDb());
@@ -128,6 +147,7 @@ public class NewmanResource {
             job.setSubmitTime(new Date());
             job.setSubmittedBy(sc.getUserPrincipal().getName());
             jobDAO.save(job);
+            broadcastMessage("created-job", job);
             return job;
         } else {
             return null;
@@ -167,6 +187,8 @@ public class NewmanResource {
             test.setStatus(Test.Status.PENDING);
             test.setScheduledAt(new Date());
             testDAO.save(test);
+            broadcastMessage("created-test", test);
+            broadcastMessage("modified-job", job);
             return test;
         } else {
             throw new BadRequestException("Can't add test, job does not exists: " + test);
@@ -210,7 +232,9 @@ public class NewmanResource {
         if (!testDAO.exists(query)) {
             updateJobStatus.set("state", State.DONE).set("endTime", new Date());
         }
-        jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(result.getJobId())), updateJobStatus);
+        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(result.getJobId())), updateJobStatus);
+        broadcastMessage("modified-test", result);
+        broadcastMessage("modified-job", job);
         return result;
     }
 
@@ -262,7 +286,8 @@ public class NewmanResource {
             URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
             String name = getLogName(fileName);
             UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("logs." + name, uri.toASCIIString());
-            return testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(id)), updateOps);
+            Test test = testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(id)), updateOps);
+            broadcastMessage("modified-test", test);
         } catch (IOException e) {
             logger.error("Failed to save log at {} for test {}", filePath, id, e);
         }
@@ -301,7 +326,8 @@ public class NewmanResource {
         if (job != null) {
             updateOps.set("jobId", job.getId());
         }
-        agentDAO.getDatastore().updateFirst(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, true);
+        Agent readyAgent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, false, true);
+        broadcastMessage("modified-agent", readyAgent);
         return job;
     }
 
@@ -338,6 +364,7 @@ public class NewmanResource {
             logger.error("Agent {} not working on job {} test {}", agent, jobId, testId);
             return null;
         } else {
+            broadcastMessage("modified-agent", agent);
             return agent.getJobId();
         }
     }
@@ -395,11 +422,14 @@ public class NewmanResource {
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
             if (job.getStartTime() == null) {
                 updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
-                jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+                job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
             }
+            broadcastMessage("modified-test", result);
+            broadcastMessage("modified-job", job);
         }
 
-        agentDAO.updateFirst(agentDAO.createQuery().field("_id").equal(new ObjectId(agent.getId())), agentUpdateOps);
+        agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("_id").equal(new ObjectId(agent.getId())), agentUpdateOps, false, true);
+        broadcastMessage("modified-agent", agent);
         return result;
     }
 
@@ -453,7 +483,10 @@ public class NewmanResource {
             updateOps.set("resources", build.getResources());
         }
         Query<Build> query = buildDAO.createQuery().field("_id").equal(new ObjectId(id));
-        return buildDAO.getDatastore().findAndModify(query, updateOps);
+        Build result = buildDAO.getDatastore().findAndModify(query, updateOps);
+        broadcastMessage("created-build", result);
+        return result;
+
     }
 
     @GET
@@ -464,23 +497,6 @@ public class NewmanResource {
         return buildDAO.findOne(buildDAO.createQuery().field("_id").equal(new ObjectId(id)));
     }
 
-
-    @POST
-    @Path("build/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Build uploadBuild(final @PathParam("id") String id, final FormDataMultiPart multiPart) {
-        InputStream is = multiPart.getField("testsuite-1.5.zip").getValueAs(InputStream.class);
-        ZipInputStream zipInputStream = new ZipInputStream(is);
-        logger.info("testsuite-1.5.zip stream is {}, build is {}", is, id);
-        try {
-            is.close();
-        } catch (Exception e) {
-            logger.error(e.toString(), e);
-        }
-        Build build = new Build();
-        build.setId(id);
-        return build;
-    }
 
     @DELETE
     @Path("db")
@@ -540,6 +556,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Suite addSuite(Suite suite) {
         suiteDAO.save(suite);
+        broadcastMessage("created-suite", suite);
         return suite;
     }
 
@@ -573,6 +590,16 @@ public class NewmanResource {
     }
 
 
+    @GET
+    @Path("event")
+    @Produces(SseFeature.SERVER_SENT_EVENTS)
+    public EventOutput listenToBroadcast() {
+        final EventOutput eventOutput = new EventOutput();
+        this.broadcaster.add(eventOutput);
+        return eventOutput;
+    }
+
+
     private java.nio.file.Path saveFile(InputStream is, String location) throws IOException {
         java.nio.file.Path path = Paths.get(location);
         Files.createDirectories(path.getParent());
@@ -601,5 +628,17 @@ public class NewmanResource {
 //        return "foo";
 //    }
 
+
+    // events
+
+    private void broadcastMessage(String type, Object value) {
+        OutboundEvent.Builder eventBuilder = new OutboundEvent.Builder();
+        OutboundEvent event = eventBuilder.name(type)
+                .mediaType(MediaType.APPLICATION_JSON_TYPE)
+                .data(value.getClass(), value)
+                .build();
+
+        broadcaster.broadcast(event);
+    }
 
 }

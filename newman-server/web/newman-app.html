@@ -1,0 +1,135 @@
+<script src="../components/webcomponentsjs/webcomponents.js"></script>
+<link rel="import" href="../components/core-icons/core-icons.html">
+<link rel="import" href="../components/core-toolbar/core-toolbar.html">
+<link rel="import" href="../components/core-header-panel/core-header-panel.html">
+<link rel="import" href="../components/core-drawer-panel/core-drawer-panel.html">
+<link rel="import" href="../components/core-menu/core-menu.html">
+<link rel="import" href="../components/core-item/core-item.html">
+<link rel="import" href="../components/core-pages/core-pages.html">
+<link rel="import" href="../components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+
+<link rel="stylesheet" href="robot.css">
+
+<link rel="import" href="sse-sender.html">
+<link rel="import" href="routes.html">
+<link rel="import" href="tests.html">
+<link rel="import" href="test.html">
+<link rel="import" href="jobs.html">
+<link rel="import" href="job.html">
+<link rel="import" href="builds.html">
+<link rel="import" href="agents.html">
+<link rel="import" href="mongo-admin.html">
+<polymer-element name="newman-app">
+    <template>
+        <link rel="stylesheet" href="app.css">
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <core-ajax auto url="api/newman/user" handleAs="json" on-core-response="{{ajaxResponse}}"
+                   withCredentials="true"></core-ajax>
+        <sse-sender>
+            <core-drawer-panel id="drawerPanel">
+                <core-header-panel drawer>
+                    <core-toolbar>Menu</core-toolbar>
+                    <more-route-selector>
+                        <core-menu>
+                            <core-item label="Home" route="home">
+                                <a href="{{urlFor('home')}}" core-drawer-toggle></a>
+                            </core-item>
+                            <core-item label="Builds" route="builds">
+                                <a href="{{urlFor('builds')}}" core-drawer-toggle></a>
+                            </core-item>
+                            <core-item label="Jobs" route="jobs">
+                                <a href="{{urlFor('jobs')}}" core-drawer-toggle></a>
+                            </core-item>
+                            <core-item label="Agents" route="agents">
+                                <a href="{{urlFor('agents')}}" core-drawer-toggle></a>
+                            </core-item>
+                            <core-item label="Tests" route="tests">
+                                <a href="{{urlFor('tests')}}" core-drawer-toggle></a>
+                            </core-item>
+                            <core-item label="Mongo Admin" route="mongo-admin">
+                                <a href="{{urlFor('mongo-admin')}}" core-drawer-toggle></a>
+                            </core-item>
+                        </core-menu>
+                    </more-route-selector>
+                </core-header-panel>
+
+                <core-header-panel main>
+                    <core-toolbar>
+                        <paper-icon-button core-drawer-toggle icon="menu"></paper-icon-button>
+                        <div>{{heading}}</div>
+                        <span flex></span>
+                        <paper-icon-button icon="search"></paper-icon-button>
+                    </core-toolbar>
+                    <main>
+                        <more-route-selector>
+                            <core-pages>
+                                <section route="home">
+                                    <h1>Home</h1>
+
+                                    <div>This is the home section.</div>
+                                    <br>
+
+                                    <h1>Nothing there yet.</h1>
+                                </section>
+                                <section route="builds">
+                                    <h1>Builds</h1>
+                                    <builds-table url="api/newman/build?orderBy=-buildTime"></builds-table>
+                                </section>
+                                <section route="jobs">
+                                    <h1>Jobs</h1>
+                                    <jobs-table url="api/newman/job?all=true&orderBy=-submitTime"></jobs-table>
+                                </section>
+                                <section route="agents">
+                                    <h1>Agents</h1>
+                                    <agent-table url="api/newman/agent?all=true"></agent-table>
+                                </section>
+                                <section route="tests">
+                                    <h1>Tests</h1>
+                                    <tests-table url="api/newman/test?all=true"></tests-table>
+                                </section>
+                                <section route="test">
+                                    <test-info url="api/newman/test/{{route('test').params.id}}"></test-info>
+                                </section>
+                                <section route="job">
+                                    <job-info url="api/newman/job/{{route('job').params.id}}"></job-info>
+                                    <h1>Job Tests</h1>
+                                    <tests-table  url="api/newman/test?jobId={{route('job').params.id}}&all=true"></tests-table>
+                                </section>
+                                <section route="build">
+                                    <h1>Details for build {{route('build').params.id}}</h1>
+
+                                    <h2>build {{route('build').params.id}} participate in the following jobs</h2>
+                                    <jobs-table
+                                            url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
+                                </section>
+                                <section route="mongo-admin">
+                                    <h1>A very simple Mongo admin {{route('mongo-admin').params.id}}</h1>
+                                    <mongo-admin url="api/newman/db"></mongo-admin>
+                                </section>
+                            </core-pages>
+                        </more-route-selector>
+                    </main>
+                </core-header-panel>
+            </core-drawer-panel>
+        </sse-sender>
+    </template>
+    <script>
+    Polymer({
+      user : null,
+      heading : "",
+      selected:0,
+      heading : "Hello Newman users!",
+      created: function() {
+         this.user = {};
+      },
+      domReady: function() {
+      },
+      ajaxResponse:function(event, object){
+        this.user = object.response;
+        this.heading = "Hello " + this.user.userName;
+      }
+    });
+
+    </script>
+</polymer-element>

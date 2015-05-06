@@ -4,7 +4,8 @@
 <link rel="import" href="job-progress.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
-<polymer-element name="jobs-table" attributes="url">
+<polymer-element name="jobs-table" attributes="url" on-created-job="{{onCreatedJob}}"
+                 on-modified-job="{{onModifiedJob}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
@@ -32,7 +33,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <template repeat="{{item in data}}">
+                    <template repeat="{{item, index in   data}}">
                         <tr>
                             <td>
                                 <job-progress job="{{item}}"></job-progress>
@@ -59,10 +60,12 @@
     <script>
     Polymer({
       applyAuthorStyles: true,
-      praise: 'cool',
-      filter: null,
-      allValues: [],
-      data: [],
+
+      created: function() {
+          this.filter = null;
+          this.allValues =[];
+          this.data = [];
+      },
       runFilter: function(){
           this.data  = this.applyFilter(this.filter, this.allValues);
       },
@@ -71,6 +74,7 @@
       },
       ajaxResponse: function(event,resp){
            this.allValues = resp.response.values;
+           this.allValues.forEach(window.app.jobProgressPercent);
            this.runFilter();
       },
       applyFilter: function(filter, values){
@@ -82,7 +86,22 @@
                 return values;
             }
       },
+      onCreatedJob: function(ev, job){
+            this.allValues.push(job);
+            this.runFilter();
+      },
+      onModifiedJob: function(ev, job){
+            var arrayLength = this.data.length;
+            for (var i = 0; i < arrayLength; i++) {
+                var found = this.data[i];
+                if(found.id == job.id){
+                    window.app.update(job, found);
+                    return;
+                }
+            }
+      },
     });
+
 
 
 

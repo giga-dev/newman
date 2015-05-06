@@ -12,6 +12,8 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
+import org.glassfish.jersey.media.sse.EventInput;
+import org.glassfish.jersey.media.sse.EventOutput;
 import org.glassfish.jersey.media.sse.SseFeature;
 
 import javax.net.ssl.SSLContext;
@@ -139,6 +141,10 @@ public class NewmanClient {
         return target.request().rx()
                 .post(Entity.entity(multipart, multipart.getMediaType()), Test.class);
 
+    }
+
+    public EventInput getEventInput(){
+        return restClient.target(uri).path("event").request().get(EventInput.class);
     }
 
     public static NewmanClient create(String user, String pw) {

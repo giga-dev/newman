@@ -1,0 +1,83 @@
+<script src="../components/webcomponentsjs/webcomponents.js"></script>
+<link rel="import" href="tests.html">
+<link rel="import" href="test.html">
+<link rel="import" href="jobs.html">
+<link rel="import" href="job.html">
+<link rel="import" href="builds.html">
+<link rel="import" href="agents.html">
+
+<polymer-element name="sse-sender">
+    <template>
+        <content></content>
+    </template>
+    <script>
+    var event_mapping = {
+        'created-suite' : "",
+        'modified-agent' : "",
+        'modified-job' : "jobs-table",
+        'created-job' : "jobs-table",
+        'modified-test' : "",
+        'created-build' : ""
+    };
+    Polymer('sse-sender', {
+      ready: function(){
+            this.before_hooks = {
+                'created-suite' : "",
+                'modified-agent' : "",
+                'modified-job' : [window.app.jobProgressPercent],
+                'created-job' :  [window.app.jobProgressPercent],
+                'modified-test' : "",
+                'created-build' : ""
+            };
+
+            if (!!window.EventSource) {
+                var source = new EventSource("/api/newman/event");
+
+                // When the socket has been open, let's cleanup the UI.
+                source.onopen = function () {
+                    console.info("sse opened");
+                };
+
+                source.onclose = function(){
+                    console.info("sse closed");
+                };
+
+                source.onerror = function(){
+                    console.info("sse onerror", arguments);
+                };
+
+                source.onmessage = function(e){
+                    console.info("sse onmessage", e);
+                }
+                function handler(e){
+                    var type = e.type;
+                    var details = JSON.parse(e.data);
+                    var selectors = event_mapping[type];
+                    var hooks = this.before_hooks[type];
+                    if(hooks){
+                        hooks.forEach(function(hook){
+                            hook(details);
+                        });
+                    }
+                    if(selectors){
+                        var foo = this.querySelectorAll(selectors);
+                        [].forEach.call(this.querySelectorAll(selectors), function(el, i) {
+                               el.fire(type, details);
+                        });
+                     }
+                    //console.info("got event: ", type , "details:", details);
+
+                }
+                source.addEventListener("created-suite", handler.bind(this), false);
+                source.addEventListener("modified-agent", handler.bind(this), false);
+                source.addEventListener("modified-job", handler.bind(this), false);
+                source.addEventListener("created-job", handler.bind(this), false);
+                source.addEventListener("modified-test", handler.bind(this), false);
+                source.addEventListener("created-build", handler.bind(this), false);
+            }
+
+
+      }
+    });
+  </script>
+</polymer-element>

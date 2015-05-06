@@ -9,6 +9,7 @@ import org.glassfish.jersey.client.rx.RxClient;
 import org.glassfish.jersey.client.rx.java8.RxCompletionStage;
 import org.glassfish.jersey.client.rx.java8.RxCompletionStageInvoker;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.sse.EventInput;
 import org.glassfish.jersey.media.sse.SseFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,9 @@ public class Main {
 
         NewmanClient newmanClient = new NewmanClient(restClient, URI);
         try {
-
+            EventInput eventInput = newmanClient.getEventInput();
+            logger.info("got eventInput {}", eventInput);
+            eventInput.close();
             Suite suite = new Suite();
             suite.setName("full regression");
             suite.setCriteria(PatternCriteria.recursivePackageNameCriteria("com.gigaspaces.test"));

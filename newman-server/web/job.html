@@ -10,43 +10,52 @@
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
 
-        <h3>Details for job {{data.id}}</h3>
-        <dl class="dl-horizontal">
-            <template if="{{data.build.id}}">
-                <dt>Build</dt>
-                <dd><a href="{{urlFor('build', {id: data.build.id})}}">{{data.build.name}}</a></dd>
-            </template>
-            <dt>State</dt>
-            <dd><job-progress job="{{data}}"></job-progress></dd>
-            <dt>Submit Time</dt>
-            <dd>{{data.submitTime | formatDate}}</dd>
-            <dt>Start Time</dt>
-            <dd>{{data.startTime | formatDate}}</dd>
-            <dt>End Time</dt>
-            <dd>{{data.endTime | formatDate}}</dd>
+        <template if="{{data.id}}">
+            <h3>Details for job {{data.id}}</h3>
+            <dl class="dl-horizontal">
+                <template if="{{data.build.id}}">
+                    <dt>Build</dt>
+                    <dd><a href="{{urlFor('build', {id: data.build.id})}}">{{data.build.name}}</a></dd>
+                </template>
+                <dt>State</dt>
+                <dd>
+                    <job-progress job="{{data}}"></job-progress>
+                </dd>
+                <dt>Submit Time</dt>
+                <dd>{{data.submitTime | formatDate}}</dd>
+                <dt>Start Time</dt>
+                <dd>{{data.startTime | formatDate}}</dd>
+                <dt>End Time</dt>
+                <dd>{{data.endTime | formatDate}}</dd>
 
-            <dt>>Test URI</dt>
-            <dd>{{data.testURI}}</dd>
-            <dt>Submitted By</dt>
-            <dd>{{data.submittedBy}}</dd>
-            <dt>Number Of Tests</dt>
-            <dd>{{data.totalTests}}</dd>
-            <dt>Passed Tests</dt>
-            <dd>{{data.passedTests}}</dd>
-            <dt>Failed Tests</dt>
-            <dd>{{data.failedTests}}</dd>
-            <dt>Running Tests</dt>
-            <dd>{{data.runningTests}}</dd>
-        </dl>
+                <dt>>Test URI</dt>
+                <dd>{{data.testURI}}</dd>
+                <dt>Submitted By</dt>
+                <dd>{{data.submittedBy}}</dd>
+                <dt>Number Of Tests</dt>
+                <dd>{{data.totalTests}}</dd>
+                <dt>Passed Tests</dt>
+                <dd>{{data.passedTests}}</dd>
+                <dt>Failed Tests</dt>
+                <dd>{{data.failedTests}}</dd>
+                <dt>Running Tests</dt>
+                <dd>{{data.runningTests}}</dd>
+            </dl>
+        </template>
     </template>
     <script src="../components/moment/moment.js"></script>
 
     <script>
     Polymer({
       applyAuthorStyles: true,
-      data: null,
+      ready: function() {
+          this.data = this.data|| {};
+      },
       ajaxResponse: function(event,resp){
-           this.data = resp.response;
+           if(resp.response.id){
+               this.data = resp.response;
+               window.app.jobProgressPercent(this.data);
+           }
       },
       formatDate: function(date){
             if(!date){
@@ -59,9 +68,16 @@
                 return null;
             }
             return moment.duration(item.endTime - item.startTime).humanize();
-      }
+      },
+      onModifiedJob: function(ev, job){
+            if(job.id){
+                window.app.update(job, this.data);
+            }
+      },
+
 
     });
+
 
 
 

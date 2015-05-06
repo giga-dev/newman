@@ -64,6 +64,7 @@ public class BroadcasterResource {
     @GET
     @Produces(SseFeature.SERVER_SENT_EVENTS)
     public EventOutput listenToBroadcast() {
+        logger.info("addListener");
         final EventOutput eventOutput = new EventOutput();
         this.broadcaster.add(eventOutput);
         return eventOutput;

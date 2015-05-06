@@ -3,6 +3,7 @@ package com.gigaspaces.newman;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.linking.DeclarativeLinkingFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.sse.SseFeature;
 import org.glassfish.jersey.message.filtering.EntityFilteringFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
@@ -27,7 +28,7 @@ public class NewmanApp extends ResourceConfig {
 
     public NewmanApp() {
         super(NewmanResource.class, BroadcasterResource.class, RolesAllowedDynamicFeature.class,
-                MultiPartFeature.class, DeclarativeLinkingFeature.class, LoggingFilter.class);
+                MultiPartFeature.class, DeclarativeLinkingFeature.class, LoggingFilter.class, SseFeature.class);
 //        property(ServerProperties.TRACING, "ALL");
     }
 }
