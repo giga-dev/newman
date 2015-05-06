@@ -38,7 +38,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.zip.ZipInputStream;
 
 /**
  * Created by Barak Bar Orion
@@ -64,7 +63,7 @@ public class NewmanResource {
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
-        this.broadcaster = new SseBroadcaster(){
+        this.broadcaster = new SseBroadcaster() {
             @Override
             public void onException(ChunkedOutput<OutboundEvent> chunkedOutput, Exception exception) {
                 logger.error(exception.toString(), exception);
@@ -309,29 +308,6 @@ public class NewmanResource {
     }
 
 
-    @POST
-    @Path("subscribe")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Job subscribe(final Agent agent) {
-        Query<Job> query = jobDAO.createQuery();
-        query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
-        query.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
-        query.order("submitTime");
-        Job job = jobDAO.findOne(query);
-        UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
-                .set("lastTouchTime", new Date());
-        if (agent.getHost() != null) {
-            updateOps.set("host", agent.getHost());
-        }
-        if (job != null) {
-            updateOps.set("jobId", job.getId());
-        }
-        Agent readyAgent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, false, true);
-        broadcastMessage("modified-agent", readyAgent);
-        return job;
-    }
-
     @GET
     @Path("subscribe")
     @Produces(MediaType.APPLICATION_JSON)
@@ -398,6 +374,64 @@ public class NewmanResource {
     }
 
     @POST
+    @Path("agent")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Test getTestToRun(Agent agent) {
+        agent.setLastTouchTime(new Date());
+        Agent found = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agent.getName()));
+        if (found == null) {
+            agentDAO.save(agent);
+            found = agent;
+        }
+        //first try to find test matching the current agent job.
+        //if not found search for any test.
+        Test result = getMatchingTest(found);
+        if (result == null && found.getJobId() != null) {
+            found.setJobId(null);
+            result = getMatchingTest(found);
+        }
+        if (result == null) {
+            return null;
+        }
+
+        // test found.
+        String jobId = result.getJobId();
+
+        //update job  state.
+        UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
+        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+        if (job.getStartTime() == null) {
+            updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
+            job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+        }
+
+        // update agent state.
+        UpdateOperations<Agent> agentUpdateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date());
+        agentUpdateOps.set("currentTest", result.getId());
+        found = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("_id").equal(new ObjectId(found.getId())), agentUpdateOps, false, true);
+
+        //send event to clients.
+        broadcastMessage("modified-test", result);
+        broadcastMessage("modified-job", job);
+        broadcastMessage("modified-agent", found);
+        return result;
+    }
+
+    private Test getMatchingTest(Agent agent) {
+        Query<Test> query = testDAO.createQuery();
+        if (agent.getJobId() != null) {
+            query.criteria("jobId").equal(agent.getJobId());
+        } else {
+            query.order("scheduledAt");
+        }
+        query.criteria("status").equal(Test.Status.PENDING);
+        UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
+                .set("assignedAgent", agent.getName()).set("startTime", new Date());
+        return testDAO.getDatastore().findAndModify(query, updateOps, false, false);
+    }
+
+    @POST
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
@@ -432,6 +466,29 @@ public class NewmanResource {
         agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("_id").equal(new ObjectId(agent.getId())), agentUpdateOps, false, true);
         broadcastMessage("modified-agent", agent);
         return result;
+    }
+
+    @POST
+    @Path("subscribe")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Job subscribe(final Agent agent) {
+        Query<Job> query = jobDAO.createQuery();
+        query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
+        query.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
+        query.order("submitTime");
+        Job job = jobDAO.findOne(query);
+        UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
+                .set("lastTouchTime", new Date());
+        if (agent.getHost() != null) {
+            updateOps.set("host", agent.getHost());
+        }
+        if (job != null) {
+            updateOps.set("jobId", job.getId());
+        }
+        Agent readyAgent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, false, true);
+        broadcastMessage("modified-agent", readyAgent);
+        return job;
     }
 
 

@@ -95,12 +95,12 @@ public class Main {
             Agent agent = new Agent();
             agent.setName("foo");
             agent.setHost(InetAddress.getLocalHost().getCanonicalHostName());
-            job = newmanClient.subscribe(agent).toCompletableFuture().get();
-            logger.info("agent {} subscribe to {}", agent.getName(), job);
-            agent = newmanClient.getAgent(agent.getName()).toCompletableFuture().get();
-
-            Batch<Agent> subscriptions = newmanClient.getSubscriptions(0, 100).toCompletableFuture().get();
-            logger.info("subscriptions {}", subscriptions);
+//            job = newmanClient.subscribe(agent).toCompletableFuture().get();
+//            logger.info("agent {} subscribe to {}", agent.getName(), job);
+//            agent = newmanClient.getAgent(agent.getName()).toCompletableFuture().get();
+//
+//            Batch<Agent> subscriptions = newmanClient.getSubscriptions(0, 100).toCompletableFuture().get();
+//            logger.info("subscriptions {}", subscriptions);
 
 
 //            Test test = newmanClient.getReadyTest(agent.getName(), job.getId()).toCompletableFuture().get();
@@ -112,7 +112,8 @@ public class Main {
 //            logger.info("tests are {}", tests);
             int i = 0;
             while (true) {
-                Test test = newmanClient.getReadyTest("foo", job.getId()).toCompletableFuture().get();
+                Test test = newmanClient.getTestToRun(agent).toCompletableFuture().get();
+//                Test test = newmanClient.getReadyTest("foo", job.getId()).toCompletableFuture().get();
                 logger.info("agent took test {}", test);
                 if (test == null) {
                     break;

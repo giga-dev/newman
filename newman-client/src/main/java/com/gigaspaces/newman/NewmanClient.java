@@ -13,7 +13,6 @@ import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.glassfish.jersey.media.sse.EventInput;
-import org.glassfish.jersey.media.sse.EventOutput;
 import org.glassfish.jersey.media.sse.SseFeature;
 
 import javax.net.ssl.SSLContext;
@@ -124,6 +123,10 @@ public class NewmanClient {
         });
     }
 
+    public CompletionStage<Test> getTestToRun(Agent agent) {
+        return restClient.target(uri).path("agent").request().rx().post(Entity.json(agent), Test.class);
+    }
+
     public void close() {
         restClient.close();
     }
@@ -143,7 +146,7 @@ public class NewmanClient {
 
     }
 
-    public EventInput getEventInput(){
+    public EventInput getEventInput() {
         return restClient.target(uri).path("event").request().get(EventInput.class);
     }
 
