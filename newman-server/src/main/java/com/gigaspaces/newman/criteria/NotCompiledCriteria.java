@@ -3,7 +3,8 @@ package com.gigaspaces.newman.criteria;
 import com.gigaspaces.newman.beans.Test;
 
 /**
- * Created by moran on 5/5/15.
+ * Created by moran
+ * on 5/5/15.
  */
 public class NotCompiledCriteria implements CompiledCriteria {
 

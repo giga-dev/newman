@@ -1,5 +1,7 @@
 package com.gigaspaces.newman.beans.criteria;
 
+import java.util.regex.Pattern;
+
 /**
  * Regular expression matching criteria
  */
@@ -22,18 +24,15 @@ public class PatternCriteria implements Criteria {
     }
 
     public static PatternCriteria recursivePackageNameCriteria(String packageName) {
-        String regex = packageName.replaceAll("\\.", "[.]");
-        return new PatternCriteria(regex + "[.].*");
+        return new PatternCriteria(Pattern.quote(packageName) + "\\\\..*");
     }
 
     public static PatternCriteria nonRecursivePackageNameCriteria(String packageName) {
-        String regex = packageName.replaceAll("\\.", "[.]");
-        return new PatternCriteria(regex+"[.]([^.]+)");
+        return new PatternCriteria(Pattern.quote(packageName) + "\\\\.([^.]+)");
     }
 
     public static PatternCriteria classNameCriteria(String className) {
-        String regex = className.replaceAll("\\.", "[.]");
-        return new PatternCriteria(regex);
+        return new PatternCriteria(Pattern.quote(className));
     }
 
 }

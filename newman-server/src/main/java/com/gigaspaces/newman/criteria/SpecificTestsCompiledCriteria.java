@@ -3,9 +3,11 @@ package com.gigaspaces.newman.criteria;
 import com.gigaspaces.newman.beans.Test;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Created by moran on 5/4/15.
+ * Created by moran
+ * on 5/4/15.
  */
 public class SpecificTestsCompiledCriteria implements CompiledCriteria {
 

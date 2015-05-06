@@ -9,7 +9,6 @@ public class PropertyCriteria implements Criteria {
     private String value;
 
     public PropertyCriteria() {
-
     }
 
     public PropertyCriteria(String key, String value) {

@@ -12,7 +12,7 @@ public class SpecificTestsCriteria implements Criteria {
     public SpecificTestsCriteria() {
     }
 
-    public SpecificTestsCriteria(String... testName) {
+    public SpecificTestsCriteria(String ... testName) {
         testNames = Arrays.asList(testName);
     }
 

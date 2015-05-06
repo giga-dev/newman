@@ -5,7 +5,8 @@ import com.gigaspaces.newman.beans.Test;
 import java.util.Map;
 
 /**
- * Created by moran on 5/4/15.
+ * Created by moran
+ * on 5/4/15.
  */
 public class PropertyCompiledCriteria implements CompiledCriteria {
     private final String key;

@@ -3,11 +3,12 @@ package com.gigaspaces.newman.criteria;
 import com.gigaspaces.newman.beans.Test;
 import com.gigaspaces.newman.beans.criteria.*;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Created by moran on 5/4/15.
+ * Created by moran
+ * on 5/4/15.
  */
 public class CriteriaEvaluator {
 
@@ -51,20 +52,17 @@ public class CriteriaEvaluator {
     }
 
     private CompiledCriteria compileOrCriteria(OrCriteria criteria) {
-        List<CompiledCriteria> compiledCriterias = new ArrayList<>();
-        for (Criteria c : criteria.getCriterias()) {
-            compiledCriterias.add(compile(c));
-        }
-        return new OrCompiledCriteria(compiledCriterias);
+        return new OrCompiledCriteria(compileAll(criteria.getCriterias()));
     }
 
     private CompiledCriteria compileAndCriteria(AndCriteria criteria) {
-        List<CompiledCriteria> compiledCriterias = new ArrayList<>();
-        for (Criteria c : criteria.getCriterias()) {
-            compiledCriterias.add(compile(c));
-        }
-        return new AndCompiledCriteria(compiledCriterias);
+        return new AndCompiledCriteria(compileAll(criteria.getCriterias()));
     }
+
+    private List<CompiledCriteria> compileAll(List<Criteria> criteriaList) {
+        return criteriaList.stream().map(this::compile).collect(Collectors.toList());
+    }
+
 
     public boolean evaluate(Test test) {
         return compiledCriteria.accept(test);
