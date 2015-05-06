@@ -33,7 +33,7 @@ public class SetupRepository {
         if (holder != null) {
             if (holder.dec() == 0) {
                 setups.remove(name);
-                executor.submit(() ->  removeSetup(holder.getSetup()));
+                executor.submit(() ->  uninstallSetup(holder.getSetup()));
             }
         }
     }
@@ -45,7 +45,7 @@ public class SetupRepository {
             holder.inc();
             return holder.getSetup();
         } else {
-            CompletableFuture<Setup> future = CompletableFuture.supplyAsync(() -> prepareSetupFor(name), executor);
+            CompletableFuture<Setup> future = CompletableFuture.supplyAsync(() -> installSetup(name), executor);
             setups.put(name, new SetupHolder(future));
             return future;
         }
@@ -56,13 +56,13 @@ public class SetupRepository {
         setups.remove(name);
     }
 
-    private Setup prepareSetupFor(String name) {
-        // todo prepare setup for name.
+    private Setup installSetup(String name) {
+        // todo.
         return new Setup(name);
     }
 
-    private void removeSetup(CompletableFuture<Setup> setup) {
-        // todo remove this setup from the disk.
+    private void uninstallSetup(CompletableFuture<Setup> setup) {
+        // todo.
     }
 
 }
