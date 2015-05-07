@@ -32,13 +32,13 @@ public class Main {
         SLF4JBridgeHandler.install();
         final String URI = "https://localhost:8443/api/newman";
 
-        SslConfigurator sslConfig = SslConfigurator.newInstance()
-                .trustStoreFile("keys/client.keystore")
-                .trustStorePassword("password")
-                .keyStoreFile("keys/client.keystore")
-                .keyPassword("password");
+//        SslConfigurator sslConfig = SslConfigurator.newInstance()
+//                .trustStoreFile("keys/client.keystore")
+//                .trustStorePassword("password")
+//                .keyStoreFile("keys/client.keystore")
+//                .keyPassword("password");
 //
-        SSLContext sslContext = sslConfig.createSSLContext();
+//        SSLContext sslContext = sslConfig.createSSLContext();
         JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
 //                .sslContext(sslContext)
                 .sslContext(SSLContextFactory.acceptAll())
