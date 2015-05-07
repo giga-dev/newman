@@ -167,4 +167,8 @@ public class JobExecutor {
             logger.error("Teardown for job {} was interrupted", job.getId());
         }
     }
+
+    public Path getJobFolder(){
+        return this.jobFolder;
+    }
 }

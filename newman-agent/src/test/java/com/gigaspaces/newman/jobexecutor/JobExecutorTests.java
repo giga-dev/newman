@@ -31,7 +31,7 @@ public class JobExecutorTests {
     @Test
     public void testSetup(){
         Assert.assertNotNull(job);
-        Path jobFolder = append(basePath, "job-" + job.getId());
+        Path jobFolder = je.getJobFolder();
         Assert.assertTrue(je.setup());
         assertExists(jobFolder);
         Path resourcesFolder = (append(jobFolder, "resources"));
