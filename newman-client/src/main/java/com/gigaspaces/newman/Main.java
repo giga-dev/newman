@@ -18,6 +18,8 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.net.InetAddress;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -25,19 +27,21 @@ public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanClient.class);
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
         final String URI = "https://localhost:8443/api/newman";
-        SslConfigurator sslConfig = SslConfigurator.newInstance()
-                .trustStoreFile("keys/server.keystore")
-                .trustStorePassword("password")
-                .keyStoreFile("keys/server.keystore")
-                .keyPassword("password");
 
+        SslConfigurator sslConfig = SslConfigurator.newInstance()
+                .trustStoreFile("keys/client.keystore")
+                .trustStorePassword("password")
+                .keyStoreFile("keys/client.keystore")
+                .keyPassword("password");
+//
         SSLContext sslContext = sslConfig.createSSLContext();
         JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
-                .sslContext(sslContext)
+//                .sslContext(sslContext)
+                .sslContext(SSLContextFactory.acceptAll())
                 .hostnameVerifier((s, sslSession) -> true)
                 .register(MultiPartFeature.class).register(SseFeature.class)
                 .register(HttpAuthenticationFeature.basic("root", "root"));
@@ -118,6 +122,7 @@ public class Main {
                 if (test == null) {
                     break;
                 }
+                Thread.sleep(100);
                 if (i % 2 == 0) {
                     test.setStatus(Test.Status.SUCCESS);
                     newmanClient.finishTest(test).toCompletableFuture().get();
