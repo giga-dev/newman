@@ -24,11 +24,11 @@ public class PatternCriteria implements Criteria {
     }
 
     public static PatternCriteria recursivePackageNameCriteria(String packageName) {
-        return new PatternCriteria(Pattern.quote(packageName) + "\\\\..*");
+        return new PatternCriteria(Pattern.quote(packageName) + "[.].*");
     }
 
     public static PatternCriteria nonRecursivePackageNameCriteria(String packageName) {
-        return new PatternCriteria(Pattern.quote(packageName) + "\\\\.([^.]+)");
+        return new PatternCriteria(Pattern.quote(packageName) + "[.]([^.]+)");
     }
 
     public static PatternCriteria classNameCriteria(String className) {

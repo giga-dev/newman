@@ -47,7 +47,7 @@ public class JobExecutorTests {
         je.teardown();
         try {
             delete(basePath);
-        } catch (IOException e) {}
+        } catch (IOException ignored) {}
     }
 
     private void assertExists(Path file) {

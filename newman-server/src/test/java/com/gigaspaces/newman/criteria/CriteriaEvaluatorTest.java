@@ -12,7 +12,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Created by moran on 5/4/15.
+ * Created by
+ * moran on 5/4/15.
  */
 public class CriteriaEvaluatorTest {
 

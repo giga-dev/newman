@@ -9,60 +9,62 @@ import java.util.concurrent.ExecutorService;
  * Created by Barak Bar Orion
  * 5/6/15.
  */
-public class SetupRepository {
+public class SetupRepository<P, S> {
 
     private ExecutorService executor;
-    private Map<String, SetupHolder> setups;
+    private final SetupDeployer<P, S> deployer;
+    private Map<P, SetupHolder<S>> setups;
 
-    public SetupRepository(ExecutorService executor) {
+    public SetupRepository(ExecutorService executor, SetupDeployer<P, S> deployer) {
         this.executor = executor;
+        this.deployer = deployer;
         this.setups = new HashMap<>();
     }
 
-    public Setup acquire(String name) throws Throwable {
+    public S acquire(P setupProperties) throws Throwable {
         try {
-            return getSetup(name).get();
+            return getSetup(setupProperties).get();
         } catch (Exception e) {
-            remove(name);
+            remove(setupProperties);
             throw e.getCause();
         }
     }
 
-    public synchronized void release(String name) {
-        SetupHolder holder = setups.get(name);
+    public synchronized CompletableFuture<Void> release(P setupProperties) {
+        SetupHolder<S> holder = setups.get(setupProperties);
         if (holder != null) {
             if (holder.dec() == 0) {
-                setups.remove(name);
-                executor.submit(() ->  uninstallSetup(holder.getSetup()));
+                setups.remove(setupProperties);
+                return holder.getSetup().thenAcceptAsync(this::uninstallSetup, executor);
             }
         }
+        return CompletableFuture.completedFuture(null);
     }
 
 
-    private synchronized CompletableFuture<Setup> getSetup(String name) {
-        SetupHolder holder = setups.get(name);
+    private synchronized CompletableFuture<S> getSetup(P setupProperties) {
+        SetupHolder<S> holder = setups.get(setupProperties);
         if (holder != null) {
             holder.inc();
             return holder.getSetup();
         } else {
-            CompletableFuture<Setup> future = CompletableFuture.supplyAsync(() -> installSetup(name), executor);
-            setups.put(name, new SetupHolder(future));
+            CompletableFuture<S> future = CompletableFuture.supplyAsync(() -> installSetup(setupProperties), executor);
+            setups.put(setupProperties, new SetupHolder<>(future));
             return future;
         }
     }
 
 
-    private synchronized void remove(String name) {
-        setups.remove(name);
+    private synchronized void remove(P setupProperties) {
+        setups.remove(setupProperties);
     }
 
-    private Setup installSetup(String name) {
-        // todo.
-        return new Setup(name);
+    private S installSetup(P setupDescription) {
+        return deployer.deploy(setupDescription);
     }
 
-    private void uninstallSetup(CompletableFuture<Setup> setup) {
-        // todo.
+    private void uninstallSetup(S setup) {
+        deployer.undeploy(setup);
     }
 
 }

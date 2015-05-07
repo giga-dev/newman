@@ -6,20 +6,20 @@ import java.util.concurrent.CompletableFuture;
  * Created by Barak Bar Orion
  * 5/6/15.
  */
-public class SetupHolder {
-    private final CompletableFuture<Setup> setup;
+public class SetupHolder<S> {
+    private final CompletableFuture<S> setup;
     private int referenceCount;
 
-    public SetupHolder(CompletableFuture<Setup> setup) {
+    public SetupHolder(CompletableFuture<S> setup) {
         this.setup = setup;
         this.referenceCount = 1;
     }
 
-    public CompletableFuture<Setup> getSetup() {
+    public CompletableFuture<S> getSetup() {
         return setup;
     }
 
-    public CompletableFuture<Setup> inc(){
+    public CompletableFuture<S> inc(){
         referenceCount += 1;
         return setup;
     }
