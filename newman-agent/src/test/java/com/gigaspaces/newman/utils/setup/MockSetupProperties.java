@@ -5,6 +5,7 @@ import javax.validation.constraints.NotNull;
 /**
  * Created by Barak Bar Orion
  * 5/7/15.
+ * Holds metadata of a version.
  */
 public class MockSetupProperties {
     private final String name;
