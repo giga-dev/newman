@@ -45,12 +45,13 @@ public class SetupRepositoryTest {
         assertThat(fooSetup1, is(fooSetup2));
 
         CompletableFuture<Void> future = repository.release(foo);
-        // if you wish to wait for after the undeploy finishes.
+        // At this point the repository does not contains foo, but the uninstall is schedule to run at the background.
+        // if you wish to wait for after the uninstall finishes do future.get().
         future.get();
         assertThat(mockDeployer.getDeployed(), hasKey(foo));
 
 
-        repository.release(foo);
+        repository.release(foo).get();
         assertThat(mockDeployer.getDeployed(), not(hasKey(foo)));
     }
 
