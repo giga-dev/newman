@@ -19,6 +19,8 @@ import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import java.io.File;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -150,17 +152,10 @@ public class NewmanClient {
         return restClient.target(uri).path("event").request().get(EventInput.class);
     }
 
-    public static NewmanClient create(String user, String pw) {
-        final String URI = "https://localhost:8443/api/newman";
-        SslConfigurator sslConfig = SslConfigurator.newInstance()
-                .trustStoreFile("keys/server.keystore")
-                .trustStorePassword("password")
-                .keyStoreFile("keys/server.keystore")
-                .keyPassword("password");
-
-        SSLContext sslContext = sslConfig.createSSLContext();
+    public static NewmanClient create(String host, String port, String user, String pw) throws KeyManagementException, NoSuchAlgorithmException {
+        final String URI = "https://"+ host +":"+ port +"/api/newman";
         JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
-                .sslContext(sslContext)
+                .sslContext(SSLContextFactory.acceptAll())
                 .hostnameVerifier((s, sslSession) -> true)
                 .register(MultiPartFeature.class).register(SseFeature.class)
                 .register(HttpAuthenticationFeature.basic(user, pw));

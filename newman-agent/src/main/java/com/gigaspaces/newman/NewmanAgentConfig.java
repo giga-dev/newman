@@ -17,9 +17,19 @@ import java.util.Properties;
 public class NewmanAgentConfig {
 
     private static final String NEWMAN_HOME = "newman.agent.home";
+    private static final String NEWMAN_AGENT_HOST_NAME = "newman.agent.hostname";
+    private static final String DEFAULT_NEWMAN_HOME = FileUtils.append(System.getProperty("user.home"), "newman-agent").toString();
+    private static final String NEWMAN_SERVER_HOST = "newman.agent.server-host";
+    private static final String DEFAULT_NEWMAN_SERVER_HOST = "localhost";
+    private static final String NEWMAN_SERVER_PORT = "newman.agent.server-port";
+    private static final String DEFAULT_NEWMAN_SERVER_PORT = "8443";
+    private static final String NEWMAN_SERVER_REST_USER = "newman.agent.server-rest-user";
+    private static final String DEFAULT_NEWMAN_SERVER_REST_USER = "root";
+    private static final String NEWMAN_SERVER_REST_PW = "newman.agent.server-rest-pw";
+    private static final String DEFAULT_NEWMAN_SERVER_REST_PW = "root";
+
     private static final int NUM_OF_WORKERS = Integer.getInteger("newman.agent.workers", 5);
     private static final int JOB_POLL_INTERVAL = Integer.getInteger("newman.agent.job-poll-interval", 2000);
-    private static final int WORKER_POLL_INTERVAL = Integer.getInteger("newman.agent.active-workers-poll-interval", 1000);
 
     private Properties properties;
     private static final Logger logger = LoggerFactory.getLogger(NewmanAgent.class);
@@ -27,9 +37,12 @@ public class NewmanAgentConfig {
     public NewmanAgentConfig(String propsFilePath) {
         properties = new Properties();
         loadPropertiesFile(propsFilePath);
-        properties.put("hostName", loadHostName());
-        if (properties.getProperty(NEWMAN_HOME) == null)
-            properties.put(NEWMAN_HOME, loadNewmanHome());
+        properties.putIfAbsent(NEWMAN_AGENT_HOST_NAME, loadHostName());
+        properties.putIfAbsent(NEWMAN_HOME, System.getProperty(NEWMAN_HOME, DEFAULT_NEWMAN_HOME));
+        properties.putIfAbsent(NEWMAN_SERVER_HOST, System.getProperty(NEWMAN_SERVER_HOST, DEFAULT_NEWMAN_SERVER_HOST));
+        properties.putIfAbsent(NEWMAN_SERVER_PORT, System.getProperty(NEWMAN_SERVER_PORT, DEFAULT_NEWMAN_SERVER_PORT));
+        properties.putIfAbsent(NEWMAN_SERVER_REST_USER, System.getProperty(NEWMAN_SERVER_REST_USER, DEFAULT_NEWMAN_SERVER_REST_USER));
+        properties.putIfAbsent(NEWMAN_SERVER_REST_PW, System.getProperty(NEWMAN_SERVER_REST_PW, DEFAULT_NEWMAN_SERVER_REST_PW));
     }
 
     private void loadPropertiesFile(String propsFilePath) {
@@ -52,15 +65,8 @@ public class NewmanAgentConfig {
         }
     }
 
-    private String loadNewmanHome() {
-        String result = System.getProperty(NEWMAN_HOME);
-        if (result == null)
-            result = FileUtils.append(System.getProperty("user.home"), "newman-agent").toString();
-        return result;
-    }
-
     public String getHostName(){
-        return properties.getProperty("hostName");
+        return properties.getProperty(NEWMAN_AGENT_HOST_NAME);
     }
 
     public String getNewmanHome() {
@@ -74,8 +80,24 @@ public class NewmanAgentConfig {
     public int getJobPollInterval() {
         return JOB_POLL_INTERVAL;
     }
-    
-    public int getActiveWorkersPollInterval() {
-        return WORKER_POLL_INTERVAL;
+
+    public String getNewmanServerHost() {
+        return properties.getProperty(NEWMAN_SERVER_HOST);
+    }
+
+    public String getNewmanServerPort() {
+        return properties.getProperty(NEWMAN_SERVER_PORT);
+    }
+
+    public String getNewmanServerRestUser() {
+        return properties.getProperty(NEWMAN_SERVER_REST_USER);
+    }
+
+    public String getNewmanServerRestPw() {
+        return properties.getProperty(NEWMAN_SERVER_REST_PW);
+    }
+
+    public Properties getProperties() {
+        return properties;
     }
 }

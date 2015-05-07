@@ -97,7 +97,6 @@
                         <classpath/>
                         <argument>com.gigaspaces.newman.NewmanAgent</argument>
                     </arguments>
-                    <workingDirectory>../newman-server</workingDirectory>
                 </configuration>
             </plugin>
         </plugins>

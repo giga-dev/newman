@@ -28,7 +28,7 @@ public class NewmanAgent {
     private final NewmanAgentConfig config;
     private final ThreadPoolExecutor workers;
     private final String name;
-    private final NewmanClient client;
+    private NewmanClient client;
     private volatile boolean active = true;
 
     public static void main(String[] args) {
@@ -55,7 +55,14 @@ public class NewmanAgent {
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>());
         logger.info("Agent is initializing...");
-        this.client = NewmanClient.create("root", "root");
+        try {
+            //this.client = NewmanClient.create("localhost", "8443","root", "root");
+            this.client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
+                    config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
+        } catch (Exception e) {
+            logger.error("Rest client failed to initialize, exiting ...");
+            active = false;
+        }
     }
 
     private void start() throws InterruptedException, ExecutionException, IOException {
@@ -90,7 +97,12 @@ public class NewmanAgent {
             }
             for (Future<?> worker : workersTasks){
                 logger.info("Waiting for all workers to complete...");
-                worker.get();
+                try {
+                    worker.get();
+                }
+                catch (Exception e){
+                    logger.warn("worker exited with exception", e);
+                }
             }
 
             jobExecutor.teardown();
@@ -98,8 +110,27 @@ public class NewmanAgent {
     }
 
     private void close(){
-        client.close();
+        logger.info("Closing newman agent {}", name);
+        if (client != null)
+            client.close();
         active = false;
+        shutDownWorkers();
+    }
+
+    private void shutDownWorkers() {
+        workers.shutdown();
+        long workerExecutorShutdownTime = 1;
+        try {
+            if (!workers.awaitTermination(workerExecutorShutdownTime, TimeUnit.MINUTES)) {
+                logger.warn("workers executor did not terminate in the specified time.");
+                List<Runnable> droppedTasks = workers.shutdownNow();
+                logger.warn("workers executor was abruptly shut down. {} tasks will not be executed.", droppedTasks.size());
+            }
+        } catch (InterruptedException e) {
+            logger.warn("workers executor did not terminate in the specified time.");
+            List<Runnable> droppedTasks = workers.shutdownNow();
+            logger.warn("workers executor was abruptly shut down. {} tasks will not be executed.", droppedTasks.size());
+        }
     }
 
     private Job waitForJob() throws InterruptedException {
