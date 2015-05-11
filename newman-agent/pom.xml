@@ -112,7 +112,7 @@
                         <phase>integration-test</phase>
                         <configuration>
                             <excludes>
-                                <exclude>none</exclude>
+                                <exclude>**/JobExecutorTests*</exclude>
                             </excludes>
                             <includes>
                                 <include>**/*Test*.java</include>
