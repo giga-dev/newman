@@ -1,9 +1,8 @@
-package com.gigaspaces.newman.criteria;
+package com.gigaspaces.newman.beans.criteria.compiled;
 
 import com.gigaspaces.newman.beans.Test;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Created by moran

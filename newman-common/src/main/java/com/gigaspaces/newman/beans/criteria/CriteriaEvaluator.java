@@ -1,7 +1,8 @@
-package com.gigaspaces.newman.criteria;
+package com.gigaspaces.newman.beans.criteria;
 
 import com.gigaspaces.newman.beans.Test;
 import com.gigaspaces.newman.beans.criteria.*;
+import com.gigaspaces.newman.beans.criteria.compiled.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
