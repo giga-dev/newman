@@ -1,4 +1,4 @@
-package com.gigaspaces.newman.beans.utils;
+package com.gigaspaces.newman.utils;
 
 /**
  * Created by moran on 4/29/15.

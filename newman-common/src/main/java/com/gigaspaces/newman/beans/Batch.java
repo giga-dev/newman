@@ -1,6 +1,6 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.beans.utils.ToStringBuilder;
+import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Transient;
 
 import javax.ws.rs.core.UriBuilder;

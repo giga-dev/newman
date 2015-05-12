@@ -1,11 +1,11 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.beans.utils.ToStringBuilder;
+import com.gigaspaces.newman.utils.StringUtils;
+import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
-import java.net.URI;
 import java.util.*;
 
 /**
@@ -20,7 +20,7 @@ public class Test {
     private String id;
     private String jobId;
     private String name;
-    private Collection<String> arguments;
+    private List<String> arguments;
     private String testType;
     private long timeout;
     private Status status;
@@ -55,11 +55,11 @@ public class Test {
         this.name = name;
     }
 
-    public Collection<String> getArguments() {
+    public List<String> getArguments() {
         return arguments;
     }
 
-    public void setArguments(Collection<String> arguments) {
+    public void setArguments(List<String> arguments) {
         this.arguments = arguments;
     }
 
@@ -147,7 +147,18 @@ public class Test {
         return properties;
     }
 
+    /**
+     * set properties and replace keys to not contain dots due mongo impl - map keys can't contain dots
+     */
     public void setProperties(Map<String, String> properties) {
+        String[] keyArray = properties.keySet().toArray(new String[properties.size()]);
+        for (String orginalKeys : keyArray) {
+            String newKey = StringUtils.dotToDash(orginalKeys);
+            if (!newKey.equals(orginalKeys)) {
+                properties.put(newKey, properties.get(orginalKeys));
+                properties.remove(orginalKeys);
+            }
+        }
         this.properties = properties;
     }
 

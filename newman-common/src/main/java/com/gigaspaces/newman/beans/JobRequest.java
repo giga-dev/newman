@@ -1,11 +1,6 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.beans.utils.ToStringBuilder;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-
-import java.net.URI;
-import java.util.Collection;
+import com.gigaspaces.newman.utils.ToStringBuilder;
 
 /**
  * Created by Barak Bar Orion

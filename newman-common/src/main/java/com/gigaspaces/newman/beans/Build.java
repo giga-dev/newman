@@ -1,6 +1,6 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.beans.utils.ToStringBuilder;
+import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
@@ -21,6 +21,7 @@ public class Build {
     private Map<String, String> shas;
     private String branch;
     private Collection<URI> resources;
+    private Collection<URI> testsMetadata; //JSON metadata of the tests
     private Date buildTime;
 
 
@@ -72,6 +73,14 @@ public class Build {
         this.buildTime = buildTime;
     }
 
+    public Collection<URI> getTestsMetadata() {
+        return testsMetadata;
+    }
+
+    public void setTestsMetadata(Collection<URI> testsMetadata) {
+        this.testsMetadata = testsMetadata;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
@@ -80,6 +89,7 @@ public class Build {
                 .append("shas", shas)
                 .append("branch", branch)
                 .append("resources", resources)
+                .append("testsMetadata", testsMetadata)
                 .append("buildTime", buildTime)
                 .toString();
     }

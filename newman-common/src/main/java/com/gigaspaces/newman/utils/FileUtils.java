@@ -52,13 +52,15 @@ public class FileUtils {
         return new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
     }
 
-    public static void download(URL source, Path target) throws IOException {
+    public static Path download(URL source, Path target) throws IOException {
         try (ReadableByteChannel rbc = Channels.newChannel(source.openStream())) {
             String sourcePath = source.getPath();
             String filename = sourcePath.substring(sourcePath.lastIndexOf('/') + 1);
-            try (FileOutputStream fos = new FileOutputStream(append(target, filename).toFile())) {
+            Path output = append(target, filename);
+            try (FileOutputStream fos = new FileOutputStream(output.toFile())) {
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             }
+            return output;
         }
     }
 

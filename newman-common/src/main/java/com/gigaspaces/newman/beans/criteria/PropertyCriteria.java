@@ -1,5 +1,7 @@
 package com.gigaspaces.newman.beans.criteria;
 
+import com.gigaspaces.newman.utils.StringUtils;
+
 /**
  * Key-Value matching criteria
  */
@@ -12,7 +14,7 @@ public class PropertyCriteria implements Criteria {
     }
 
     public PropertyCriteria(String key, String value) {
-        this.key = key;
+        this.key = StringUtils.dotToDash(key); //replacing due to mongo impl - map keys can't contain dots
         this.value = value;
     }
 
@@ -21,7 +23,7 @@ public class PropertyCriteria implements Criteria {
     }
 
     public void setKey(String key) {
-        this.key = key;
+        this.key = StringUtils.dotToDash(key);
     }
 
     public String getValue() {

@@ -38,6 +38,7 @@
         <module>newman-client</module>
         <module>newman-server</module>
         <module>newman-agent</module>
+        <module>newman-submitter</module>
     </modules>
 
     <dependencies>

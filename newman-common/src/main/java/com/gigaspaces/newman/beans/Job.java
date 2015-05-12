@@ -1,11 +1,10 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.beans.utils.ToStringBuilder;
+import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
-import org.mongodb.morphia.utils.IndexDirection;
 
 import java.net.URI;
 import java.util.*;
