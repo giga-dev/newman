@@ -1,7 +1,6 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
-import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.client.rx.RxClient;
@@ -15,7 +14,6 @@ import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.glassfish.jersey.media.sse.EventInput;
 import org.glassfish.jersey.media.sse.SseFeature;
 
-import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import java.io.File;
@@ -129,9 +127,8 @@ public class NewmanClient {
         return restClient.target(uri).path("agent").request().rx().post(Entity.json(agent), Test.class);
     }
 
-    public CompletionStage<Batch<JobGroup>> getActiveBuild() {
-        return restClient.target(uri).path("build/active").request().rx().get(new GenericType<Batch<JobGroup>>() {
-        });
+    public CompletionStage<DashboardData> getDashboard() {
+        return restClient.target(uri).path("dashboard").request().rx().get(DashboardData.class);
     }
 
     public void close() {

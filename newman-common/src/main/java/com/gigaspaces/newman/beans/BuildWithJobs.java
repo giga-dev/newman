@@ -1,5 +1,6 @@
 package com.gigaspaces.newman.beans;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -7,16 +8,22 @@ import java.util.Map;
  * Created by Barak Bar Orion
  * 5/11/15.
  */
-public class JobGroup {
+public class BuildWithJobs {
     private List<Job> jobs;
     private Build build;
     private State state;
 
-    public JobGroup() {
+    public BuildWithJobs() {
     }
 
-    public JobGroup(Map<String, List<Job>> groups) {
+    public BuildWithJobs(Map<String, List<Job>> groups) {
 
+    }
+
+    public BuildWithJobs(Build build) {
+        this.build = build;
+        jobs = new ArrayList<>();
+        state = State.DONE;
     }
 
     public List<Job> getJobs() {
@@ -45,7 +52,7 @@ public class JobGroup {
 
     @Override
     public String toString() {
-        return "JobGroup{" +
+        return "BuildWithJobs{" +
                 "jobs=" + jobs +
                 ", build=" + build +
                 ", state=" + state +

@@ -2,7 +2,6 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.beans.criteria.PatternCriteria;
-import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.client.rx.RxClient;
@@ -15,12 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.net.InetAddress;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.UUID;
 
 public class Main {
@@ -134,8 +131,8 @@ public class Main {
                     logger.info("FAIL test {}", test);
                 }
                 if(i % 50 == 0){
-                    Batch<JobGroup> activeBuild = newmanClient.getActiveBuild().toCompletableFuture().get();
-                    logger.info("active builds are {}", activeBuild);
+                    DashboardData dashboard = newmanClient.getDashboard().toCompletableFuture().get();
+                    logger.info("----------------- dashboard data is {}", dashboard);
                 }
                 i += 1;
             }

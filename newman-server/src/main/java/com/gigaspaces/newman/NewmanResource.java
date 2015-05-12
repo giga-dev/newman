@@ -17,6 +17,7 @@ import org.glassfish.jersey.media.sse.SseFeature;
 import org.glassfish.jersey.server.ChunkedOutput;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.query.MorphiaIterator;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import org.slf4j.Logger;
@@ -36,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 
@@ -51,8 +53,6 @@ public class NewmanResource {
 
     private final SseBroadcaster broadcaster;
     private final MongoClient mongoClient;
-    private final Morphia morphia;
-    private final Datastore ds;
     private final JobDAO jobDAO;
     private final TestDAO testDAO;
     private final BuildDAO buildDAO;
@@ -77,8 +77,8 @@ public class NewmanResource {
             }
         };
         mongoClient = new MongoClient(config.getMongo().getHost());
-        morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
-        ds = morphia.createDatastore(mongoClient, config.getMongo().getDb());
+        Morphia morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
+        Datastore ds = morphia.createDatastore(mongoClient, config.getMongo().getDb());
         ds.ensureIndexes();
         ds.ensureCaps();
         jobDAO = new JobDAO(morphia, mongoClient, config.getMongo().getDb());
@@ -103,9 +103,7 @@ public class NewmanResource {
             query.field("build.id").equal(buildId);
         }
         if (orderBy != null) {
-            for (String ob : orderBy) {
-                query.order(ob);
-            }
+            orderBy.forEach(query::order);
         }
         if (!all) {
             query.offset(offset).limit(limit);
@@ -153,24 +151,68 @@ public class NewmanResource {
     }
 
     @GET
-    @Path("build/active")
+    @Path("dashboard")
     @Produces(MediaType.APPLICATION_JSON)
-    public Batch<JobGroup> getActiveJobGroup(@Context UriInfo uriInfo) {
+    public DashboardData getActiveJobGroup(@Context UriInfo uriInfo) {
+
         Query<Job> query = jobDAO.createQuery();
         query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
         List<Job> jobs = jobDAO.find(query).asList();
         Map<String, List<Job>> groups = jobs.stream().collect(groupingBy(job -> job.getBuild().getId()));
-        List<JobGroup> jobGroups = new ArrayList<>();
+        List<BuildWithJobs> activeBuilds = new ArrayList<>();
         for (String buildId : groups.keySet()) {
             List<Job> groupJobs = groups.get(buildId);
-            final JobGroup jobGroup = new JobGroup();
+            final BuildWithJobs buildWithJobs = new BuildWithJobs();
             State state = groupJobs.stream().reduce((job, job2) -> job.getState().ordinal() < job2.getState().ordinal() ? job : job2).get().getState();
-            jobGroup.setState(state);
-            jobGroup.setJobs(groupJobs);
-            jobGroup.setBuild(groupJobs.get(0).getBuild());
-            jobGroups.add(jobGroup);
+            buildWithJobs.setState(state);
+            buildWithJobs.setJobs(groupJobs);
+            buildWithJobs.setBuild(groupJobs.get(0).getBuild());
+            activeBuilds.add(buildWithJobs);
         }
-        return new Batch<>(jobGroups, 0, 0, false, Collections.emptyList(), uriInfo);
+        query = jobDAO.createQuery();
+        query.criteria("state").equal(State.DONE);
+        query.field("build.id").hasNoneOf(groups.keySet());
+        query.order("submitTime");
+        Iterator<Job> iterator = jobDAO.find(query).iterator();
+        List<Build> history = new ArrayList<>();
+        Set<String> processedJobIds = new HashSet<>();
+        try {
+            while (iterator.hasNext()) {
+                Job next = iterator.next();
+                if (!processedJobIds.contains(next.getBuild().getId())) {
+                    Build build = next.getBuild();
+                    processedJobIds.add(build.getId());
+                    history.add(build);
+                    if(history.size() == 5){
+                        break;
+                    }
+                }
+                logger.info("job {}", next);
+            }
+        } finally {
+            ((MorphiaIterator) iterator).close();
+        }
+        DashboardData res = new DashboardData();
+        res.setActiveBuilds(activeBuilds);
+        res.setHistoryBuilds(history.stream().map(BuildWithJobs::new).collect(Collectors.toList()));
+        return res;
+    }
+
+    @GET
+    @Path("build/history")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<BuildWithJobs> getHistoryJobGroup(@Context UriInfo uriInfo) {
+        Query<Job> query = jobDAO.createQuery();
+        query.criteria("state").equal(State.DONE);
+        query.field("build.id").hasNoneOf(Arrays.asList("foo", "bar"));
+        query.order("submitTime");
+        Iterator<Job> iterator = jobDAO.find(query).iterator();
+        while (iterator.hasNext()) {
+            Job next = iterator.next();
+            logger.info("job {}", next);
+        }
+        ((MorphiaIterator) iterator).close();
+        return null;
     }
 
 
@@ -272,9 +314,7 @@ public class NewmanResource {
             query.field("jobId").equal(jobId);
         }
         if (orderBy != null) {
-            for (String ob : orderBy) {
-                query.order(ob);
-            }
+            orderBy.forEach(query::order);
         }
         if (!all) {
             query.offset(offset).limit(limit);
@@ -338,9 +378,7 @@ public class NewmanResource {
             , @Context UriInfo uriInfo) {
         Query<Agent> query = agentDAO.createQuery().offset(offset).limit(limit);
         if (orderBy != null) {
-            for (String ob : orderBy) {
-                query.order(ob);
-            }
+            orderBy.forEach(query::order);
         }
         return new Batch<>(agentDAO.find(query).asList(), offset, limit,
                 false, orderBy, uriInfo);
@@ -387,9 +425,7 @@ public class NewmanResource {
             query.offset(offset).limit(limit);
         }
         if (orderBy != null) {
-            for (String ob : orderBy) {
-                query.order(ob);
-            }
+            orderBy.forEach(query::order);
         }
         return new Batch<>(agentDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
     }
@@ -527,9 +563,7 @@ public class NewmanResource {
             query.offset(offset).limit(limit);
         }
         if (orderBy != null) {
-            for (String ob : orderBy) {
-                query.order(ob);
-            }
+            orderBy.forEach(query::order);
         }
         return new Batch<>(buildDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
     }
@@ -660,9 +694,7 @@ public class NewmanResource {
             query.offset(offset).limit(limit);
         }
         if (orderBy != null) {
-            for (String ob : orderBy) {
-                query.order(ob);
-            }
+            orderBy.forEach(query::order);
         }
 
         return new Batch<>(suiteDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
