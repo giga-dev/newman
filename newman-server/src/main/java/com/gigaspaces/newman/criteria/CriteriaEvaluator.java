@@ -31,8 +31,14 @@ public class CriteriaEvaluator {
             return compilePropertyCriteria(((PropertyCriteria) criteria));
         } else if (criteria instanceof SpecificTestsCriteria) {
             return compileSpecificTestsCriteria(((SpecificTestsCriteria) criteria));
+        } else if (criteria instanceof TypeCriteria) {
+            return compileTestCriteria(((TypeCriteria) criteria));
         }
         return null;
+    }
+
+    private CompiledCriteria compileTestCriteria(TypeCriteria criteria) {
+        return new TypeCompiledCriteria(criteria.getType());
     }
 
     private CompiledCriteria compileSpecificTestsCriteria(SpecificTestsCriteria criteria) {

@@ -180,4 +180,21 @@ public class CriteriaEvaluatorTest {
         assertTrue(criteriaEvaluator.evaluate(test3));
     }
 
+    @org.junit.Test
+    public void test_TypeCriteria() {
+        TypeCriteria typeCriteria = new TypeCriteria("myType");
+        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(typeCriteria);
+
+        Test test1 = new Test();
+        test1.setTestType("myType");
+        assertTrue(criteriaEvaluator.evaluate(test1));
+
+        Test test2 = new Test();
+        test2.setTestType("otherType");
+        assertFalse(criteriaEvaluator.evaluate(test2));
+
+        Test test3 = new Test();
+        assertFalse(criteriaEvaluator.evaluate(test3));
+    }
+
 }
