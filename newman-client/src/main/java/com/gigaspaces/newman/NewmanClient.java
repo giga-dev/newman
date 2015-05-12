@@ -129,6 +129,11 @@ public class NewmanClient {
         return restClient.target(uri).path("agent").request().rx().post(Entity.json(agent), Test.class);
     }
 
+    public CompletionStage<Batch<JobGroup>> getActiveBuild() {
+        return restClient.target(uri).path("build/active").request().rx().get(new GenericType<Batch<JobGroup>>() {
+        });
+    }
+
     public void close() {
         restClient.close();
     }
@@ -153,7 +158,7 @@ public class NewmanClient {
     }
 
     public static NewmanClient create(String host, String port, String user, String pw) throws KeyManagementException, NoSuchAlgorithmException {
-        final String URI = "https://"+ host +":"+ port +"/api/newman";
+        final String URI = "https://" + host + ":" + port + "/api/newman";
         JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
                 .sslContext(SSLContextFactory.acceptAll())
                 .hostnameVerifier((s, sslSession) -> true)
@@ -163,4 +168,5 @@ public class NewmanClient {
         RxClient<RxCompletionStageInvoker> restClient = RxCompletionStage.from(jerseyClientBuilder.build());
         return new NewmanClient(restClient, URI);
     }
+
 }

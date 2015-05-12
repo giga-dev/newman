@@ -122,7 +122,7 @@ public class Main {
                 if (test == null) {
                     break;
                 }
-                Thread.sleep(100);
+//                Thread.sleep(100);
                 if (i % 2 == 0) {
                     test.setStatus(Test.Status.SUCCESS);
                     newmanClient.finishTest(test).toCompletableFuture().get();
@@ -133,8 +133,14 @@ public class Main {
                     newmanClient.finishTest(test).toCompletableFuture().get();
                     logger.info("FAIL test {}", test);
                 }
+                if(i % 50 == 0){
+                    Batch<JobGroup> activeBuild = newmanClient.getActiveBuild().toCompletableFuture().get();
+                    logger.info("active builds are {}", activeBuild);
+                }
                 i += 1;
             }
+
+
 
 
         } catch (Exception e) {

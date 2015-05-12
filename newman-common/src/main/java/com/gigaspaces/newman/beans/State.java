@@ -5,5 +5,5 @@ package com.gigaspaces.newman.beans;
  * 4/20/15.
  */
 public enum State {
-    READY, RUNNING, DONE
+    READY, RUNNING, DONE;
 }

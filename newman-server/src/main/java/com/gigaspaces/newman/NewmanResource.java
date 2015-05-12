@@ -35,9 +35,9 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Created by Barak Bar Orion
@@ -129,13 +129,12 @@ public class NewmanResource {
         Suite suite = null;
         if (jobRequest.getSuiteId() != null) {
             suite = suiteDAO.findOne(suiteDAO.createQuery().field("_id").equal(new ObjectId(jobRequest.getSuiteId())));
-        } else {
+        }
+        if (suite == null) {
             //for now, add empty suite if not defined so to not break the flow.
-            if (suite == null) {
-                suite = new Suite();
-                suite.setName("empty suite created for build " + jobRequest.getBuildId());
-                suite = addSuite(suite);
-            }
+            suite = new Suite();
+            suite.setName("empty suite created for build " + jobRequest.getBuildId());
+            suite = addSuite(suite);
         }
 
         if (build != null) {
@@ -152,6 +151,28 @@ public class NewmanResource {
             return null;
         }
     }
+
+    @GET
+    @Path("build/active")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<JobGroup> getActiveJobGroup(@Context UriInfo uriInfo) {
+        Query<Job> query = jobDAO.createQuery();
+        query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
+        List<Job> jobs = jobDAO.find(query).asList();
+        Map<String, List<Job>> groups = jobs.stream().collect(groupingBy(job -> job.getBuild().getId()));
+        List<JobGroup> jobGroups = new ArrayList<>();
+        for (String buildId : groups.keySet()) {
+            List<Job> groupJobs = groups.get(buildId);
+            final JobGroup jobGroup = new JobGroup();
+            State state = groupJobs.stream().reduce((job, job2) -> job.getState().ordinal() < job2.getState().ordinal() ? job : job2).get().getState();
+            jobGroup.setState(state);
+            jobGroup.setJobs(groupJobs);
+            jobGroup.setBuild(groupJobs.get(0).getBuild());
+            jobGroups.add(jobGroup);
+        }
+        return new Batch<>(jobGroups, 0, 0, false, Collections.emptyList(), uriInfo);
+    }
+
 
     @POST
     @Path("unsubscribe")
