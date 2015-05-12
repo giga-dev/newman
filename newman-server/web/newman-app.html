@@ -20,6 +20,8 @@
 <link rel="import" href="builds.html">
 <link rel="import" href="agents.html">
 <link rel="import" href="mongo-admin.html">
+<link rel="import" href="dashboard-view.html">
+
 <polymer-element name="newman-app">
     <template>
         <link rel="stylesheet" href="app.css">
@@ -44,9 +46,9 @@
                             <core-item label="Agents" route="agents">
                                 <a href="{{urlFor('agents')}}" core-drawer-toggle></a>
                             </core-item>
-                            <core-item label="Tests" route="tests">
-                                <a href="{{urlFor('tests')}}" core-drawer-toggle></a>
-                            </core-item>
+                            <!--<core-item label="Tests" route="tests">-->
+                                <!--<a href="{{urlFor('tests')}}" core-drawer-toggle></a>-->
+                            <!--</core-item>-->
                             <core-item label="Mongo Admin" route="mongo-admin">
                                 <a href="{{urlFor('mongo-admin')}}" core-drawer-toggle></a>
                             </core-item>
@@ -65,12 +67,7 @@
                         <more-route-selector>
                             <core-pages>
                                 <section route="home">
-                                    <h1>Home</h1>
-
-                                    <div>This is the home section.</div>
-                                    <br>
-
-                                    <h1>Nothing there yet.</h1>
+                                    <dashboard-view url="api/newman/dashboard"></dashboard-view>
                                 </section>
                                 <section route="builds">
                                     <h1>Builds</h1>
@@ -84,10 +81,10 @@
                                     <h1>Agents</h1>
                                     <agent-table url="api/newman/agent?all=true"></agent-table>
                                 </section>
-                                <section route="tests">
-                                    <h1>Tests</h1>
-                                    <tests-table url="api/newman/test?all=true"></tests-table>
-                                </section>
+                                <!--<section route="tests">-->
+                                    <!--<h1>Tests</h1>-->
+                                    <!--<tests-table url="api/newman/test?all=true"></tests-table>-->
+                                <!--</section>-->
                                 <section route="test">
                                     <test-info url="api/newman/test/{{route('test').params.id}}"></test-info>
                                 </section>

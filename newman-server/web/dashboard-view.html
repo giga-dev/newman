@@ -1,0 +1,87 @@
+<script src="../components/webcomponentsjs/webcomponents.js"></script>
+
+<link rel="import" href="routes.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+
+<polymer-element name="dashboard-view" attributes="url" on-created-job="{{onCreatedJob}}"
+                 on-modified-job="{{onModifiedJob}}">
+    <template>
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
+                   withCredentials="true"></core-ajax>
+        <div class="content" flex>
+            <div class="table-responsive">
+                <h1>Active Builds</h1>
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>State</th>
+                        <th>Branch</th>
+                        <th>Date</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <template repeat="{{activeData in data.activeBuilds}}">
+                        <tr>
+                            <td><a href="{{urlFor('build', {id: activeData.build.id})}}">{{activeData.build.name}}</a></td>
+                            <td>{{activeData.state}}</td>
+                            <td>{{activeData.build.branch}}</td>
+                            <td>{{activeData.build.buildTime | formatDate}}</td>
+                        </tr>
+                    </template>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <h1>History</h1>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>State</th>
+                        <th>Branch</th>
+                        <th>Date</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <template repeat="{{historyData in data.historyBuilds}}">
+                        <tr>
+                            <td><a href="{{urlFor('build', {id: historyData.build.id})}}">{{historyData.build.name}}</a></td>
+                            <td>{{historyData.state}}</td>
+                            <td>{{historyData.build.branch}}</td>
+                            <td>{{historyData.build.buildTime | formatDate}}</td>
+                        </tr>
+                    </template>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+    <script src="../components/moment/moment.js"></script>
+
+    <script>
+    Polymer({
+      applyAuthorStyles: true,
+
+      created: function() {
+          this.data = [];
+      },
+      formatDate: function(date){
+           return moment(new Date(date)).fromNow();
+      },
+      ajaxResponse: function(event,resp){
+           this.data = resp.response;
+           console.info("dashboard ", this.data);
+      },
+      onCreatedJob: function(ev, job){
+      },
+      onModifiedJob: function(ev, job){
+      },
+    });
+
+    </script>
+</polymer-element>
