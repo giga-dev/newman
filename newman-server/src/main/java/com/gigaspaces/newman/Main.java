@@ -22,6 +22,10 @@ import java.util.Collections;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
+    private static final String REALM_PROPERTIES_PATH = "newman.server.realm-config-path";
+    private static final String DEFAULT_REALM_PROPERTIES_PATH = "src/test/resources/realm.properties";
+    private static final String WEB_FOLDER_PATH = "newman.server.web-folder-path";
+    private static final String DEFAULT_WEB_FOLDER_PATH = "./web";
 
     public static void main(String[] args) throws Exception {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -34,7 +38,7 @@ public class Main {
         Server server = new Server(8080);
         /* security */
         LoginService loginService = new HashLoginService("MyRealm",
-                "src/test/resources/realm.properties");
+                System.getProperty(REALM_PROPERTIES_PATH, DEFAULT_REALM_PROPERTIES_PATH));
         server.addBean(loginService);
 
         ConstraintSecurityHandler security = new ConstraintSecurityHandler();
@@ -63,7 +67,7 @@ public class Main {
 
         DefaultServlet defaultServlet = new DefaultServlet();
         ServletHolder holderPwd = new ServletHolder("default", defaultServlet);
-        holderPwd.setInitParameter("resourceBase", "./web");
+        holderPwd.setInitParameter("resourceBase", System.getProperty(WEB_FOLDER_PATH, DEFAULT_WEB_FOLDER_PATH));
         holderPwd.setInitOrder(2);
         context.addServlet(holderPwd, "/*");
 
