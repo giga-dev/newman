@@ -1,7 +1,6 @@
 package com.gigaspaces.newman.beans.criteria;
 
 import com.gigaspaces.newman.beans.Test;
-import com.gigaspaces.newman.beans.criteria.*;
 import com.gigaspaces.newman.beans.criteria.compiled.*;
 
 import java.util.List;
@@ -30,20 +29,14 @@ public class CriteriaEvaluator {
             return compilePatternCriteria(((PatternCriteria) criteria));
         } else if (criteria instanceof PropertyCriteria) {
             return compilePropertyCriteria(((PropertyCriteria) criteria));
-        } else if (criteria instanceof SpecificTestsCriteria) {
-            return compileSpecificTestsCriteria(((SpecificTestsCriteria) criteria));
-        } else if (criteria instanceof TypeCriteria) {
-            return compileTestCriteria(((TypeCriteria) criteria));
+        } else if (criteria instanceof TestCriteria) {
+            return compileTestCriteria(((TestCriteria) criteria));
         }
         return null;
     }
 
-    private CompiledCriteria compileTestCriteria(TypeCriteria criteria) {
-        return new TypeCompiledCriteria(criteria.getType());
-    }
-
-    private CompiledCriteria compileSpecificTestsCriteria(SpecificTestsCriteria criteria) {
-        return new SpecificTestsCompiledCriteria(criteria.getTestNames());
+    private CompiledCriteria compileTestCriteria(TestCriteria criteria) {
+        return new TestCompiledCriteria(criteria.getTest());
     }
 
     private CompiledCriteria compilePropertyCriteria(PropertyCriteria criteria) {

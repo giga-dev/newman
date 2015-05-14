@@ -1,6 +1,10 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.beans.criteria.AndCriteria;
+import com.gigaspaces.newman.beans.criteria.NotCriteria;
+import com.gigaspaces.newman.beans.criteria.PatternCriteria;
+import com.gigaspaces.newman.beans.criteria.TestCriteria;
 import com.gigaspaces.newman.config.Config;
 import com.gigaspaces.newman.dao.*;
 import com.mongodb.MongoClient;
@@ -577,7 +581,24 @@ public class NewmanResource {
             build.setBuildTime(new Date());
         }
         buildDAO.save(build);
+        if (suiteDAO.count() == 0) {
+            addNightlyRegressionSuite();
+        }
         return build;
+    }
+
+    private void addNightlyRegressionSuite() {
+        Suite nightlyRegressionSuite = new Suite();
+        nightlyRegressionSuite.setName("Nightly Regression");
+        nightlyRegressionSuite.setCriteria(
+                new AndCriteria(
+                        TestCriteria.createCriteriaByTestType("tgrid"),
+                        new NotCriteria(PatternCriteria.classNameCriteria("com.gigaspaces.test.database.sql.PerformanceTest")),
+                        new NotCriteria(PatternCriteria.nonRecursivePackageNameCriteria("com.gigaspaces.test.tg")),
+                        new NotCriteria(PatternCriteria.nonRecursivePackageNameCriteria("com.gigaspaces.test.stress.map")),
+                        new NotCriteria(PatternCriteria.recursivePackageNameCriteria("com.gigaspaces.test.blobstore"))
+                ));
+        suiteDAO.save(nightlyRegressionSuite);
     }
 
     @POST

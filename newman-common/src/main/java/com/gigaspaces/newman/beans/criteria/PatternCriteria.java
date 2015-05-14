@@ -35,4 +35,7 @@ public class PatternCriteria implements Criteria {
         return new PatternCriteria(Pattern.quote(className));
     }
 
+    public static PatternCriteria startsWithCriteria(String string) {
+        return new PatternCriteria(Pattern.quote(string) + ".*");
+    }
 }

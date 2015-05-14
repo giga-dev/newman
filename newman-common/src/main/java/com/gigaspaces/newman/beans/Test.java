@@ -22,7 +22,7 @@ public class Test {
     private String name;
     private List<String> arguments;
     private String testType;
-    private long timeout;
+    private Long timeout;
     private Status status;
     private String errorMessage;
     /* name, url mapping */
@@ -127,11 +127,11 @@ public class Test {
         this.scheduledAt = scheduledAt;
     }
 
-    public long getTimeout() {
+    public Long getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(long timeout) {
+    public void setTimeout(Long timeout) {
         this.timeout = timeout;
     }
 
@@ -151,6 +151,8 @@ public class Test {
      * set properties and replace keys to not contain dots due mongo impl - map keys can't contain dots
      */
     public void setProperties(Map<String, String> properties) {
+        if (properties == null) return;
+
         String[] keyArray = properties.keySet().toArray(new String[properties.size()]);
         for (String orginalKeys : keyArray) {
             String newKey = StringUtils.dotToDash(orginalKeys);

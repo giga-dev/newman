@@ -23,21 +23,14 @@ import java.util.UUID;
 public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanClient.class);
-    
-    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException {
+
+    public static NewmanClient createNewmanClient() throws KeyManagementException, NoSuchAlgorithmException {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
         final String URI = "https://localhost:8443/api/newman";
 
-//        SslConfigurator sslConfig = SslConfigurator.newInstance()
-//                .trustStoreFile("keys/client.keystore")
-//                .trustStorePassword("password")
-//                .keyStoreFile("keys/client.keystore")
-//                .keyPassword("password");
-//
-//        SSLContext sslContext = sslConfig.createSSLContext();
         JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
-//                .sslContext(sslContext)
+
                 .sslContext(SSLContextFactory.acceptAll())
                 .hostnameVerifier((s, sslSession) -> true)
                 .register(MultiPartFeature.class).register(SseFeature.class)
@@ -46,6 +39,12 @@ public class Main {
         RxClient<RxCompletionStageInvoker> restClient = RxCompletionStage.from(jerseyClientBuilder.build());
 
         NewmanClient newmanClient = new NewmanClient(restClient, URI);
+        return newmanClient;
+    }
+
+    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException {
+
+        NewmanClient newmanClient = createNewmanClient();
         try {
             EventInput eventInput = newmanClient.getEventInput();
             logger.info("got eventInput {}", eventInput);

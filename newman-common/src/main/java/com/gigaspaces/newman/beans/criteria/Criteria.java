@@ -17,8 +17,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = NotCriteria.class),
         @JsonSubTypes.Type(value = PatternCriteria.class),
         @JsonSubTypes.Type(value = PropertyCriteria.class),
-        @JsonSubTypes.Type(value = SpecificTestsCriteria.class),
-        @JsonSubTypes.Type(value = TypeCriteria.class)
+        @JsonSubTypes.Type(value = TestCriteria.class),
 })
 public interface Criteria {
 }

@@ -6,6 +6,7 @@ import com.gigaspaces.newman.beans.criteria.*;
 import com.gigaspaces.newman.beans.criteria.CriteriaEvaluator;
 import org.junit.Assert;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -97,6 +98,25 @@ public class CriteriaEvaluatorTest {
     }
 
     @org.junit.Test
+    public void test_PatternCriteria_startsWithCriteria() {
+
+        PatternCriteria patternCriteria = PatternCriteria.startsWithCriteria("com.gigaspaces.test.My");
+        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(patternCriteria);
+
+        Test test1 = new Test();
+        test1.setName("com.gigaspaces.test.MyTest");
+        assertTrue(criteriaEvaluator.evaluate(test1));
+
+        Test test2 = new Test();
+        test2.setName("com.gigaspaces.test.My");
+        assertTrue(criteriaEvaluator.evaluate(test2));
+
+        Test test3 = new Test();
+        test3.setName("com.gigaspaces.test.M");
+        assertFalse(criteriaEvaluator.evaluate(test3));
+    }
+
+    @org.junit.Test
     public void test_NotCriteria() {
         NotCriteria notCriteria = new NotCriteria( PatternCriteria.classNameCriteria("com.gigaspaces.test.MyTest"));
         CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(notCriteria);
@@ -162,11 +182,9 @@ public class CriteriaEvaluatorTest {
     }
 
     @org.junit.Test
-    public void test_SpecificTestsCriteria() {
-        SpecificTestsCriteria specificTestsCriteria = new SpecificTestsCriteria(
-                "com.gigaspaces.test.MyTest",
-                "com.gigaspaces.test.foo.FooTest");
-        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(specificTestsCriteria);
+    public void test_TestCriteria_byTestName() {
+        TestCriteria testCriteria = TestCriteria.createCriteriaByTestName("com.gigaspaces.test.MyTest");
+        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(testCriteria);
 
         Test test1 = new Test();
         test1.setName("com.gigaspaces.test.Test");
@@ -175,16 +193,12 @@ public class CriteriaEvaluatorTest {
         Test test2 = new Test();
         test2.setName("com.gigaspaces.test.MyTest");
         assertTrue(criteriaEvaluator.evaluate(test2));
-
-        Test test3 = new Test();
-        test3.setName("com.gigaspaces.test.foo.FooTest");
-        assertTrue(criteriaEvaluator.evaluate(test3));
     }
 
     @org.junit.Test
-    public void test_TypeCriteria() {
-        TypeCriteria typeCriteria = new TypeCriteria("myType");
-        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(typeCriteria);
+    public void test_TestCriteria_byType() {
+        TestCriteria testCriteria = TestCriteria.createCriteriaByTestType("myType");
+        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(testCriteria);
 
         Test test1 = new Test();
         test1.setTestType("myType");
@@ -196,6 +210,27 @@ public class CriteriaEvaluatorTest {
 
         Test test3 = new Test();
         assertFalse(criteriaEvaluator.evaluate(test3));
+    }
+
+    @org.junit.Test
+    public void test_TestCriteria_byArgs() {
+        TestCriteria testCriteria = TestCriteria.createCriteriaByTestArgs("remote");
+        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(testCriteria);
+
+        Test test1 = new Test();
+        test1.setArguments(Arrays.asList("remote"));
+        assertTrue(criteriaEvaluator.evaluate(test1));
+
+        Test test2 = new Test();
+        test2.setArguments(Arrays.asList("LRU", "remote"));
+        assertTrue(criteriaEvaluator.evaluate(test2));
+
+        Test test3 = new Test();
+        test3.setArguments(Arrays.asList("embedded"));
+        assertFalse(criteriaEvaluator.evaluate(test3));
+
+        Test test4 = new Test();
+        assertFalse(criteriaEvaluator.evaluate(test4));
     }
 
 }

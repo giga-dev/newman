@@ -98,7 +98,7 @@ public class JobExecutor {
             Path testScript = append(jobFolder, "run-" + test.getTestType() + SCRIPT_SUFFIX);
             Path outputFile = append(outputFolder, "runner-output.log");
             ProcessResult scriptResult = ProcessUtils.executeAndWait(testScript, test.getArguments(), testFolder,
-                    outputFile, test.getTimeout());
+                    outputFile, test.getTimeout().longValue());
 
             // Generate result:
             test.setStartTime(new Date(scriptResult.getStartTime()));
