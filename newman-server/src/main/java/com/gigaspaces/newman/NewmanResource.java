@@ -133,10 +133,7 @@ public class NewmanResource {
             suite = suiteDAO.findOne(suiteDAO.createQuery().field("_id").equal(new ObjectId(jobRequest.getSuiteId())));
         }
         if (suite == null) {
-            //for now, add empty suite if not defined so to not break the flow.
-            suite = new Suite();
-            suite.setName("empty suite created for build " + jobRequest.getBuildId());
-            suite = addSuite(suite);
+            throw new BadRequestException("invalid suite id for Job request: " + jobRequest);
         }
 
         if (build != null) {

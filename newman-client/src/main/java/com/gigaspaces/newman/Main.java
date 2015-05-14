@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 
 public class Main {
 
@@ -49,16 +50,6 @@ public class Main {
             EventInput eventInput = newmanClient.getEventInput();
             logger.info("got eventInput {}", eventInput);
             eventInput.close();
-            Suite suite = new Suite();
-            suite.setName("full regression");
-            suite.setCriteria(PatternCriteria.recursivePackageNameCriteria("com.gigaspaces.test"));
-
-            suite = newmanClient.addSuite(suite).toCompletableFuture().get();
-            logger.info("suite is {}", suite);
-            Batch<Suite> suites = newmanClient.getAllSuites().toCompletableFuture().get();
-            logger.info("all suites {}", suites);
-            suite = newmanClient.getSuite(suite.getId()).toCompletableFuture().get();
-            logger.info("got suite {}", suite);
 
             Build build = new Build();
             build.setName("The build " + UUID.randomUUID());
@@ -67,6 +58,14 @@ public class Main {
             logger.info("create a new build {}", build);
             build = newmanClient.getBuild(build.getId()).toCompletableFuture().get();
             logger.info("got build {}", build);
+
+
+            Suite suite = null;
+            Batch<Suite> suiteBatch = newmanClient.getAllSuites().toCompletableFuture().get();
+            if (!suiteBatch.getValues().isEmpty()) {
+                suite = suiteBatch.getValues().get(0);
+            }
+
             JobRequest jobRequest = new JobRequest();
             jobRequest.setBuildId(build.getId());
             jobRequest.setSuiteId(suite.getId());
