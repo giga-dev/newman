@@ -35,7 +35,7 @@ public class NewmanSubmitter {
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException {
 
         if (args.length != 6){
-            logger.error("Usage: java -jar submitter.jar <suiteid> <buildId>" +
+            logger.error("Usage: java -jar newman-submitter-1.0-shaded.jar <suiteid> <buildId>" +
                     " <newmanServerHost> <newmanServerPort> <newmanUser> <newmanPassword>");
             System.exit(1);
         }
@@ -53,38 +53,42 @@ public class NewmanSubmitter {
 
         Path home = FileUtils.append(System.getProperty("user.home"), "newman-submitter");
         FileUtils.createFolder(home);
+        try {
+            Suite suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
+            if (suite == null) {
+                throw new IllegalArgumentException("suite with id: " + suiteId + " does not exists");
+            }
 
-        Suite suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
-        if (suite == null){
-            throw new IllegalArgumentException("suite with id: " + suiteId + " does not exists");
-        }
+            Build build = newmanClient.getBuild(buildId).toCompletableFuture().get();
+            if (build == null) {
+                throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
+            }
 
-        Build build = newmanClient.getBuild(buildId).toCompletableFuture().get();
-        if (build == null){
-            throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
-        }
+            Job job = addJob(newmanClient, suiteId, buildId);
+            logger.info("added a new job {}", job);
+            Collection<URI> testsMetadata = build.getTestsMetadata();
 
-        Job job = addJob(newmanClient, suiteId, buildId);
-        logger.info("added a new job {}", job);
-        Collection<URI> testsMetadata = build.getTestsMetadata();
+            if (testsMetadata == null) {
+                logger.error("can't submit job when there is no tests metadata in the build [{}]", buildId);
+                System.exit(1);
+            }
 
-        if (testsMetadata == null){
-            logger.error("can't submit job when there is no tests metadata in the build [{}]", buildId);
-            System.exit(1);
-        }
-
-        for(URI testMetadata : testsMetadata) {
-            Path metadataFile = FileUtils.download(testMetadata.toURL(), home);
-            logger.info("parsing metadata file {}", metadataFile);
-            List<Test> listOfTests = parseMetadata(metadataFile.toFile());
-            Criteria criteria = suite.getCriteria();
-            CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(criteria);
-            for (Test test : listOfTests) {
-                if (criteriaEvaluator.evaluate(test)) {
-                    test.setJobId(job.getId());
-                    addTest(test, newmanClient);
+            for (URI testMetadata : testsMetadata) {
+                Path metadataFile = FileUtils.download(testMetadata.toURL(), home);
+                logger.info("parsing metadata file {}", metadataFile);
+                List<Test> listOfTests = parseMetadata(metadataFile.toFile());
+                Criteria criteria = suite.getCriteria();
+                CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(criteria);
+                for (Test test : listOfTests) {
+                    if (criteriaEvaluator.evaluate(test)) {
+                        test.setJobId(job.getId());
+                        addTest(test, newmanClient);
+                    }
                 }
             }
+        }
+        finally {
+            FileUtils.delete(home);
         }
     }
 
@@ -101,12 +105,20 @@ public class NewmanSubmitter {
 
     private static List<Test> parseMetadata(File file) throws IOException, ParseException {
         JSONParser parser = new JSONParser();
-        JSONObject metadataJson = (JSONObject) parser.parse(new FileReader(file));
-        String type = (String) metadataJson.get("type");
-        if (type == null)
-            throw new IllegalArgumentException("metadata must have 'type' field");
+        FileReader in = null;
+        try {
+            in = new FileReader(file);
+            JSONObject metadataJson = (JSONObject) parser.parse(in);
+            String type = (String) metadataJson.get("type");
+            if (type == null)
+                throw new IllegalArgumentException("metadata must have 'type' field");
 
-        NewmanTestsMetadataParser newmanTestsMetadataParser = NewmanTestsMetadataParserFactory.create(type);
-        return newmanTestsMetadataParser.parse(metadataJson);
+            NewmanTestsMetadataParser newmanTestsMetadataParser = NewmanTestsMetadataParserFactory.create(type);
+            return newmanTestsMetadataParser.parse(metadataJson);
+        }
+        finally {
+            if (in != null)
+                in.close();
+        }
     }
 }

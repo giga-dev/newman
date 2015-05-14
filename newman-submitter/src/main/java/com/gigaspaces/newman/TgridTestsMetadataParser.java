@@ -5,6 +5,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -22,11 +23,13 @@ public class TgridTestsMetadataParser implements NewmanTestsMetadataParser {
         for (Object jsonTest : tests) {
             JSONObject jTest = (JSONObject) jsonTest;
             Test test = new Test();
+            //TODO figure out the timeout per test
+            test.setTimeout((long) (5 * 60 * 1000));
             test.setName((String) jTest.get("name"));
             test.setTestType("tgrid");
             List<String> arguments = new ArrayList<>();
-            //TODO break arguments into parts if needed
-            arguments.add((String) jTest.get("arguments"));
+            //noinspection unchecked
+            arguments.addAll((Collection<? extends String>) jTest.get("arguments"));
             test.setArguments(arguments);
             //noinspection unchecked
             test.setProperties((Map<String, String>) jTest.get("annotations"));
