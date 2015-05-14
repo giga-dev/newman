@@ -19,7 +19,10 @@ public class AddSanitySuiteMain {
 
     public static void main(String[] args) throws Exception {
 
-        File permutationFile = new File("git/xap/tests/sanity/permutations.txt");
+        if (args.length != 1) {
+            throw new IllegalArgumentException("permutation file path argument missing");
+        }
+        File permutationFile = new File(args[0]);
         Suite sanitySuite = new Suite();
         sanitySuite.setName("Sanity");
         sanitySuite.setCriteria(
