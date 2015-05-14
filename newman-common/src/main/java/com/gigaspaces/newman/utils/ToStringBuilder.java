@@ -1,7 +1,8 @@
 package com.gigaspaces.newman.utils;
 
 /**
- * Created by moran on 4/29/15.
+ * Created by moran
+ * on 4/29/15.
  */
 public class ToStringBuilder {
     private final String name;

@@ -11,7 +11,7 @@ public class ProcessUtils {
     private static final long DEFAULT_SCRIPT_TIMEOUT = 10 * 60 * 1000;
 
     public static ProcessResult executeAndWait(Path file, Path workingFolder, Path outputPath) throws IOException, InterruptedException {
-        return executeAndWait(file, Collections.EMPTY_LIST, workingFolder, outputPath, DEFAULT_SCRIPT_TIMEOUT);
+        return executeAndWait(file, Collections.emptyList(), workingFolder, outputPath, DEFAULT_SCRIPT_TIMEOUT);
     }
 
     public static ProcessResult executeAndWait(Path file, Collection<String> arguments, Path workingFolder,

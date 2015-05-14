@@ -70,8 +70,8 @@ public class JobExecutor {
             logger.info("Executing setup script...");
             Path setupScript = append(jobFolder, "job-setup" + SCRIPT_SUFFIX);
             ProcessResult result = ProcessUtils.executeAndWait(setupScript, jobFolder, append(jobFolder, "job-setup.log"));
-            if (result.getExitCode() != 0)
-                throw new IOException("Setup script " + result.getExitCode() == null ? "timed out" : "returned " + result.getExitCode());
+            if (result.getExitCode() == null || result.getExitCode() != 0)
+                throw new IOException("Setup script " + ((result.getExitCode() == null) ? "timed out" : "returned ") + result.getExitCode());
 
             logger.info("Setup for job {} completed successfully", job.getId());
             return true;
