@@ -8,6 +8,17 @@
                  on-modified-job="{{onModifiedJob}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <style>
+            .table-nowrap {
+                table-layout:fixed;
+            }
+
+            .table-nowrap td {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        </style>
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
         <div class="content" flex>
@@ -17,12 +28,13 @@
             </form>
             <div class="table-responsive">
                 <!--<table class="table table-hover table-striped table-bordered table-condensed">-->
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered table-striped table-nowrap">
                     <thead>
                     <tr>
                         <th>State</th>
                         <th>Job Id</th>
-                        <th>Build Id</th>
+                        <th>Build</th>
+                        <th>Suite</th>
                         <th>Submitted At</th>
                         <th>Tests URI</th>
                         <th>Submitted By</th>
@@ -39,10 +51,11 @@
                                 <job-progress job="{{item}}"></job-progress>
                             </td>
                             <td><a href="{{urlFor('job', {id: item.id})}}">{{item.id}}</a></td>
-                            <td><a href="{{urlFor('build', {id: item.build.id})}}">{{item.build.id}}</a></td>
+                            <td title="{{item.build.name}}"><a href="{{urlFor('build', {id: item.build.id})}}">{{item.build.name}}</a></td>
+                            <td title="{{item.suite.name}}">{{item.suite.name}}</td>
                             <td>{{item.submitTime | formatDate}}</td>
-                            <td>{{item.testURI}}</td>
-                            <td>{{item.submittedBy}}</td>
+                            <td title="{{item.testURI}}">{{item.testURI}}</td>
+                            <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
                             <td>{{item.runningTests}}</td>
                             <td>{{item.totalTests}}</td>
                             <td>{{item.passedTests}}</td>

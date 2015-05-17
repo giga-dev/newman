@@ -7,12 +7,23 @@
                  on-modified-build="{{onModifiedBuild}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <style>
+            .table-nowrap {
+            table-layout:fixed;
+            }
+
+            .table-nowrap td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            }
+        </style>
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
         <div class="content" flex>
             <div class="table-responsive">
                 <h1>Active Builds</h1>
-                <table class="table table-bordered table-striped table-hover">
+                <table class="table table-bordered table-striped table-hover table-nowrap">
                     <thead>
                     <tr>
                         <th>Name</th>
@@ -25,8 +36,8 @@
                     <tbody>
                     <template repeat="{{activeBuild in data.activeBuilds}}">
                         <tr>
-                            <td><a href="{{urlFor('build', {id: activeBuild.id})}}">{{activeBuild.name}}</a></td>
-                            <td>{{activeBuild.branch}}</td>
+                            <td title="{{activeBuild.name}}"><a href="{{urlFor('build', {id: activeBuild.id})}}">{{activeBuild.name}}</a></td>
+                            <td title="{{activeBuild.branch}}">{{activeBuild.branch}}</td>
                             <td>{{activeBuild.buildTime | formatDate}}</td>
 
                             <td>
@@ -49,7 +60,7 @@
             <h1>History</h1>
 
             <div class="table-responsive">
-                <table class="table table-bordered table-striped table-hover">
+                <table class="table table-bordered table-striped table-hover table-nowrap">
                     <thead>
                     <tr>
                         <th>Name</th>
@@ -62,8 +73,8 @@
                     <tbody>
                     <template repeat="{{historyBuild in data.historyBuilds}}">
                         <tr>
-                            <td><a href="{{urlFor('build', {id: historyBuild.id})}}">{{historyBuild.name}}</a></td>
-                            <td>{{historyBuild.branch}}</td>
+                            <td title="{{historyBuild.name}}"><a href="{{urlFor('build', {id: historyBuild.id})}}">{{historyBuild.name}}</a></td>
+                            <td title="{{historyBuild.branch}}">{{historyBuild.branch}}</td>
                             <td>{{historyBuild.buildTime | formatDate}}</td>
 
                             <td>
