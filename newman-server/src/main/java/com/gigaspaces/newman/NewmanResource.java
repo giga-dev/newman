@@ -41,9 +41,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Created by Barak Bar Orion
@@ -54,6 +51,14 @@ import static java.util.stream.Collectors.groupingBy;
 @PermitAll
 public class NewmanResource {
     private static final Logger logger = LoggerFactory.getLogger(NewmanResource.class);
+    private static final String MODIFIED_BUILD = "modified-build";
+    public static final String CREATED_TEST = "created-test";
+    public static final String MODIFIED_JOB = "modified-job";
+    public static final String MODIFIED_TEST = "modified-test";
+    public static final String CREATED_JOB = "created-job";
+    public static final String MODIFIED_AGENT = "modified-agent";
+    public static final String CREATED_BUILD = "created-build";
+    public static final String CREATED_SUITE = "created-suite";
 
     private final SseBroadcaster broadcaster;
     private final MongoClient mongoClient;
@@ -127,10 +132,10 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Job createJob(JobRequest jobRequest, @Context SecurityContext sc) {
-        Build build = buildDAO.findOne(buildDAO.createQuery().field("_id").equal(new ObjectId(jobRequest.getBuildId())));
+        Build build = buildDAO.findOne(buildDAO.createIdQuery(jobRequest.getBuildId()));
         Suite suite = null;
         if (jobRequest.getSuiteId() != null) {
-            suite = suiteDAO.findOne(suiteDAO.createQuery().field("_id").equal(new ObjectId(jobRequest.getSuiteId())));
+            suite = suiteDAO.findOne(suiteDAO.createIdQuery(jobRequest.getSuiteId()));
         }
         if (suite == null) {
             throw new BadRequestException("invalid suite id for Job request: " + jobRequest);
@@ -144,7 +149,9 @@ public class NewmanResource {
             job.setSubmitTime(new Date());
             job.setSubmittedBy(sc.getUserPrincipal().getName());
             jobDAO.save(job);
-            broadcastMessage("created-job", job);
+            build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(build.getId()), buildDAO.createUpdateOperations().inc("buildStatus.totalJobs").inc("buildStatus.pendingJobs"));
+            broadcastMessage(CREATED_JOB, job);
+            broadcastMessage(MODIFIED_BUILD, build);
             return job;
         } else {
             return null;
@@ -155,48 +162,9 @@ public class NewmanResource {
     @Path("dashboard")
     @Produces(MediaType.APPLICATION_JSON)
     public DashboardData getActiveJobGroup(@Context UriInfo uriInfo) {
-
-        Query<Job> query = jobDAO.createQuery();
-        query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
-        List<Job> jobs = jobDAO.find(query).asList();
-        Map<String, List<Job>> groups = jobs.stream().collect(groupingBy(job -> job.getBuild().getId()));
-        List<BuildWithJobs> activeBuilds = new ArrayList<>();
-        for (String buildId : groups.keySet()) {
-            List<Job> groupJobs = groups.get(buildId);
-            final BuildWithJobs buildWithJobs = new BuildWithJobs();
-            State state = groupJobs.stream().reduce((job, job2) -> job.getState().ordinal() < job2.getState().ordinal() ? job : job2).get().getState();
-            buildWithJobs.setState(state);
-            buildWithJobs.setJobs(groupJobs);
-            buildWithJobs.setBuild(groupJobs.get(0).getBuild());
-            activeBuilds.add(buildWithJobs);
-        }
-        query = jobDAO.createQuery();
-        query.criteria("state").equal(State.DONE);
-        query.field("build.id").hasNoneOf(groups.keySet());
-        query.order("submitTime");
-        Iterator<Job> iterator = jobDAO.find(query).iterator();
-        List<Build> history = new ArrayList<>();
-        Set<String> processedJobIds = new HashSet<>();
-        try {
-            while (iterator.hasNext()) {
-                Job next = iterator.next();
-                if (!processedJobIds.contains(next.getBuild().getId())) {
-                    Build build = next.getBuild();
-                    processedJobIds.add(build.getId());
-                    history.add(build);
-                    if(history.size() == 5){
-                        break;
-                    }
-                }
-                logger.info("job {}", next);
-            }
-        } finally {
-            ((MorphiaIterator) iterator).close();
-        }
-        DashboardData res = new DashboardData();
-        res.setActiveBuilds(activeBuilds);
-        res.setHistoryBuilds(history.stream().map(BuildWithJobs::new).collect(Collectors.toList()));
-        return res;
+        List<Build> activeBuilds = buildDAO.find(buildDAO.createQuery().where("this.buildStatus.doneJobs < this.buildStatus.totalJobs").order("-buildTime")).asList();
+        List<Build> historyBuilds = buildDAO.find(buildDAO.createQuery().where("this.buildStatus.doneJobs == this.buildStatus.totalJobs").limit(5).order("-buildTime")).asList();
+        return new DashboardData(activeBuilds, historyBuilds);
     }
 
     @GET
@@ -226,9 +194,9 @@ public class NewmanResource {
         if (jobId == null) {
             throw new BadRequestException("can't unsubscribe agent without a job " + agent);
         }
-        Job job = jobDAO.findOne(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)));
+        Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
         UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.READY);
-        jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(job.getId())), updateJobStatus);
+        jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), updateJobStatus);
         UpdateOperations<Agent> updateAgentOps = agentDAO.createUpdateOperations().set("jobId", "");
         agentDAO.getDatastore().updateFirst(agentDAO.createQuery().field("name").equal(agent.getName()), updateAgentOps, true);
         return job;
@@ -244,14 +212,15 @@ public class NewmanResource {
             throw new BadRequestException("can't add test with no jobId: " + test);
         }
         UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests");
-        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(test.getJobId()))
-                , jobUpdateOps, false, false);
+        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(test.getJobId()), jobUpdateOps, false, false);
         if (job != null) {
             test.setStatus(Test.Status.PENDING);
             test.setScheduledAt(new Date());
             testDAO.save(test);
-            broadcastMessage("created-test", test);
-            broadcastMessage("modified-job", job);
+            Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), buildDAO.createUpdateOperations().inc("buildStatus.totalTests"));
+            broadcastMessage(MODIFIED_BUILD, build);
+            broadcastMessage(CREATED_TEST, test);
+            broadcastMessage(MODIFIED_JOB, job);
             return test;
         } else {
             throw new BadRequestException("Can't add test, job does not exists: " + test);
@@ -273,13 +242,17 @@ public class NewmanResource {
         }
         UpdateOperations<Test> testUpdateOps = testDAO.createUpdateOperations();
         UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations();
+        UpdateOperations<Build> updateBuild = buildDAO.createUpdateOperations();
         testUpdateOps.set("status", status);
         if (status == Test.Status.FAIL) {
             updateJobStatus.inc("failedTests");
+            updateBuild.inc("buildStatus.failedTests");
         } else {
             updateJobStatus.inc("passedTests");
+            updateBuild.inc("buildStatus.passedTests");
         }
         updateJobStatus.dec("runningTests");
+        updateBuild.dec("buildStatus.runningTests");
 
         if (test.getErrorMessage() != null) {
             testUpdateOps.set("errorMessage", test.getErrorMessage());
@@ -287,17 +260,21 @@ public class NewmanResource {
         if (status == Test.Status.FAIL || status == Test.Status.SUCCESS) {
             testUpdateOps.set("endTime", new Date());
         }
-        Test result = testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(test.getId())), testUpdateOps, false, false);
+        Test result = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(test.getId()), testUpdateOps, false, false);
         Query<Test> query = testDAO.createQuery();
         query.and(query.criteria("jobId").equal(result.getJobId()),
                 query.or(query.criteria("status").equal(Test.Status.PENDING),
                         query.criteria("status").equal(Test.Status.RUNNING)));
         if (!testDAO.exists(query)) {
             updateJobStatus.set("state", State.DONE).set("endTime", new Date());
+            updateBuild.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
         }
-        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(result.getJobId())), updateJobStatus);
-        broadcastMessage("modified-test", result);
-        broadcastMessage("modified-job", job);
+        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
+        Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
+
+        broadcastMessage(MODIFIED_BUILD, build);
+        broadcastMessage(MODIFIED_TEST, result);
+        broadcastMessage(MODIFIED_JOB, job);
         return result;
     }
 
@@ -347,8 +324,8 @@ public class NewmanResource {
             URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
             String name = getLogName(fileName);
             UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("logs." + name, uri.toASCIIString());
-            Test test = testDAO.getDatastore().findAndModify(testDAO.createQuery().field("_id").equal(new ObjectId(id)), updateOps);
-            broadcastMessage("modified-test", test);
+            Test test = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(id), updateOps);
+            broadcastMessage(MODIFIED_TEST, test);
         } catch (IOException e) {
             logger.error("Failed to save log at {} for test {}", filePath, id, e);
         }
@@ -401,7 +378,7 @@ public class NewmanResource {
             logger.error("Agent {} not working on job {} test {}", agent, jobId, testId);
             return null;
         } else {
-            broadcastMessage("modified-agent", agent);
+            broadcastMessage(MODIFIED_AGENT, agent);
             return agent.getJobId();
         }
     }
@@ -437,42 +414,42 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Test getTestToRun(Agent agent) {
         agent.setLastTouchTime(new Date());
-        Agent found = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agent.getName()));
-        if (found == null) {
+        Agent foundAgent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agent.getName()));
+        if (foundAgent == null) {
             agentDAO.save(agent);
-            found = agent;
+            foundAgent = agent;
         }
         //first try to find test matching the current agent job.
-        //if not found search for any test.
-        Test result = getMatchingTest(found);
-        if (result == null && found.getJobId() != null) {
-            found.setJobId(null);
-            result = getMatchingTest(found);
+        //if not foundAgent search for any test.
+        Test result = getMatchingTest(foundAgent);
+        if (result == null && foundAgent.getJobId() != null) {
+            foundAgent.setJobId(null);
+            result = getMatchingTest(foundAgent);
         }
         if (result == null) {
             return null;
         }
 
-        // test found.
+        // test foundAgent.
         String jobId = result.getJobId();
 
         //update job  state.
         UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
-        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateJobStatus);
         if (job.getStartTime() == null) {
             updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
-            job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+            job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateJobStatus);
         }
 
         // update agent state.
         UpdateOperations<Agent> agentUpdateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date());
         agentUpdateOps.set("currentTest", result.getId());
-        found = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("_id").equal(new ObjectId(found.getId())), agentUpdateOps, false, true);
+        foundAgent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(foundAgent.getId()), agentUpdateOps, false, true);
 
         //send event to clients.
-        broadcastMessage("modified-test", result);
-        broadcastMessage("modified-job", job);
-        broadcastMessage("modified-agent", found);
+        broadcastMessage(MODIFIED_TEST, result);
+        broadcastMessage(MODIFIED_JOB, job);
+        broadcastMessage(MODIFIED_AGENT, foundAgent);
         return result;
     }
 
@@ -512,17 +489,22 @@ public class NewmanResource {
         if (result != null) {
             agentUpdateOps.set("currentTest", result.getId());
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
-            Job job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+            Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateJobStatus);
+            UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.runningTests");
             if (job.getStartTime() == null) {
                 updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
-                job = jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("_id").equal(new ObjectId(jobId)), updateJobStatus);
+                job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateJobStatus);
+                buildUpdateOperations.inc("buildStatus.runningJobs").dec("buildStatus.pendingJobs");
             }
-            broadcastMessage("modified-test", result);
-            broadcastMessage("modified-job", job);
+            Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()),
+                    buildUpdateOperations);
+            broadcastMessage(MODIFIED_TEST, result);
+            broadcastMessage(MODIFIED_JOB, job);
+            broadcastMessage(MODIFIED_BUILD, build);
         }
 
-        agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("_id").equal(new ObjectId(agent.getId())), agentUpdateOps, false, true);
-        broadcastMessage("modified-agent", agent);
+        agent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, true);
+        broadcastMessage(MODIFIED_AGENT, agent);
         return result;
     }
 
@@ -545,7 +527,7 @@ public class NewmanResource {
             updateOps.set("jobId", job.getId());
         }
         Agent readyAgent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, false, true);
-        broadcastMessage("modified-agent", readyAgent);
+        broadcastMessage(MODIFIED_AGENT, readyAgent);
         return job;
     }
 
@@ -577,10 +559,12 @@ public class NewmanResource {
         if (build.getBuildTime() == null) {
             build.setBuildTime(new Date());
         }
+        build.setBuildStatus(new BuildStatus());
         buildDAO.save(build);
         if (suiteDAO.count() == 0) {
             addNightlyRegressionSuite();
         }
+        broadcastMessage(CREATED_BUILD, build);
         return build;
     }
 
@@ -613,9 +597,11 @@ public class NewmanResource {
         if (build.getResources() != null) {
             updateOps.set("resources", build.getResources());
         }
-        Query<Build> query = buildDAO.createQuery().field("_id").equal(new ObjectId(id));
+        Query<Build> query = buildDAO.createIdQuery(id);
         Build result = buildDAO.getDatastore().findAndModify(query, updateOps);
-        broadcastMessage("created-build", result);
+        if (result != null) {
+            broadcastMessage(MODIFIED_BUILD, result);
+        }
         return result;
 
     }
@@ -625,7 +611,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Build getBuild(final @PathParam("id") String id) {
-        return buildDAO.findOne(buildDAO.createQuery().field("_id").equal(new ObjectId(id)));
+        return buildDAO.findOne(buildDAO.createIdQuery(id));
     }
 
 
@@ -687,7 +673,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Suite addSuite(Suite suite) {
         suiteDAO.save(suite);
-        broadcastMessage("created-suite", suite);
+        broadcastMessage(CREATED_SUITE, suite);
         return suite;
     }
 
@@ -696,7 +682,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Suite getSuite(final @PathParam("id") String id) {
-        return suiteDAO.findOne(suiteDAO.createQuery().field("_id").equal(new ObjectId(id)));
+        return suiteDAO.findOne(suiteDAO.createIdQuery(id));
     }
 
     @GET
@@ -761,13 +747,16 @@ public class NewmanResource {
     // events
 
     private void broadcastMessage(String type, Object value) {
-        OutboundEvent.Builder eventBuilder = new OutboundEvent.Builder();
-        OutboundEvent event = eventBuilder.name(type)
-                .mediaType(MediaType.APPLICATION_JSON_TYPE)
-                .data(value.getClass(), value)
-                .build();
+        try {
+            OutboundEvent.Builder eventBuilder = new OutboundEvent.Builder();
+            OutboundEvent event = eventBuilder.name(type)
+                    .mediaType(MediaType.APPLICATION_JSON_TYPE)
+                    .data(value.getClass(), value)
+                    .build();
 
-        broadcaster.broadcast(event);
+            broadcaster.broadcast(event);
+        } catch (Throwable ignored) {
+        }
     }
 
 }

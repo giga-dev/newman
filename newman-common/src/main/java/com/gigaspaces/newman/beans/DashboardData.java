@@ -7,25 +7,30 @@ import java.util.List;
  * 5/12/15.
  */
 public class DashboardData {
-    private List<BuildWithJobs> activeBuilds;
-    private List<BuildWithJobs> historyBuilds;
+    private List<Build> activeBuilds;
+    private List<Build> historyBuilds;
 
     public DashboardData() {
     }
 
-    public List<BuildWithJobs> getActiveBuilds() {
+    public DashboardData(List<Build> activeBuilds, List<Build> historyBuilds) {
+        this.activeBuilds = activeBuilds;
+        this.historyBuilds = historyBuilds;
+    }
+
+    public List<Build> getActiveBuilds() {
         return activeBuilds;
     }
 
-    public void setActiveBuilds(List<BuildWithJobs> activeBuilds) {
+    public void setActiveBuilds(List<Build> activeBuilds) {
         this.activeBuilds = activeBuilds;
     }
 
-    public List<BuildWithJobs> getHistoryBuilds() {
+    public List<Build> getHistoryBuilds() {
         return historyBuilds;
     }
 
-    public void setHistoryBuilds(List<BuildWithJobs> historyBuilds) {
+    public void setHistoryBuilds(List<Build> historyBuilds) {
         this.historyBuilds = historyBuilds;
     }
 

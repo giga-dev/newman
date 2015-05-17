@@ -11,8 +11,8 @@ import org.mongodb.morphia.dao.BasicDAO;
  * Created by Barak Bar Orion
  * 4/11/15.
  */
-public class AgentDAO extends BasicDAO<Agent, ObjectId> {
+public class AgentDAO extends AbstractObjectIdDAO<Agent> {
     public AgentDAO(Morphia morphia, MongoClient mongo, String db) {
-        super(mongo, morphia, db);
+        super(morphia, mongo, db);
     }
 }

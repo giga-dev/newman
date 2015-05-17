@@ -37,6 +37,8 @@ public class Test {
 
     public Test() {
         logs = new HashMap<>();
+        properties = new HashMap<>();
+        arguments = new ArrayList<>();
     }
 
     public String getId() {

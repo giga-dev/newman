@@ -5,6 +5,7 @@
 <link rel="import" href="job.html">
 <link rel="import" href="builds.html">
 <link rel="import" href="agents.html">
+<link rel="import" href="dashboard-view.html">
 
 <polymer-element name="sse-sender">
     <template>
@@ -17,7 +18,8 @@
         'modified-job' : "jobs-table",
         'created-job' : "jobs-table",
         'modified-test' : "",
-        'created-build' : ""
+        'modified-build' : "dashboard-view",
+        'created-build' : "dashboard-view"
     };
     Polymer('sse-sender', {
       ready: function(){
@@ -27,6 +29,7 @@
                 'modified-job' : [window.app.jobProgressPercent],
                 'created-job' :  [window.app.jobProgressPercent],
                 'modified-test' : "",
+                'modified-build' : "",
                 'created-build' : ""
             };
 
@@ -62,10 +65,11 @@
                     if(selectors){
                         var foo = this.querySelectorAll(selectors);
                         [].forEach.call(this.querySelectorAll(selectors), function(el, i) {
+                               // console.info("sending event type", type, "detail", details, "to", el);
                                el.fire(type, details);
                         });
                      }
-                    //console.info("got event: ", type , "details:", details);
+                     //console.info("got event: ", type , "details:", details);
 
                 }
                 source.addEventListener("created-suite", handler.bind(this), false);
@@ -73,6 +77,7 @@
                 source.addEventListener("modified-job", handler.bind(this), false);
                 source.addEventListener("created-job", handler.bind(this), false);
                 source.addEventListener("modified-test", handler.bind(this), false);
+                source.addEventListener("modified-build", handler.bind(this), false);
                 source.addEventListener("created-build", handler.bind(this), false);
             }
 

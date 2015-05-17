@@ -23,7 +23,7 @@ public class Build {
     private Collection<URI> resources;
     private Collection<URI> testsMetadata; //JSON metadata of the tests
     private Date buildTime;
-
+    private BuildStatus buildStatus;
 
     public String getId() {
         return id;
@@ -81,6 +81,14 @@ public class Build {
         this.testsMetadata = testsMetadata;
     }
 
+    public BuildStatus getBuildStatus() {
+        return buildStatus;
+    }
+
+    public void setBuildStatus(BuildStatus buildStatus) {
+        this.buildStatus = buildStatus;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
@@ -91,6 +99,7 @@ public class Build {
                 .append("resources", resources)
                 .append("testsMetadata", testsMetadata)
                 .append("buildTime", buildTime)
+                .append("buildStatus", buildStatus)
                 .toString();
     }
 }

@@ -10,8 +10,8 @@ import org.mongodb.morphia.dao.BasicDAO;
  * Created by Barak Bar Orion
  * 4/11/15.
  */
-public class SuiteDAO extends BasicDAO<Suite, ObjectId> {
+public class SuiteDAO extends AbstractObjectIdDAO<Suite> {
     public SuiteDAO(Morphia morphia, MongoClient mongo, String db) {
-        super(mongo, morphia, db);
+        super(morphia, mongo, db);
     }
 }

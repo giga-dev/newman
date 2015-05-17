@@ -3,8 +3,8 @@
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
-<polymer-element name="dashboard-view" attributes="url" on-created-job="{{onCreatedJob}}"
-                 on-modified-job="{{onModifiedJob}}">
+<polymer-element name="dashboard-view" attributes="url" on-created-build="{{onCreatedBuild}}"
+                 on-modified-build="{{onModifiedBuild}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
@@ -16,18 +16,32 @@
                     <thead>
                     <tr>
                         <th>Name</th>
-                        <th>State</th>
                         <th>Branch</th>
                         <th>Date</th>
+                        <th># Tests</th>
+                        <th># Passed Tests</th>
+                        <th># Failed Tests</th>
+                        <th># Total Jobs</th>
+                        <th># Pending Jobs</th>
+                        <th># Running Jobs</th>
+                        <th># Done Jobs</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <template repeat="{{activeData in data.activeBuilds}}">
+                    <template repeat="{{activeBuild in data.activeBuilds}}">
                         <tr>
-                            <td><a href="{{urlFor('build', {id: activeData.build.id})}}">{{activeData.build.name}}</a></td>
-                            <td>{{activeData.state}}</td>
-                            <td>{{activeData.build.branch}}</td>
-                            <td>{{activeData.build.buildTime | formatDate}}</td>
+                            <td><a href="{{urlFor('build', {id: activeBuild.id})}}">{{activeBuild.name}}</a></td>
+                            <td>{{activeBuild.branch}}</td>
+                            <td>{{activeBuild.buildTime | formatDate}}</td>
+
+                            <td>{{activeBuild.buildStatus.totalTests}}</td>
+                            <td>{{activeBuild.buildStatus.passedTests}}</td>
+                            <td>{{activeBuild.buildStatus.failedTests}}</td>
+
+                            <td>{{activeBuild.buildStatus.totalJobs}}</td>
+                            <td>{{activeBuild.buildStatus.pendingJobs}}</td>
+                            <td>{{activeBuild.buildStatus.runningJobs}}</td>
+                            <td>{{activeBuild.buildStatus.doneJobs}}</td>
                         </tr>
                     </template>
 
@@ -41,18 +55,32 @@
                     <thead>
                     <tr>
                         <th>Name</th>
-                        <th>State</th>
                         <th>Branch</th>
                         <th>Date</th>
+                        <th># Tests</th>
+                        <th># Passed Tests</th>
+                        <th># Failed Tests</th>
+                        <th># Total Jobs</th>
+                        <th># Pending Jobs</th>
+                        <th># Running Jobs</th>
+                        <th># Done Jobs</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <template repeat="{{historyData in data.historyBuilds}}">
+                    <template repeat="{{historyBuild in data.historyBuilds}}">
                         <tr>
-                            <td><a href="{{urlFor('build', {id: historyData.build.id})}}">{{historyData.build.name}}</a></td>
-                            <td>{{historyData.state}}</td>
-                            <td>{{historyData.build.branch}}</td>
-                            <td>{{historyData.build.buildTime | formatDate}}</td>
+                            <td><a href="{{urlFor('build', {id: historyBuild.id})}}">{{historyBuild.name}}</a></td>
+                            <td>{{historyBuild.branch}}</td>
+                            <td>{{historyBuild.buildTime | formatDate}}</td>
+
+                            <td>{{historyBuild.buildStatus.totalTests}}</td>
+                            <td>{{historyBuild.buildStatus.passedTests}}</td>
+                            <td>{{historyBuild.buildStatus.failedTests}}</td>
+
+                            <td>{{historyBuild.buildStatus.totalJobs}}</td>
+                            <td>{{historyBuild.buildStatus.pendingJobs}}</td>
+                            <td>{{historyBuild.buildStatus.runningJobs}}</td>
+                            <td>{{historyBuild.buildStatus.doneJobs}}</td>
                         </tr>
                     </template>
 
@@ -69,18 +97,59 @@
 
       created: function() {
           this.data = [];
+          this.active = {};
+          this.history = {};
       },
       formatDate: function(date){
            return moment(new Date(date)).fromNow();
       },
       ajaxResponse: function(event,resp){
            this.data = resp.response;
+           var active = this.active;
+           this.data.activeBuilds.forEach(function(build){
+                active[build.id] = build;
+           });
+           var history = this.history;
+           this.data.historyBuilds.forEach(function(build){
+                history[build.id] = build;
+           });
            console.info("dashboard ", this.data);
       },
-      onCreatedJob: function(ev, job){
+      onCreatedBuild: function(ev, build){
+            console.info("onCreatedBuild", ev, build);
+            this.data.activeBuilds.unshift(build);
+            this.active[build.id] = build;
       },
-      onModifiedJob: function(ev, job){
-      },
+      onModifiedBuild: function(ev, build){
+            console.info("onModifiedBuild", ev, build);
+            var found = this.active[build.id];
+            if(found){
+                app.update(build, found);
+                if(found.buildStatus.totalJobs === found.buildStatus.doneJobs){
+                    delete this.active[found.id];
+                    var index = this.data.activeBuilds.indexOf(found);
+                    if(-1 < index){
+                        this.data.activeBuilds.splice(index, 1);
+                    }
+                    this.history[found.id] = found;
+                    this.data.historyBuilds.unshift(found);
+                    if(5 < this.data.historyBuilds.lenght){
+                        this.data.historyBuilds.pop();
+                    }
+                }
+            }else if(found = this.history[build.id]){
+                app.update(build, found);
+                if(found.buildStatus.doneJobs < found.buildStatus.totalJobs){
+                    delete this.history[found.id];
+                    var index = this.data.historyBuilds.indexOf(found);
+                    if(-1 < index){
+                        this.data.historyBuilds.splice(index, 1);
+                    }
+                    this.active[found.id] = found;
+                    this.data.activeBuilds.unshift(found);
+                }
+            }
+      }
     });
 
     </script>
