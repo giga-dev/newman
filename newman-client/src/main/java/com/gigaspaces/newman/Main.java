@@ -129,6 +129,7 @@ public class Main {
                 DashboardData dashboard = newmanClient.getDashboard().toCompletableFuture().get();
                 logger.info("----------------- dashboard data is {}", dashboard);
             }
+            Thread.sleep(500);
             i += 1;
         }
     }

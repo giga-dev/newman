@@ -18,13 +18,8 @@
                         <th>Name</th>
                         <th>Branch</th>
                         <th>Date</th>
-                        <th># Tests</th>
-                        <th># Passed Tests</th>
-                        <th># Failed Tests</th>
-                        <th># Total Jobs</th>
-                        <th># Pending Jobs</th>
-                        <th># Running Jobs</th>
-                        <th># Done Jobs</th>
+                        <th># Passed / Failed</th>
+                        <th># Done / Total</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -34,14 +29,16 @@
                             <td>{{activeBuild.branch}}</td>
                             <td>{{activeBuild.buildTime | formatDate}}</td>
 
-                            <td>{{activeBuild.buildStatus.totalTests}}</td>
-                            <td>{{activeBuild.buildStatus.passedTests}}</td>
-                            <td>{{activeBuild.buildStatus.failedTests}}</td>
+                            <td>
+                                <span class="label label-success">{{activeBuild.buildStatus.passedTests}}</span>
+                                <span class="label label-danger">{{activeBuild.buildStatus.failedTests}}</span>
+                                <span class="label label-default">{{activeBuild.buildStatus.totalTests}}</span>
+                            </td>
 
-                            <td>{{activeBuild.buildStatus.totalJobs}}</td>
-                            <td>{{activeBuild.buildStatus.pendingJobs}}</td>
-                            <td>{{activeBuild.buildStatus.runningJobs}}</td>
-                            <td>{{activeBuild.buildStatus.doneJobs}}</td>
+                            <td>
+                                <span class="label label-success">{{activeBuild.buildStatus.doneJobs}}</span>
+                                <span class="label label-default">{{activeBuild.buildStatus.totalJobs}}</span>
+                            </td>
                         </tr>
                     </template>
 
@@ -50,6 +47,7 @@
             </div>
 
             <h1>History</h1>
+
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover">
                     <thead>
@@ -57,13 +55,8 @@
                         <th>Name</th>
                         <th>Branch</th>
                         <th>Date</th>
-                        <th># Tests</th>
-                        <th># Passed Tests</th>
-                        <th># Failed Tests</th>
+                        <th># Passed / Failed</th>
                         <th># Total Jobs</th>
-                        <th># Pending Jobs</th>
-                        <th># Running Jobs</th>
-                        <th># Done Jobs</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -73,14 +66,13 @@
                             <td>{{historyBuild.branch}}</td>
                             <td>{{historyBuild.buildTime | formatDate}}</td>
 
-                            <td>{{historyBuild.buildStatus.totalTests}}</td>
-                            <td>{{historyBuild.buildStatus.passedTests}}</td>
-                            <td>{{historyBuild.buildStatus.failedTests}}</td>
+                            <td>
+                                <span class="label label-success">{{historyBuild.buildStatus.passedTests}}</span>
+                                <span class="label label-danger">{{historyBuild.buildStatus.failedTests}}</span>
+                                <span class="label label-default">{{historyBuild.buildStatus.totalTests}}</span>
+                            </td>
 
                             <td>{{historyBuild.buildStatus.totalJobs}}</td>
-                            <td>{{historyBuild.buildStatus.pendingJobs}}</td>
-                            <td>{{historyBuild.buildStatus.runningJobs}}</td>
-                            <td>{{historyBuild.buildStatus.doneJobs}}</td>
                         </tr>
                     </template>
 
@@ -133,7 +125,7 @@
                     }
                     this.history[found.id] = found;
                     this.data.historyBuilds.unshift(found);
-                    if(5 < this.data.historyBuilds.lenght){
+                    if(5 < this.data.historyBuilds.length){
                         this.data.historyBuilds.pop();
                     }
                 }
@@ -151,6 +143,7 @@
             }
       }
     });
+
 
     </script>
 </polymer-element>
