@@ -7,6 +7,7 @@ import net.lingala.zip4j.model.ZipParameters;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -52,6 +53,10 @@ public class FileUtils {
         return new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
     }
 
+    public static String readTextFile(InputStream is) throws IOException {
+        return org.apache.commons.io.IOUtils.toString(is);
+    }
+
     public static Path download(URL source, Path target) throws IOException {
         try (ReadableByteChannel rbc = Channels.newChannel(source.openStream())) {
             String sourcePath = source.getPath();
@@ -81,6 +86,15 @@ public class FileUtils {
             zipFile.addFolder(sourceFolder.toFile(), zipParameters);
         } catch (ZipException e) {
             throw new IOException("Failed to zip " + sourceFolder + " into " + targetZipFile, e);
+        }
+    }
+
+    public static void unzipFileFromZip(String fileName,Path targetFolder, Path inputZipFile) throws IOException {
+        try {
+            ZipFile zipFile = new ZipFile(inputZipFile.toFile());
+            zipFile.extractFile(fileName, targetFolder.toString());
+        } catch (ZipException e) {
+            throw new IOException("Failed to unzip the file:" + fileName + "from the zip:" + inputZipFile + " into " + targetFolder, e);
         }
     }
 

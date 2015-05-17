@@ -6,9 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -25,34 +24,44 @@ import java.util.concurrent.ExecutionException;
 public class NewmanBuildSubmitter {
     private static final Logger logger = LoggerFactory.getLogger(NewmanBuildSubmitter.class);
 
-    private static final String BUILD_ZIP_FILE_URI = "BUILD_ZIP_FILE_URI";
+    private static final String BUILD_S3_PUBLISH_FOLDER = "BUILD_S3_PUBLISH_FOLDER";
+    private static final String NEWMAN_BUILD_MILESTONE = "NEWMAN_BUILD_MILESTONE";
+    private static final String NEWMAN_BUILD_VERSION = "NEWMAN_BUILD_VERSION";
     private static final String NEWMAN_BUILD_NUMBER = "NEWMAN_BUILD_NUMBER";
     private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
-    private static final String TESTS_ZIP_FILE_URI = "TESTS_ZIP_FILE_URI";
-    private static final String BUILD_METADATA_FILE_URI = "BUILD_METADATA_FILE_URI";
-    private static final String NEWMAN_ARTIFACTS_URI = "NEWMAN_ARTIFACTS_URI";
-    private static final String NEWMAN_TGRID_METADATA_URI = "NEWMAN_TGRID_METADATA_URI";
+
+    private static final String NEWMAN_HOST = "NEWMAN_HOST";
+    private static final String NEWMAN_PORT = "NEWMAN_PORT";
+    private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
+    private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
 
 
-    //0-host, 1- port, 2- user, 3- password
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException {
-        String buildZipFile = getEnvironment(BUILD_ZIP_FILE_URI);
-        String testsZipFile = getEnvironment(TESTS_ZIP_FILE_URI);
-        String buildMetadataFile = getEnvironment(BUILD_METADATA_FILE_URI);
-        String newmanArtifactsUri = getEnvironment(NEWMAN_ARTIFACTS_URI);
-        String newmanTgridMetadataUri = getEnvironment(NEWMAN_TGRID_METADATA_URI);
-        String buildNumber = getEnvironment(NEWMAN_BUILD_NUMBER);
+
+        // build arguments
+        String publishFolder = getEnvironment(BUILD_S3_PUBLISH_FOLDER);
+        String newmanBuildMilestone = getEnvironment(NEWMAN_BUILD_MILESTONE);
+        String newmanBuildVersion = getEnvironment(NEWMAN_BUILD_VERSION);
         String buildBranch = getEnvironment(NEWMAN_BUILD_BRANCH);
+        String buildNumber = getEnvironment(NEWMAN_BUILD_NUMBER);
 
-        if (args.length != 4){
-            logger.error("Usage: java -cp newman-submitter-1.0-shaded.jar com.gigaspaces.newman.NewmanBuildSubmitter <newmanServerHost> <newmanServerPort> <newmanUser> <newmanPassword>");
-            System.exit(1);
-        }
+        // connection arguments
+        String host = getEnvironment(NEWMAN_HOST);
+        String port = getEnvironment(NEWMAN_PORT);
+        String username = getEnvironment(NEWMAN_USER_NAME);
+        String password = getEnvironment(NEWMAN_PASSWORD);
 
-        String host = args[0];
-        String port = args[1];
-        String username = args[2];
-        String password = args[3];
+        String buildPathPrefix = "http://tarzan/builds/GigaSpacesBuilds/";
+        String baseBuildURI = buildPathPrefix + newmanBuildVersion + "/build_" + buildNumber;
+        String buildZipFile = baseBuildURI +"/xap-premium/1.5/gigaspaces-xap-premium-" + newmanBuildVersion + "-" +newmanBuildMilestone + "-b" + buildNumber +".zip";
+        String testsZipFile = baseBuildURI + "/testsuite-1.5.zip";
+        String buildMetadataFile = baseBuildURI + "/xap-premium/1.5/metadata.txt";
+        String newmanArtifactsUri = "https://s3-eu-west-1.amazonaws.com/gigaspaces-repository-eu/com/gigaspaces/xap-core/newman/"+ publishFolder +"/newman-artifacts.zip";
+        String newmanTgridMetadataUri = "jar:" + testsZipFile +"!/QA/metadata/tgrid-tests-metadata.json";
+
+        logger.info("Initialized newman build submitter with the following arguments:");
+        logger.info("\nbuildZipFile={}\ntestsZipFile={}\nbuildMetadataFile={}\nnewmanArtifactsUri={}\nnewmanTgridMetadataUri={}",
+                buildZipFile, testsZipFile, buildMetadataFile, newmanArtifactsUri, newmanTgridMetadataUri);
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         NewmanClient newmanClient = NewmanClient.create(host, port, username, password);
@@ -72,7 +81,8 @@ public class NewmanBuildSubmitter {
         collection.add(buildURI);
         b.setResources(collection);
         Collection<URI> testMetadata = new ArrayList<>();
-        testMetadata.add(URI.create(newmanTgridMetadataUri));
+        URI tgridMetadata = URI.create(newmanTgridMetadataUri);
+        testMetadata.add(tgridMetadata);
         //TODO add sgtest metadata
         b.setTestsMetadata(testMetadata);
         Build build = newmanClient.createBuild(b).toCompletableFuture().get();
@@ -91,18 +101,24 @@ public class NewmanBuildSubmitter {
 
     private static Map<String, String> parseBuildMetadata(String buildMetadataFile) throws IOException {
         Map<String,String> shas = new HashMap<>();
-        Path file = FileUtils.download(URI.create(buildMetadataFile).toURL(),Paths.get("."));
-        String metadata = FileUtils.readTextFile(file);
-        String modifiedMetadata = metadata.replace("[", "");
-        modifiedMetadata = modifiedMetadata.replace("]", "");
-        modifiedMetadata = modifiedMetadata.replace("\"", "");
-        modifiedMetadata = modifiedMetadata.replaceAll("\\s+", "");
-        String[] splicedMetadata = modifiedMetadata.split(",");
-        for (String element : splicedMetadata){
-            shas.put(element.split(":")[0], element.split(":")[1]);
+        InputStream is = null;
+        try {
+            is = URI.create(buildMetadataFile).toURL().openStream();
+            String metadata = FileUtils.readTextFile(is);
+            String modifiedMetadata = metadata.replace("[", "");
+            modifiedMetadata = modifiedMetadata.replace("]", "");
+            modifiedMetadata = modifiedMetadata.replace("\"", "");
+            modifiedMetadata = modifiedMetadata.replaceAll("\\s+", "");
+            String[] splicedMetadata = modifiedMetadata.split(",");
+            for (String element : splicedMetadata) {
+                shas.put(element.split(":")[0], element.split(":")[1]);
+            }
         }
-        //noinspection ResultOfMethodCallIgnored
-        file.toFile().delete();
+        finally {
+            if (is != null) {
+                is.close();
+            }
+        }
         return shas;
     }
 }

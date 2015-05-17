@@ -3,20 +3,18 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.beans.criteria.Criteria;
-
 import com.gigaspaces.newman.beans.criteria.CriteriaEvaluator;
-import com.gigaspaces.newman.utils.FileUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
-import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
@@ -51,44 +49,36 @@ public class NewmanSubmitter {
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         NewmanClient newmanClient = NewmanClient.create(host, port, username, password);
 
-        Path home = FileUtils.append(System.getProperty("user.home"), "newman-submitter");
-        FileUtils.createFolder(home);
-        try {
-            Suite suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
-            if (suite == null) {
-                throw new IllegalArgumentException("suite with id: " + suiteId + " does not exists");
-            }
+        Suite suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
+        if (suite == null) {
+            throw new IllegalArgumentException("suite with id: " + suiteId + " does not exists");
+        }
 
-            Build build = newmanClient.getBuild(buildId).toCompletableFuture().get();
-            if (build == null) {
-                throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
-            }
+        Build build = newmanClient.getBuild(buildId).toCompletableFuture().get();
+        if (build == null) {
+            throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
+        }
 
-            Job job = addJob(newmanClient, suiteId, buildId);
-            logger.info("added a new job {}", job);
-            Collection<URI> testsMetadata = build.getTestsMetadata();
+        Job job = addJob(newmanClient, suiteId, buildId);
+        logger.info("added a new job {}", job);
+        Collection<URI> testsMetadata = build.getTestsMetadata();
 
-            if (testsMetadata == null) {
-                logger.error("can't submit job when there is no tests metadata in the build [{}]", buildId);
-                System.exit(1);
-            }
+        if (testsMetadata == null) {
+            logger.error("can't submit job when there is no tests metadata in the build [{}]", buildId);
+            System.exit(1);
+        }
 
-            for (URI testMetadata : testsMetadata) {
-                Path metadataFile = FileUtils.download(testMetadata.toURL(), home);
-                logger.info("parsing metadata file {}", metadataFile);
-                List<Test> listOfTests = parseMetadata(metadataFile.toFile());
-                Criteria criteria = suite.getCriteria();
-                CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(criteria);
-                for (Test test : listOfTests) {
-                    if (criteriaEvaluator.evaluate(test)) {
-                        test.setJobId(job.getId());
-                        addTest(test, newmanClient);
-                    }
+        for (URI testMetadata : testsMetadata) {
+            logger.info("parsing metadata file {}", testMetadata);
+            List<Test> listOfTests = parseMetadata(testMetadata.toURL().openStream());
+            Criteria criteria = suite.getCriteria();
+            CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(criteria);
+            for (Test test : listOfTests) {
+                if (criteriaEvaluator.evaluate(test)) {
+                    test.setJobId(job.getId());
+                    addTest(test, newmanClient);
                 }
             }
-        }
-        finally {
-            FileUtils.delete(home);
         }
     }
 
@@ -103,11 +93,11 @@ public class NewmanSubmitter {
         client.createTest(test).toCompletableFuture().get();
     }
 
-    private static List<Test> parseMetadata(File file) throws IOException, ParseException {
+    private static List<Test> parseMetadata(InputStream is) throws IOException, ParseException {
         JSONParser parser = new JSONParser();
-        FileReader in = null;
+        Reader in = null;
         try {
-            in = new FileReader(file);
+            in = new InputStreamReader(is);
             JSONObject metadataJson = (JSONObject) parser.parse(in);
             String type = (String) metadataJson.get("type");
             if (type == null)
