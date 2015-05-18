@@ -13,7 +13,7 @@ window.app.jobProgressPercent = function(job){
                 job.progressPercent = 0;
                 return 0;
             }else{
-                job.progressPercent = ((failedTests + passedTests) *  100) / totalTests;
+                job.progressPercent = Math.floor(((failedTests + passedTests) *  100) / totalTests);
                 return job.progressPercent
             }
       }

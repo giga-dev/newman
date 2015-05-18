@@ -119,12 +119,10 @@
            console.info("dashboard ", this.data);
       },
       onCreatedBuild: function(ev, build){
-            console.info("onCreatedBuild", ev, build);
             this.data.activeBuilds.unshift(build);
             this.active[build.id] = build;
       },
       onModifiedBuild: function(ev, build){
-            console.info("onModifiedBuild", ev, build);
             var found = this.active[build.id];
             if(found){
                 app.update(build, found);
