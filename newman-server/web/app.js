@@ -32,7 +32,19 @@ window.app.update = function(from, to){
 window.addEventListener('polymer-ready', function(e) {
 
     PolymerExpressions.prototype.json = function(object) {
-        return JSON.stringify(object);
+        return JSON.stringify(object, null, 2);
+    }
+
+    PolymerExpressions.prototype.removeNulls = function(object) {
+         var isArray = object instanceof Array;
+         for (var k in object){
+            if (object[k]=== null) {
+                isArray ? object.splice(k,1) : delete object[k];
+            } else if (typeof object[k]=="object"){
+                PolymerExpressions.prototype.removeNulls(object[k]);
+            }
+        }
+        return object;
     }
 
     PolymerExpressions.prototype.filterKeys=  function(object){

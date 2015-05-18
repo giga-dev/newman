@@ -1,0 +1,59 @@
+<script src="../components/webcomponentsjs/webcomponents.js"></script>
+
+<link rel="import" href="routes.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+
+<polymer-element name="suites-view" attributes="url">
+    <template>
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
+                   withCredentials="true"></core-ajax>
+        <div class="content" flex>
+            <h2>Suites</h2>
+
+            <div class="table-responsive">
+                <table class="table table-hover table-striped table-bordered table-condensed">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Criteria</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <template repeat="{{item in data}}">
+                        <tr>
+                            <td>{{item.name}}</td>
+                            <td>
+                                <pre>
+                                    <code>
+{{item.criteria | removeNulls | json}}
+                                    </code>
+                                </pre>
+                            </td>
+                        </tr>
+                    </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+    <script src="../components/moment/moment.js"></script>
+
+    <script>
+    Polymer({
+      applyAuthorStyles: true,
+      data: [],
+      created: function() {
+          this.data = [];
+      },
+
+      ajaxResponse: function(event,resp){
+           this.data = resp.response.values;
+      }
+    });
+
+
+
+
+    </script>
+</polymer-element>

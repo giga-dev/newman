@@ -21,6 +21,7 @@
 <link rel="import" href="agents.html">
 <link rel="import" href="mongo-admin.html">
 <link rel="import" href="dashboard-view.html">
+<link rel="import" href="suites-view.html">
 
 <polymer-element name="newman-app">
     <template>
@@ -47,8 +48,11 @@
                                 <a href="{{urlFor('agents')}}" core-drawer-toggle></a>
                             </core-item>
                             <!--<core-item label="Tests" route="tests">-->
-                                <!--<a href="{{urlFor('tests')}}" core-drawer-toggle></a>-->
+                            <!--<a href="{{urlFor('tests')}}" core-drawer-toggle></a>-->
                             <!--</core-item>-->
+                            <core-item label="Suites" route="suites">
+                                <a href="{{urlFor('suites')}}" core-drawer-toggle></a>
+                            </core-item>
                             <core-item label="Mongo Admin" route="mongo-admin">
                                 <a href="{{urlFor('mongo-admin')}}" core-drawer-toggle></a>
                             </core-item>
@@ -82,8 +86,8 @@
                                     <agent-table url="api/newman/agent?all=true"></agent-table>
                                 </section>
                                 <!--<section route="tests">-->
-                                    <!--<h1>Tests</h1>-->
-                                    <!--<tests-table url="api/newman/test?all=true"></tests-table>-->
+                                <!--<h1>Tests</h1>-->
+                                <!--<tests-table url="api/newman/test?all=true"></tests-table>-->
                                 <!--</section>-->
                                 <section route="test">
                                     <test-info url="api/newman/test/{{route('test').params.id}}"></test-info>
@@ -91,7 +95,8 @@
                                 <section route="job">
                                     <job-info url="api/newman/job/{{route('job').params.id}}"></job-info>
                                     <h1>Job Tests</h1>
-                                    <tests-table  url="api/newman/test?jobId={{route('job').params.id}}&all=true"></tests-table>
+                                    <tests-table
+                                            url="api/newman/test?jobId={{route('job').params.id}}&all=true"></tests-table>
                                 </section>
                                 <section route="build">
                                     <h1>Details for build {{route('build').params.id}}</h1>
@@ -99,6 +104,9 @@
                                     <h2>build {{route('build').params.id}} participate in the following jobs</h2>
                                     <jobs-table
                                             url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
+                                </section>
+                                <section route="suites">
+                                    <suites-view url="api/newman/suite?all=true"></suites-view>
                                 </section>
                                 <section route="mongo-admin">
                                     <h1>A very simple Mongo admin {{route('mongo-admin').params.id}}</h1>
@@ -127,6 +135,7 @@
         this.heading = "Hello " + this.user.userName;
       }
     });
+
 
     </script>
 </polymer-element>
