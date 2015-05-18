@@ -2,7 +2,10 @@ package com.gigaspaces.newman;
 
 
 import com.gigaspaces.newman.config.Config;
-import org.eclipse.jetty.security.*;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.LoginService;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -10,6 +13,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.resource.*;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.mongodb.morphia.logging.MorphiaLoggerFactory;
@@ -18,6 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 
 public class Main {
@@ -67,7 +74,20 @@ public class Main {
 
         DefaultServlet defaultServlet = new DefaultServlet();
         ServletHolder holderPwd = new ServletHolder("default", defaultServlet);
-        holderPwd.setInitParameter("resourceBase", System.getProperty(WEB_FOLDER_PATH, DEFAULT_WEB_FOLDER_PATH));
+        String webPath = System.getProperty(WEB_FOLDER_PATH, DEFAULT_WEB_FOLDER_PATH);
+        File webDir = new File(webPath);
+        if (!webDir.exists()) {
+            logger.info("File {} not found", webDir.getAbsolutePath());
+            String webDirInJar = Main.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+            if (webDirInJar.toLowerCase().endsWith(".jar")) {
+                webPath = webDirInJar + "!/web";
+            } else {
+                logger.error("can't find webdir, either set web dir using system property {} or run newman with java -jar newman-server-1.0.jar", WEB_FOLDER_PATH);
+                System.exit(1);
+            }
+        }
+        logger.info("Using {} to serve static content", webPath);
+        holderPwd.setInitParameter("resourceBase", webPath);
         holderPwd.setInitOrder(2);
         context.addServlet(holderPwd, "/*");
 
@@ -83,13 +103,12 @@ public class Main {
 
 
         try {
-
-
+            Resource keyStoreResource = createKeystoreResource();
             SslContextFactory sslContextFactory = new SslContextFactory(false);
-            sslContextFactory.setKeyStorePath("./keys/server.keystore");
+            sslContextFactory.setKeyStoreResource(keyStoreResource);
             sslContextFactory.setKeyStorePassword("password");
             sslContextFactory.setKeyManagerPassword("password");
-            sslContextFactory.setTrustStorePath("./keys/server.keystore");
+            sslContextFactory.setTrustStoreResource(keyStoreResource);
             sslContextFactory.setTrustStorePassword("password");
 
             ServerConnector https = new ServerConnector(server, sslContextFactory);
@@ -98,7 +117,6 @@ public class Main {
 
 
             server.addConnector(https);
-
 
 
             server.setHandler(context);
@@ -110,10 +128,22 @@ public class Main {
             }
             logger.info("server started!");
             server.join();
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
         } finally {
             server.destroy();
         }
+    }
+
+    private static Resource createKeystoreResource() throws MalformedURLException {
+        String filePath = "./keys/server.keystore";
+        if(new File(filePath).exists()){
+            return Resource.newResource(new File(filePath));
+        }
+        String jar = Main.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+        if(jar.toLowerCase().endsWith(".jar")){
+            return Resource.newResource("jar:" + jar + "!/keys/server.keystore");
+        }
+        throw new IllegalStateException("Missing keystore file " + new File(filePath).getAbsoluteFile());
     }
 }
