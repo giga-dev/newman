@@ -86,7 +86,7 @@ public class Main {
         logger.info("creating new Job {}", job);
 //        Batch<Job> jobs = newmanClient.getJobs().toCompletableFuture().get();
 //        logger.info("jobs are: {}", jobs);
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 7; i++) {
             Test test = new Test();
             test.setJobId(job.getId());
             test.setName("test_" + i);

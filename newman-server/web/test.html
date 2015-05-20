@@ -58,17 +58,6 @@
             <dd>{{data.scheduledAt |formatDate}}</dd>
         </dl>
 
-        <h1>Upload a File</h1>
-
-        <form action="{{url}}/log" method="post" enctype="multipart/form-data">
-
-            <p>
-                Select a file : <input type="file" name="file" size="50"/>
-            </p>
-
-            <input type="submit" value="Upload It"/>
-        </form>
-
     </template>
     <script src="../components/moment/moment.js"></script>
 
