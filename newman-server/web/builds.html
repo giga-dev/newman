@@ -3,7 +3,7 @@
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
-<polymer-element name="builds-table" attributes="url">
+<polymer-element name="builds-table" attributes="url active">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax id="ajax" auto url="{{url}}" handleAs="json"
@@ -12,27 +12,28 @@
                    withCredentials="true"></core-ajax>
         <div class="content" flex>
             <form class="form-inline">
-                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter" class="form-control">
+                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
+                       class="form-control">
             </form>
             <div class="table-responsive">
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <thead>
-                        <tr>
-                            <th>Build Name</th>
-                            <th>Branch</th>
-                            <th>Build Time</th>
-                            <th>URI</th>
-                        </tr>
+                    <tr>
+                        <th>Build Name</th>
+                        <th>Branch</th>
+                        <th>Build Time</th>
+                        <th>URI</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        <template repeat="{{item in data}}">
-                            <tr>
-                                <td><a href="{{urlFor('build', {id: item.id})}}">{{item.name}}</a></td>
-                                <td>{{item.branch}}</td>
-                                <td>{{item.buildTime | formatDate}}</td>
-                                <td><a href="{{item.uri}}">{{item.uri}}</a></td>
-                            </tr>
-                        </template>
+                    <template repeat="{{item in data}}">
+                        <tr>
+                            <td><a href="{{urlFor('build', {id: item.id})}}">{{item.name}}</a></td>
+                            <td>{{item.branch}}</td>
+                            <td>{{item.buildTime | formatDate}}</td>
+                            <td><a href="{{item.uri}}">{{item.uri}}</a></td>
+                        </tr>
+                    </template>
                     </tbody>
                 </table>
             </div>
@@ -47,6 +48,7 @@
       filter: null,
       allValues: [],
       data: [],
+      active: false,
       runFilter: function(){
           this.data  = this.applyFilter(this.filter, this.allValues);
       },
@@ -75,7 +77,12 @@
             }
            return moment(new Date(date)).fromNow();
       },
+      activeChanged: function(oldValue, newValue){
+        console.info("activeChanged to ", newValue);
+      }
     });
+
+
 
 
     </script>
