@@ -171,6 +171,7 @@ public class Test {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
                 .append("id", id)
                 .append("name", name)
+                .append("testType", testType)
                 .append("jobId", jobId)
                 .append("status", status)
                 .append("errorMessage", errorMessage)
