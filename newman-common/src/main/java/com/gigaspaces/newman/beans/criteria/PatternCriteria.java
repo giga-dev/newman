@@ -38,4 +38,12 @@ public class PatternCriteria implements Criteria {
     public static PatternCriteria startsWithCriteria(String string) {
         return new PatternCriteria(Pattern.quote(string) + ".*");
     }
+
+    public static PatternCriteria endsWithCriteria(String string) {
+        return new PatternCriteria(".*" + Pattern.quote(string));
+    }
+
+    public static PatternCriteria containsCriteria(String string) {
+        return new PatternCriteria(".*" + Pattern.quote(string) + ".*");
+    }
 }

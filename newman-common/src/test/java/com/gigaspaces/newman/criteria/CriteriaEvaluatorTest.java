@@ -117,6 +117,51 @@ public class CriteriaEvaluatorTest {
     }
 
     @org.junit.Test
+    public void test_PatternCriteria_endsWithCriteria() {
+
+        PatternCriteria patternCriteria = PatternCriteria.endsWithCriteria(".MyTest");
+        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(patternCriteria);
+
+        Test test1 = new Test();
+        test1.setName("com.gigaspaces.test.MyTest");
+        assertTrue(criteriaEvaluator.evaluate(test1));
+
+        Test test2 = new Test();
+        test2.setName("com.gigaspaces.testMyTest");
+        assertFalse(criteriaEvaluator.evaluate(test2));
+
+        Test test3 = new Test();
+        test3.setName("com.gigaspaces.MyTesttt");
+        assertFalse(criteriaEvaluator.evaluate(test3));
+    }
+
+    @org.junit.Test
+    public void test_PatternCriteria_containsCriteria() {
+        PatternCriteria patternCriteria = PatternCriteria.containsCriteria(".gigaspaces.");
+        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(patternCriteria);
+
+        Test test1 = new Test();
+        test1.setName("com.gigaspaces.MyTest");
+        assertTrue(criteriaEvaluator.evaluate(test1));
+
+        Test test2 = new Test();
+        test2.setName("com.gigaspaces.test.MyTest");
+        assertTrue(criteriaEvaluator.evaluate(test2));
+
+        Test test3 = new Test();
+        test3.setName("comgigaspaces.MyTest");
+        assertFalse(criteriaEvaluator.evaluate(test3));
+
+        Test test4 = new Test();
+        test4.setName("gigaspaces.MyTest");
+        assertFalse(criteriaEvaluator.evaluate(test4));
+
+        Test test5 = new Test();
+        test5.setName("comgigaspacesMyTest");
+        assertFalse(criteriaEvaluator.evaluate(test5));
+    }
+
+        @org.junit.Test
     public void test_NotCriteria() {
         NotCriteria notCriteria = new NotCriteria( PatternCriteria.classNameCriteria("com.gigaspaces.test.MyTest"));
         CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(notCriteria);
@@ -233,4 +278,38 @@ public class CriteriaEvaluatorTest {
         assertFalse(criteriaEvaluator.evaluate(test4));
     }
 
+    @org.junit.Test
+    public void test_CriteriaBuilder() {
+
+        Criteria criteria = CriteriaBuilder.join(
+                CriteriaBuilder.include(
+                        PatternCriteria.containsCriteria(".security"),
+                        PatternCriteria.containsCriteria(".gateway.")),
+                CriteriaBuilder.exclude(
+                        PatternCriteria.containsCriteria(".disconnect."),
+                        PatternCriteria.containsCriteria(".DBTest#"))
+        );
+
+        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(criteria);
+
+        Test test1 = new Test();
+        test1.setName("com.test.security.Test");
+        assertTrue(criteriaEvaluator.evaluate(test1));
+
+        Test test2 = new Test();
+        test2.setName("com.test.gateway.Test");
+        assertTrue(criteriaEvaluator.evaluate(test2));
+
+        Test test3 = new Test();
+        test3.setName("com.test.disconnect.Test");
+        assertFalse(criteriaEvaluator.evaluate(test3));
+
+        Test test4 = new Test();
+        test4.setName("com.test.disconnect.DBTest#foo");
+        assertFalse(criteriaEvaluator.evaluate(test4));
+
+        Test test5 = new Test();
+        test5.setName("com.test.MyTest");
+        assertFalse(criteriaEvaluator.evaluate(test5));
+    }
 }
