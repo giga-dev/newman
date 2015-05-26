@@ -70,14 +70,8 @@
                     <main>
                         <more-route-selector>
                             <core-pages>
-                                <section route="home">
-                                    <dashboard-view url="api/newman/dashboard"></dashboard-view>
-                                </section>
-                                <!--<section route="builds">-->
-                                    <!--<h1>Builds</h1>-->
-                                    <!--<builds-table url="api/newman/build?orderBy=-buildTime"></builds-table>-->
-                                <!--</section>-->
-                                    <builds-table url="api/newman/build?orderBy=-buildTime" route="builds"></builds-table>
+                                <dashboard-view url="api/newman/dashboard" route="home"></dashboard-view>
+                                <builds-table url="api/newman/build?orderBy=-buildTime" route="builds"></builds-table>
                                 <section route="jobs">
                                     <h1>Jobs</h1>
                                     <jobs-table url="api/newman/job?all=true&orderBy=-submitTime"></jobs-table>
@@ -86,10 +80,6 @@
                                     <h1>Agents</h1>
                                     <agent-table url="api/newman/agent?all=true"></agent-table>
                                 </section>
-                                <!--<section route="tests">-->
-                                <!--<h1>Tests</h1>-->
-                                <!--<tests-table url="api/newman/test?all=true"></tests-table>-->
-                                <!--</section>-->
                                 <section route="test">
                                     <test-info url="api/newman/test/{{route('test').params.id}}"></test-info>
                                 </section>
@@ -106,9 +96,7 @@
                                     <jobs-table
                                             url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
                                 </section>
-                                <section route="suites">
-                                    <suites-view url="api/newman/suite?all=true"></suites-view>
-                                </section>
+                                <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
                                 <section route="mongo-admin">
                                     <h1>A very simple Mongo admin {{route('mongo-admin').params.id}}</h1>
                                     <mongo-admin url="api/newman/db"></mongo-admin>

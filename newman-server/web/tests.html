@@ -2,6 +2,7 @@
 
 <link rel="import" href="routes.html">
 <link rel="import" href="test-status.html">
+<link rel="import" href="table-pagination.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
 <polymer-element name="tests-table" attributes="url">
@@ -13,6 +14,7 @@
             <form class="form-inline">
                 <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
                        class="form-control">
+                <table-pagination total="{{pages.length}}" current="{{currentPage}}" on-page-change="{{onPageChange}}"></table-pagination>
             </form>
             <div class="table-responsive">
                 <table class="table table-hover table-striped table-bordered table-condensed">
@@ -29,11 +31,13 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <template repeat="{{item in data}}">
+                    <template repeat="{{item in pages[currentPage]}}">
                         <tr>
                             <td><a href="{{urlFor('test', {id: item.id})}}">{{item.name}}</a></td>
                             <td><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
-                            <td><test-status test="{{item}}"></test-status></td>
+                            <td>
+                                <test-status test="{{item}}"></test-status>
+                            </td>
                             <td>{{item.assignedAgent}}</td>
                             <td>{{item.scheduledAt | formatDate }}</td>
                             <td>{{item.startTime | formatDate }}</td>
@@ -44,6 +48,7 @@
                     </tbody>
                 </table>
             </div>
+            <table-pagination total="{{pages.length}}" current="{{currentPage}}" on-page-change="{{onPageChange}}"></table-pagination>
         </div>
     </template>
     <script src="../components/moment/moment.js"></script>
@@ -55,8 +60,27 @@
       filter: null,
       allValues: [],
       data: [],
+      pages: [],
+      currentPage: 0,
       runFilter: function(){
           this.data  = this.applyFilter(this.filter, this.allValues);
+          this.pages = this.splitToPages();
+          this.currentPage = 0;
+      },
+      splitToPages: function(){
+          var res = [];
+          var current = [];
+          for(var i = 0; i < this.data.length; ++i){
+              current.push(this.data[i]);
+              if(current.length === 25){
+                  res.push(current);
+                  current = [];
+              }
+          }
+          if(0 < current.length){
+                res.push(current);
+          }
+          return res;
       },
       ajaxResponse: function(event,resp){
            this.allValues = resp.response.values;
@@ -70,6 +94,9 @@
             }else{
                 return values;
             }
+      },
+      onPageChange : function(event){
+            this.currentPage = event.detail.currentPage;
       },
       formatDate: function(date){
             if(!date){
@@ -85,6 +112,8 @@
       }
 
     });
+
+
 
 
 

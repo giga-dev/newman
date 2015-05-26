@@ -3,19 +3,19 @@
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
-<polymer-element name="dashboard-view" attributes="url" on-created-build="{{onCreatedBuild}}"
+<polymer-element name="dashboard-view" attributes="url active" on-created-build="{{onCreatedBuild}}"
                  on-modified-build="{{onModifiedBuild}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <style>
             .table-nowrap {
-            table-layout:fixed;
+                table-layout:fixed;
             }
 
             .table-nowrap td {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+                 white-space: nowrap;
+                 overflow: hidden;
+                 text-overflow: ellipsis;
             }
         </style>
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
@@ -100,17 +100,18 @@
 
       created: function() {
           this.data = [];
-          this.active = {};
+          this.actives = {};
           this.history = {};
+          this.active = false;
       },
       formatDate: function(date){
            return moment(new Date(date)).fromNow();
       },
       ajaxResponse: function(event,resp){
            this.data = resp.response;
-           var active = this.active;
+           var actives = this.actives;
            this.data.activeBuilds.forEach(function(build){
-                active[build.id] = build;
+                actives[build.id] = build;
            });
            var history = this.history;
            this.data.historyBuilds.forEach(function(build){
@@ -120,14 +121,14 @@
       },
       onCreatedBuild: function(ev, build){
             this.data.activeBuilds.unshift(build);
-            this.active[build.id] = build;
+            this.actives[build.id] = build;
       },
       onModifiedBuild: function(ev, build){
-            var found = this.active[build.id];
+            var found = this.actives[build.id];
             if(found){
                 app.update(build, found);
                 if(found.buildStatus.totalJobs === found.buildStatus.doneJobs){
-                    delete this.active[found.id];
+                    delete this.actives[found.id];
                     var index = this.data.activeBuilds.indexOf(found);
                     if(-1 < index){
                         this.data.activeBuilds.splice(index, 1);
@@ -146,10 +147,13 @@
                     if(-1 < index){
                         this.data.historyBuilds.splice(index, 1);
                     }
-                    this.active[found.id] = found;
+                    this.actives[found.id] = found;
                     this.data.activeBuilds.unshift(found);
                 }
             }
+      },
+      activeChanged: function(oldValue, newValue){
+           console.info("dashboard activeChanged to ", newValue);
       }
     });
 

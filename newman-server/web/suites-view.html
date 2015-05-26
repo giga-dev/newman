@@ -3,7 +3,7 @@
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
-<polymer-element name="suites-view" attributes="url">
+<polymer-element name="suites-view" attributes="url active" active>
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
@@ -45,12 +45,12 @@
     Polymer({
       applyAuthorStyles: true,
       data: [],
-      created: function() {
-          this.data = [];
-      },
 
       ajaxResponse: function(event,resp){
            this.data = resp.response.values;
+      },
+      activeChanged: function(oldValue, newValue){
+           console.info("suite-view activeChanged to ", newValue);
       }
     });
 
