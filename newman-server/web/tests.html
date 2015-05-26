@@ -4,18 +4,54 @@
 <link rel="import" href="test-status.html">
 <link rel="import" href="table-pagination.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
+<link rel="import" href="../components/core-label/core-label.html">
+<link rel="import" href="../components/paper-checkbox/paper-checkbox.html">
 
-<polymer-element name="tests-table" attributes="url">
+<polymer-element name="tests-table" attributes="url onlyFailed">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <style>
+            paper-checkbox {
+                padding: 20px 20px 20px 0;
+            }
+            h4 {
+                margin-top: 16px;
+            }
+            form.form-inline {
+                margin-bottom:0px;
+
+            }
+            paper-checkbox{
+                padding: 15px;
+            }
+            paper-checkbox::shadow #ink[checked] {
+                color: #BBDEFB;
+            }
+
+            paper-checkbox::shadow #checkbox.checked {
+                background-color: #2196F3;
+                border-color: #2196F3;
+            }
+        </style>
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
         <div class="content" flex>
             <form class="form-inline">
-                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
-                       class="form-control">
-                <table-pagination total="{{pages.length}}" current="{{currentPage}}" on-page-change="{{onPageChange}}"></table-pagination>
+                <div class="form-group">
+                    <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
+                           class="form-control">
+                </div>
+                <div class="form-group">
+                    <table-pagination total="{{pages.length}}" current="{{currentPage}}"
+                                      on-page-change="{{onPageChange}}"></table-pagination>
+                </div>
             </form>
+            <core-label horizontal layout>
+                <paper-checkbox id="onlyFailed" for checked?="{{onlyFailed}}" on-change="{{showOnlyFailedChanged}}"></paper-checkbox>
+                <div vertical layout>
+                    <h4>Show Only Failed</h4>
+                </div>
+            </core-label>
             <div class="table-responsive">
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <thead>
@@ -48,7 +84,8 @@
                     </tbody>
                 </table>
             </div>
-            <table-pagination total="{{pages.length}}" current="{{currentPage}}" on-page-change="{{onPageChange}}"></table-pagination>
+            <table-pagination total="{{pages.length}}" current="{{currentPage}}"
+                              on-page-change="{{onPageChange}}"></table-pagination>
         </div>
     </template>
     <script src="../components/moment/moment.js"></script>
@@ -62,8 +99,9 @@
       data: [],
       pages: [],
       currentPage: 0,
+      onlyFailed: true,
       runFilter: function(){
-          this.data  = this.applyFilter(this.filter, this.allValues);
+          this.data  = this.applyFilter(this.filter, this.allValues, this.onlyFailed);
           this.pages = this.splitToPages();
           this.currentPage = 0;
       },
@@ -86,14 +124,25 @@
            this.allValues = resp.response.values;
            this.runFilter();
       },
-      applyFilter: function(filter, values){
-            if(values && filter != null && filter != undefined){
+      applyFilter: function(filter, values, onlyFailed){
+            if(values){
                 return values.filter(function(value){
-                    return value.name != undefined && value.name != null && -1 < value.name.indexOf(filter);
+                    var r = true;
+                    if(filter != null && filter != undefined){
+                       r = value.name != undefined && value.name != null && -1 < value.name.indexOf(filter);
+                    }
+                    if(r && onlyFailed){
+                        r = value.status == 'FAIL';
+                    }
+                    return r;
                     });
             }else{
                 return values;
             }
+      },
+      showOnlyFailedChanged: function(){
+          this.onlyFailed = this.$.onlyFailed.checked;
+          this.runFilter();
       },
       onPageChange : function(event){
             this.currentPage = event.detail.currentPage;
@@ -112,6 +161,8 @@
       }
 
     });
+
+
 
 
 
