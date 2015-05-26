@@ -5,6 +5,7 @@ import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.beans.criteria.CriteriaBuilder;
 import com.gigaspaces.newman.beans.criteria.PatternCriteria;
 import com.gigaspaces.newman.beans.criteria.TestCriteria;
+import com.gigaspaces.newman.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +17,8 @@ import java.util.List;
 
 import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.exclude;
 import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.include;
+import static com.gigaspaces.newman.utils.StringUtils.isEmpty;
+import static com.gigaspaces.newman.utils.StringUtils.notEmpty;
 
 /**
  * Suite submitter using environment variables
@@ -83,7 +86,7 @@ public class NewmanSuiteSubmitter {
 
     private static String getEnvironment(String var, boolean required) {
         String v = System.getenv(var);
-        if (v == null && required) {
+        if (isEmpty(v) && required) {
             logger.error("Please set the environment variable {} and try again.", var);
             throw new IllegalArgumentException("the environment variable " + var + " must be set");
         }
@@ -134,9 +137,5 @@ public class NewmanSuiteSubmitter {
             Collections.addAll(criterias, getTestCriteriasFromPermutationFile(permutationFile));
         }
         return CriteriaBuilder.join(criterias.toArray(new Criteria[criterias.size()]));
-    }
-
-    private static boolean notEmpty(String string) {
-        return string != null && string.length() != 0;
     }
 }
