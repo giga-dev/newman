@@ -1,5 +1,7 @@
 package com.gigaspaces.newman.beans.criteria;
 
+import com.gigaspaces.newman.utils.ToStringBuilder;
+
 /**
  * A negation of a criteria
  */
@@ -20,5 +22,12 @@ public class NotCriteria implements Criteria {
 
     public void setCriteria(Criteria criteria) {
         this.criteria = criteria;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+                .append("criteria", criteria)
+                .toString();
     }
 }

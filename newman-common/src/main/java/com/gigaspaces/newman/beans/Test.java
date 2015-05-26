@@ -168,11 +168,13 @@ public class Test {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return ToStringBuilder.newBuilder(this.getClass().getSimpleName(), true)
                 .append("id", id)
-                .append("name", name)
-                .append("testType", testType)
                 .append("jobId", jobId)
+                .append("name", name)
+                .append("arguments", arguments)
+                .append("testType", testType)
+                .append("timeout", timeout)
                 .append("status", status)
                 .append("errorMessage", errorMessage)
                 .append("logs", logs)

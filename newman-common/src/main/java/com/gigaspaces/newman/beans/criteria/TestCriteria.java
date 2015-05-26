@@ -1,6 +1,7 @@
 package com.gigaspaces.newman.beans.criteria;
 
 import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.utils.ToStringBuilder;
 
 import java.util.Arrays;
 
@@ -59,5 +60,12 @@ public class TestCriteria implements Criteria {
             }
         }
         return new TestCriteria(test);
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+                .append("test", test)
+                .toString();
     }
 }

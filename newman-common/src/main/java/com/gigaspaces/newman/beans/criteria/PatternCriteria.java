@@ -1,5 +1,7 @@
 package com.gigaspaces.newman.beans.criteria;
 
+import com.gigaspaces.newman.utils.ToStringBuilder;
+
 import java.util.regex.Pattern;
 
 /**
@@ -45,5 +47,12 @@ public class PatternCriteria implements Criteria {
 
     public static PatternCriteria containsCriteria(String string) {
         return new PatternCriteria(".*" + Pattern.quote(string) + ".*");
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+                .append("regex", regex)
+                .toString();
     }
 }

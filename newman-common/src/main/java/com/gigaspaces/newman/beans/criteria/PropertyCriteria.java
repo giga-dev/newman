@@ -1,6 +1,7 @@
 package com.gigaspaces.newman.beans.criteria;
 
 import com.gigaspaces.newman.utils.StringUtils;
+import com.gigaspaces.newman.utils.ToStringBuilder;
 
 /**
  * Key-Value matching criteria
@@ -32,5 +33,13 @@ public class PropertyCriteria implements Criteria {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+                .append("key", key)
+                .append("value", value)
+                .toString();
     }
 }

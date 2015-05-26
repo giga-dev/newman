@@ -46,8 +46,9 @@ public class NewmanSuiteSubmitter {
             suite.setName(getEnvironment(NEWMAN_SUITE_NAME, true /*required*/));
             suite.setCriteria(getNewmanSuiteCriteria());
 
+            logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
-            logger.info("Added suite: " + result);
+            logger.info("result: " + result);
 
         } finally {
             if (newmanClient != null) {
@@ -89,7 +90,7 @@ public class NewmanSuiteSubmitter {
         return v;
     }
 
-    private static Criteria[] getTestCriteriasFromPermutaionFile(String permutationFile) throws Exception {
+    private static Criteria[] getTestCriteriasFromPermutationFile(String permutationFile) throws Exception {
         List<Criteria> criterias = new ArrayList<>();
         String line;
         try (BufferedReader br = new BufferedReader(new FileReader(permutationFile))) {
@@ -130,7 +131,7 @@ public class NewmanSuiteSubmitter {
 
         String permutationFile = getEnvironment(NEWMAN_CRITERIA_PERMUTATION_FILE, false /*required*/);
         if (notEmpty(permutationFile)) {
-            Collections.addAll(criterias, getTestCriteriasFromPermutaionFile(permutationFile));
+            Collections.addAll(criterias, getTestCriteriasFromPermutationFile(permutationFile));
         }
         return CriteriaBuilder.join(criterias.toArray(new Criteria[criterias.size()]));
     }
