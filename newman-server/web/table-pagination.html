@@ -6,13 +6,13 @@
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <nav>
             <ul id="pagination" class="pagination">
-                <li class="{{ {disabled: 0 == pages[0] } | tokenList}}">
+                <li class="{{ {disabled: 0 == current } | tokenList}}">
                     <span id="prev" aria-hidden="true">&laquo;</span>
                 </li>
                 <template repeat="{{page in pages}}">
                     <li class="{{ {active: page == current } | tokenList}}"><span>{{page + 1}}</span></li>
                 </template>
-                <li class="{{ {disabled: pages.length == pages[pages.length - 1] } | tokenList}}">
+                <li class="{{ {disabled: (current + 1) == total} | tokenList}}">
                     <span id="next" aria-hidden="true">&raquo;</span>
                 </li>
             </ul>
@@ -24,6 +24,7 @@
       applyAuthorStyles: true,
       ready: function() {
           this.pages = this.pages || [];
+          this.current = this.current || 0;
           this.$.pagination.addEventListener("click", this.onPageChange.bind(this));
       },
       totalChanged : function(){
@@ -42,6 +43,7 @@
              pages.push(i);
           }
           this.pages = pages;
+          console.info("current ", this.current , "total", this.total);
       },
       onPageChange: function(event){
             var span = event.path[0]
@@ -50,12 +52,12 @@
                 if(span.parentNode.classList.contains("disabled")){
                    return;
                 }
-                page = this.pages[this.pages.length - 1] + 1;
+                page =  this.current + 1;
             }else if(span.id === "prev"){
                 if(span.parentNode.classList.contains("disabled")){
                    return;
                 }
-                page = this.pages[0] - 1;
+                page =  this.current - 1;
             }else{
                 page = parseInt(span.textContent,10) - 1;
             }
