@@ -65,29 +65,32 @@ public class NewmanBuildSubmitter {
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         NewmanClient newmanClient = NewmanClient.create(host, port, username, password);
+        try {
+            Build b = new Build();
+            b.setName(buildNumber);
+            b.setBranch(buildBranch);
+            Map<String, String> shas = parseBuildMetadata(buildMetadataFile);
+            b.setShas(shas);
+            URI artifactsURI = URI.create(newmanArtifactsUri);
+            URI testsURI = URI.create(testsZipFile);
+            URI buildURI = URI.create(buildZipFile);
 
-        Build b = new Build();
-        b.setName(buildNumber);
-        b.setBranch(buildBranch);
-        Map<String, String> shas = parseBuildMetadata(buildMetadataFile);
-        b.setShas(shas);
-        URI artifactsURI = URI.create(newmanArtifactsUri);
-        URI testsURI = URI.create(testsZipFile);
-        URI buildURI = URI.create(buildZipFile);
+            Collection<URI> collection = new ArrayList<>();
+            collection.add(artifactsURI);
+            collection.add(testsURI);
+            collection.add(buildURI);
+            b.setResources(collection);
+            Collection<URI> testMetadata = new ArrayList<>();
+            URI tgridMetadata = URI.create(newmanTgridMetadataUri);
+            testMetadata.add(tgridMetadata);
+            //TODO add sgtest metadata
+            b.setTestsMetadata(testMetadata);
+            Build build = newmanClient.createBuild(b).toCompletableFuture().get();
 
-        Collection<URI> collection = new ArrayList<>();
-        collection.add(artifactsURI);
-        collection.add(testsURI);
-        collection.add(buildURI);
-        b.setResources(collection);
-        Collection<URI> testMetadata = new ArrayList<>();
-        URI tgridMetadata = URI.create(newmanTgridMetadataUri);
-        testMetadata.add(tgridMetadata);
-        //TODO add sgtest metadata
-        b.setTestsMetadata(testMetadata);
-        Build build = newmanClient.createBuild(b).toCompletableFuture().get();
-
-        logger.info("Build {} was created successfully", build);
+            logger.info("Build {} was created successfully", build);
+        } finally {
+            newmanClient.close();
+        }
     }
 
     private static String getEnvironment(String var) {

@@ -48,37 +48,40 @@ public class NewmanSubmitter {
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         NewmanClient newmanClient = NewmanClient.create(host, port, username, password);
+        try {
+            Suite suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
+            if (suite == null) {
+                throw new IllegalArgumentException("suite with id: " + suiteId + " does not exists");
+            }
 
-        Suite suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
-        if (suite == null) {
-            throw new IllegalArgumentException("suite with id: " + suiteId + " does not exists");
-        }
+            Build build = newmanClient.getBuild(buildId).toCompletableFuture().get();
+            if (build == null) {
+                throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
+            }
 
-        Build build = newmanClient.getBuild(buildId).toCompletableFuture().get();
-        if (build == null) {
-            throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
-        }
+            Job job = addJob(newmanClient, suiteId, buildId);
+            logger.info("added a new job {}", job);
+            Collection<URI> testsMetadata = build.getTestsMetadata();
 
-        Job job = addJob(newmanClient, suiteId, buildId);
-        logger.info("added a new job {}", job);
-        Collection<URI> testsMetadata = build.getTestsMetadata();
+            if (testsMetadata == null) {
+                logger.error("can't submit job when there is no tests metadata in the build [{}]", buildId);
+                System.exit(1);
+            }
 
-        if (testsMetadata == null) {
-            logger.error("can't submit job when there is no tests metadata in the build [{}]", buildId);
-            System.exit(1);
-        }
-
-        for (URI testMetadata : testsMetadata) {
-            logger.info("parsing metadata file {}", testMetadata);
-            List<Test> listOfTests = parseMetadata(testMetadata.toURL().openStream());
-            Criteria criteria = suite.getCriteria();
-            CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(criteria);
-            for (Test test : listOfTests) {
-                if (criteriaEvaluator.evaluate(test)) {
-                    test.setJobId(job.getId());
-                    addTest(test, newmanClient);
+            for (URI testMetadata : testsMetadata) {
+                logger.info("parsing metadata file {}", testMetadata);
+                List<Test> listOfTests = parseMetadata(testMetadata.toURL().openStream());
+                Criteria criteria = suite.getCriteria();
+                CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(criteria);
+                for (Test test : listOfTests) {
+                    if (criteriaEvaluator.evaluate(test)) {
+                        test.setJobId(job.getId());
+                        addTest(test, newmanClient);
+                    }
                 }
             }
+        } finally {
+            newmanClient.close();
         }
     }
 

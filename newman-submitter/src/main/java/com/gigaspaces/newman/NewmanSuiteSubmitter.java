@@ -30,24 +30,31 @@ public class NewmanSuiteSubmitter {
     private static final Logger logger = LoggerFactory.getLogger(NewmanSuiteSubmitter.class);
 
     //connection env variables
-    private static final String NEWMAN_HOST = "NEWMAN_HOST";
-    private static final String NEWMAN_PORT = "NEWMAN_PORT";
-    private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
-    private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
+    public static final String NEWMAN_HOST = "NEWMAN_HOST";
+    public static final String NEWMAN_PORT = "NEWMAN_PORT";
+    public static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
+    public static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
 
     //suite env variables
-    private static final String NEWMAN_SUITE_NAME = "NEWMAN_SUITE_NAME";
-    private static final String NEWMAN_CRITERIA_TEST_TYPE = "NEWMAN_CRITERIA_TEST_TYPE";
-    private static final String NEWMAN_CRITERIA_INCLUDE_LIST = "NEWMAN_CRITERIA_INCLUDE_LIST";
-    private static final String NEWMAN_CRITERIA_EXCLUDE_LIST = "NEWMAN_CRITERIA_EXCLUDE_LIST";
-    private static final String NEWMAN_CRITERIA_PERMUTATION_URI = "NEWMAN_CRITERIA_PERMUTATION_URI";
+    public static final String NEWMAN_SUITE_NAME = "NEWMAN_SUITE_NAME";
+    public static final String NEWMAN_CRITERIA_TEST_TYPE = "NEWMAN_CRITERIA_TEST_TYPE";
+    public static final String NEWMAN_CRITERIA_INCLUDE_LIST = "NEWMAN_CRITERIA_INCLUDE_LIST";
+    public static final String NEWMAN_CRITERIA_EXCLUDE_LIST = "NEWMAN_CRITERIA_EXCLUDE_LIST";
+    public static final String NEWMAN_CRITERIA_PERMUTATION_URI = "NEWMAN_CRITERIA_PERMUTATION_URI";
 
+    /**
+     * All input is done using environment variables.
+     * @param args none are expected
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
+        NewmanSuiteSubmitter submitter = new NewmanSuiteSubmitter();
+        submitter.submit();
+    }
 
-        NewmanClient newmanClient = null;
+    public void submit() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
         try {
-            newmanClient = getNewmanClient();
-
             Suite suite = new Suite();
             suite.setName(getEnvironment(NEWMAN_SUITE_NAME, true /*required*/));
             suite.setCriteria(getNewmanSuiteCriteria());
@@ -57,9 +64,7 @@ public class NewmanSuiteSubmitter {
             logger.info("result: " + result);
 
         } finally {
-            if (newmanClient != null) {
-                newmanClient.close();
-            }
+            newmanClient.close();
         }
     }
 
