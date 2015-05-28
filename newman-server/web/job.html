@@ -2,22 +2,41 @@
 
 <link rel="import" href="routes.html">
 <link rel="import" href="job-progress.html">
+<link rel="import" href="newman-switch.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
-<polymer-element name="job-info" attributes="url data">
+<polymer-element name="job-info" attributes="url data" on-modified-job="{{onModifiedJob}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <style>
+            paper-toggle-button#pause::shadow [checked] .toggle-ink {
+            color: #4285f4;
+            }
+            paper-toggle-button#pause::shadow [checked] .toggle {
+            background-color: #4285f4;
+            }
+            section {
+            width: 100px;
+            }
+        </style>
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
+        <core-ajax id="jobToggler" handleAs="json"
+                   withCredentials="true" method="post"></core-ajax>
 
         <template if="{{data.id}}">
-            <h3>Details for job {{data.id}}</h3>
+
+            <newman-switch active="{{data.state != 'PAUSED' && data.state != 'DONE'}}" value="{{data.id}}" on-switch-clicked="{{onSwitchClicked}}">
+                Job {{data.id}}
+            </newman-switch>
+
             <dl class="dl-horizontal">
                 <template if="{{data.build.id}}">
                     <dt>Build</dt>
                     <dd><a href="{{urlFor('build', {id: data.build.id})}}">{{data.build.name}}</a></dd>
                 </template>
                 <dt>State</dt>
+                <dt>Progress</dt>
                 <dd>
                     <job-progress job="{{data}}"></job-progress>
                 </dd>
@@ -52,11 +71,13 @@
       applyAuthorStyles: true,
       ready: function() {
           this.data = this.data|| {};
+          this.pause = false;
       },
       ajaxResponse: function(event,resp){
            if(resp.response.id){
                this.data = resp.response;
                window.app.jobProgressPercent(this.data);
+               this.pause = this.data.state == "PAUSE";
            }
       },
       formatDate: function(date){
@@ -76,9 +97,25 @@
                 window.app.update(job, this.data);
             }
       },
+      onPauseToggle : function(){
+            this.pause = this.$.pause.checked;
+            console.info("pause", this.pause);
+      },
+      onSwitchClicked : function(event){
+            var job = this.data;
+            if(job){
+                if(job.state != "DONE"){
+                    this.$.jobToggler.url = "api/newman/job/" + this.data.id +"/toggle";
+                    this.$.jobToggler.go();
+                }
+            }
+      }
+
 
 
     });
+
+
 
 
 

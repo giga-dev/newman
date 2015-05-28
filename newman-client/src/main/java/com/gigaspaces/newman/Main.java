@@ -104,6 +104,9 @@ public class Main {
         agent.setHost(InetAddress.getLocalHost().getCanonicalHostName());
         job = newmanClient.subscribe(agent).toCompletableFuture().get();
         logger.info("agent {} subscribe to {}", agent.getName(), job);
+        if(job == null){
+            return;
+        }
 //            agent = newmanClient.getAgent(agent.getName()).toCompletableFuture().get();
 //
         int i = 0;

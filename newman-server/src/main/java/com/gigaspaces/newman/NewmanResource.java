@@ -158,6 +158,35 @@ public class NewmanResource {
         }
     }
 
+    @POST
+    @Path("job/{id}/toggle")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Job toggelJobPause(@PathParam("id") final String id) {
+        Job job = jobDAO.findOne(jobDAO.createQuery().field("_id").equal(new ObjectId(id)));
+        if(job != null){
+            State state = null;
+            State old = job.getState();
+            switch (job.getState()){
+                case READY:
+                case RUNNING:
+                    state = State.PAUSED;
+                    break;
+                case PAUSED:
+                    state = State.READY;
+                    break;
+                case DONE:
+                    break;
+            }
+            if(state != null){
+                UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", state);
+                job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
+                broadcastMessage(MODIFIED_JOB, job);
+                return job;
+            }
+        }
+        return null;
+    }
+
     @GET
     @Path("dashboard")
     @Produces(MediaType.APPLICATION_JSON)
@@ -435,10 +464,17 @@ public class NewmanResource {
 
         //update job  state.
         UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
-        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateJobStatus);
+        Query<Job> query = jobDAO.createIdQuery(jobId);
+        query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
+        Job job = jobDAO.getDatastore().findAndModify(query, updateJobStatus);
         if (job.getStartTime() == null) {
             updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
-            job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateJobStatus);
+            job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
+            if(job == null) {
+                // job was paused after runningTests was inc.
+                jobDAO.updateFirst(jobDAO.createIdQuery(jobId), jobDAO.createUpdateOperations().dec("runningTests"));
+                return null;
+            }
         }
 
         // update agent state.
@@ -680,7 +716,6 @@ public class NewmanResource {
     @GET
     @Path("suite/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     public Suite getSuite(final @PathParam("id") String id) {
         return suiteDAO.findOne(suiteDAO.createIdQuery(id));
     }
