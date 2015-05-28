@@ -22,6 +22,7 @@
 <link rel="import" href="mongo-admin.html">
 <link rel="import" href="dashboard-view.html">
 <link rel="import" href="suites-view.html">
+<link rel="import" href="suite-view.html">
 
 <polymer-element name="newman-app">
     <template>
@@ -97,6 +98,10 @@
                                             url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
                                 </section>
                                 <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
+                                <temple if="{{route('suite').params.id}}" route="suite">
+                                    <suite-view url="api/newman/suite/{{route('suite').params.id}}"
+                                            ></suite-view>
+                                </temple>
                                 <section route="mongo-admin">
                                     <h1>A very simple Mongo admin {{route('mongo-admin').params.id}}</h1>
                                     <mongo-admin url="api/newman/db"></mongo-admin>
@@ -124,6 +129,11 @@
         this.heading = "Hello " + this.user.userName;
       }
     });
+
+
+
+
+
 
 
     </script>

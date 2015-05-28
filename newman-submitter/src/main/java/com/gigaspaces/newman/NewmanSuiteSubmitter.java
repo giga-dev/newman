@@ -5,12 +5,15 @@ import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.beans.criteria.CriteriaBuilder;
 import com.gigaspaces.newman.beans.criteria.PatternCriteria;
 import com.gigaspaces.newman.beans.criteria.TestCriteria;
-import com.gigaspaces.newman.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,24 +30,31 @@ public class NewmanSuiteSubmitter {
     private static final Logger logger = LoggerFactory.getLogger(NewmanSuiteSubmitter.class);
 
     //connection env variables
-    private static final String NEWMAN_HOST = "NEWMAN_HOST";
-    private static final String NEWMAN_PORT = "NEWMAN_PORT";
-    private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
-    private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
+    public static final String NEWMAN_HOST = "NEWMAN_HOST";
+    public static final String NEWMAN_PORT = "NEWMAN_PORT";
+    public static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
+    public static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
 
     //suite env variables
-    private static final String NEWMAN_SUITE_NAME = "NEWMAN_SUITE_NAME";
-    private static final String NEWMAN_CRITERIA_TEST_TYPE = "NEWMAN_CRITERIA_TEST_TYPE";
-    private static final String NEWMAN_CRITERIA_INCLUDE_LIST = "NEWMAN_CRITERIA_INCLUDE_LIST";
-    private static final String NEWMAN_CRITERIA_EXCLUDE_LIST = "NEWMAN_CRITERIA_EXCLUDE_LIST";
-    private static final String NEWMAN_CRITERIA_PERMUTATION_FILE = "NEWMAN_CRITERIA_PERMUTATION_FILE";
+    public static final String NEWMAN_SUITE_NAME = "NEWMAN_SUITE_NAME";
+    public static final String NEWMAN_CRITERIA_TEST_TYPE = "NEWMAN_CRITERIA_TEST_TYPE";
+    public static final String NEWMAN_CRITERIA_INCLUDE_LIST = "NEWMAN_CRITERIA_INCLUDE_LIST";
+    public static final String NEWMAN_CRITERIA_EXCLUDE_LIST = "NEWMAN_CRITERIA_EXCLUDE_LIST";
+    public static final String NEWMAN_CRITERIA_PERMUTATION_URI = "NEWMAN_CRITERIA_PERMUTATION_URI";
 
+    /**
+     * All input is done using environment variables.
+     * @param args none are expected
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
+        NewmanSuiteSubmitter submitter = new NewmanSuiteSubmitter();
+        submitter.submit();
+    }
 
-        NewmanClient newmanClient = null;
+    public void submit() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
         try {
-            newmanClient = getNewmanClient();
-
             Suite suite = new Suite();
             suite.setName(getEnvironment(NEWMAN_SUITE_NAME, true /*required*/));
             suite.setCriteria(getNewmanSuiteCriteria());
@@ -54,9 +64,7 @@ public class NewmanSuiteSubmitter {
             logger.info("result: " + result);
 
         } finally {
-            if (newmanClient != null) {
-                newmanClient.close();
-            }
+            newmanClient.close();
         }
     }
 
@@ -93,10 +101,12 @@ public class NewmanSuiteSubmitter {
         return v;
     }
 
-    private static Criteria[] getTestCriteriasFromPermutationFile(String permutationFile) throws Exception {
+    private static Criteria[] getTestCriteriasFromPermutationURI(String permutationURI) throws Exception {
         List<Criteria> criterias = new ArrayList<>();
         String line;
-        try (BufferedReader br = new BufferedReader(new FileReader(permutationFile))) {
+
+        Path path = Paths.get(new URI(permutationURI));
+        try (BufferedReader br = Files.newBufferedReader(path, Charset.defaultCharset())) {
             try {
                 while ((line = br.readLine()) != null) {
                     if (line.length() <= 1)
@@ -132,9 +142,9 @@ public class NewmanSuiteSubmitter {
             criterias.add(exclude(parseCommaDelimitedList(excludeList)));
         }
 
-        String permutationFile = getEnvironment(NEWMAN_CRITERIA_PERMUTATION_FILE, false /*required*/);
-        if (notEmpty(permutationFile)) {
-            Collections.addAll(criterias, getTestCriteriasFromPermutationFile(permutationFile));
+        String permutationURI = getEnvironment(NEWMAN_CRITERIA_PERMUTATION_URI, false /*required*/);
+        if (notEmpty(permutationURI)) {
+            Collections.addAll(criterias, getTestCriteriasFromPermutationURI(permutationURI));
         }
         return CriteriaBuilder.join(criterias.toArray(new Criteria[criterias.size()]));
     }

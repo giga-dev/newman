@@ -2,6 +2,8 @@
 
 <link rel="import" href="routes.html">
 <link rel="import" href="job-progress.html">
+<link rel="import" href="newman-switch.html">
+<link rel="import" href="table-pagination.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
 <polymer-element name="jobs-table" attributes="url" on-created-job="{{onCreatedJob}}"
@@ -10,28 +12,40 @@
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <style>
             .table-nowrap {
-                table-layout:fixed;
+            table-layout:fixed;
             }
-
+            .table > tbody > tr > td{
+            vertical-align: middle;
+            }
             .table-nowrap td {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             }
         </style>
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
+        <core-ajax id="jobToggler" handleAs="json"
+                   withCredentials="true" method="post"></core-ajax>
         <div class="content" flex>
             <form class="form-inline">
-                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
-                       class="form-control">
+                <div class="form-group">
+                    <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
+                           class="form-control">
+                </div>
+                <div class="form-group">
+                    <table-pagination total="{{pages.length}}" current="{{currentPage}}"
+                                      on-page-change="{{onPageChange}}"></table-pagination>
+                </div>
+
             </form>
-            <div class="table-responsive">
+            <div class="table-responsive" on-switch-clicked="{{onSwitchClicked}}">
                 <!--<table class="table table-hover table-striped table-bordered table-condensed">-->
                 <table class="table table-bordered table-striped table-nowrap">
                     <thead>
                     <tr>
                         <th>State</th>
+                        <th>Progress</th>
                         <th>Job Id</th>
                         <th>Build</th>
                         <th>Suite</th>
@@ -48,11 +62,17 @@
                     <template repeat="{{item in data}}">
                         <tr>
                             <td>
+                                <newman-switch active="{{item.state != 'PAUSED' && item.state != 'DONE'}}"
+                                               value="{{item.id}}"></newman-switch>
+                            </td>
+                            <td>
                                 <job-progress job="{{item}}"></job-progress>
                             </td>
                             <td><a href="{{urlFor('job', {id: item.id})}}">{{item.id}}</a></td>
-                            <td title="{{item.build.name}}"><a href="{{urlFor('build', {id: item.build.id})}}">{{item.build.name}}</a></td>
-                            <td title="{{item.suite.name}}">{{item.suite.name}}</td>
+                            <td title="{{item.build.name}}"><a href="{{urlFor('build', {id: item.build.id})}}">{{item.build.name}}</a>
+                            </td>
+                            <td title="{{item.suite.name}}"><a href="{{urlFor('suite', {id: item.suite.id})}}">{{item.suite.name}}</a>
+                            </td>
                             <td>{{item.submitTime | formatDate}}</td>
                             <td title="{{item.testURI}}">{{item.testURI}}</td>
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
@@ -78,10 +98,30 @@
           this.filter = null;
           this.allValues =[];
           this.data = [];
+          this.pages = [];
+          this.currentPage = 0;
       },
       runFilter: function(){
           this.data  = this.applyFilter(this.filter, this.allValues);
+          this.pages = this.splitToPages();
+          this.currentPage = 0;
       },
+      splitToPages: function(){
+          var res = [];
+          var current = [];
+          for(var i = 0; i < this.data.length; ++i){
+              current.push(this.data[i]);
+              if(current.length === 25){
+                  res.push(current);
+                  current = [];
+              }
+          }
+          if(0 < current.length){
+                res.push(current);
+          }
+          return res;
+      },
+
       formatDate: function(date){
            return moment(new Date(date)).fromNow();
       },
@@ -91,17 +131,35 @@
            this.runFilter();
       },
       applyFilter: function(filter, values){
-            if(values && filter != null && filter != undefined){
-                return values.filter(function(value){
-                    return value.name != undefined && value.name != null && -1 < value.name.indexOf(filter);
+            if(values && filter != null && filter != undefined && filter != ""){
+                return values.filter(function(obj){
+                    return Object.getOwnPropertyNames(obj).find(function(key){
+                        var val = obj[key];
+                        return val &&  typeof val === "string" && -1 < val.indexOf(filter);
+                    });
+                    return false
                     });
             }else{
                 return values;
             }
       },
+      onPageChange : function(event){
+            this.currentPage = event.detail.currentPage;
+      },
+
       onCreatedJob: function(ev, job){
             this.allValues.unshift(job);
             this.runFilter();
+      },
+      findById : function(id){
+            var arrayLength = this.data.length;
+            for (var i = 0; i < arrayLength; i++) {
+                var found = this.data[i];
+                if(found.id == id){
+                    return found;
+                }
+            }
+            return null;
       },
       onModifiedJob: function(ev, job){
             var arrayLength = this.data.length;
@@ -112,8 +170,23 @@
                     return;
                 }
             }
+      },
+      onSwitchClicked : function(event){
+            var detail = event.detail;
+            var id = detail.value;
+            var job = this.findById(id);
+            if(job){
+                if(job.state != "DONE"){
+                    this.$.jobToggler.url = "api/newman/job/" + id +"/toggle"
+                    this.$.jobToggler.go();
+                }
+            }
       }
     });
+
+
+
+
 
 
 
