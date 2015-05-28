@@ -81,7 +81,9 @@ public class Main {
         JobRequest jobRequest = new JobRequest();
         jobRequest.setBuildId(build.getId());
         jobRequest.setSuiteId(suite.getId());
-
+//        for(int i = 0; i < 100; ++i){
+//            newmanClient.createJob(jobRequest).toCompletableFuture().get();
+//        }
         Job job = newmanClient.createJob(jobRequest).toCompletableFuture().get();
         logger.info("creating new Job {}", job);
 //        Batch<Job> jobs = newmanClient.getJobs().toCompletableFuture().get();
