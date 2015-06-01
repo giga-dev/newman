@@ -54,7 +54,7 @@
                             </td>
                             <td>
                                 <template repeat="{{suiteId, index in activeBuild.suitesIds}}">
-                                <a href="{{urlFor('suite', {id: suiteId})}}">{{calculateShortSuiteName(activeBuild.suitesNames,index)}}</a>
+                                <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(activeBuild.suitesNames,index)}}</span> </a>
                                 </template>
                             </td>
                         </tr>
@@ -93,7 +93,7 @@
                             <td>{{historyBuild.buildStatus.totalJobs}}</td>
                             <td>
                                 <template repeat="{{suiteId, index in historyBuild.suitesIds}}">
-                                    <a href="{{urlFor('suite', {id: suiteId})}}">{{calculateShortSuiteName(historyBuild.suitesNames,index)}}</a>
+                                    <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(historyBuild.suitesNames,index)}}</span> </a>
                                 </template>
                             </td>
                         </tr>
@@ -172,11 +172,13 @@
           if( suiteNameArray ) {
               var suiteName = suiteNameArray[index];
               if(suiteName) {
-                  var maxLength = 7;
+                  return suiteName;
+
+                  /*var maxLength = 7;
                   if (suiteName.length < maxLength) {
                       return suiteName;
                   }
-                  return suiteName.substring(0, maxLength);
+                  return return suiteName.substring(0, maxLength);*/
             }
           }
       }
