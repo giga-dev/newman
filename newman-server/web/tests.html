@@ -57,7 +57,6 @@
                     <thead>
                     <tr>
                         <th>Name</th>
-                        <th>JobId</th>
                         <th>Status</th>
                         <th>AssignedAgent</th>
                         <th>scheduledAt</th>
@@ -70,7 +69,6 @@
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
                             <td><a href="{{urlFor('test', {id: item.id})}}">{{item.name}}</a></td>
-                            <td><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
                             <td>
                                 <test-status test="{{item}}"></test-status>
                             </td>
