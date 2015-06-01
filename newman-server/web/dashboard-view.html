@@ -8,6 +8,7 @@
                  on-modified-build="{{onModifiedBuild}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <link rel="stylesheet" href="app.css">
         <style>
             .table-nowrap {
                 table-layout:fixed;
@@ -27,12 +28,12 @@
                 <table class="table table-bordered table-striped table-hover table-nowrap">
                     <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Branch</th>
-                        <th>Date</th>
-                        <th><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span></th>
-                        <th><span class="label label-success"># Done</span> / <span class="label label-default">Total</span></th>
-                        <th>Suites</th>
+                        <th width="18%">Name</th>
+                        <th width="8%">Branch</th>
+                        <th width="10%">Date</th>
+                        <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
+                        <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
+                        <th width="26%"><span class="label label-header">Suites</span></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -69,12 +70,12 @@
                 <table class="table table-bordered table-striped table-hover table-nowrap">
                     <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Branch</th>
-                        <th>Date</th>
-                        <th><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span></th>
-                        <th># Total Jobs</th>
-                        <th>Suites</th>
+                        <th width="18%">Name</th>
+                        <th width="8%">Branch</th>
+                        <th width="10%">Date</th>
+                        <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
+                        <th width="15%"><span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
+                        <th width="26%"><span class="label label-header">Suites</span></th>
                     </tr>
                     </thead>
                     <tbody>

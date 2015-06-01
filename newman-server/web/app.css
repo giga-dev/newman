@@ -42,6 +42,12 @@ body{
   border-color: #d43f3a;
 }
 
+.label.label-header {
+    padding-left: .8em;
+    font-size: 100%;
+    color: #000;
+}
+
 
 
 
