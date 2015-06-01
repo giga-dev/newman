@@ -1,6 +1,7 @@
 package com.gigaspaces.newman.beans;
 
-import org.mongodb.morphia.annotations.Entity;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Barak Bar Orion
@@ -17,6 +18,14 @@ public class BuildStatus {
     private int pendingJobs;
     private int runningJobs;
     private int doneJobs;
+
+    private List<String> suitesNames;
+    private List<String> suitesIds;
+
+    public BuildStatus(){
+        this.suitesNames = new ArrayList<>();
+        this.suitesIds = new ArrayList<>();
+    }
 
     public int getTotalTests() {
         return totalTests;
@@ -80,5 +89,21 @@ public class BuildStatus {
 
     public void setDoneJobs(int doneJobs) {
         this.doneJobs = doneJobs;
+    }
+
+    public List<String> getSuitesNames() {
+        return suitesNames;
+    }
+
+    public void setSuitesNames(List<String> suitesNames) {
+        this.suitesNames = suitesNames;
+    }
+
+    public List<String> getSuitesIds() {
+        return suitesIds;
+    }
+
+    public void setSuitesIds(List<String> suitesIds) {
+        this.suitesIds = suitesIds;
     }
 }
