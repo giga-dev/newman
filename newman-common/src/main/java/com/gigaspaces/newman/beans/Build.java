@@ -5,9 +5,7 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Barak Bar Orion
@@ -24,6 +22,16 @@ public class Build {
     private Collection<URI> testsMetadata; //JSON metadata of the tests
     private Date buildTime;
     private BuildStatus buildStatus;
+    private List<String> suitesNames;
+    private List<String> suitesIds;
+
+    public Build() {
+        this.suitesNames = new ArrayList<>();
+        this.suitesIds = new ArrayList<>();
+        this.shas = new HashMap<>();
+        this.resources = new ArrayList<>();
+        this.testsMetadata = new ArrayList<>();
+    }
 
     public String getId() {
         return id;
@@ -89,6 +97,22 @@ public class Build {
         this.buildStatus = buildStatus;
     }
 
+    public List<String> getSuitesNames() {
+        return suitesNames;
+    }
+
+    public void setSuitesNames(List<String> suitesNames) {
+        this.suitesNames = suitesNames;
+    }
+
+    public List<String> getSuitesIds() {
+        return suitesIds;
+    }
+
+    public void setSuitesIds(List<String> suitesIds) {
+        this.suitesIds = suitesIds;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
@@ -100,6 +124,8 @@ public class Build {
                 .append("testsMetadata", testsMetadata)
                 .append("buildTime", buildTime)
                 .append("buildStatus", buildStatus)
+                .append("suitesNames", suitesNames)
+                .append("suitesIds", suitesIds)
                 .toString();
     }
 }

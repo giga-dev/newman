@@ -149,7 +149,11 @@ public class NewmanResource {
             job.setSubmitTime(new Date());
             job.setSubmittedBy(sc.getUserPrincipal().getName());
             jobDAO.save(job);
-            build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(build.getId()), buildDAO.createUpdateOperations().inc("buildStatus.totalJobs").inc("buildStatus.pendingJobs"));
+            UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.totalJobs")
+                    .inc("buildStatus.pendingJobs")
+                    .add("suitesIds", suite.getId(), false)
+                    .add("suitesNames", suite.getName(), false);
+            build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(build.getId()), buildUpdateOperations);
             broadcastMessage(CREATED_JOB, job);
             broadcastMessage(MODIFIED_BUILD, build);
             return job;

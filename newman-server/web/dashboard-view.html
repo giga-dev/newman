@@ -32,6 +32,7 @@
                         <th>Date</th>
                         <th><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span></th>
                         <th><span class="label label-success"># Done</span> / <span class="label label-default">Total</span></th>
+                        <th>Suites</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -49,6 +50,11 @@
                             <td>
                                 <span class="label label-success">{{activeBuild.buildStatus.doneJobs}}</span>
                                 <span class="label label-default">{{activeBuild.buildStatus.totalJobs}}</span>
+                            </td>
+                            <td>
+                                <template repeat="{{suiteId, index in activeBuild.suitesIds}}">
+                                <a href="{{urlFor('suite', {id: suiteId})}}">{{activeBuild.suitesNames[index]}}</a>
+                                </template>
                             </td>
                         </tr>
                     </template>
@@ -68,6 +74,7 @@
                         <th>Date</th>
                         <th><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span></th>
                         <th># Total Jobs</th>
+                        <th>Suites</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -83,6 +90,11 @@
                             </td>
 
                             <td>{{historyBuild.buildStatus.totalJobs}}</td>
+                            <td>
+                                <template repeat="{{suiteId, index in historyBuild.suitesIds}}">
+                                    <a href="{{urlFor('suite', {id: suiteId})}}">{{historyBuild.suitesNames[index]}}</a>
+                                </template>
+                            </td>
                         </tr>
                     </template>
 
