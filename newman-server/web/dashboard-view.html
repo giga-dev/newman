@@ -29,8 +29,8 @@
                     <thead>
                     <tr>
                         <th width="18%">Name</th>
-                        <th width="8%">Branch</th>
-                        <th width="10%">Date</th>
+                        <th width="7%">Branch</th>
+                        <th width="11%">Date</th>
                         <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
                         <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
                         <th width="26%"><span class="label label-header">Suites</span></th>
@@ -54,7 +54,7 @@
                             </td>
                             <td>
                                 <template repeat="{{suiteId, index in activeBuild.suitesIds}}">
-                                <a href="{{urlFor('suite', {id: suiteId})}}">{{activeBuild.suitesNames[index]}}</a>
+                                <a href="{{urlFor('suite', {id: suiteId})}}">{{calculateShortSuiteName(activeBuild.suitesNames,index)}}</a>
                                 </template>
                             </td>
                         </tr>
@@ -71,8 +71,8 @@
                     <thead>
                     <tr>
                         <th width="18%">Name</th>
-                        <th width="8%">Branch</th>
-                        <th width="10%">Date</th>
+                        <th width="7%">Branch</th>
+                        <th width="11%">Date</th>
                         <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
                         <th width="15%"><span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
                         <th width="26%"><span class="label label-header">Suites</span></th>
@@ -93,7 +93,7 @@
                             <td>{{historyBuild.buildStatus.totalJobs}}</td>
                             <td>
                                 <template repeat="{{suiteId, index in historyBuild.suitesIds}}">
-                                    <a href="{{urlFor('suite', {id: suiteId})}}">{{historyBuild.suitesNames[index]}}</a>
+                                    <a href="{{urlFor('suite', {id: suiteId})}}">{{calculateShortSuiteName(historyBuild.suitesNames,index)}}</a>
                                 </template>
                             </td>
                         </tr>
@@ -166,6 +166,19 @@
       },
       activeChanged: function(oldValue, newValue){
            console.info("dashboard activeChanged to ", newValue);
+      },
+      calculateShortSuiteName: function( suiteNameArray, index ) {
+
+          if( suiteNameArray ) {
+              var suiteName = suiteNameArray[index];
+              if(suiteName) {
+                  var maxLength = 7;
+                  if (suiteName.length < maxLength) {
+                      return suiteName;
+                  }
+                  return suiteName.substring(0, maxLength);
+            }
+          }
       }
     });
 
