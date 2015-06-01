@@ -54,7 +54,9 @@
                             </td>
                             <td>
                                 <template repeat="{{suiteId, index in activeBuild.buildStatus.suitesIds}}">
-                                <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(activeBuild.buildStatus.suitesNames,index)}}</span> </a>
+                                    <template if="{{index!== 'undefined' && activeBuild.buildStatus.suitesNames[index]}}">
+                                        <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(activeBuild.buildStatus.suitesNames[index])}}</span> </a>
+                                    </template>
                                 </template>
                             </td>
                         </tr>
@@ -93,7 +95,9 @@
                             <td>{{historyBuild.buildStatus.totalJobs}}</td>
                             <td>
                                 <template repeat="{{suiteId, index in historyBuild.buildStatus.suitesIds}}">
-                                    <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(historyBuild.buildStatus.suitesNames,index)}}</span> </a>
+                                    <template if="{{index!== 'undefined' && historyBuild.buildStatus.suitesName[index]}}">
+                                        <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(historyBuild.buildStatus.suitesNames[index])}}</span> </a>
+                                    </template>
                                 </template>
                             </td>
                         </tr>
@@ -167,21 +171,16 @@
       activeChanged: function(oldValue, newValue){
            console.info("dashboard activeChanged to ", newValue);
       },
-      calculateShortSuiteName: function( suiteNameArray, index ) {
-
-          if( suiteNameArray ) {
-              var suiteName = suiteNameArray[index];
-              if(suiteName) {
-                  return suiteName;
-
-                  /*var maxLength = 7;
-                  if (suiteName.length < maxLength) {
-                      return suiteName;
-                  }
-                  return return suiteName.substring(0, maxLength);*/
+      calculateShortSuiteName: function( suiteName ) {
+//              console.log( 'suiteName=' + suiteName );
+              return suiteName;
+              /*var maxLength = 7;
+                if (suiteName.length < maxLength) {
+                    return suiteName;
+                }
+                return return suiteName.substring(0, maxLength);
+              */
             }
-          }
-      }
     });
 
 
