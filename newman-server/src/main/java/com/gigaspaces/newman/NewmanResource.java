@@ -401,10 +401,17 @@ public class NewmanResource {
     @GET
     @Path("test/{id}/log/{name}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces({MediaType.TEXT_PLAIN})
-    public File downloadLog(@PathParam("id") String id, @PathParam("name") String name) {
+    public Response downloadLog(@PathParam("id") String id, @PathParam("name") String name,
+                                @DefaultValue("false") @QueryParam("download") boolean download) {
+        MediaType mediaType;
+        if( download ){
+            mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+        }
+        else{
+            mediaType = MediaType.TEXT_PLAIN_TYPE;
+        }
         String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + name;
-        return new File(filePath);
+        return Response.ok( new File(filePath), mediaType ).build();
     }
 
 
