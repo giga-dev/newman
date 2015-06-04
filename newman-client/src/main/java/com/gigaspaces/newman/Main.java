@@ -1,7 +1,13 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.*;
-import com.gigaspaces.newman.beans.criteria.PatternCriteria;
+import com.gigaspaces.newman.beans.Agent;
+import com.gigaspaces.newman.beans.Batch;
+import com.gigaspaces.newman.beans.Build;
+import com.gigaspaces.newman.beans.DashboardData;
+import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.beans.JobRequest;
+import com.gigaspaces.newman.beans.Suite;
+import com.gigaspaces.newman.beans.Test;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.client.rx.RxClient;
@@ -54,7 +60,8 @@ public class Main {
             Build build = new Build();
             build.setName("The build " + UUID.randomUUID());
             build.setBranch("master");
-            build = newmanClient.createBuild(build).toCompletableFuture().get();
+            CompletionStage<Build> completionStage = newmanClient.createBuild(build);
+            build = completionStage.toCompletableFuture().get();
             logger.info("create a new build {}", build);
             build = newmanClient.getBuild(build.getId()).toCompletableFuture().get();
             logger.info("got build {}", build);
@@ -78,6 +85,29 @@ public class Main {
     }
 
     private static void createAndRunJob(NewmanClient newmanClient, Suite suite, Build build) throws InterruptedException, java.util.concurrent.ExecutionException, UnknownHostException {
+
+        {
+            Suite mySuite = new Suite();
+            mySuite.setName(".Net");
+            Suite suite1 = newmanClient.addSuite(mySuite).toCompletableFuture().get();
+
+            JobRequest jobRequest = new JobRequest();
+            jobRequest.setBuildId(build.getId());
+            jobRequest.setSuiteId(suite1.getId());
+            newmanClient.createJob(jobRequest).toCompletableFuture().get();
+        }
+
+        {
+            Suite mySuite = new Suite();
+            mySuite.setName("ServiceGrid");
+            Suite suite1 = newmanClient.addSuite(mySuite).toCompletableFuture().get();
+
+            JobRequest jobRequest = new JobRequest();
+            jobRequest.setBuildId(build.getId());
+            jobRequest.setSuiteId(suite1.getId());
+            newmanClient.createJob(jobRequest).toCompletableFuture().get();
+        }
+
         JobRequest jobRequest = new JobRequest();
         jobRequest.setBuildId(build.getId());
         jobRequest.setSuiteId(suite.getId());
@@ -88,7 +118,7 @@ public class Main {
         logger.info("creating new Job {}", job);
 //        Batch<Job> jobs = newmanClient.getJobs().toCompletableFuture().get();
 //        logger.info("jobs are: {}", jobs);
-        for (int i = 0; i < 3000; i++) {
+        for (int i = 0; i < 1*10; i++) {
             Test test = new Test();
             test.setJobId(job.getId());
             test.setName("test_" + i);
