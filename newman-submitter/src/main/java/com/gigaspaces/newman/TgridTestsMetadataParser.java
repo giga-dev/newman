@@ -24,7 +24,7 @@ public class TgridTestsMetadataParser implements NewmanTestsMetadataParser {
             JSONObject jTest = (JSONObject) jsonTest;
             Test test = new Test();
             //TODO figure out the timeout per test
-            test.setTimeout((long) (5 * 60 * 1000));
+            test.setTimeout((long) (15 * 60 * 1000));
             test.setName((String) jTest.get("name"));
             test.setTestType("tgrid");
             List<String> arguments = new ArrayList<>();
