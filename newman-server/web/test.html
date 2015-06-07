@@ -40,7 +40,7 @@
                 <template bind if="{{data.logs}}">
                     <ul class="unindent">
                         <template repeat="{{key, index in data.logs | filterKeys}}">
-                            <li><a href="{{data.logs[key]}}">{{key}}</a> <a href="{{data.logs[key]}}?download=true">download</a></li>
+                            <li><a href="{{data.logs[key]}}" target="_blank">{{key}}</a> <a href="{{data.logs[key]}}?download=true">download</a></li>
                         </template>
                     </ul>
                 </template>

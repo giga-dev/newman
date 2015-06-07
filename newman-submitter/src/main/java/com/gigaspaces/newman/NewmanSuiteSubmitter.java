@@ -114,7 +114,6 @@ public class NewmanSuiteSubmitter {
                     if (line.charAt(0) == '#')
                         continue;
                     TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(line.split(" "));
-                    System.out.println(criteria.getTest().getArguments());
                     criterias.add(criteria);
                 }
             } finally {
@@ -144,7 +143,7 @@ public class NewmanSuiteSubmitter {
 
         String permutationURI = getEnvironment(NEWMAN_CRITERIA_PERMUTATION_URI, false /*required*/);
         if (notEmpty(permutationURI)) {
-            Collections.addAll(criterias, getTestCriteriasFromPermutationURI(permutationURI));
+            criterias.add(include(getTestCriteriasFromPermutationURI(permutationURI)));
         }
         return CriteriaBuilder.join(criterias.toArray(new Criteria[criterias.size()]));
     }
