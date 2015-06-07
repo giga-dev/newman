@@ -9,3 +9,4 @@ Newman Wishlist
 ####UI
 * Add tooltips timestamps to events (such as `Build Time` in the `Builds` tab)
 * Add owner for actions - for example - show who created a build
+* Add ability to remove a single build/suite/job etc
