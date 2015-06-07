@@ -30,7 +30,7 @@
                         <tr>
                             <td><a href="{{urlFor('build', {id: item.id})}}">{{item.name}}</a></td>
                             <td>{{item.branch}}</td>
-                            <td>{{item.buildTime | formatDate}}</td>
+                            <td title="{{item.buildTime | formatDate}}">{{item.buildTime | formatDateFromNow}}</td>
                             <td><a href="{{item.uri}}">{{item.uri}}</a></td>
                         </tr>
                     </template>
@@ -71,12 +71,18 @@
       ajaxError : function(event, object){
             console.info("ajax error", object.response.statusCode);
       },
-      formatDate: function(date){
+        formatDateFromNow: function(date){
             if(!date){
                 return date;
             }
-           return moment(new Date(date)).fromNow();
-      },
+            return moment(new Date(date)).fromNow();
+        },
+        formatDate: function(date){
+            if(!date){
+                return date;
+            }
+            return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
+        },
       activeChanged: function(oldValue, newValue){
             console.info("builds activeChanged to ", newValue);
       }
