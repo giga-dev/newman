@@ -33,6 +33,7 @@ public class Main {
     private static final String DEFAULT_REALM_PROPERTIES_PATH = "src/test/resources/realm.properties";
     private static final String WEB_FOLDER_PATH = "newman.server.web-folder-path";
     private static final String DEFAULT_WEB_FOLDER_PATH = "./web";
+    private static final String KEYS_PATH = "newman.keys-folder-path";
 
     public static void main(String[] args) throws Exception {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -136,7 +137,7 @@ public class Main {
     }
 
     private static Resource createKeystoreResource() throws MalformedURLException {
-        String filePath = "./keys/server.keystore";
+        String filePath = System.getProperty(KEYS_PATH, "./keys/server.keystore");
         if(new File(filePath).exists()){
             return Resource.newResource(new File(filePath));
         }
