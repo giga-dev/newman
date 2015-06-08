@@ -24,11 +24,10 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collections;
 
-public class Main {
-    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+public class NewmanServer {
+    private static final Logger logger = LoggerFactory.getLogger(NewmanServer.class);
     private static final String REALM_PROPERTIES_PATH = "newman.server.realm-config-path";
     private static final String DEFAULT_REALM_PROPERTIES_PATH = "src/test/resources/realm.properties";
     private static final String WEB_FOLDER_PATH = "newman.server.web-folder-path";
@@ -79,7 +78,7 @@ public class Main {
         File webDir = new File(webPath);
         if (!webDir.exists()) {
             logger.info("File {} not found", webDir.getAbsolutePath());
-            String webDirInJar = Main.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+            String webDirInJar = NewmanServer.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
             if (webDirInJar.toLowerCase().endsWith(".jar")) {
                 webPath = webDirInJar + "!/web";
             } else {
@@ -141,7 +140,7 @@ public class Main {
         if(new File(filePath).exists()){
             return Resource.newResource(new File(filePath));
         }
-        String jar = Main.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+        String jar = NewmanServer.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
         if(jar.toLowerCase().endsWith(".jar")){
             return Resource.newResource("jar:" + jar + "!/keys/server.keystore");
         }
