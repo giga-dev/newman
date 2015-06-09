@@ -1,5 +1,7 @@
 package com.gigaspaces.newman.config;
 
+import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
+
 /**
  * Created by Barak Bar Orion
  * 4/29/15.
@@ -9,9 +11,8 @@ public class Mongo {
     private String db;
 
     public Mongo() {
-        this.host = System.getProperty("newman.mongo.db.host", "localhost");
-//        this.host = "pc-lab148";
-        this.db = System.getProperty("newman.mongo.db.name", System.getProperty("user.name"));
+        this.host = getNonEmptySystemProperty("newman.mongo.db.host", "localhost");
+        this.db = getNonEmptySystemProperty("newman.mongo.db.name", System.getProperty("user.name"));
     }
 
     public String getHost() {

@@ -13,4 +13,12 @@ public class StringUtils {
         return string != null && string.length() != 0;
     }
 
+    public static String getNonEmptySystemProperty(String key, String def) {
+        String property = System.getProperty(key);
+        if (notEmpty(property)) {
+            return property;
+        } else {
+            return def;
+        }
+    }
 }

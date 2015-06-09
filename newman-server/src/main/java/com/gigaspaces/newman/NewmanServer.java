@@ -26,6 +26,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collections;
 
+import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
+
 public class NewmanServer {
     private static final Logger logger = LoggerFactory.getLogger(NewmanServer.class);
     private static final String REALM_PROPERTIES_PATH = "newman.server.realm-config-path";
@@ -45,7 +47,7 @@ public class NewmanServer {
         Server server = new Server(8080);
         /* security */
         LoginService loginService = new HashLoginService("MyRealm",
-                System.getProperty(REALM_PROPERTIES_PATH, DEFAULT_REALM_PROPERTIES_PATH));
+                getNonEmptySystemProperty(REALM_PROPERTIES_PATH, DEFAULT_REALM_PROPERTIES_PATH));
         server.addBean(loginService);
 
         ConstraintSecurityHandler security = new ConstraintSecurityHandler();
@@ -74,7 +76,7 @@ public class NewmanServer {
 
         DefaultServlet defaultServlet = new DefaultServlet();
         ServletHolder holderPwd = new ServletHolder("default", defaultServlet);
-        String webPath = System.getProperty(WEB_FOLDER_PATH, DEFAULT_WEB_FOLDER_PATH);
+        String webPath = getNonEmptySystemProperty(WEB_FOLDER_PATH, DEFAULT_WEB_FOLDER_PATH);
         File webDir = new File(webPath);
         if (!webDir.exists()) {
             logger.info("File {} not found", webDir.getAbsolutePath());
@@ -136,7 +138,7 @@ public class NewmanServer {
     }
 
     private static Resource createKeystoreResource() throws MalformedURLException {
-        String filePath = System.getProperty(KEYS_PATH, "./keys/server.keystore");
+        String filePath = getNonEmptySystemProperty(KEYS_PATH, "./keys/server.keystore");
         if(new File(filePath).exists()){
             return Resource.newResource(new File(filePath));
         }

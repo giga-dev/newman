@@ -11,6 +11,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
+import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
+
 /**
  * Created by boris on 4/20/2015.
  */
@@ -38,11 +40,11 @@ public class NewmanAgentConfig {
         properties = new Properties();
         loadPropertiesFile(propsFilePath);
         properties.putIfAbsent(NEWMAN_AGENT_HOST_NAME, loadHostName());
-        properties.putIfAbsent(NEWMAN_HOME, System.getProperty(NEWMAN_HOME, DEFAULT_NEWMAN_HOME));
-        properties.putIfAbsent(NEWMAN_SERVER_HOST, System.getProperty(NEWMAN_SERVER_HOST, DEFAULT_NEWMAN_SERVER_HOST));
-        properties.putIfAbsent(NEWMAN_SERVER_PORT, System.getProperty(NEWMAN_SERVER_PORT, DEFAULT_NEWMAN_SERVER_PORT));
-        properties.putIfAbsent(NEWMAN_SERVER_REST_USER, System.getProperty(NEWMAN_SERVER_REST_USER, DEFAULT_NEWMAN_SERVER_REST_USER));
-        properties.putIfAbsent(NEWMAN_SERVER_REST_PW, System.getProperty(NEWMAN_SERVER_REST_PW, DEFAULT_NEWMAN_SERVER_REST_PW));
+        properties.putIfAbsent(NEWMAN_HOME, getNonEmptySystemProperty(NEWMAN_HOME, DEFAULT_NEWMAN_HOME));
+        properties.putIfAbsent(NEWMAN_SERVER_HOST, getNonEmptySystemProperty(NEWMAN_SERVER_HOST, DEFAULT_NEWMAN_SERVER_HOST));
+        properties.putIfAbsent(NEWMAN_SERVER_PORT, getNonEmptySystemProperty(NEWMAN_SERVER_PORT, DEFAULT_NEWMAN_SERVER_PORT));
+        properties.putIfAbsent(NEWMAN_SERVER_REST_USER, getNonEmptySystemProperty(NEWMAN_SERVER_REST_USER, DEFAULT_NEWMAN_SERVER_REST_USER));
+        properties.putIfAbsent(NEWMAN_SERVER_REST_PW, getNonEmptySystemProperty(NEWMAN_SERVER_REST_PW, DEFAULT_NEWMAN_SERVER_REST_PW));
     }
 
     private void loadPropertiesFile(String propsFilePath) {
