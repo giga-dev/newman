@@ -1,7 +1,7 @@
 {
   "mongo" : {
-    "host" : "localhost",
-    "db" : "localdb"
+    "host" : "pc-lab148",
+    "db" : "sgtest"
   }
 }
 
