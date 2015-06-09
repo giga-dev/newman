@@ -11,10 +11,12 @@ if [ ! -a "../config/realm.properties" ]; then
    echo "root: root, admin" >> ../config/realm.properties
 fi
 
-#default mongo host is localhost
-NEWMAN_MONGO_DB_HOST=
-#default mongo db name is account user name defined by ${USER}
-NEWMAN_MONGO_DB_NAME=
+# System environment variables
+# Mongo host address to connect to from newman server
+#NEWMAN_MONGO_DB_HOST=localhost
+
+# Mongo db name to access in database
+#NEWMAN_MONGO_DB_NAME=${USER}
 
 # run newman server
 java -Dnewman.mongo.db.host=${NEWMAN_MONGO_DB_HOST} -Dnewman.mongo.db.name=${NEWMAN_MONGO_DB_NAME} -Dnewman.server.realm-config-path=../config/realm.properties -Dnewman.keys-folder-path=../keys/server.keystore -Dnewman.server.web-folder-path=../web -jar ../target/newman-server-1.0.jar
