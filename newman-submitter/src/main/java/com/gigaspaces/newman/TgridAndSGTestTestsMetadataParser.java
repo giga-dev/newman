@@ -14,7 +14,13 @@ import java.util.Map;
  @since 1.0
  */
 
-public class TgridTestsMetadataParser implements NewmanTestsMetadataParser {
+public class TgridAndSGTestTestsMetadataParser implements NewmanTestsMetadataParser {
+
+    private String type;
+
+    public TgridAndSGTestTestsMetadataParser(String type) {
+        this.type = type;
+    }
 
     @Override
     public List<Test> parse(JSONObject metadata) {
@@ -26,7 +32,7 @@ public class TgridTestsMetadataParser implements NewmanTestsMetadataParser {
             //TODO figure out the timeout per test
             test.setTimeout((long) (15 * 60 * 1000));
             test.setName((String) jTest.get("name"));
-            test.setTestType("tgrid");
+            test.setTestType(type);
             List<String> arguments = new ArrayList<>();
             //noinspection unchecked
             arguments.addAll((Collection<? extends String>) jTest.get("arguments"));

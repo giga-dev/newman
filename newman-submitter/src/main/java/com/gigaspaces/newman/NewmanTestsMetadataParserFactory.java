@@ -8,15 +8,6 @@ package com.gigaspaces.newman;
 public class NewmanTestsMetadataParserFactory {
 
     public static NewmanTestsMetadataParser create(String type){
-
-        if (type.equals("tgrid")){
-            return new TgridTestsMetadataParser();
-        }
-        else if (type.equals("sgtest")){
-            throw new UnsupportedOperationException("sgtest metadata is not supported yet");
-        }
-        else {
-            throw new IllegalArgumentException("wrong type of metadata " + type);
-        }
+        return new TgridAndSGTestTestsMetadataParser(type);
     }
 }
