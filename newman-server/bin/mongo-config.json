@@ -1,7 +1,0 @@
-{
-  "mongo" : {
-    "host" : "pc-lab148",
-    "db" : "sgtest"
-  }
-}
-
