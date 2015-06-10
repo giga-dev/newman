@@ -14,3 +14,4 @@ Newman Wishlist
 ####Server
 * Test timeout in the server - if a test was taken by an agent, and it did not finish in a specified time, add the test back to the list of tests that should run (The process might have been killed, or something similar)
 * Allow an agent to request a specific job
+* Seperate newman artifacts from the builds to allow fast changes to the scripts
