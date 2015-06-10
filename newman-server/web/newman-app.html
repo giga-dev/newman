@@ -23,6 +23,7 @@
 <link rel="import" href="dashboard-view.html">
 <link rel="import" href="suites-view.html">
 <link rel="import" href="suite-view.html">
+<link rel="import" href="suites-dashboard.html">
 
 <polymer-element name="newman-app">
     <template>
@@ -38,6 +39,9 @@
                         <core-menu>
                             <core-item label="Home" route="home">
                                 <a href="{{urlFor('home')}}" core-drawer-toggle></a>
+                            </core-item>
+                            <core-item label="Suites Dashboard" route="suites-dashboard">
+                                <a href="{{urlFor('suites-dashboard')}}" core-drawer-toggle></a>
                             </core-item>
                             <core-item label="Builds" route="builds">
                                 <a href="{{urlFor('builds')}}" core-drawer-toggle></a>
@@ -72,10 +76,15 @@
                         <more-route-selector>
                             <core-pages>
                                 <dashboard-view url="api/newman/dashboard" route="home"></dashboard-view>
+                                <!--dashboard-view url="api/newman/suites-dashboard" route="suites-dashboard"></dashboard-view-->
                                 <builds-table url="api/newman/build?orderBy=-buildTime" route="builds"></builds-table>
                                 <section route="jobs">
                                     <h1>Jobs</h1>
                                     <jobs-table url="api/newman/job?all=true&orderBy=-submitTime"></jobs-table>
+                                </section>
+                                <section route="suites-dashboard">
+                                    <h1>Suites Dashboard</h1>
+                                    <suites-dashboard url="api/newman/suites-dashboard"></suites-dashboard>
                                 </section>
                                 <section route="agents">
                                     <h1>Agents</h1>

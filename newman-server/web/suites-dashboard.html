@@ -1,0 +1,69 @@
+<script src="../components/webcomponentsjs/webcomponents.js"></script>
+
+<link rel="import" href="routes.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+
+<polymer-element name="suites-dashboard" attributes="url">
+    <template>
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+
+        <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
+                   withCredentials="true"></core-ajax>
+
+        <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}"
+                   withCredentials="true"></core-ajax>
+
+        <div class="content" flex>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped table-bordered table-condensed">
+                    <tbody>
+                    <template repeat="{{suite in data}}">
+                        <template bind if="{{suite.jobs.length>=0}}">
+                            <tr>
+                                <th class="table-header">Suite Name</th>
+                                <th class="table-header">Job ID</th>
+                                <th class="table-header">Build Name</th>
+                                <th class="table-header">Results</th>
+                                <th class="table-header">Submitted At</th>
+                            </tr>
+
+                            <tr>
+                                <td class="suite-name-font "><a href="{{urlFor('suite', {id: suite.id})}}">{{suite.name}}</a></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <template repeat="{{job in suite.jobs}}">
+                                <tr>
+                                    <td></td>
+                                    <td><a href="{{urlFor('job', {id: job.id})}}">{{job.id}}</a></td>
+                                    <td><a href="{{urlFor('build', {id: job.build.id})}}">{{job.build.name}}</a></td>
+                                    <td>Failed:{{job.failedTests}}, Total:{{job.totalTests}}</td>
+                                    <td>{{job.submitTime | formatDate}}</td>
+                                </tr>
+                            </template>
+                        </template>
+                    </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        Polymer({
+            applyAuthorStyles: true,
+            data: [],
+
+            ajaxResponse: function(event,resp){
+                this.data = resp.response.entity;
+                console.log( this.data );
+            },
+
+            formatDate: function(date){
+                return moment(new Date(date)).fromNow();
+            }
+        });
+    </script>
+</polymer-element>

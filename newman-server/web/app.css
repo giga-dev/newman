@@ -51,6 +51,16 @@ body{
     text-decoration: underline;
 }
 
+.table-header{
+    background-color:lightgray;
+}
+
+.suite-name-font{
+    font-weight: bold;
+    color: #004d66;
+}
+
+
 
 
 

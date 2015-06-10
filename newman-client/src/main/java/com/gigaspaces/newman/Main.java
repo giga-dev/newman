@@ -72,7 +72,7 @@ public class Main {
             }
             createAndRunJob(newmanClient, suite, build);
             Thread.sleep(1000);
-            createAndRunJob(newmanClient, suite, build);
+//            createAndRunJob(newmanClient, suite, build);
 
 
 
@@ -84,33 +84,49 @@ public class Main {
         }
     }
 
-    private static void createAndRunJob(NewmanClient newmanClient, Suite suite, Build build) throws InterruptedException, java.util.concurrent.ExecutionException, UnknownHostException {
+    private static void createAndRunJob(NewmanClient newmanClient, Suite suiteTemp, Build build) throws InterruptedException, java.util.concurrent.ExecutionException, UnknownHostException {
 
+        Suite mySuite = new Suite();
+        mySuite.setName("MyTestSuite4");
+        Suite newSuite = newmanClient.addSuite(mySuite).toCompletableFuture().get();
         {
-            Suite mySuite = new Suite();
-            mySuite.setName(".Net");
-            Suite suite1 = newmanClient.addSuite(mySuite).toCompletableFuture().get();
 
-            JobRequest jobRequest = new JobRequest();
-            jobRequest.setBuildId(build.getId());
-            jobRequest.setSuiteId(suite1.getId());
-            newmanClient.createJob(jobRequest).toCompletableFuture().get();
+
+            JobRequest jobRequest1 = new JobRequest();
+            jobRequest1.setBuildId(build.getId());
+            jobRequest1.setSuiteId(newSuite.getId());
+            newmanClient.createJob(jobRequest1).toCompletableFuture().get();
+
+            JobRequest jobRequest2 = new JobRequest();
+            jobRequest2.setBuildId(build.getId());
+            jobRequest2.setSuiteId(newSuite.getId());
+            newmanClient.createJob(jobRequest2).toCompletableFuture().get();
+
+            JobRequest jobRequest3 = new JobRequest();
+            jobRequest3.setBuildId(build.getId());
+            jobRequest3.setSuiteId(newSuite.getId());
+            newmanClient.createJob(jobRequest3).toCompletableFuture().get();
         }
 
         {
-            Suite mySuite = new Suite();
-            mySuite.setName("ServiceGrid");
-            Suite suite1 = newmanClient.addSuite(mySuite).toCompletableFuture().get();
+//            Suite mySuite = new Suite();
+//            mySuite.setName("MyTestSuite2");
+//            Suite suite1 = newmanClient.addSuite(mySuite).toCompletableFuture().get();
 
-            JobRequest jobRequest = new JobRequest();
-            jobRequest.setBuildId(build.getId());
-            jobRequest.setSuiteId(suite1.getId());
-            newmanClient.createJob(jobRequest).toCompletableFuture().get();
+            JobRequest jobRequest1 = new JobRequest();
+            jobRequest1.setBuildId(build.getId());
+            jobRequest1.setSuiteId(newSuite.getId());
+            newmanClient.createJob(jobRequest1).toCompletableFuture().get();
+
+            JobRequest jobRequest2 = new JobRequest();
+            jobRequest2.setBuildId(build.getId());
+            jobRequest2.setSuiteId(newSuite.getId());
+            newmanClient.createJob(jobRequest2).toCompletableFuture().get();
         }
 
         JobRequest jobRequest = new JobRequest();
         jobRequest.setBuildId(build.getId());
-        jobRequest.setSuiteId(suite.getId());
+        jobRequest.setSuiteId(mySuite.getId());
 //        for(int i = 0; i < 100; ++i){
 //            newmanClient.createJob(jobRequest).toCompletableFuture().get();
 //        }
@@ -118,7 +134,7 @@ public class Main {
         logger.info("creating new Job {}", job);
 //        Batch<Job> jobs = newmanClient.getJobs().toCompletableFuture().get();
 //        logger.info("jobs are: {}", jobs);
-        for (int i = 0; i < 1*10; i++) {
+        for (int i = 0; i < 3*10; i++) {
             Test test = new Test();
             test.setJobId(job.getId());
             test.setName("test_" + i);

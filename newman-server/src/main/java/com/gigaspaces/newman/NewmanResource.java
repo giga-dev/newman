@@ -10,6 +10,7 @@ import com.gigaspaces.newman.beans.Job;
 import com.gigaspaces.newman.beans.JobRequest;
 import com.gigaspaces.newman.beans.State;
 import com.gigaspaces.newman.beans.Suite;
+import com.gigaspaces.newman.beans.SuiteWithJobs;
 import com.gigaspaces.newman.beans.Test;
 import com.gigaspaces.newman.beans.UserPrefs;
 import com.gigaspaces.newman.beans.criteria.AndCriteria;
@@ -781,6 +782,37 @@ public class NewmanResource {
         }
 
         return new Batch<>(suiteDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
+    }
+
+    @GET
+    @Path("suites-dashboard")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAllSuitesWithJobs() {
+        logger.info( "--- getAllSuitesWithJobs() ---" );
+        Query<Suite> suitesQuery = suiteDAO.createQuery();
+
+        final int maxJobsPerSuite = 5;
+
+        List<Suite> suites = suiteDAO.find(suitesQuery).asList();
+        logger.info( "--- getAllSuitesWithJobs(), suites count ---" + suites.size() );
+        List<SuiteWithJobs> suitesWithJobs = new ArrayList<>( suites.size() );
+        for( Suite suite : suites ){
+            String suiteId = suite.getId();
+            logger.info( "--- getAllSuitesWithJobs(), suite:" + suiteId );
+            Query<Job> jobsQuery = jobDAO.createQuery();
+            jobsQuery.field("suite.id").equal(suiteId);
+            jobsQuery.order("submitTime").maxScan(maxJobsPerSuite);
+
+            List<Job> jobsList = jobDAO.find(jobsQuery).asList();
+            logger.info( "--- getAllSuitesWithJobs(), jobs list size:" + jobsList.size() );
+            logger.info( "--- getAllSuitesWithJobs(), jobs:" + Arrays.toString( jobsList.toArray( new Job[ jobsList.size() ] ) ) );
+
+            suitesWithJobs.add( new SuiteWithJobs( suite, jobsList ) );
+        }
+
+        logger.info( "--- getAllSuitesWithJobs() END ---" );
+
+        return Response.ok(Entity.json(suitesWithJobs)).build();
     }
 
 
