@@ -5,18 +5,36 @@
 
 <polymer-element name="builds-table" attributes="url active">
     <template>
+        <style>
+            .table-nowrap {
+            table-layout:fixed;
+            }
+            .table > tbody > tr > td{
+            vertical-align: middle;
+            }
+            .table-nowrap td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            }
+        </style>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax id="ajax" auto url="{{url}}" handleAs="json"
                    on-core-response="{{ajaxResponse}}"
-                   on-core-error="{{ajaxError}}"
                    withCredentials="true"></core-ajax>
         <div class="content" flex>
             <form class="form-inline">
-                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
-                       class="form-control">
+                <div class="form-group">
+                    <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
+                           class="form-control">
+                </div>
+                <div class="form-group">
+                    <table-pagination total="{{pages.length}}" current="{{currentPage}}"
+                                      on-page-change="{{onPageChange}}"></table-pagination>
+                </div>
             </form>
-            <div class="table-responsive">
-                <table class="table table-hover table-striped table-bordered table-condensed">
+            <div class="table-responsive" on-switch-clicked="{{onSwitchClicked}}">
+                <table class="table table-bordered table-striped table-nowrap">
                     <thead>
                     <tr>
                         <th>Build Name</th>
@@ -26,7 +44,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <template repeat="{{item in data}}">
+                    <template repeat="{{item in pages[currentPage]}}">
                         <tr>
                             <td><a href="{{urlFor('build', {id: item.id})}}">{{item.name}}</a></td>
                             <td>{{item.branch}}</td>
@@ -37,6 +55,8 @@
                     </tbody>
                 </table>
             </div>
+            <table-pagination total="{{pages.length}}" current="{{currentPage}}"
+                              on-page-change="{{onPageChange}}"></table-pagination>
         </div>
     </template>
     <script src="../components/moment/moment.js"></script>
@@ -44,16 +64,40 @@
     <script>
     Polymer({
       applyAuthorStyles: true,
-      praise: 'cool',
-      filter: null,
-      allValues: [],
-      data: [],
-      active: false,
+      created: function() {
+          this.filter = null;
+          this.allValues =[];
+          this.data = [];
+          this.pages = [];
+          this.currentPage = 0;
+      },
       runFilter: function(){
           this.data  = this.applyFilter(this.filter, this.allValues);
+          this.pages = this.splitToPages();
+          this.currentPage = 0;
+      },
+      splitToPages: function(){
+          var res = [];
+          var current = [];
+          for(var i = 0; i < this.data.length; ++i){
+              current.push(this.data[i]);
+              if(current.length === 25){
+                  res.push(current);
+                  current = [];
+              }
+          }
+          if(0 < current.length){
+                res.push(current);
+          }
+          return res;
+      },
+
+      formatDate: function(date){
+           return moment(new Date(date)).fromNow();
       },
       ajaxResponse: function(event,resp){
            this.allValues = resp.response.values;
+           this.allValues.forEach(window.app.jobProgressPercent);
            this.runFilter();
       },
       applyFilter: function(filter, values){
@@ -65,31 +109,30 @@
                 return values;
             }
       },
-      ajaxComplete : function(){
-            console.info("ajax complete !!!");
-      },
-      ajaxError : function(event, object){
-            console.info("ajax error", object.response.statusCode);
-      },
-        formatDateFromNow: function(date){
-            if(!date){
-                return date;
+      applyFilter: function(filter, values){
+            if(values && filter != null && filter != undefined && filter != ""){
+                return values.filter(function(obj){
+                    return Object.getOwnPropertyNames(obj).find(function(key){
+                        var val = obj[key];
+                        return val &&  typeof val === "string" && -1 < val.indexOf(filter);
+                    });
+                    return false
+                    });
+            }else{
+                return values;
             }
-            return moment(new Date(date)).fromNow();
-        },
-        formatDate: function(date){
-            if(!date){
-                return date;
-            }
-            return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
-        },
-      activeChanged: function(oldValue, newValue){
-            console.info("builds activeChanged to ", newValue);
-      }
+      },
+      onPageChange : function(event){
+            this.currentPage = event.detail.currentPage;
+      },
+
+    formatDateFromNow: function(date){
+        if(!date){
+            return date;
+        }
+        return moment(new Date(date)).fromNow();
+    }
     });
-
-
-
 
     </script>
 </polymer-element>
