@@ -20,7 +20,15 @@
                     <template repeat="{{suite in data}}">
                         <template bind if="{{suite.jobs.length>=0}}">
                             <tr>
-                                <th class="table-header">Suite Name</th>
+
+                                <template bind if="{{suiteNameHeaderAlreadyDisplayed==true}}">
+                                <th></th>
+                                </template>
+                                <template bind if="{{suiteNameHeaderAlreadyDisplayed==false}}">
+                                    {{setSuiteNameHeaderAlreadyDisplayed(true)}}
+                                    <th class="table-header">Suite Name</th>
+                                </template>
+
                                 <th class="table-header">Job ID</th>
                                 <th class="table-header">Build Name</th>
                                 <th class="table-header">Results</th>
@@ -56,6 +64,7 @@
 
     <script>
         Polymer({
+            suiteNameHeaderAlreadyDisplayed: false,
             applyAuthorStyles: true,
             data: [],
 
@@ -66,6 +75,10 @@
 
             formatDate: function(date){
                 return moment(new Date(date)).fromNow();
+            },
+            setSuiteNameHeaderAlreadyDisplayed: function(val){
+                alert( 'suiteNameHeaderDisplayed' );
+                suiteNameHeaderAlreadyDisplayed = val;
             }
         });
     </script>
