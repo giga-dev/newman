@@ -77,7 +77,11 @@
                             <core-pages>
                                 <dashboard-view url="api/newman/dashboard" route="home"></dashboard-view>
                                 <!--dashboard-view url="api/newman/suites-dashboard" route="suites-dashboard"></dashboard-view-->
-                                <builds-table url="api/newman/build?orderBy=-buildTime" route="builds"></builds-table>
+                                <section route="builds">
+                                    <h1>Builds</h1>
+                                    <builds-table url="api/newman/build?orderBy=-buildTime"></builds-table>
+                                </section>
+
                                 <section route="jobs">
                                     <h1>Jobs</h1>
                                     <jobs-table url="api/newman/job?all=true&orderBy=-submitTime"></jobs-table>
@@ -108,7 +112,7 @@
                                 </section>
                                 <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
                                 <section route="suite">
-                                    <template if="{{route('suite').params.id}}" >
+                                    <template if="{{route('suite').params.id}}">
                                         <suite-view url="api/newman/suite/{{route('suite').params.id}}"
                                                 ></suite-view>
                                     </template>
@@ -140,6 +144,7 @@
         this.heading = "Hello " + this.user.userName;
       }
     });
+
 
 
 
