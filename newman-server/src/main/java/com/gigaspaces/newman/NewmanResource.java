@@ -1,28 +1,8 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Agent;
-import com.gigaspaces.newman.beans.Batch;
-import com.gigaspaces.newman.beans.Build;
-import com.gigaspaces.newman.beans.BuildStatus;
-import com.gigaspaces.newman.beans.BuildWithJobs;
-import com.gigaspaces.newman.beans.DashboardData;
-import com.gigaspaces.newman.beans.Job;
-import com.gigaspaces.newman.beans.JobRequest;
-import com.gigaspaces.newman.beans.State;
-import com.gigaspaces.newman.beans.Suite;
-import com.gigaspaces.newman.beans.SuiteWithJobs;
-import com.gigaspaces.newman.beans.Test;
-import com.gigaspaces.newman.beans.UserPrefs;
-import com.gigaspaces.newman.beans.criteria.AndCriteria;
-import com.gigaspaces.newman.beans.criteria.NotCriteria;
-import com.gigaspaces.newman.beans.criteria.PatternCriteria;
-import com.gigaspaces.newman.beans.criteria.TestCriteria;
+import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.config.Config;
-import com.gigaspaces.newman.dao.AgentDAO;
-import com.gigaspaces.newman.dao.BuildDAO;
-import com.gigaspaces.newman.dao.JobDAO;
-import com.gigaspaces.newman.dao.SuiteDAO;
-import com.gigaspaces.newman.dao.TestDAO;
+import com.gigaspaces.newman.dao.*;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -46,23 +26,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.PermitAll;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,11 +36,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Barak Bar Orion
@@ -642,25 +604,8 @@ public class NewmanResource {
         }
         build.setBuildStatus(new BuildStatus());
         buildDAO.save(build);
-        if (suiteDAO.count() == 0) {
-            addNightlyRegressionSuite();
-        }
         broadcastMessage(CREATED_BUILD, build);
         return build;
-    }
-
-    private void addNightlyRegressionSuite() {
-        Suite nightlyRegressionSuite = new Suite();
-        nightlyRegressionSuite.setName("Nightly Regression");
-        nightlyRegressionSuite.setCriteria(
-                new AndCriteria(
-                        TestCriteria.createCriteriaByTestType("tgrid"),
-                        new NotCriteria(PatternCriteria.classNameCriteria("com.gigaspaces.test.database.sql.PerformanceTest")),
-                        new NotCriteria(PatternCriteria.nonRecursivePackageNameCriteria("com.gigaspaces.test.tg")),
-                        new NotCriteria(PatternCriteria.nonRecursivePackageNameCriteria("com.gigaspaces.test.stress.map")),
-                        new NotCriteria(PatternCriteria.recursivePackageNameCriteria("com.gigaspaces.test.blobstore"))
-                ));
-        suiteDAO.save(nightlyRegressionSuite);
     }
 
     @POST
