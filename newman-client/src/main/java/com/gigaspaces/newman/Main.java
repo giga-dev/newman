@@ -38,6 +38,7 @@ public class Main {
     private static int NUMBER_OF_BUILDS = 2;
     private static int NUMBER_OF_SUITES_PER_BUILD = 3;
     private static int NUMBER_OF_JOBS_PER_SUITE = 6;
+    private static long DELAY_BETWEEN_TESTS_MS = 10;
 
     public static NewmanClient createNewmanClient() throws KeyManagementException, NoSuchAlgorithmException {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -80,7 +81,6 @@ public class Main {
                 build = newmanClient.getBuild(build.getId()).toCompletableFuture().get();
                 logger.info("got build {}", build);
                 createAndRunJob(newmanClient, build);
-                Thread.sleep(10000);
             }
 
 
@@ -110,7 +110,11 @@ public class Main {
 
         Batch<Job> jobBatch = newmanClient.getJobs().toCompletableFuture().get();
         List<Job> values = jobBatch.getValues();
+        logger.info("number of jobs: " + values.size());
         for (Job job : values) {
+            if (job.getTotalTests() != 0) {
+                continue; //ignore job with tests
+            }
             for (int i = 0; i < 3*10; i++) {
                 Test test = new Test();
                 test.setJobId(job.getId());
@@ -142,7 +146,7 @@ public class Main {
                 if (test == null) {
                     break;
                 }
-                if (rand.nextBoolean()) {
+                if (rand.nextInt() % 9 != 0) {
                     test.setStatus(Test.Status.SUCCESS);
                     newmanClient.finishTest(test).toCompletableFuture().get();
                     logger.info("SUCCESS test {}", test);
@@ -156,7 +160,7 @@ public class Main {
                     DashboardData dashboard = newmanClient.getDashboard().toCompletableFuture().get();
                     logger.info("----------------- dashboard data is {}", dashboard);
                 }
-                Thread.sleep(500);
+                Thread.sleep(DELAY_BETWEEN_TESTS_MS);
                 i += 1;
             }
         }
