@@ -95,7 +95,7 @@
             return moment.duration(item.endTime - item.startTime).humanize();
       },
       onModifiedJob: function(ev, job){
-            if(job.id){
+            if(job.id && this.data.id && job.id == this.data.id){
                 window.app.update(job, this.data);
             }
       },
