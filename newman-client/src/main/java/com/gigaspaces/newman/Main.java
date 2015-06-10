@@ -126,7 +126,7 @@ public class Main {
 
         JobRequest jobRequest = new JobRequest();
         jobRequest.setBuildId(build.getId());
-        jobRequest.setSuiteId(mySuite.getId());
+        jobRequest.setSuiteId(newSuite.getId());
 //        for(int i = 0; i < 100; ++i){
 //            newmanClient.createJob(jobRequest).toCompletableFuture().get();
 //        }
