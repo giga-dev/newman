@@ -25,6 +25,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
@@ -32,6 +34,10 @@ import java.util.concurrent.CompletionStage;
 public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanClient.class);
+
+    private static int NUMBER_OF_BUILDS = 2;
+    private static int NUMBER_OF_SUITES_PER_BUILD = 3;
+    private static int NUMBER_OF_JOBS_PER_SUITE = 6;
 
     public static NewmanClient createNewmanClient() throws KeyManagementException, NoSuchAlgorithmException {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -58,23 +64,24 @@ public class Main {
             logger.info("got eventInput {}", eventInput);
             eventInput.close();
 
-            Build build = new Build();
-            build.setName("The build " + UUID.randomUUID());
-            build.setBranch("master");
-            CompletionStage<Build> completionStage = newmanClient.createBuild(build);
-            build = completionStage.toCompletableFuture().get();
-            logger.info("create a new build {}", build);
-            build = newmanClient.getBuild(build.getId()).toCompletableFuture().get();
-            logger.info("got build {}", build);
-            Suite suite = null;
-            Batch<Suite> suiteBatch = newmanClient.getAllSuites().toCompletableFuture().get();
-            if (!suiteBatch.getValues().isEmpty()) {
-                suite = suiteBatch.getValues().get(0);
-            }
-            createAndRunJob(newmanClient, suite, build);
-            Thread.sleep(1000);
-//            createAndRunJob(newmanClient, suite, build);
+            Random random = new Random(System.currentTimeMillis());
+            int buildNum = random.nextInt(100);
+            for (int b=0; b<NUMBER_OF_BUILDS; b++) {
 
+                Build build = new Build();
+                build.setName("13504-"+(buildNum++));
+                build.setBranch("master");
+                build.setBuildTime(new Date());
+
+                CompletionStage<Build> completionStage = newmanClient.createBuild(build);
+                build = completionStage.toCompletableFuture().get();
+
+                logger.info("create a new build {}", build);
+                build = newmanClient.getBuild(build.getId()).toCompletableFuture().get();
+                logger.info("got build {}", build);
+                createAndRunJob(newmanClient, build);
+                Thread.sleep(10000);
+            }
 
 
 
@@ -85,105 +92,73 @@ public class Main {
         }
     }
 
-    private static void createAndRunJob(NewmanClient newmanClient, Suite suiteTemp, Build build) throws InterruptedException, java.util.concurrent.ExecutionException, UnknownHostException {
+    private static void createAndRunJob(NewmanClient newmanClient, Build build) throws InterruptedException, java.util.concurrent.ExecutionException, UnknownHostException {
 
-        Suite mySuite = new Suite();
-        mySuite.setName("MyTestSuite4");
-        Suite newSuite = newmanClient.addSuite(mySuite).toCompletableFuture().get();
-        {
+        for (int s=0; s< NUMBER_OF_SUITES_PER_BUILD; s++) {
 
+            Suite mySuite = new Suite();
+            mySuite.setName("Suite-" + UUID.randomUUID().toString().substring(0, 3));
+            Suite newSuite = newmanClient.addSuite(mySuite).toCompletableFuture().get();
 
-            JobRequest jobRequest1 = new JobRequest();
-            jobRequest1.setBuildId(build.getId());
-            jobRequest1.setSuiteId(newSuite.getId());
-            newmanClient.createJob(jobRequest1).toCompletableFuture().get();
-
-            JobRequest jobRequest2 = new JobRequest();
-            jobRequest2.setBuildId(build.getId());
-            jobRequest2.setSuiteId(newSuite.getId());
-            newmanClient.createJob(jobRequest2).toCompletableFuture().get();
-
-            JobRequest jobRequest3 = new JobRequest();
-            jobRequest3.setBuildId(build.getId());
-            jobRequest3.setSuiteId(newSuite.getId());
-            newmanClient.createJob(jobRequest3).toCompletableFuture().get();
+            for (int j=0; j < NUMBER_OF_JOBS_PER_SUITE; j++) {
+                JobRequest jobRequest = new JobRequest();
+                jobRequest.setBuildId(build.getId());
+                jobRequest.setSuiteId(newSuite.getId());
+                newmanClient.createJob(jobRequest).toCompletableFuture().get();
+            }
         }
 
-        {
-//            Suite mySuite = new Suite();
-//            mySuite.setName("MyTestSuite2");
-//            Suite suite1 = newmanClient.addSuite(mySuite).toCompletableFuture().get();
-
-            JobRequest jobRequest1 = new JobRequest();
-            jobRequest1.setBuildId(build.getId());
-            jobRequest1.setSuiteId(newSuite.getId());
-            newmanClient.createJob(jobRequest1).toCompletableFuture().get();
-
-            JobRequest jobRequest2 = new JobRequest();
-            jobRequest2.setBuildId(build.getId());
-            jobRequest2.setSuiteId(newSuite.getId());
-            newmanClient.createJob(jobRequest2).toCompletableFuture().get();
+        Batch<Job> jobBatch = newmanClient.getJobs().toCompletableFuture().get();
+        List<Job> values = jobBatch.getValues();
+        for (Job job : values) {
+            for (int i = 0; i < 3*10; i++) {
+                Test test = new Test();
+                test.setJobId(job.getId());
+                test.setName("test_" + i);
+                test = newmanClient.createTest(test).toCompletableFuture().get();
+                logger.info("added test {}", test);
+                test = newmanClient.uploadLog(test.getId(), new File("mongo.txt")).toCompletableFuture().get();
+                logger.info("**** Test is {} ", test);
+            }
+            Batch<Test> tests = newmanClient.getTests(job.getId(), 0, 30).toCompletableFuture().get();
+            logger.info("tests are {}", tests);
         }
-
-        JobRequest jobRequest = new JobRequest();
-        jobRequest.setBuildId(build.getId());
-        jobRequest.setSuiteId(newSuite.getId());
-//        for(int i = 0; i < 100; ++i){
-//            newmanClient.createJob(jobRequest).toCompletableFuture().get();
-//        }
-        Job job = newmanClient.createJob(jobRequest).toCompletableFuture().get();
-        logger.info("creating new Job {}", job);
-//        Batch<Job> jobs = newmanClient.getJobs().toCompletableFuture().get();
-//        logger.info("jobs are: {}", jobs);
-        for (int i = 0; i < 3*10; i++) {
-            Test test = new Test();
-            test.setJobId(job.getId());
-            test.setName("test_" + i);
-            test = newmanClient.createTest(test).toCompletableFuture().get();
-            logger.info("added test {}", test);
-            test = newmanClient.uploadLog(test.getId(), new File("mongo.txt")).toCompletableFuture().get();
-            logger.info("**** Test is {} ", test);
-        }
-        Batch<Test> tests = newmanClient.getTests(job.getId(), 0, 30).toCompletableFuture().get();
-        logger.info("tests are {}", tests);
-
 
         Agent agent = new Agent();
         agent.setName("foo");
         agent.setHost(InetAddress.getLocalHost().getCanonicalHostName());
-        job = newmanClient.subscribe(agent).toCompletableFuture().get();
-        logger.info("agent {} subscribe to {}", agent.getName(), job);
-        if(job == null){
-            return;
-        }
-//            agent = newmanClient.getAgent(agent.getName()).toCompletableFuture().get();
-//
-        Random rand = new Random(System.currentTimeMillis());
-        int i = 0;
-        while (true) {
-//                Test test = newmanClient.getTestToRun(agent).toCompletableFuture().get();
-            Test test = newmanClient.getReadyTest("foo", job.getId()).toCompletableFuture().get();
-            logger.info("agent took test {}", test);
-            if (test == null) {
-                break;
+
+        while(true) {
+            Job job = newmanClient.subscribe(agent).toCompletableFuture().get();
+            logger.info("agent {} subscribe to {}", agent.getName(), job);
+            if (job == null) {
+                return;
             }
-//                Thread.sleep(100);
-            if (rand.nextBoolean()) {
-                test.setStatus(Test.Status.SUCCESS);
-                newmanClient.finishTest(test).toCompletableFuture().get();
-                logger.info("SUCCESS test {}", test);
-            } else {
-                test.setStatus(Test.Status.FAIL);
-                test.setErrorMessage(new IllegalArgumentException().toString());
-                newmanClient.finishTest(test).toCompletableFuture().get();
-                logger.info("FAIL test {}", test);
+            Random rand = new Random(System.currentTimeMillis());
+            int i = 0;
+            while (true) {
+                Test test = newmanClient.getReadyTest("foo", job.getId()).toCompletableFuture().get();
+                logger.info("agent took test {}", test);
+                if (test == null) {
+                    break;
+                }
+                if (rand.nextBoolean()) {
+                    test.setStatus(Test.Status.SUCCESS);
+                    newmanClient.finishTest(test).toCompletableFuture().get();
+                    logger.info("SUCCESS test {}", test);
+                } else {
+                    test.setStatus(Test.Status.FAIL);
+                    test.setErrorMessage(new IllegalArgumentException().toString());
+                    newmanClient.finishTest(test).toCompletableFuture().get();
+                    logger.info("FAIL test {}", test);
+                }
+                if (i % 50 == 0) {
+                    DashboardData dashboard = newmanClient.getDashboard().toCompletableFuture().get();
+                    logger.info("----------------- dashboard data is {}", dashboard);
+                }
+                Thread.sleep(500);
+                i += 1;
             }
-            if(i % 50 == 0){
-                DashboardData dashboard = newmanClient.getDashboard().toCompletableFuture().get();
-                logger.info("----------------- dashboard data is {}", dashboard);
-            }
-            Thread.sleep(500);
-            i += 1;
         }
     }
 }
