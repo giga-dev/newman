@@ -746,7 +746,8 @@ public class NewmanResource {
             logger.info( "--- getAllSuitesWithJobs(), suite:" + suiteId );
             Query<Job> jobsQuery = jobDAO.createQuery();
             jobsQuery.field("suite.id").equal(suiteId);
-            jobsQuery.order("submitTime").maxScan(maxJobsPerSuite);
+            jobsQuery.criteria("state").equal(State.DONE);
+            jobsQuery.order("endTime").maxScan(maxJobsPerSuite);
 
             List<Job> jobsList = jobDAO.find(jobsQuery).asList();
             logger.info( "--- getAllSuitesWithJobs(), jobs list size:" + jobsList.size() );
