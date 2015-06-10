@@ -25,6 +25,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
@@ -157,6 +158,7 @@ public class Main {
         }
 //            agent = newmanClient.getAgent(agent.getName()).toCompletableFuture().get();
 //
+        Random rand = new Random(System.currentTimeMillis());
         int i = 0;
         while (true) {
 //                Test test = newmanClient.getTestToRun(agent).toCompletableFuture().get();
@@ -166,7 +168,7 @@ public class Main {
                 break;
             }
 //                Thread.sleep(100);
-            if (i % 2 == 0) {
+            if (rand.nextBoolean()) {
                 test.setStatus(Test.Status.SUCCESS);
                 newmanClient.finishTest(test).toCompletableFuture().get();
                 logger.info("SUCCESS test {}", test);
