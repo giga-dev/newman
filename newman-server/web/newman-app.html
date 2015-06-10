@@ -107,10 +107,12 @@
                                             url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
                                 </section>
                                 <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
-                                <template if="{{route('suite').params.id}}" route="suite">
-                                    <suite-view url="api/newman/suite/{{route('suite').params.id}}"
-                                            ></suite-view>
-                                </template>
+                                <section route="suite">
+                                    <template if="{{route('suite').params.id}}" >
+                                        <suite-view url="api/newman/suite/{{route('suite').params.id}}"
+                                                ></suite-view>
+                                    </template>
+                                </section>
                                 <section route="mongo-admin">
                                     <h1>A very simple Mongo admin {{route('mongo-admin').params.id}}</h1>
                                     <mongo-admin url="api/newman/db"></mongo-admin>
