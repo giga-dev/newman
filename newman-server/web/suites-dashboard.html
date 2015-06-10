@@ -30,6 +30,7 @@
                                 <th></th>
                                 <th class="table-header">Job ID</th>
                                 <th class="table-header">Build Name</th>
+                                <th class="table-header">Branch</th>
                                 <th class="table-header">Results</th>
                                 <th class="table-header">Submitted At</th>
                             </tr>
@@ -37,7 +38,8 @@
                                 <tr>
                                     <td></td>
                                     <td><a href="{{urlFor('job', {id: job.id})}}">{{job.id}}</a></td>
-                                    <td><a href="{{urlFor('build', {id: job.build.id})}}">{{job.build.name}}</a> branch:{{job.build.branch}}</td>
+                                    <td><a href="{{urlFor('build', {id: job.build.id})}}">{{job.build.name}}</a></td>
+                                    <td>{{job.build.branch}}</td>
                                     <td>
                                         <span class="label label-danger">{{job.failedTests}}</span>
                                         <span class="label label-default">{{job.totalTests}}</span>
