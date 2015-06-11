@@ -96,7 +96,7 @@
                             <td>
                                 <template repeat="{{suiteId, index in historyBuild.buildStatus.suitesIds}}">
                                     <template if="{{index!== 'undefined' && historyBuild.buildStatus.suitesNames[index]}}">
-                                        <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(historyBuild.buildStatus.suitesNames[index])}}</span></a>;
+                                        <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(historyBuild.buildStatus.suitesNames[index])}}</span></a>
                                     </template>
                                 </template>
                             </td>
