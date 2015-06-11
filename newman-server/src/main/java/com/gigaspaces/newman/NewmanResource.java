@@ -733,7 +733,7 @@ public class NewmanResource {
     @Path("suites-dashboard")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllSuitesWithJobs() {
-        logger.info( "--- getAllSuitesWithJobs() ---" );
+        logger.info( "--- getAllSuitesWithJobs() START ---" );
         Query<Suite> suitesQuery = suiteDAO.createQuery();
 
         final int maxJobsPerSuite = 5;
@@ -743,11 +743,11 @@ public class NewmanResource {
         List<SuiteWithJobs> suitesWithJobs = new ArrayList<>( suites.size() );
         for( Suite suite : suites ){
             String suiteId = suite.getId();
-            logger.info( "--- getAllSuitesWithJobs(), suite:" + suiteId );
+            logger.info( "--- getAllSuitesWithJobs() within for(), suite id:" + suiteId + ", suite name:" + suite.getName() );
             Query<Job> jobsQuery = jobDAO.createQuery();
             jobsQuery.field("suite.id").equal(suiteId);
             jobsQuery.criteria("state").equal(State.DONE);
-            jobsQuery.order("endTime").maxScan(maxJobsPerSuite);
+            jobsQuery.order("endTime").limit(maxJobsPerSuite);
 
             List<Job> jobsList = jobDAO.find(jobsQuery).asList();
             logger.info( "--- getAllSuitesWithJobs(), jobs list size:" + jobsList.size() );
