@@ -33,7 +33,7 @@
                                 <th class="table-header">Job ID</th>
                                 <th class="table-header">Build Name</th>
                                 <th class="table-header">Branch</th>
-                                <th class="table-header"><span class="label label-danger">Failed</span> / <span class="label label-default">Total</span></th>
+                                <th class="table-header">Results</th>
                                 <th class="table-header">Submitted At</th>
                             </tr>
                             <template repeat="{{job in suite.jobs}}">
@@ -43,8 +43,13 @@
                                     <td><a href="{{urlFor('build', {id: job.build.id})}}">{{job.build.name}}</a></td>
                                     <td>{{job.build.branch}}</td>
                                     <td>
-                                        <span class="label label-danger">{{job.failedTests}}</span>
-                                        <span class="label label-default">{{job.totalTests}}</span>
+                                        <template bind if="{{job.failedTests>0}}">
+                                            <span class="label label-danger">{{job.failedTests}}</span>
+                                            <span class="label label-default">{{job.totalTests}}</span>
+                                        </template>
+                                        <template bind if="{{job.totalTests==job.passedTests}}">
+                                            <span class="label label-success">{{job.totalTests}}</span>
+                                        </template>
                                     </td>
                                     <td>{{job.submitTime | formatDate}}</td>
                                 </tr>
