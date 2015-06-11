@@ -82,7 +82,13 @@
                     </thead>
                     <tbody>
                     <template repeat="{{historyBuild in data.historyBuilds}}">
-                        <tr>
+                        <template if="{{historyBuild.buildStatus.failedTests>0}}">
+                            {{setBackgroundColor('#F5F5F5')}}
+                        </template>
+                        <template if="{{historyBuild.buildStatus.failedTests==0}}">
+                            {{setBackgroundColor('#E0FFC4')}}
+                        </template>
+                        <tr style="background-color: {{getBackgroundColor()}}">
                             <td title="{{historyBuild.name}}"><a href="{{urlFor('build', {id: historyBuild.id})}}">{{historyBuild.name}}</a></td>
                             <td title="{{historyBuild.branch}}">{{historyBuild.branch}}</td>
                             <td>{{historyBuild.buildTime | formatDate}}</td>
@@ -113,6 +119,7 @@
     <script>
     Polymer({
       applyAuthorStyles: true,
+      backgroundColor: '',
 
       created: function() {
           this.data = [];
@@ -122,6 +129,12 @@
       },
       formatDate: function(date){
            return moment(new Date(date)).fromNow();
+      },
+      setBackgroundColor: function(color){
+        backgroundColor=color;
+      },
+      getBackgroundColor: function(color){
+          return backgroundColor;
       },
       ajaxResponse: function(event,resp){
            this.data = resp.response;
