@@ -6,6 +6,7 @@
 <polymer-element name="suites-dashboard" attributes="url">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <link rel="stylesheet" href="app.css">
 
         <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
