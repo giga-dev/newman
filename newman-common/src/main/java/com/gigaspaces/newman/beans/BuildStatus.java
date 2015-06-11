@@ -106,4 +106,20 @@ public class BuildStatus {
     public void setSuitesIds(List<String> suitesIds) {
         this.suitesIds = suitesIds;
     }
+
+    @Override
+    public String toString() {
+        return "BuildStatus{" +
+                "totalTests=" + totalTests +
+                ", passedTests=" + passedTests +
+                ", failedTests=" + failedTests +
+                ", runningTests=" + runningTests +
+                ", totalJobs=" + totalJobs +
+                ", pendingJobs=" + pendingJobs +
+                ", runningJobs=" + runningJobs +
+                ", doneJobs=" + doneJobs +
+                ", suitesNames=" + suitesNames +
+                ", suitesIds=" + suitesIds +
+                '}';
+    }
 }
