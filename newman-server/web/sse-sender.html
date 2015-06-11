@@ -13,12 +13,15 @@
         <content></content>
     </template>
     <script>
+
+
     var event_mapping = {
         'created-suite' : "",
         'modified-agent' : "",
         'modified-job' : "jobs-table, job-info",
         'created-job' : "jobs-table",
-        'modified-test' : "",
+        'created-test' : "tests-table",
+        'modified-test' : "tests-table",
         'modified-build' : "dashboard-view",
         'created-build' : "dashboard-view"
     };
@@ -29,6 +32,7 @@
                 'modified-agent' : "",
                 'modified-job' : [window.app.jobProgressPercent],
                 'created-job' :  [window.app.jobProgressPercent],
+                'created-test' : "",
                 'modified-test' : "",
                 'modified-build' : "",
                 'created-build' : ""
@@ -77,6 +81,7 @@
                 source.addEventListener("modified-agent", handler.bind(this), false);
                 source.addEventListener("modified-job", handler.bind(this), false);
                 source.addEventListener("created-job", handler.bind(this), false);
+                source.addEventListener("created-test", handler.bind(this), false);
                 source.addEventListener("modified-test", handler.bind(this), false);
                 source.addEventListener("modified-build", handler.bind(this), false);
                 source.addEventListener("created-build", handler.bind(this), false);

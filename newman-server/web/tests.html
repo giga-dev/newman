@@ -7,7 +7,8 @@
 <link rel="import" href="../components/core-label/core-label.html">
 <link rel="import" href="../components/paper-checkbox/paper-checkbox.html">
 
-<polymer-element name="tests-table" attributes="url onlyFailed">
+<polymer-element name="tests-table" attributes="url onlyFailed jobId"  on-created-test="{{onCreatedTest}}"
+                 on-modified-test="{{onModifiedTest}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <style>
@@ -97,6 +98,8 @@
       pages: [],
       currentPage: 0,
       onlyFailed: true,
+      created: function() {
+      },
       runFilter: function(){
           this.data  = this.applyFilter(this.filter, this.allValues, this.onlyFailed);
           this.pages = this.splitToPages();
@@ -155,15 +158,37 @@
                 return null;
             }
             return moment.duration(item.endTime - item.startTime).humanize();
+      },
+      onCreatedTest : function(ev, test){
+            if(test.jobId && this.jobId && test.jobId == this.jobId){
+                this.allValues.unshift(test);
+                this.runFilter();
+            }
+      },
+      onModifiedTest : function(ev, test){
+            if(test.jobId && this.jobId && test.jobId == this.jobId){
+                var arrayLength = this.data.length;
+                for (var i = 0; i < arrayLength; i++) {
+                    var found = this.data[i];
+                    if(found.id == job.id){
+                        window.app.update(job, found);
+                        return;
+                    }
+                }
+            }
+      },
+      findById : function(id){
+            var arrayLength = this.data.length;
+            for (var i = 0; i < arrayLength; i++) {
+                var found = this.data[i];
+                if(found.id == id){
+                    return found;
+                }
+            }
+            return null;
       }
 
     });
-
-
-
-
-
-
 
     </script>
 </polymer-element>
