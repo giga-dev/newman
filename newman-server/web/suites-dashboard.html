@@ -15,6 +15,9 @@
                    withCredentials="true"></core-ajax>
 
         <div class="content" flex>
+            <form class="form-inline">
+                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Suite name filter" class="form-control">
+            </form>
             <div class="table-responsive">
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <tbody>
@@ -66,14 +69,35 @@
         Polymer({
             applyAuthorStyles: true,
             data: [],
+            allValues: [],
+            filter: null,
 
             ajaxResponse: function(event,resp){
-                this.data = resp.response.entity;
-                console.log( this.data );
+                this.allValues = resp.response.entity;
+                this.runFilter();
+/*                this.data = resp.response.entity;
+                console.log( this.data );*/
             },
 
             formatDate: function(date){
                 return moment(new Date(date)).fromNow();
+            },
+
+            runFilter: function(){
+                this.data  = this.applyFilter(this.filter, this.allValues);
+            },
+
+            applyFilter: function(filter, values){
+                /*console.log( 'filter:' , filter, ', values:', values );*/
+                if(values && filter != null && filter != undefined){
+                    return values.filter(function(value){
+                        return value.name != undefined && value.name != null && -1 < value.name.toLowerCase().indexOf(filter.toLowerCase());
+                    });
+                }
+                else{
+                    console.log( 'else' );
+                    return values;
+                }
             }
         });
     </script>
