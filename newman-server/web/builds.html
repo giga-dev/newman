@@ -101,20 +101,11 @@
            this.runFilter();
       },
       applyFilter: function(filter, values){
-            if(values && filter != null && filter != undefined){
-                return values.filter(function(value){
-                    return value.name != undefined && value.name != null && -1 < value.name.indexOf(filter);
-                    });
-            }else{
-                return values;
-            }
-      },
-      applyFilter: function(filter, values){
             if(values && filter != null && filter != undefined && filter != ""){
                 return values.filter(function(obj){
                     return Object.getOwnPropertyNames(obj).find(function(key){
                         var val = obj[key];
-                        return val &&  typeof val === "string" && -1 < val.indexOf(filter);
+                        return val &&  typeof val === "string" && -1 < val.toLowerCase().indexOf(filter.toLowerCase());
                     });
                     return false
                     });

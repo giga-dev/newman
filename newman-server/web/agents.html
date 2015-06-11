@@ -66,7 +66,7 @@
       applyFilter: function(filter, values){
             if(values && filter != null && filter != undefined){
                 return values.filter(function(value){
-                    return value.name != undefined && value.name != null && -1 < value.name.indexOf(filter);
+                    return value.name != undefined && value.name != null && -1 < value.name.toLowerCase().indexOf(filter.toLowerCase());
                     });
             }else{
                 return values;

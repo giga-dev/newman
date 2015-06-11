@@ -75,7 +75,7 @@
       applyFilter: function(filter, values){
             if(values && filter != null && filter != undefined){
                 return values.filter(function(value){
-                    return value != undefined && value != null && -1 < value.indexOf(filter);
+                    return value != undefined && value != null && -1 < value.toLowerCase().indexOf(filter.toLowerCase());
                     });
             }else{
                 return values;
