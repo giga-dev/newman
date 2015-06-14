@@ -1,5 +1,6 @@
 package com.gigaspaces.newman;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.config.Config;
 import com.gigaspaces.newman.dao.*;
@@ -691,6 +692,12 @@ public class NewmanResource {
             }
         }
         return Response.ok(Entity.json(res)).build();
+    }
+    @GET
+    @Path("config")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDb() throws JsonProcessingException {
+        return Response.ok(Entity.json(config.asJSON())).build();
     }
 
     @POST

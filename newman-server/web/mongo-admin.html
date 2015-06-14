@@ -13,7 +13,12 @@
         <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}"
                    withCredentials="true"></core-ajax>
 
+        <core-ajax id="config" handleAs="json" on-core-response="{{configResponse}}"
+                   withCredentials="true"></core-ajax>
+
         <div class="content" flex>
+            <h5><span>host</span> <span class="label label-info">{{config.mongo.host}}</span></h5>
+            <h5><span>db</span> <span class="label label-info">{{config.mongo.db}}</span></h5>
             <form class="form-inline">
                 <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
                        class="form-control">
@@ -53,15 +58,21 @@
       filter: null,
       allValues: [],
       data: [],
+      config : {},
       runFilter: function(){
           this.data  = this.applyFilter(this.filter, this.allValues);
       },
       ajaxResponse: function(event,resp){
+           this.$.config.url=this.url.replace("/db","/config");
+           this.$.config.go();
            this.allValues = resp.response.entity;
            this.runFilter();
       },
       reload : function(){
             this.$.reload.go();
+      },
+      configResponse : function(event,resp){
+        this.config = JSON.parse(resp.response.entity);
       },
       dropAll: function(){
             this.$.del.url=this.url;
