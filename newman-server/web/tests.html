@@ -74,9 +74,9 @@
                                 <test-status test="{{item}}"></test-status>
                             </td>
                             <td>{{item.assignedAgent}}</td>
-                            <td>{{item.scheduledAt | formatDate }}</td>
-                            <td>{{item.startTime | formatDate }}</td>
-                            <td>{{item.endTime | formatDate }}</td>
+                            <td title="{{item.scheduledAt | formatDate }}">{{item.scheduledAt | formatDateFromNow }}</td>
+                            <td title="{{item.startTime | formatDate }}">{{item.startTime | formatDateFromNow }}</td>
+                            <td title="{{item.endTime | formatDate }}">{{item.endTime | formatDateFromNow }}</td>
                             <td>{{item | formatTotalTime}}</td>
                         </tr>
                     </template>
@@ -147,17 +147,23 @@
       onPageChange : function(event){
             this.currentPage = event.detail.currentPage;
       },
-      formatDate: function(date){
+        formatDate: function(date){
             if(!date){
                 return date;
             }
-           return moment(new Date(date)).fromNow();
-      },
+            return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
+        },
+        formatDateFromNow: function(date){
+            if(!date){
+                return date;
+            }
+            return moment(new Date(date)).fromNow();
+        },
       formatTotalTime: function(item){
             if(!item.endTime || !item.startTime){
                 return null;
             }
-            return moment.duration(item.endTime - item.startTime).humanize();
+            return moment.duration(item.endTime - item.startTime);
       },
       onCreatedTest : function(ev, test){
             if(test.jobId && this.jobId && test.jobId == this.jobId){
