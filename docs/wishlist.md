@@ -10,6 +10,7 @@ Newman Wishlist
 * Add tooltips timestamps to events (such as `Build Time` in the `Builds` tab)
 * Add owner for actions - for example - show who created a build
 * Add ability to remove a single build/suite/job etc
+* Show test time in test view (currently displayed only in the table in job view) 
 
 ####Server
 * Test timeout in the server - if a test was taken by an agent, and it did not finish in a specified time, add the test back to the list of tests that should run (The process might have been killed, or something similar)
