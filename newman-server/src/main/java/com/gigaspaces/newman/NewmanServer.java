@@ -82,7 +82,7 @@ public class NewmanServer {
             logger.info("File {} not found", webDir.getAbsolutePath());
             String webDirInJar = NewmanServer.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
             if (webDirInJar.toLowerCase().endsWith(".jar")) {
-                webPath = webDirInJar + "!/web";
+                webPath = "jar:" +webDirInJar + "!/web";
             } else {
                 logger.error("can't find webdir, either set web dir using system property {} or run newman with java -jar newman-server-1.0.jar", WEB_FOLDER_PATH);
                 System.exit(1);
