@@ -45,11 +45,11 @@
                 <dt>Job Id</dt>
                 <dd>{{data.id}}</dd>
                 <dt>Submit Time</dt>
-                <dd>{{data.submitTime | formatDate}}</dd>
+                <dd title="{{data.submitTime | formatDate}}">{{data.submitTime | formatDateFromNow}}</dd>
                 <dt>Start Time</dt>
-                <dd>{{data.startTime | formatDate}}</dd>
+                <dd title="{{data.startTime | formatDate}}">{{data.startTime | formatDateFromNow}}</dd>
                 <dt>End Time</dt>
-                <dd>{{data.endTime | formatDate}}</dd>
+                <dd title="{{data.endTime | formatDate}}">{{data.endTime | formatDateFromNow}}</dd>
 
                 <dt>Test URI</dt>
                 <dd>{{data.testURI}}</dd>
@@ -86,8 +86,14 @@
             if(!date){
                 return date;
             }
-           return moment(new Date(date)).fromNow();
+           return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
       },
+        formatDateFromNow: function(date){
+            if(!date){
+                return date;
+            }
+            return moment(new Date(date)).fromNow();
+        },
       formatTotalTime: function(item){
             if(!item.endTime || !item.startTime){
                 return null;
