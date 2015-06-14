@@ -170,7 +170,7 @@
                 var arrayLength = this.data.length;
                 for (var i = 0; i < arrayLength; i++) {
                     var found = this.data[i];
-                    if(found.id == job.id){
+                    if(found.id == this.jobId){
                         window.app.update(job, found);
                         return;
                     }
