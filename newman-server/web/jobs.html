@@ -73,7 +73,7 @@
                             </td>
                             <td title="{{item.suite.name}}"><a href="{{urlFor('suite', {id: item.suite.id})}}">{{item.suite.name}}</a>
                             </td>
-                            <td>{{item.submitTime | formatDate}}</td>
+                            <td title="{{item.submitTime | formatDate}}">{{item.submitTime | formatDateFromNow}}</td>
                             <td title="{{item.testURI}}">{{item.testURI}}</td>
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
                             <td>{{item.runningTests}}</td>
@@ -125,9 +125,12 @@
           return res;
       },
 
-      formatDate: function(date){
-           return moment(new Date(date)).fromNow();
-      },
+        formatDate: function(date){
+            return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
+        },
+        formatDateFromNow: function(date){
+            return moment(new Date(date)).fromNow();
+        },
       ajaxResponse: function(event,resp){
            this.allValues = resp.response.values;
            this.allValues.forEach(window.app.jobProgressPercent);
