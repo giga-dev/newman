@@ -10,6 +10,7 @@
                  on-modified-job="{{onModifiedJob}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <link rel="stylesheet" href="app.css">
         <style>
             .table-nowrap {
             table-layout:fixed;
@@ -61,7 +62,7 @@
                     <tbody>
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
-                            <td>
+                            <td class="switch-td">
                                 <newman-switch active="{{item.state != 'PAUSED' && item.state != 'DONE'}}"
                                                value="{{item.id}}"></newman-switch>
                             </td>
