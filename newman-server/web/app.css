@@ -65,7 +65,13 @@ body{
     padding-top: 0px !important;
 }
 
+.newman-job-state-label{
+    font-size: 12px !important;
+}
 
+.newman-job-table-cell{
+    padding: 2px 0px 3px 0px;
+}
 
 
 

@@ -2,11 +2,13 @@
 
 <link rel="import" href="routes.html">
 <link rel="import" href="job-progress.html">
+<link rel="import" href="job-state.html">
 <link rel="import" href="newman-switch.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
 <polymer-element name="job-info" attributes="url data" on-modified-job="{{onModifiedJob}}">
     <template>
+        <link rel="stylesheet" href="app.css">
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <style>
             paper-toggle-button#pause::shadow [checked] .toggle-ink {
@@ -32,37 +34,40 @@
 
             <dl class="dl-horizontal">
                 <template if="{{data.build.id}}">
-                    <dt>Build</dt>
-                    <dd><a href="{{urlFor('build', {id: data.build.id})}}">{{data.build.name}}</a></dd>
+                    <dt class="newman-job-table-cell">Build</dt>
+                    <dd class="newman-job-table-cell"><a href="{{urlFor('build', {id: data.build.id})}}">{{data.build.name}}</a></dd>
                 </template>
-                <dt>State</dt>
-                <dt>Progress</dt>
-                <dd>
+                <dt class="newman-job-table-cell">State</dt>
+                <dd class="newman-job-table-cell">
+                    <job-state job="{{data}}"></job-state>
+                </dd>
+                <dt class="newman-job-table-cell">Progress</dt>
+                <dd class="newman-job-table-cell">
                     <job-progress job="{{data}}"></job-progress>
                 </dd>
-                <dt>Suite</dt>
-                <dd>{{data.suite.name}}</dd>
-                <dt>Job Id</dt>
-                <dd>{{data.id}}</dd>
-                <dt>Submit Time</dt>
-                <dd title="{{data.submitTime | formatDate}}">{{data.submitTime | formatDateFromNow}}</dd>
-                <dt>Start Time</dt>
-                <dd title="{{data.startTime | formatDate}}">{{data.startTime | formatDateFromNow}}</dd>
-                <dt>End Time</dt>
-                <dd title="{{data.endTime | formatDate}}">{{data.endTime | formatDateFromNow}}</dd>
+                <dt class="newman-job-table-cell">Suite</dt>
+                <dd class="newman-job-table-cell">{{data.suite.name}}</dd>
+                <dt class="newman-job-table-cell">Job Id</dt>
+                <dd class="newman-job-table-cell">{{data.id}}</dd>
+                <dt class="newman-job-table-cell">Submit Time</dt>
+                <dd class="newman-job-table-cell" title="{{data.submitTime | formatDate}}">{{data.submitTime | formatDateFromNow}}</dd>
+                <dt class="newman-job-table-cell">Start Time</dt>
+                <dd class="newman-job-table-cell" title="{{data.startTime | formatDate}}">{{data.startTime | formatDateFromNow}}</dd>
+                <dt class="newman-job-table-cell">End Time</dt>
+                <dd class="newman-job-table-cell" title="{{data.endTime | formatDate}}">{{data.endTime | formatDateFromNow}}</dd>
 
-                <dt>Test URI</dt>
-                <dd>{{data.testURI}}</dd>
-                <dt>Submitted By</dt>
-                <dd>{{data.submittedBy}}</dd>
-                <dt>Number Of Tests</dt>
-                <dd>{{data.totalTests}}</dd>
-                <dt>Passed Tests</dt>
-                <dd>{{data.passedTests}}</dd>
-                <dt>Failed Tests</dt>
-                <dd>{{data.failedTests}}</dd>
-                <dt>Running Tests</dt>
-                <dd>{{data.runningTests}}</dd>
+                <dt class="newman-job-table-cell">Test URI</dt>
+                <dd class="newman-job-table-cell">{{data.testURI}}</dd>
+                <dt class="newman-job-table-cell">Submitted By</dt>
+                <dd class="newman-job-table-cell">{{data.submittedBy}}</dd>
+                <dt class="newman-job-table-cell">Number Of Tests</dt>
+                <dd class="newman-job-table-cell">{{data.totalTests}}</dd>
+                <dt class="newman-job-table-cell">Passed Tests</dt>
+                <dd class="newman-job-table-cell">{{data.passedTests}}</dd>
+                <dt class="newman-job-table-cell">Failed Tests</dt>
+                <dd class="newman-job-table-cell">{{data.failedTests}}</dd>
+                <dt class="newman-job-table-cell">Running Tests</dt>
+                <dd class="newman-job-table-cell">{{data.runningTests}}</dd>
             </dl>
         </template>
     </template>
@@ -122,12 +127,5 @@
 
 
     });
-
-
-
-
-
-
-
     </script>
 </polymer-element>

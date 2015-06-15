@@ -7,9 +7,7 @@ window.app.jobProgressPercent = function(job){
             return 0;
       }
       with(job){
-            if(state == 'READY'){
-                job.progressPercent = 100;
-            } else if(!totalTests){
+            if(!totalTests){
                 job.progressPercent = 0;
                 return 0;
             }else{

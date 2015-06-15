@@ -2,6 +2,7 @@
 
 <link rel="import" href="routes.html">
 <link rel="import" href="job-progress.html">
+<link rel="import" href="job-state.html">
 <link rel="import" href="newman-switch.html">
 <link rel="import" href="table-pagination.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
@@ -67,7 +68,12 @@
                                                value="{{item.id}}"></newman-switch>
                             </td>
                             <td>
-                                <job-progress job="{{item}}"></job-progress>
+                                <div><job-state job="{{item}}"></job-state></div>
+                                <template if="{{item.state != 'DONE'}}">
+                                    <div style="padding-top: 12px">
+                                        <job-progress job="{{item}}"></job-progress>
+                                    </div>
+                                </template>
                             </td>
                             <td><a href="{{urlFor('job', {id: item.id})}}">{{item.id}}</a></td>
                             <td title="{{item.build.name}}"><a href="{{urlFor('build', {id: item.build.id})}}">{{item.build.name}}</a>
