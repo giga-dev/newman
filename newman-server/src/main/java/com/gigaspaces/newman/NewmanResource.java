@@ -317,6 +317,7 @@ public class NewmanResource {
                                    @DefaultValue("false") @QueryParam("all") boolean all,
                                    @QueryParam("orderBy") List<String> orderBy,
                                    @QueryParam("jobId") String jobId, @Context UriInfo uriInfo) {
+        logger.info( "---getJobTests() jobId=" + jobId );
         Query<Test> query = testDAO.createQuery();
         if (jobId != null) {
             query.field("jobId").equal(jobId);
@@ -334,6 +335,7 @@ public class NewmanResource {
     @Path("test/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Test getTest(@PathParam("id") String id) {
+        logger.info( "---getTest() id=" + id );
         return testDAO.findOne(testDAO.createQuery().field("_id").equal(new ObjectId(id)));
     }
 
@@ -450,6 +452,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Test getTestToRun(Agent agent) {
+        logger.info( "---getTestToRun() agent=" + agent );
         agent.setLastTouchTime(new Date());
         Agent foundAgent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agent.getName()));
         if (foundAgent == null) {
@@ -499,6 +502,7 @@ public class NewmanResource {
 
     private Test getMatchingTest(Agent agent) {
         Query<Test> query = testDAO.createQuery();
+        logger.info( "---getMatchingTest() agent=" + agent.getJobId() );
         if (agent.getJobId() != null) {
             query.criteria("jobId").equal(agent.getJobId());
         } else {
@@ -514,6 +518,7 @@ public class NewmanResource {
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
+        logger.info( "---getTest() joIIIIDD=" + jobId );
         Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
         if (agent == null) {
             logger.error("bad request unknown agent {}", name);
@@ -533,18 +538,25 @@ public class NewmanResource {
         if (result != null) {
             agentUpdateOps.set("currentTest", result.getId());
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
-            Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateJobStatus);
-            UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.runningTests");
-            if (job.getStartTime() == null) {
-                updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
-                job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateJobStatus);
-                buildUpdateOperations.inc("buildStatus.runningJobs").dec("buildStatus.pendingJobs");
+            Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
+            logger.info( "---getTest() jobbbbb=" + job );
+            if( job != null ) {
+                logger.info("---getTest() jobbbbb state=" + job.getState());
+                UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.runningTests");
+                if (job.getStartTime() == null) {
+                    updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
+                    job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
+                    buildUpdateOperations.inc("buildStatus.runningJobs").dec("buildStatus.pendingJobs");
+                }
+                Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()),
+                        buildUpdateOperations);
+                broadcastMessage(MODIFIED_TEST, result);
+                broadcastMessage(MODIFIED_JOB, job);
+                broadcastMessage(MODIFIED_BUILD, build);
             }
-            Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()),
-                    buildUpdateOperations);
-            broadcastMessage(MODIFIED_TEST, result);
-            broadcastMessage(MODIFIED_JOB, job);
-            broadcastMessage(MODIFIED_BUILD, build);
+            else{
+                return null;
+            }
         }
 
         agent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, true);
