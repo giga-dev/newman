@@ -60,13 +60,7 @@
                     </thead>
                     <tbody>
                     <template repeat="{{item in pages[currentPage]}}">
-                        <template if="{{item.passedTests!=item.totalTests}}">
-                            {{setBackgroundColor('#F5F5F5')}}
-                        </template>
-                        <template if="{{item.passedTests==item.totalTests}}">
-                            {{setBackgroundColor('#E0FFC4')}}
-                        </template>
-                        <tr style="background-color:{{getBackgroundColor()}}">
+                        <tr class="{{{'succeed-row' : item.passedTests == item.totalTests, 'default-row' : item.passedTests != item.totalTests} | tokenList}}">
                             <td class="switch-td">
                                 <newman-switch active="{{item.state != 'PAUSED' && item.state != 'DONE'}}"
                                                value="{{item.id}}"></newman-switch>
@@ -105,7 +99,6 @@
     <script>
     Polymer({
       applyAuthorStyles: true,
-      backgroundColor: '',
 
       created: function() {
           this.filter = null;
@@ -197,13 +190,7 @@
                     this.$.jobToggler.go();
                 }
             }
-      },
-        setBackgroundColor: function(color){
-            backgroundColor=color;
-        },
-        getBackgroundColor: function(color){
-            return backgroundColor;
-        }
+      }
     });
 
 

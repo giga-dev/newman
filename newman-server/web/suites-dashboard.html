@@ -40,13 +40,7 @@
                                 <th class="table-header">Submitted At</th>
                             </tr>
                             <template repeat="{{job in suite.jobs}}">
-                                <template if="{{job.failedTests>0}}">
-                                    {{setBackgroundColor('#F5F5F5')}}
-                                </template>
-                                <template if="{{job.totalTests==job.passedTests}}">
-                                    {{setBackgroundColor('#E0FFC4')}}
-                                </template>
-                                <tr style="background-color: {{getBackgroundColor()}}">
+                                <tr class="{{{'succeed-row' : job.passedTests == job.totalTests, 'default-row' : job.passedTests != job.totalTests} | tokenList}}">
                                     <td></td>
                                     <td><a href="{{urlFor('job', {id: job.id})}}">{{job.id}}</a></td>
                                     <td><a href="{{urlFor('build', {id: job.build.id})}}">{{job.build.name}}</a></td>
@@ -77,7 +71,6 @@
             data: [],
             allValues: [],
             filter: null,
-            backgroundColor: '',
 
             ajaxResponse: function(event,resp){
                 this.allValues = resp.response.entity;
@@ -94,13 +87,6 @@
                 this.data  = this.applyFilter(this.filter, this.allValues);
             },
 
-            setBackgroundColor: function(color){
-                backgroundColor=color;
-            },
-
-            getBackgroundColor: function(color){
-                return backgroundColor;
-            },
             applyFilter: function(filter, values){
                 /*console.log( 'filter:' , filter, ', values:', values );*/
                 if(values && filter != null && filter != undefined){
