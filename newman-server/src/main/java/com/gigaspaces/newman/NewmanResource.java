@@ -593,6 +593,19 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Job subscribe(final Agent agent) {
+        Agent found = agentDAO.findOne("name", agent.getName());
+        if(found != null){
+        // clear older agent data from other jobs.
+            if(found.getState() == Agent.State.PREPARING && found.getCurrentTest() != null && found.getJobId() != null){
+                // clear job data.
+                UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().dec("preparingAgents");
+                Job oldJob = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(found.getJobId()), updateJobStatus);
+                broadcastMessage(MODIFIED_JOB, oldJob);
+            }else if(found.getState() == Agent.State.RUNNING && found.getCurrentTest() != null && found.getJobId() != null){
+                // todo
+            }
+        }
+
         Query<Job> query = jobDAO.createQuery();
         query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
         query.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
@@ -613,7 +626,9 @@ public class NewmanResource {
         } else {
             updateOps.set("state", Agent.State.IDLING);
         }
+
         Agent readyAgent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, false, true);
+
 
         broadcastMessage(MODIFIED_AGENT, readyAgent);
         return job;
