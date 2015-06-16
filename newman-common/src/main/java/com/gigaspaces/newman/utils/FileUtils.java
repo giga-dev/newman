@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 
 
 public class FileUtils {
@@ -55,6 +56,10 @@ public class FileUtils {
 
     public static String readTextFile(InputStream is) throws IOException {
         return org.apache.commons.io.IOUtils.toString(is);
+    }
+
+    public static List readTextFileLines(InputStream is) throws IOException {
+        return org.apache.commons.io.IOUtils.readLines(is);
     }
 
     public static Path download(URL source, Path target) throws IOException {

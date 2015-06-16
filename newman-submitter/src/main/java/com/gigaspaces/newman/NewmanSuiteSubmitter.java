@@ -5,17 +5,13 @@ import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.beans.criteria.CriteriaBuilder;
 import com.gigaspaces.newman.beans.criteria.PatternCriteria;
 import com.gigaspaces.newman.beans.criteria.TestCriteria;
+import com.gigaspaces.newman.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
+import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.exclude;
@@ -101,23 +97,25 @@ public class NewmanSuiteSubmitter {
         return v;
     }
 
+    @SuppressWarnings("unchecked")
     private static Criteria[] getTestCriteriasFromPermutationURI(String permutationURI) throws Exception {
         List<Criteria> criterias = new ArrayList<>();
-        String line;
-
-        Path path = Paths.get(new URI(permutationURI));
-        try (BufferedReader br = Files.newBufferedReader(path, Charset.defaultCharset())) {
-            try {
-                while ((line = br.readLine()) != null) {
-                    if (line.length() <= 1)
-                        continue;
-                    if (line.charAt(0) == '#')
-                        continue;
-                    TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(line.split(" "));
-                    criterias.add(criteria);
-                }
-            } finally {
-                br.close();
+        InputStream is = null;
+        try {
+            is = URI.create(permutationURI).toURL().openStream();
+            List<String> permutations = FileUtils.readTextFileLines(is);
+            for (String permutation : permutations) {
+                if (permutation.length() <= 1)
+                    continue;
+                if (permutation.charAt(0) == '#')
+                    continue;
+                TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(permutation.split(" "));
+                criterias.add(criteria);
+            }
+        }
+        finally {
+            if (is != null) {
+                is.close();
             }
         }
         return criterias.toArray(new Criteria[criterias.size()]);
