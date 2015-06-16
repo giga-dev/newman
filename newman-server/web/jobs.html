@@ -46,21 +46,27 @@
                 <table class="table table-bordered table-striped table-nowrap table-hover">
                     <thead>
                     <tr>
-                        <th>State</th>
-                        <th>Progress</th>
+                        <th width="8%">State</th>
+                        <th width="8%">Progress</th>
                         <th>Job Id</th>
-                        <th>Build</th>
+                        <th width="6%">Build</th>
                         <th>Suite</th>
-                        <th>Submitted At</th>
+                        <th width="9%">Submitted At</th>
                         <th>Tests URI</th>
-                        <th>Submitted By</th>
+                        <th width="9%">Submitted By</th>
                         <th>#Preparing Agents</th>
                         <th width="15%"><span class="label label-info"># Running</span> <span class="label label-success"># Passed</span> <span class="label label-danger">Failed</span> <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{item in pages[currentPage]}}">
-                        <tr>
+                        <template if="{{item.passedTests!=item.totalTests}}">
+                            {{setBackgroundColor('#F5F5F5')}}
+                        </template>
+                        <template if="{{item.passedTests==item.totalTests}}">
+                            {{setBackgroundColor('#E0FFC4')}}
+                        </template>
+                        <tr style="background-color:{{getBackgroundColor()}}">
                             <td class="switch-td">
                                 <newman-switch active="{{item.state != 'PAUSED' && item.state != 'DONE'}}"
                                                value="{{item.id}}"></newman-switch>
@@ -99,6 +105,7 @@
     <script>
     Polymer({
       applyAuthorStyles: true,
+      backgroundColor: '',
 
       created: function() {
           this.filter = null;
@@ -190,7 +197,13 @@
                     this.$.jobToggler.go();
                 }
             }
-      }
+      },
+        setBackgroundColor: function(color){
+            backgroundColor=color;
+        },
+        getBackgroundColor: function(color){
+            return backgroundColor;
+        }
     });
 
 
