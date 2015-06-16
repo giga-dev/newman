@@ -55,10 +55,7 @@
                         <th>Tests URI</th>
                         <th>Submitted By</th>
                         <th>#Preparing Agents</th>
-                        <th>#Running Tests</th>
-                        <th>#Tests</th>
-                        <th>#Passed Tests</th>
-                        <th>#Failed Tests</th>
+                        <th width="15%"><span class="label label-info"># Running</span> <span class="label label-success"># Passed</span> <span class="label label-danger">Failed</span> <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -85,10 +82,7 @@
                             <td title="{{item.testURI}}">{{item.testURI}}</td>
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
                             <td>{{item.preparingAgents}}</td>
-                            <td>{{item.runningTests}}</td>
-                            <td>{{item.totalTests}}</td>
-                            <td>{{item.passedTests}}</td>
-                            <td>{{item.failedTests}}</td>
+                            <td><span class="label label-info">{{item.runningTests}}</span> / <span class="label label-success">{{item.passedTests}}</span> / <span class="label label-danger">{{item.failedTests}}</span> / <span class="label label-default">{{item.totalTests}}</span></td>
                         </tr>
                     </template>
 
