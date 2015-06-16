@@ -13,6 +13,10 @@
                 <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
                        class="form-control">
             </form>
+            <div class="form-group">
+                <table-pagination total="{{pages.length}}" current="{{currentPage}}"
+                                  on-page-change="{{onPageChange}}"></table-pagination>
+            </div>
             <div class="table-responsive">
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <thead>
@@ -26,7 +30,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <template repeat="{{item in data}}">
+                    <template repeat="{{item in pages[currentPage]}}">
                         <tr>
                             <td>{{item.name}}</td>
                             <td>{{item.state}}</td>
@@ -49,6 +53,8 @@
                     </tbody>
                 </table>
             </div>
+            <table-pagination total="{{pages.length}}" current="{{currentPage}}"
+                              on-page-change="{{onPageChange}}"></table-pagination>
         </div>
     </template>
 
@@ -61,11 +67,29 @@
           this.allValues = [];
           this.byId = {};
           this.data = [];
+          this.pages = [];
+          this.currentPage = 0;
       },
-
       runFilter: function(){
           this.data  = this.applyFilter(this.filter, this.allValues);
+          this.pages = this.splitToPages();
+          this.currentPage = 0;
       },
+        splitToPages: function(){
+            var res = [];
+            var current = [];
+            for(var i = 0; i < this.data.length; ++i){
+                current.push(this.data[i]);
+                if(current.length === 25){
+                    res.push(current);
+                    current = [];
+                }
+            }
+            if(0 < current.length){
+                res.push(current);
+            }
+            return res;
+        },
       formatDate: function(date){
            return moment(new Date(date)).fromNow();
       },
@@ -84,6 +108,9 @@
             }else{
                 return values;
             }
+      },
+      onPageChange : function(event){
+            this.currentPage = event.detail.currentPage;
       },
       onModifiedAgent : function(ev, agent){
           console.info("on modified agent");
