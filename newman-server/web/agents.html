@@ -3,7 +3,7 @@
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
-<polymer-element name="agent-table" attributes="url">
+<polymer-element name="agent-table" attributes="url" on-modified-agent="{{onModifiedAgent}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
@@ -18,6 +18,7 @@
                     <thead>
                     <tr>
                         <th>Name</th>
+                        <th>State</th>
                         <th>Host</th>
                         <th>Job</th>
                         <th>CurrentTest</th>
@@ -28,6 +29,7 @@
                     <template repeat="{{item in data}}">
                         <tr>
                             <td>{{item.name}}</td>
+                            <td>{{item.state}}</td>
                             <td>{{item.host}}</td>
                             <template if="{{item.jobId}}">
                                 <td><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
@@ -35,7 +37,12 @@
                             <template if="{{!item.jobId}}">
                                 <td></td>
                             </template>
-                            <td>{{item.currentTest}}</td>
+                            <template if="{{item.currentTest}}">
+                                <td><a href="{{urlFor('test', {id: item.currentTest})}}">{{item.currentTest}}</a></td>
+                            </template>
+                            <template if="{{!item.currentTest}}">
+                                <td></td>
+                            </template>
                             <td>{{item.lastTouchTime | formatDate}}</td>
                         </tr>
                     </template>
@@ -49,10 +56,13 @@
     <script>
     Polymer({
       applyAuthorStyles: true,
-      praise: 'cool',
-      filter: null,
-      allValues: [],
-      data: [],
+      created: function() {
+          this.filter = null;
+          this.allValues = [];
+          this.byId = {};
+          this.data = [];
+      },
+
       runFilter: function(){
           this.data  = this.applyFilter(this.filter, this.allValues);
       },
@@ -61,6 +71,9 @@
       },
       ajaxResponse: function(event,resp){
            this.allValues = resp.response.values;
+           this.addValues.each(function(agent){
+                this.byId[agent.id] = agent;
+           });
            this.runFilter();
       },
       applyFilter: function(filter, values){
@@ -71,6 +84,17 @@
             }else{
                 return values;
             }
+      },
+      onModifiedAgent : function(ev, agent){
+          console.info("on modified agent");
+          var found = this.byId[agent.id];
+          if(!found){
+                this.allValues.push(agent);
+                this.byId[agent.id] = agent;
+                this.runFilter();
+          }else{
+               window.app.update(agent, found);
+          }
       }
     });
 

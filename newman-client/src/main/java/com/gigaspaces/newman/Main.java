@@ -35,10 +35,12 @@ public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanClient.class);
 
-    private static int NUMBER_OF_BUILDS = 2;
-    private static int NUMBER_OF_SUITES_PER_BUILD = 3;
-    private static int NUMBER_OF_JOBS_PER_SUITE = 6;
-    private static long DELAY_BETWEEN_TESTS_MS = 10;
+    private static int NUMBER_OF_BUILDS = 1;
+    private static int NUMBER_OF_SUITES_PER_BUILD = 1;
+    private static int NUMBER_OF_JOBS_PER_SUITE = 2;
+    private static long DELAY_BETWEEN_TESTS_MS = 1000;
+    private static long TEST_PROCESS_TIME_MS = 1000;
+    private static long PREPARE_JOB_TIME_MS = 5000;
 
     public static NewmanClient createNewmanClient() throws KeyManagementException, NoSuchAlgorithmException {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -115,7 +117,7 @@ public class Main {
             if (job.getTotalTests() != 0) {
                 continue; //ignore job with tests
             }
-            for (int i = 0; i < 3*10; i++) {
+            for (int i = 0; i < 3 * 10; i++) {
                 Test test = new Test();
                 test.setJobId(job.getId());
                 test.setName("test_" + i);
@@ -132,18 +134,27 @@ public class Main {
         agent.setName("foo");
         agent.setHost(InetAddress.getLocalHost().getCanonicalHostName());
 
+        //noinspection InfiniteLoopStatement
         while(true) {
             Job job = newmanClient.subscribe(agent).toCompletableFuture().get();
             logger.info("agent {} subscribe to {}", agent.getName(), job);
             if (job == null) {
-                return;
+                Thread.sleep(1000);
+                // continue to try maybe there are paused job or there will be new job some time later.
+                continue;
+            }else{
+                logger.info("agent {} preparing folder for processing {}, it should take {} millis", agent.getName(), job, PREPARE_JOB_TIME_MS);
+                Thread.sleep(PREPARE_JOB_TIME_MS);
             }
             Random rand = new Random(System.currentTimeMillis());
             int i = 0;
             while (true) {
                 Test test = newmanClient.getReadyTest("foo", job.getId()).toCompletableFuture().get();
-                logger.info("agent took test {}", test);
-                if (test == null) {
+
+                if (test != null) {
+                    logger.info("agent took test {}", test);
+                    Thread.sleep(TEST_PROCESS_TIME_MS);
+                }else{
                     break;
                 }
                 if (rand.nextInt() % 9 != 0) {
@@ -160,8 +171,8 @@ public class Main {
                     DashboardData dashboard = newmanClient.getDashboard().toCompletableFuture().get();
                     logger.info("----------------- dashboard data is {}", dashboard);
                 }
-                Thread.sleep(DELAY_BETWEEN_TESTS_MS);
                 i += 1;
+                Thread.sleep(DELAY_BETWEEN_TESTS_MS);
             }
         }
     }

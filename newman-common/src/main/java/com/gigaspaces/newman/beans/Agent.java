@@ -21,6 +21,7 @@ public class Agent {
     private String jobId;
     private Date lastTouchTime;
     private String currentTest;
+    private Agent.State state;
 
     public Agent() {
     }
@@ -57,6 +58,7 @@ public class Agent {
         this.jobId = jobId;
     }
 
+    @SuppressWarnings("unused")
     public Date getLastTouchTime() {
         return lastTouchTime;
     }
@@ -65,12 +67,22 @@ public class Agent {
         this.lastTouchTime = lastTouchTime;
     }
 
+    @SuppressWarnings("unused")
     public String getCurrentTest() {
         return currentTest;
     }
 
+    @SuppressWarnings("unused")
     public void setCurrentTest(String currentTest) {
         this.currentTest = currentTest;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
     }
 
     @Override
@@ -78,10 +90,15 @@ public class Agent {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
                 .append("id", id)
                 .append("name", name)
+                .append("state", state)
                 .append("host", host)
                 .append("jobId", jobId)
                 .append("currentTest", currentTest)
                 .append("lastTouchTime", lastTouchTime)
                 .toString();
+    }
+
+    public enum State{
+        IDLING, PREPARING, RUNNING
     }
 }

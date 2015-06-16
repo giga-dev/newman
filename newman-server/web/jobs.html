@@ -54,6 +54,7 @@
                         <th>Submitted At</th>
                         <th>Tests URI</th>
                         <th>Submitted By</th>
+                        <th>#Preparing Agents</th>
                         <th>#Running Tests</th>
                         <th>#Tests</th>
                         <th>#Passed Tests</th>
@@ -83,6 +84,7 @@
                             <td title="{{item.submitTime | formatDate}}">{{item.submitTime | formatDateFromNow}}</td>
                             <td title="{{item.testURI}}">{{item.testURI}}</td>
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
+                            <td>{{item.preparingAgents}}</td>
                             <td>{{item.runningTests}}</td>
                             <td>{{item.totalTests}}</td>
                             <td>{{item.passedTests}}</td>

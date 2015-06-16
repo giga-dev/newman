@@ -32,6 +32,7 @@ public class Job {
     private int passedTests;
     private int failedTests;
     private int runningTests;
+    private int preparingAgents;
 
 
     public Job() {
@@ -142,6 +143,14 @@ public class Job {
         this.suite = suite;
     }
 
+    public int getPreparingAgents() {
+        return preparingAgents;
+    }
+
+    public void setPreparingAgents(int preparingAgents) {
+        this.preparingAgents = preparingAgents;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
@@ -158,6 +167,7 @@ public class Job {
                 .append("passedTests", passedTests)
                 .append("failedTests", failedTests)
                 .append("runningTests", runningTests)
+                .append("preparingAgents", preparingAgents)
                 .toString();
     }
 }
