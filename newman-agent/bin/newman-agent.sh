@@ -15,4 +15,9 @@
 # newman agent home directory
 #NEMAN_AGENT_HOME=${USER}/newman-agent
 
-java -Dnewman.agent.home=${NEMAN_AGENT_HOME} -Dnewman.agent.hostname=`hostname`  -Dnewman.agent.server-host=${NEWMAN_SERVER_HOST} -Dnewman.agent.server-port=${NEWMAN_SERVER_PORT} -Dnewman.agent.server-rest-user=${NEWMAN_USERNAME} -Dnewman.agent.server-rest-pw=${NEWMAN_PASSWORD} -jar ../target/newman-agent-1.0.jar
+# newman agent workers, if not set default to 5
+if [ -z "${JAVA_HOME}" ]; then
+   NEWMAN_AGENT_WORKERS=5
+fi
+
+java -Dnewman.agent.workers=${NEWMAN_AGENT_WORKERS} -Dnewman.agent.home=${NEMAN_AGENT_HOME} -Dnewman.agent.hostname=`hostname`  -Dnewman.agent.server-host=${NEWMAN_SERVER_HOST} -Dnewman.agent.server-port=${NEWMAN_SERVER_PORT} -Dnewman.agent.server-rest-user=${NEWMAN_USERNAME} -Dnewman.agent.server-rest-pw=${NEWMAN_PASSWORD} -jar ../target/newman-agent-1.0.jar
