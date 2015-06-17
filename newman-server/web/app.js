@@ -49,6 +49,13 @@ window.addEventListener('polymer-ready', function(e) {
         return Object.keys(object);
     }
 
+    PolymerExpressions.prototype.sortKeysByLength=  function(arr){
+        arr.sort(function(s1,s2) {
+                    return s1.length - s2.length ;
+        });
+        return arr;
+    }
+
     if (!Array.prototype.find) {
       Array.prototype.find = function(predicate) {
         if (this == null) {
