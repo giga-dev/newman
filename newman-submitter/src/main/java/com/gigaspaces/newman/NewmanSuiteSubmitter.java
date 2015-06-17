@@ -107,7 +107,7 @@ public class NewmanSuiteSubmitter {
             for (String permutation : permutations) {
                 if (permutation.length() <= 1)
                     continue;
-                if (permutation.charAt(0) == '#')
+                if (permutation.trim().charAt(0) == '#')
                     continue;
                 TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(permutation.split(" "));
                 criterias.add(criteria);
