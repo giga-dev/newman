@@ -205,8 +205,8 @@ public class NewmanResource {
     @Path("dashboard")
     @Produces(MediaType.APPLICATION_JSON)
     public DashboardData getActiveJobGroup(@Context UriInfo uriInfo) {
-        List<Build> activeBuilds = buildDAO.find(buildDAO.createQuery().where("this.buildStatus.doneJobs < this.buildStatus.totalJobs").order("-buildTime")).asList();
-        List<Build> historyBuilds = buildDAO.find(buildDAO.createQuery().where("this.buildStatus.doneJobs == this.buildStatus.totalJobs").limit(5).order("-buildTime")).asList();
+        List<Build> activeBuilds = buildDAO.find(buildDAO.createQuery().where("this.buildStatus.totalJobs>0").where("this.buildStatus.doneJobs < this.buildStatus.totalJobs").order("-buildTime")).asList();
+        List<Build> historyBuilds = buildDAO.find(buildDAO.createQuery().where("this.buildStatus.totalJobs>0").where("this.buildStatus.doneJobs == this.buildStatus.totalJobs").limit(5).order("-buildTime")).asList();
         return new DashboardData(activeBuilds, historyBuilds);
     }
 
