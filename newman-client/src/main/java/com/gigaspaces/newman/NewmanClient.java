@@ -97,6 +97,9 @@ public class NewmanClient {
     public CompletionStage<String> ping(String agentName, String jobId, String testId) {
         return restClient.target(uri).path("ping").path(agentName).path(jobId).path(testId).request().rx().get(String.class);
     }
+    public CompletionStage<String> ping(String agentName, String jobId) {
+        return restClient.target(uri).path("ping").path(agentName).path(jobId).request().rx().get(String.class);
+    }
 
     public CompletionStage<Agent> getAgent(String agentName) {
         return restClient.target(uri).path("agent").path(agentName).request().rx().get(Agent.class);
