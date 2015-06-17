@@ -145,7 +145,7 @@ public class NewmanAgent {
                     return job;
                 logger.info("Agent did not find a job to run, will try again in {} ms", config.getJobPollInterval());
             } catch (ExecutionException e) {
-                logger.warn("Agent failed while polling for a job (retry in {} ms): " + e, config.getJobPollInterval());
+                logger.warn("Agent failed while polling newman-server at {} for a job (retry in {} ms): " + e, config.getNewmanServerHost(), config.getJobPollInterval());
             }
             Thread.sleep(config.getJobPollInterval());
         }
