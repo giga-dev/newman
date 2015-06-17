@@ -18,12 +18,13 @@
     var event_mapping = {
         'created-suite' : "suites-dashboard",
         'modified-agent' : "agent-table",
-        'modified-job' : "jobs-table, job-info, suites-dashboard",
+        'modified-job' : "jobs-table, job-info",
         'created-job' : "jobs-table",
         'created-test' : "tests-table",
         'modified-test' : "tests-table",
-        'modified-build' : "dashboard-view, suites-dashboard",
-        'created-build' : "dashboard-view"
+        'modified-build' : "dashboard-view",
+        'created-build' : "dashboard-view",
+        'modified-suite' : "suites-dashboard"
     };
     Polymer('sse-sender', {
       ready: function(){
@@ -86,9 +87,8 @@
                 source.addEventListener("modified-test", handler.bind(this), false);
                 source.addEventListener("modified-build", handler.bind(this), false);
                 source.addEventListener("created-build", handler.bind(this), false);
+                source.addEventListener("modified-suite", handler.bind(this), false);
             }
-
-
       }
     });
   </script>

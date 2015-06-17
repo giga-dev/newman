@@ -5,7 +5,7 @@
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
 
-<polymer-element name="suites-dashboard" attributes="url" on-created-suite="{{onCreatedSuite}}" on-modified-build="{{onModifiedBuild}}" on-modified-job="{{onModifiedJob}}">
+<polymer-element name="suites-dashboard" attributes="url" on-created-suite="{{onCreatedSuite}}" on-modified-suite="{{onModifiedSuite}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <link rel="stylesheet" href="app.css">
@@ -105,27 +105,24 @@
                     return values;
                 }
             },
-            onCreatedSuite: function(ev, suite){
-                console.log( '--suites-dashboard, onCreatedSuite--,', suite );
-                this.byId[suite.id] = suite;
-                this.allValues.unshift(suite);
+            onCreatedSuite: function(ev, suiteWithJob){
+                console.log( '--suites-dashboard, onCreatedSuite--,', suiteWithJob );
+                this.byId[suiteWithJob.id] = suiteWithJob;
+                this.allValues.unshift(suiteWithJob);
                 this.runFilter();
             },
-            onModifiedBuild: function(ev, build){
-                console.log( '--suites-dashboard, onModifiedBuild', build );
-            },
-            onModifiedJob:function(ev, job){
-                var suite = job.suite;
-                console.log( '--suites-dashboard, onModifiedJob', job, 'job id:', job.id, 'job suite:', suite );
-/*                var found = this.byId[suite.id];
+            onModifiedSuite:function(ev, suiteWithJob){
+                var suite = suiteWithJob.suite;
+                console.log( '--suites-dashboard, onModifiedSuite', suiteWithJob );
+                var found = this.byId[suiteWithJob.id];
                 if(!found){
-                    this.allValues.push(suite);
-                    this.byId[suite.id] = suite;
+                    this.allValues.push(suiteWithJob);
+                    this.byId[suiteWithJob.id] = suiteWithJob;
                     this.runFilter();
                 }
                 else{
-                    window.app.update(suite, found);
-                }*/
+                    window.app.update(suiteWithJob, found);
+                }
             }
         });
     </script>

@@ -56,6 +56,7 @@ public class NewmanResource {
     public static final String MODIFIED_AGENT = "modified-agent";
     public static final String CREATED_BUILD = "created-build";
     public static final String CREATED_SUITE = "created-suite";
+    public static final String MODIFIED_SUITE = "modified-suite";
 
     private final SseBroadcaster broadcaster;
     private final MongoClient mongoClient;
@@ -67,6 +68,8 @@ public class NewmanResource {
     private final Config config;
     private static final String SERVER_UPLOAD_LOCATION_FOLDER = "web/logs";
     private final Timer timer = new Timer(true);
+
+    private static final int maxJobsPerSuite = 5;
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
@@ -160,6 +163,7 @@ public class NewmanResource {
             build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(build.getId()), buildUpdateOperations);
             broadcastMessage(CREATED_JOB, job);
             broadcastMessage(MODIFIED_BUILD, build);
+            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( suite ) );
             return job;
         } else {
             return null;
@@ -189,6 +193,7 @@ public class NewmanResource {
                 UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", state);
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
                 broadcastMessage(MODIFIED_JOB, job);
+//                broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( job.getSuite() ) );
                 return job;
             }
         }
@@ -258,6 +263,7 @@ public class NewmanResource {
             broadcastMessage(MODIFIED_BUILD, build);
             broadcastMessage(CREATED_TEST, test);
             broadcastMessage(MODIFIED_JOB, job);
+//            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( job.getSuite() ) );
             return test;
         } else {
             throw new BadRequestException("Can't add test, job does not exists: " + test);
@@ -319,6 +325,7 @@ public class NewmanResource {
         broadcastMessage(MODIFIED_BUILD, build);
         broadcastMessage(MODIFIED_TEST, result);
         broadcastMessage(MODIFIED_JOB, job);
+        broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( job.getSuite() ) );
         return result;
     }
 
@@ -509,6 +516,7 @@ public class NewmanResource {
         //send event to clients.
         broadcastMessage(MODIFIED_TEST, result);
         broadcastMessage(MODIFIED_JOB, job);
+//        broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( job.getSuite() ) );
         broadcastMessage(MODIFIED_AGENT, foundAgent);
         return result;
     }
@@ -568,6 +576,7 @@ public class NewmanResource {
                         buildUpdateOperations);
                 broadcastMessage(MODIFIED_TEST, result);
                 broadcastMessage(MODIFIED_JOB, job);
+//                broadcastMessage(MODIFIED_SUITE,createSuiteWithJobs( job.getSuite() ) );
                 broadcastMessage(MODIFIED_BUILD, build);
             } else {
                 // return the test to the pool.
@@ -579,6 +588,7 @@ public class NewmanResource {
                 broadcastMessage(MODIFIED_AGENT, agent);
                 if (pj != null) {
                     broadcastMessage(MODIFIED_JOB, pj);
+//                    broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( pj.getSuite() ) );
                 }
                 return null;
             }
@@ -601,6 +611,7 @@ public class NewmanResource {
                 UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().dec("preparingAgents");
                 Job oldJob = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(found.getJobId()), updateJobStatus);
                 broadcastMessage(MODIFIED_JOB, oldJob);
+                broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( oldJob.getSuite() ) );
             }else if(found.getState() == Agent.State.RUNNING && found.getCurrentTest() != null && found.getJobId() != null){
                 // todo
             }
@@ -623,6 +634,7 @@ public class NewmanResource {
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("preparingAgents");
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), updateJobStatus);
             broadcastMessage(MODIFIED_JOB, job);
+            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( job.getSuite() ) );
         } else {
             updateOps.set("state", Agent.State.IDLING);
         }
@@ -804,31 +816,37 @@ public class NewmanResource {
         logger.info("--- getAllSuitesWithJobs() START ---");
         Query<Suite> suitesQuery = suiteDAO.createQuery();
 
-        final int maxJobsPerSuite = 5;
-
         List<Suite> suites = suiteDAO.find(suitesQuery).asList();
         logger.info("--- getAllSuitesWithJobs(), suites count ---" + suites.size());
         List<SuiteWithJobs> suitesWithJobs = new ArrayList<>(suites.size());
-        for (Suite suite : suites) {
-            String suiteId = suite.getId();
-            logger.info("--- getAllSuitesWithJobs() within for(), suite id:" + suiteId + ", suite name:" + suite.getName());
-            Query<Job> jobsQuery = jobDAO.createQuery();
-            jobsQuery.field("suite.id").equal(suiteId);
-            jobsQuery.criteria("state").equal(State.DONE);
-            jobsQuery.order("endTime").limit(maxJobsPerSuite);
+        for( Suite suite : suites ) {
 
-            List<Job> jobsList = jobDAO.find(jobsQuery).asList();
-            logger.info("--- getAllSuitesWithJobs(), jobs list size:" + jobsList.size());
-            logger.info("--- getAllSuitesWithJobs(), jobs:" + Arrays.toString(jobsList.toArray(new Job[jobsList.size()])));
-
-            suitesWithJobs.add(new SuiteWithJobs(suite, jobsList));
+            suitesWithJobs.add( createSuiteWithJobs( suite ) );
         }
 
+        //reverse map in order to display first latest suites
+        Collections.reverse(suitesWithJobs);
         logger.info("--- getAllSuitesWithJobs() END ---");
 
         return Response.ok(Entity.json(suitesWithJobs)).build();
     }
 
+    private SuiteWithJobs createSuiteWithJobs( Suite suite ){
+
+        String suiteId = suite.getId();
+        Query<Job> jobsQuery = jobDAO.createQuery();
+        jobsQuery.field("suite.id").equal(suiteId);
+        jobsQuery.criteria("state").equal(State.DONE);
+        jobsQuery.order("endTime").limit(maxJobsPerSuite);
+
+        List<Job> jobsList = jobDAO.find(jobsQuery).asList();
+/*
+        logger.info("--- getAllSuitesWithJobs(), jobs list size:" + jobsList.size());
+        logger.info("--- getAllSuitesWithJobs(), jobs:" + Arrays.toString(jobsList.toArray(new Job[jobsList.size()])));
+*/
+
+        return new SuiteWithJobs( suite, jobsList );
+    }
 
     @GET
     @Path("event")
