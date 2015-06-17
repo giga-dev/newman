@@ -1,11 +1,14 @@
 package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.utils.ToStringBuilder;
+import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Barak Bar Orion
@@ -20,10 +23,12 @@ public class Agent {
     private String host;
     private String jobId;
     private Date lastTouchTime;
-    private String currentTest;
+    @Embedded
+    private Set<String> currentTests;
     private Agent.State state;
 
     public Agent() {
+        currentTests = new HashSet<>();
     }
 
     public String getId() {
@@ -67,15 +72,6 @@ public class Agent {
         this.lastTouchTime = lastTouchTime;
     }
 
-    @SuppressWarnings("unused")
-    public String getCurrentTest() {
-        return currentTest;
-    }
-
-    @SuppressWarnings("unused")
-    public void setCurrentTest(String currentTest) {
-        this.currentTest = currentTest;
-    }
 
     public State getState() {
         return state;
@@ -83,6 +79,14 @@ public class Agent {
 
     public void setState(State state) {
         this.state = state;
+    }
+
+    public Set<String> getCurrentTests() {
+        return currentTests;
+    }
+
+    public void setCurrentTests(Set<String> currentTests) {
+        this.currentTests = currentTests;
     }
 
     @Override
@@ -93,7 +97,7 @@ public class Agent {
                 .append("state", state)
                 .append("host", host)
                 .append("jobId", jobId)
-                .append("currentTest", currentTest)
+                .append("currentTests", currentTests)
                 .append("lastTouchTime", lastTouchTime)
                 .toString();
     }

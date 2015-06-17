@@ -23,7 +23,7 @@ public class SuiteWithJobs {
     }
 
     public SuiteWithJobs( Suite suite ) {
-        this( suite, Collections.EMPTY_LIST );
+        this( suite, Collections.emptyList() );
     }
 
     public SuiteWithJobs(Suite suite, List<Job> jobsList) {
