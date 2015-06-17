@@ -3,6 +3,7 @@ package com.gigaspaces.newman.beans;
 import org.mongodb.morphia.annotations.Id;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -19,6 +20,10 @@ public class SuiteWithJobs {
     private List<Job> jobs = new ArrayList<Job>();
 
     public SuiteWithJobs() {
+    }
+
+    public SuiteWithJobs( Suite suite ) {
+        this( suite, Collections.EMPTY_LIST );
     }
 
     public SuiteWithJobs(Suite suite, List<Job> jobsList) {

@@ -6,12 +6,10 @@
 <polymer-element name="agent-table" attributes="url" on-modified-agent="{{onModifiedAgent}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
-        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
-                   withCredentials="true"></core-ajax>
+        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
         <div class="content" flex>
             <form class="form-inline">
-                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
-                       class="form-control">
+                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter" class="form-control">
             </form>
             <div class="form-group">
                 <table-pagination total="{{pages.length}}" current="{{currentPage}}"
@@ -95,8 +93,9 @@
       },
       ajaxResponse: function(event,resp){
            this.allValues = resp.response.values;
-           this.addValues.each(function(agent){
-                this.byId[agent.id] = agent;
+           var that = this;
+           this.allValues.forEach(function(agent){
+                that.byId[agent.id] = agent;
            });
            this.runFilter();
       },
@@ -113,7 +112,6 @@
             this.currentPage = event.detail.currentPage;
       },
       onModifiedAgent : function(ev, agent){
-          console.info("on modified agent");
           var found = this.byId[agent.id];
           if(!found){
                 this.allValues.push(agent);
@@ -124,9 +122,5 @@
           }
       }
     });
-
-
-
-
     </script>
 </polymer-element>

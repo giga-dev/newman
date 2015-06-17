@@ -16,13 +16,13 @@
 
 
     var event_mapping = {
-        'created-suite' : "",
+        'created-suite' : "suites-dashboard",
         'modified-agent' : "agent-table",
-        'modified-job' : "jobs-table, job-info",
+        'modified-job' : "jobs-table, job-info, suites-dashboard",
         'created-job' : "jobs-table",
         'created-test' : "tests-table",
         'modified-test' : "tests-table",
-        'modified-build' : "dashboard-view",
+        'modified-build' : "dashboard-view, suites-dashboard",
         'created-build' : "dashboard-view"
     };
     Polymer('sse-sender', {
@@ -61,6 +61,7 @@
                     var type = e.type;
                     var details = JSON.parse(e.data);
                     var selectors = event_mapping[type];
+                    console.log( '--handle events, ', type );
                     var hooks = this.before_hooks[type];
                     if(hooks){
                         hooks.forEach(function(hook){

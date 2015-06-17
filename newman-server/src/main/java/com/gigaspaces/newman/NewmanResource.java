@@ -766,7 +766,8 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Suite addSuite(Suite suite) {
         suiteDAO.save(suite);
-        broadcastMessage(CREATED_SUITE, suite);
+        logger.info( "---addSuite---" + suite );
+        broadcastMessage(CREATED_SUITE, new SuiteWithJobs( suite ) );
         return suite;
     }
 
@@ -863,6 +864,8 @@ public class NewmanResource {
 
             broadcaster.broadcast(event);
         } catch (Throwable ignored) {
+            logger.error( "Invoking of broadcastMessage() failed due the [" + ignored.toString() + "], type=" + type + ", value:" + value );
+            ignored.printStackTrace();
         }
     }
 

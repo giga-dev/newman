@@ -1,9 +1,11 @@
 <script src="../components/webcomponentsjs/webcomponents.js"></script>
 
 <link rel="import" href="routes.html">
+<link rel="import" href="newman-switch.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
-<polymer-element name="suites-dashboard" attributes="url">
+
+<polymer-element name="suites-dashboard" attributes="url" on-created-suite="{{onCreatedSuite}}" on-modified-build="{{onModifiedBuild}}" on-modified-job="{{onModifiedJob}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <link rel="stylesheet" href="app.css">
@@ -13,7 +15,6 @@
 
         <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}"
                    withCredentials="true"></core-ajax>
-
         <div class="content" flex>
             <form class="form-inline">
                 <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Suite name filter" class="form-control">
@@ -65,18 +66,24 @@
         </div>
     </template>
 
+    <script src="../components/moment/moment.js"></script>
     <script>
         Polymer({
             applyAuthorStyles: true,
             data: [],
             allValues: [],
+            byId : {},
             filter: null,
 
             ajaxResponse: function(event,resp){
+                console.log( '--suites-dashboard, ajaxResponse, byId=', this.byId );
                 this.allValues = resp.response.entity;
+                var that = this;
+                this.allValues.forEach(function(suite){
+                    console.log( '--suites-dashboard, within in forEach, suite.id=', suite.id, ', this.byId=', that.byId );
+                    that.byId[suite.id] = suite;
+                });
                 this.runFilter();
-/*                this.data = resp.response.entity;
-                console.log( this.data );*/
             },
 
             formatDate: function(date){
@@ -97,6 +104,28 @@
                 else{
                     return values;
                 }
+            },
+            onCreatedSuite: function(ev, suite){
+                console.log( '--suites-dashboard, onCreatedSuite--,', suite );
+                this.byId[suite.id] = suite;
+                this.allValues.unshift(suite);
+                this.runFilter();
+            },
+            onModifiedBuild: function(ev, build){
+                console.log( '--suites-dashboard, onModifiedBuild', build );
+            },
+            onModifiedJob:function(ev, job){
+                var suite = job.suite;
+                console.log( '--suites-dashboard, onModifiedJob', job, 'job id:', job.id, 'job suite:', suite );
+/*                var found = this.byId[suite.id];
+                if(!found){
+                    this.allValues.push(suite);
+                    this.byId[suite.id] = suite;
+                    this.runFilter();
+                }
+                else{
+                    window.app.update(suite, found);
+                }*/
             }
         });
     </script>
