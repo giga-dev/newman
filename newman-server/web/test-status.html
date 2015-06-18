@@ -14,8 +14,7 @@
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <div class="progress">
                 <div class="progress-bar {{{'progress-bar-danger' : test.status == 'FAIL', 'progress-bar-success' : test.status == 'SUCCESS', 'progress-bar-info' : test.status == 'RUNNING'} | tokenList}}"
-                     role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width: {{test.progressPercent}}%;">
-
+                     role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width: {{test.progressPercent}}%;">{{test.status}}
                 </div>
             </div>
     </template>
