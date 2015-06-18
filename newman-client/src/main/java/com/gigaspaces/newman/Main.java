@@ -1,13 +1,6 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Agent;
-import com.gigaspaces.newman.beans.Batch;
-import com.gigaspaces.newman.beans.Build;
-import com.gigaspaces.newman.beans.DashboardData;
-import com.gigaspaces.newman.beans.Job;
-import com.gigaspaces.newman.beans.JobRequest;
-import com.gigaspaces.newman.beans.Suite;
-import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.beans.*;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.client.rx.RxClient;
@@ -25,22 +18,21 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 
 public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanClient.class);
 
-    private static int NUMBER_OF_BUILDS = 1;
-    private static int NUMBER_OF_SUITES_PER_BUILD = 1;
-    private static int NUMBER_OF_JOBS_PER_SUITE = 2;
-    private static long DELAY_BETWEEN_TESTS_MS = 1000;
-    private static long TEST_PROCESS_TIME_MS = 1000;
-    private static long PREPARE_JOB_TIME_MS = 5000;
+    private final static int NUMBER_OF_BUILDS = 1;
+    private final static int NUMBER_OF_SUITES_PER_BUILD = 1;
+    private final static int NUMBER_OF_JOBS_PER_SUITE = 2;
+    private final static long DELAY_BETWEEN_TESTS_MS = 1000;
+    private final static long TEST_PROCESS_TIME_MS = 1000;
+    private final static long PREPARE_JOB_TIME_MS = 5000;
+    private final static int AGENT_THREADS = 2;
 
     public static NewmanClient createNewmanClient() throws KeyManagementException, NoSuchAlgorithmException {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -69,10 +61,10 @@ public class Main {
 
             Random random = new Random(System.currentTimeMillis());
             int buildNum = random.nextInt(100);
-            for (int b=0; b<NUMBER_OF_BUILDS; b++) {
+            for (int b = 0; b < NUMBER_OF_BUILDS; b++) {
 
                 Build build = new Build();
-                build.setName("13504-"+(buildNum++));
+                build.setName("13504-" + (buildNum++));
                 build.setBranch("master");
                 build.setBuildTime(new Date());
 
@@ -86,7 +78,6 @@ public class Main {
             }
 
 
-
         } catch (Exception e) {
             logger.error(e.toString(), e);
         } finally {
@@ -96,13 +87,13 @@ public class Main {
 
     private static void createAndRunJob(NewmanClient newmanClient, Build build) throws InterruptedException, java.util.concurrent.ExecutionException, UnknownHostException {
 
-        for (int s=0; s< NUMBER_OF_SUITES_PER_BUILD; s++) {
+        for (int s = 0; s < NUMBER_OF_SUITES_PER_BUILD; s++) {
 
             Suite mySuite = new Suite();
             mySuite.setName("Suite-" + UUID.randomUUID().toString().substring(0, 3));
             Suite newSuite = newmanClient.addSuite(mySuite).toCompletableFuture().get();
 
-            for (int j=0; j < NUMBER_OF_JOBS_PER_SUITE; j++) {
+            for (int j = 0; j < NUMBER_OF_JOBS_PER_SUITE; j++) {
                 JobRequest jobRequest = new JobRequest();
                 jobRequest.setBuildId(build.getId());
                 jobRequest.setSuiteId(newSuite.getId());
@@ -130,50 +121,61 @@ public class Main {
             logger.info("tests are {}", tests);
         }
 
-        Agent agent = new Agent();
-        agent.setName("foo");
-        agent.setHost(InetAddress.getLocalHost().getCanonicalHostName());
+        Agent foo = new Agent();
+        foo.setName("foo");
+        foo.setHost(InetAddress.getLocalHost().getCanonicalHostName());
+
 
         //noinspection InfiniteLoopStatement
-        while(true) {
-            Job job = newmanClient.subscribe(agent).toCompletableFuture().get();
-            logger.info("agent {} subscribe to {}", agent.getName(), job);
+        while (true) {
+            Job job = newmanClient.subscribe(foo).toCompletableFuture().get();
+            logger.info("agent {} subscribe to {}", foo.getName(), job);
             if (job == null) {
                 Thread.sleep(1000);
                 // continue to try maybe there are paused job or there will be new job some time later.
                 continue;
-            }else{
-                logger.info("agent {} preparing folder for processing {}, it should take {} millis", agent.getName(), job, PREPARE_JOB_TIME_MS);
+            } else {
+                logger.info("agent {} preparing folder for processing {}, it should take {} millis", foo.getName(), job, PREPARE_JOB_TIME_MS);
                 Thread.sleep(PREPARE_JOB_TIME_MS);
             }
             Random rand = new Random(System.currentTimeMillis());
-            int i = 0;
+            //noinspection InfiniteLoopStatement
             while (true) {
-                Test test = newmanClient.getReadyTest("foo", job.getId()).toCompletableFuture().get();
-
-                if (test != null) {
-                    logger.info("agent took test {}", test);
-                    Thread.sleep(TEST_PROCESS_TIME_MS);
-                }else{
+                List<Test> tests = takeTests(newmanClient, foo.getName(), job.getId());
+                if(tests.isEmpty()){
                     break;
                 }
-                if (rand.nextInt() % 9 != 0) {
-                    test.setStatus(Test.Status.SUCCESS);
-                    newmanClient.finishTest(test).toCompletableFuture().get();
-                    logger.info("SUCCESS test {}", test);
-                } else {
-                    test.setStatus(Test.Status.FAIL);
-                    test.setErrorMessage(new IllegalArgumentException().toString());
-                    newmanClient.finishTest(test).toCompletableFuture().get();
-                    logger.info("FAIL test {}", test);
+                int threadNumber = 0;
+                for (Test test : tests) {
+                    logger.info("agent {} processing test {}", foo.getName() + ":" + threadNumber, test);
+                    Thread.sleep(TEST_PROCESS_TIME_MS);
+                    if (rand.nextInt() % 9 != 0) {
+                        test.setStatus(Test.Status.SUCCESS);
+                        newmanClient.finishTest(test).toCompletableFuture().get();
+                        logger.info("agent {} SUCCESS test {}", foo.getName()  + ":" + threadNumber, test);
+                    } else {
+                        test.setStatus(Test.Status.FAIL);
+                        test.setErrorMessage(new IllegalArgumentException().toString());
+                        newmanClient.finishTest(test).toCompletableFuture().get();
+                        logger.info("agent {} FAIL test {}", test, foo.getName()  + ":" + threadNumber);
+                    }
+                    threadNumber += 1;
+                    Thread.sleep(DELAY_BETWEEN_TESTS_MS);
                 }
-                if (i % 50 == 0) {
-                    DashboardData dashboard = newmanClient.getDashboard().toCompletableFuture().get();
-                    logger.info("----------------- dashboard data is {}", dashboard);
-                }
-                i += 1;
-                Thread.sleep(DELAY_BETWEEN_TESTS_MS);
             }
         }
+    }
+
+    private static List<Test> takeTests(NewmanClient newmanClient, String agentName, String jobId) throws ExecutionException, InterruptedException {
+        List<Test> res = new ArrayList<>(AGENT_THREADS);
+        while (res.size() < AGENT_THREADS) {
+            Test test = newmanClient.getReadyTest(agentName, jobId).toCompletableFuture().get();
+            if (test == null) {
+                return res;
+            } else {
+                res.add(test);
+            }
+        }
+        return res;
     }
 }

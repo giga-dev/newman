@@ -23,7 +23,7 @@
                         <th>State</th>
                         <th>Host</th>
                         <th>Job</th>
-                        <th>CurrentTest</th>
+                        <th>CurrentTests</th>
                         <th>Last seen</th>
                     </tr>
                     </thead>
@@ -39,12 +39,11 @@
                             <template if="{{!item.jobId}}">
                                 <td></td>
                             </template>
-                            <template if="{{item.currentTest}}">
-                                <td><a href="{{urlFor('test', {id: item.currentTest})}}">{{item.currentTest}}</a></td>
+                            <td>
+                            <template repeat="{{testId in item.currentTests}}">
+                                <a href="{{urlFor('test', {id: testId})}}">[{{testId}}]</a>
                             </template>
-                            <template if="{{!item.currentTest}}">
-                                <td></td>
-                            </template>
+                            </td>
                             <td>{{item.lastTouchTime | formatDate}}</td>
                         </tr>
                     </template>

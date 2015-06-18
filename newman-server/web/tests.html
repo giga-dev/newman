@@ -97,7 +97,7 @@
       data: [],
       pages: [],
       currentPage: 0,
-      onlyFailed: true,
+      onlyFailed: false,
       created: function() {
       },
       runFilter: function(){
@@ -173,27 +173,16 @@
       },
       onModifiedTest : function(ev, test){
             if(test.jobId && this.jobId && test.jobId == this.jobId){
-                var arrayLength = this.data.length;
+                var arrayLength = this.allValues.length;
                 for (var i = 0; i < arrayLength; i++) {
-                    var found = this.data[i];
-                    if(found.id == this.jobId){
-                        window.app.update(job, found);
+                    var found = this.allValues[i];
+                    if(found.id == test.id){
+                        window.app.update(test, found);
                         return;
                     }
                 }
             }
-      },
-      findById : function(id){
-            var arrayLength = this.data.length;
-            for (var i = 0; i < arrayLength; i++) {
-                var found = this.data[i];
-                if(found.id == id){
-                    return found;
-                }
-            }
-            return null;
       }
-
     });
 
     </script>

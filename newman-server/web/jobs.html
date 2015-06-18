@@ -5,6 +5,7 @@
 <link rel="import" href="job-state.html">
 <link rel="import" href="newman-switch.html">
 <link rel="import" href="table-pagination.html">
+<link rel="import" href="multi-status.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
 <polymer-element name="jobs-table" attributes="url" on-created-job="{{onCreatedJob}}"
@@ -41,6 +42,7 @@
                 </div>
 
             </form>
+            <!--<multi-status>foo</multi-status>-->
             <div class="table-responsive" on-switch-clicked="{{onSwitchClicked}}">
                 <!--<table class="table table-hover table-striped table-bordered table-condensed">-->
                 <table class="table table-bordered table-striped table-nowrap table-hover">

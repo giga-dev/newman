@@ -76,11 +76,9 @@
             filter: null,
 
             ajaxResponse: function(event,resp){
-                console.log( '--suites-dashboard, ajaxResponse, byId=', this.byId );
                 this.allValues = resp.response.entity;
                 var that = this;
                 this.allValues.forEach(function(suite){
-                    console.log( '--suites-dashboard, within in forEach, suite.id=', suite.id, ', this.byId=', that.byId );
                     that.byId[suite.id] = suite;
                 });
                 this.runFilter();
@@ -106,14 +104,12 @@
                 }
             },
             onCreatedSuite: function(ev, suiteWithJob){
-                console.log( '--suites-dashboard, onCreatedSuite--,', suiteWithJob );
                 this.byId[suiteWithJob.id] = suiteWithJob;
                 this.allValues.unshift(suiteWithJob);
                 this.runFilter();
             },
             onModifiedSuite:function(ev, suiteWithJob){
                 var suite = suiteWithJob.suite;
-                console.log( '--suites-dashboard, onModifiedSuite', suiteWithJob );
                 var found = this.byId[suiteWithJob.id];
                 if(!found){
                     this.allValues.push(suiteWithJob);

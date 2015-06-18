@@ -1,6 +1,7 @@
 window.app = window.app || {};
 window.app.jobProgressPercent = function(job){
       if(!job){
+            job.progressPercent = 0;
             return 0;
       }else if(!job.totalTests){
             job.progressPercent = 0;

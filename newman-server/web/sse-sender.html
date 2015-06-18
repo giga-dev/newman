@@ -62,7 +62,6 @@
                     var type = e.type;
                     var details = JSON.parse(e.data);
                     var selectors = event_mapping[type];
-                    console.log( '--handle events, ', type );
                     var hooks = this.before_hooks[type];
                     if(hooks){
                         hooks.forEach(function(hook){

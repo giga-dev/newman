@@ -348,7 +348,6 @@ public class NewmanResource {
                                    @DefaultValue("false") @QueryParam("all") boolean all,
                                    @QueryParam("orderBy") List<String> orderBy,
                                    @QueryParam("jobId") String jobId, @Context UriInfo uriInfo) {
-        logger.info("---getJobTests() jobId=" + jobId);
         Query<Test> query = testDAO.createQuery();
         if (jobId != null) {
             query.field("jobId").equal(jobId);
@@ -366,7 +365,6 @@ public class NewmanResource {
     @Path("test/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Test getTest(@PathParam("id") String id) {
-        logger.info("---getTest() id=" + id);
         return testDAO.findOne(testDAO.createQuery().field("_id").equal(new ObjectId(id)));
     }
 

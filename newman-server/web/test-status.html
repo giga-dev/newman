@@ -14,7 +14,7 @@
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <div class="progress">
                 <div class="progress-bar {{{'progress-bar-danger' : test.status == 'FAIL', 'progress-bar-success' : test.status == 'SUCCESS', 'progress-bar-info' : test.status == 'RUNNING'} | tokenList}}"
-                     role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width: {{test|progressPercent}}%;">
+                     role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width: {{test.progressPercent}}%;">
 
                 </div>
             </div>
@@ -24,22 +24,6 @@
     Polymer({
       applyAuthorStyles: true,
       job: null,
-      progressPercent : function(test){
-          if(!test){
-            return 0;
-          }
-          with(test){
-                if(!status){
-                    return "0";
-                }else if(status == "PENDING"){
-                    return "0";
-                }else if (status == "RUNNING"){
-                    return "50";
-                }else{
-                    return "100";
-                }
-          }
-      }
     });
 
     </script>

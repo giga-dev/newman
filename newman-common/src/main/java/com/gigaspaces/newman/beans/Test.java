@@ -2,9 +2,7 @@ package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.utils.StringUtils;
 import com.gigaspaces.newman.utils.ToStringBuilder;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.*;
 
 import java.util.*;
 
@@ -32,6 +30,8 @@ public class Test {
     private Date startTime;
     private Date endTime;
     private Date scheduledAt;
+    @Transient
+    private int progressPercent;
 
     @Embedded private Map<String,String> properties;
 
@@ -79,6 +79,7 @@ public class Test {
 
     public void setStatus(Status status) {
         this.status = status;
+        computeProgressPercent();
     }
 
     public String getErrorMessage() {
@@ -164,6 +165,37 @@ public class Test {
             }
         }
         this.properties = properties;
+    }
+
+    public int getProgressPercent() {
+        return progressPercent;
+    }
+
+    public void setProgressPercent(int progressPercent) {
+        this.progressPercent = progressPercent;
+    }
+
+    private void computeProgressPercent() {
+        if(getStatus() != null){
+            switch (getStatus()){
+                case PENDING:
+                    progressPercent = 0;
+                    break;
+                case SUCCESS:
+                    progressPercent = 100;
+                    break;
+                case FAIL:
+                    progressPercent = 100;
+                    break;
+                case RUNNING:
+                    progressPercent = 50;
+                    break;
+            }
+        }
+    }
+
+    @PostLoad void postLoad(){
+        computeProgressPercent();
     }
 
     @Override

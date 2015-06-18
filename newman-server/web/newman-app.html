@@ -98,10 +98,12 @@
                                     <test-info url="api/newman/test/{{route('test').params.id}}"></test-info>
                                 </section>
                                 <section route="job">
-                                    <job-info url="api/newman/job/{{route('job').params.id}}"></job-info>
-                                    <h1>Job Tests</h1>
-                                    <tests-table
-                                            url="api/newman/test?jobId={{route('job').params.id}}&all=true" jobId="{{route('job').params.id}}"></tests-table>
+                                    <template if="{{route('job').params.id}}">
+                                        <job-info url="api/newman/job/{{route('job').params.id}}"></job-info>
+                                        <h1>Job Tests</h1>
+                                        <tests-table
+                                                url="api/newman/test?jobId={{route('job').params.id}}&all=true" jobId="{{route('job').params.id}}"></tests-table>
+                                    </template>
                                 </section>
                                 <section route="build">
                                     <h1>Details for build {{route('build').params.id}}</h1>
