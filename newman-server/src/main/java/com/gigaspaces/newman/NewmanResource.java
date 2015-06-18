@@ -1,9 +1,25 @@
 package com.gigaspaces.newman;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.beans.Agent;
+import com.gigaspaces.newman.beans.Batch;
+import com.gigaspaces.newman.beans.Build;
+import com.gigaspaces.newman.beans.BuildStatus;
+import com.gigaspaces.newman.beans.BuildWithJobs;
+import com.gigaspaces.newman.beans.DashboardData;
+import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.beans.JobRequest;
+import com.gigaspaces.newman.beans.State;
+import com.gigaspaces.newman.beans.Suite;
+import com.gigaspaces.newman.beans.SuiteWithJobs;
+import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.beans.UserPrefs;
 import com.gigaspaces.newman.config.Config;
-import com.gigaspaces.newman.dao.*;
+import com.gigaspaces.newman.dao.AgentDAO;
+import com.gigaspaces.newman.dao.BuildDAO;
+import com.gigaspaces.newman.dao.JobDAO;
+import com.gigaspaces.newman.dao.SuiteDAO;
+import com.gigaspaces.newman.dao.TestDAO;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -27,9 +43,23 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.PermitAll;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
-import javax.ws.rs.*;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +67,16 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -197,6 +236,16 @@ public class NewmanResource {
                 UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", state);
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
                 broadcastMessage(MODIFIED_JOB, job);
+
+                //change status of Test(s) from running to pending
+                if( state == State.READY ){
+                    Query<Test> query = testDAO.createQuery();
+                    query.and(query.criteria("jobId").equal(id), query.criteria("status").equal(Test.Status.RUNNING));
+                    UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("status", Test.Status.PENDING);
+                    //? can be more than one test
+                    Test result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
+                    logger.info( "---toggelJobPause, state is READY, affected test:" + result );
+                }
 //                broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( job.getSuite() ) );
                 return job;
             }
