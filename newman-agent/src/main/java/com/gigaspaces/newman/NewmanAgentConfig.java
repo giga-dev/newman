@@ -1,12 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.utils.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
@@ -14,7 +9,8 @@ import java.util.Properties;
 import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
 
 /**
- * Created by boris on 4/20/2015.
+ * @author Boris
+ * @since 1.0
  */
 public class NewmanAgentConfig {
 
@@ -32,13 +28,12 @@ public class NewmanAgentConfig {
 
     private static final int NUM_OF_WORKERS = Integer.getInteger("newman.agent.workers", 5);
     private static final int JOB_POLL_INTERVAL = Integer.getInteger("newman.agent.job-poll-interval", 2000);
+    private static final int PING_INTERVAL = Integer.getInteger("newman.agent.ping-interval", 1000 * 30);
 
     private Properties properties;
-    private static final Logger logger = LoggerFactory.getLogger(NewmanAgent.class);
 
-    public NewmanAgentConfig(String propsFilePath) {
+    public NewmanAgentConfig() {
         properties = new Properties();
-        loadPropertiesFile(propsFilePath);
         properties.putIfAbsent(NEWMAN_AGENT_HOST_NAME, loadHostName());
         properties.putIfAbsent(NEWMAN_HOME, getNonEmptySystemProperty(NEWMAN_HOME, DEFAULT_NEWMAN_HOME));
         properties.putIfAbsent(NEWMAN_SERVER_HOST, getNonEmptySystemProperty(NEWMAN_SERVER_HOST, DEFAULT_NEWMAN_SERVER_HOST));
@@ -47,24 +42,16 @@ public class NewmanAgentConfig {
         properties.putIfAbsent(NEWMAN_SERVER_REST_PW, getNonEmptySystemProperty(NEWMAN_SERVER_REST_PW, DEFAULT_NEWMAN_SERVER_REST_PW));
     }
 
-    private void loadPropertiesFile(String propsFilePath) {
-        if (propsFilePath == null || !new File( propsFilePath ).isFile() ) {
-            logger.warn("Properties URL is not found [" + propsFilePath + "]. Use default configuration.");
-        } else {
-            try {
-                FileInputStream url = new FileInputStream( new File( propsFilePath ) );
-                properties.load(url);
-            } catch( IOException ex ) {
-                throw new IllegalStateException("Failed to load configuration file.", ex);}
-        }
-    }
-
     private String loadHostName() {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
             return "unknown";
         }
+    }
+
+    public int getPingInterval() {
+        return PING_INTERVAL;
     }
 
     public String getHostName(){

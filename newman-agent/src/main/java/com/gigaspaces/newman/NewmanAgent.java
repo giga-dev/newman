@@ -8,10 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static com.gigaspaces.newman.utils.FileUtils.append;
@@ -30,53 +27,63 @@ public class NewmanAgent {
     private final String name;
     private NewmanClient client;
     private volatile boolean active = true;
+    private final Timer timer = new Timer(true);
 
     public static void main(String[] args) {
-
         NewmanAgent agent = new NewmanAgent();
         try {
             agent.start();
-        } catch (InterruptedException e) {
-            logger.info("Agent was interrupted");
-        }
-        catch (Exception e) {
-            logger.error("Agent was stopped unexpectedly", e);
-        }
-        finally {
+        } catch (Exception e) {
+            agent.deactivateAgent(e, "Agent was stopped unexpectedly");
+        } finally {
             agent.close();
+            logger.warn("Agent is restarting due to unexpected crash");
         }
-        logger.info("Agent is stopping...");
     }
 
     public NewmanAgent(){
-        this.config = new NewmanAgentConfig("newman_agent.properties");
+        this.config = new NewmanAgentConfig();
         this.name = "newman-agent-" + UUID.randomUUID().toString();
         this.workers = new ThreadPoolExecutor(config.getNumOfWorkers(), config.getNumOfWorkers(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>());
         logger.info("Agent is initializing...");
+        this.active = true;
         try {
             //this.client = NewmanClient.create("localhost", "8443","root", "root");
             this.client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                     config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
         } catch (Exception e) {
-            logger.error("Rest client failed to initialize, exiting ...");
-            active = false;
+            deactivateAgent(e, "Rest client failed to initialize, exiting ...");
         }
     }
 
-    private void start() throws InterruptedException, ExecutionException, IOException {
-        FileUtils.createFolder(append(config.getNewmanHome(), "logs"));
-        while (active){
+    private void start() {
+        try {
+            FileUtils.createFolder(append(config.getNewmanHome(), "logs"));
+        } catch (IOException e) {
+            deactivateAgent(e, "Failed to create logs folder in " +append(config.getNewmanHome(), "logs"));
+        }
+
+
+
+        while (isActive()){
             Job job = waitForJob();
+            // ping server during job setup and execution
+            final KeepAliveTask keepAliveTask = startKeepAliveTask(job.getId());
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
             boolean setupFinished = jobExecutor.setup();
             if (!setupFinished){
                 logger.error("Setup of job {} failed, will wait for a new job", job.getId());
                 jobExecutor.teardown();
                 //inform the server that agent is not working on this job
-                Agent agent = client.getAgent(name).toCompletableFuture().get();
-                client.unsubscribe(agent).toCompletableFuture().get();
+                Agent agent;
+                try {
+                    agent = client.getAgent(name).toCompletableFuture().get();
+                    client.unsubscribe(agent).toCompletableFuture().get();
+                } catch (Exception e) {
+                    logger.warn("Failed to unsubscribe agent {} due to failure in job setup of job {}", name, job.getId());
+                }
                 continue;
             }
 
@@ -104,17 +111,39 @@ public class NewmanAgent {
                     logger.warn("worker exited with exception", e);
                 }
             }
-
+            keepAliveTask.cancel();
             jobExecutor.teardown();
         }
     }
 
-    private void close(){
-        logger.info("Closing newman agent {}", name);
-        if (client != null)
-            client.close();
+
+    private KeepAliveTask startKeepAliveTask(String jobId) {
+        final KeepAliveTask task = new KeepAliveTask(jobId);
+        timer.scheduleAtFixedRate(task, 10 , config.getPingInterval());
+        return task;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    private synchronized void deactivateAgent(Exception e, String s) {
+        logger.error(s, e);
         active = false;
-        shutDownWorkers();
+    }
+
+    private void close(){
+        if (isActive()) {
+            active = false;
+            logger.info("Closing newman agent {}", name);
+            if (client != null)
+                client.close();
+            shutDownWorkers();
+        }
+        if (timer != null){
+            timer.cancel();
+            timer.purge();
+        }
     }
 
     private void shutDownWorkers() {
@@ -133,7 +162,7 @@ public class NewmanAgent {
         }
     }
 
-    private Job waitForJob() throws InterruptedException {
+    private Job waitForJob() {
         Agent agent = new Agent();
         agent.setName(name);
         agent.setHost(config.getHostName());
@@ -147,11 +176,16 @@ public class NewmanAgent {
             } catch (ExecutionException e) {
                 logger.warn("Agent failed while polling newman-server at {} for a job (retry in {} ms): " + e, config.getNewmanServerHost(), config.getJobPollInterval());
             }
-            Thread.sleep(config.getJobPollInterval());
+            catch (InterruptedException e) {
+                logger.warn("Agent got InterruptedException while polling for a job (retry in {} ms): " + e, config.getJobPollInterval());
+            }
+            try {
+                Thread.sleep(config.getJobPollInterval());
+            } catch (InterruptedException ignored) {}
         }
     }
 
-    private Test findTest(Job job)  {
+    private Test findTest(Job job) {
         try {
             return client.getReadyTest(name, job.getId()).toCompletableFuture().get();
         } catch (InterruptedException e) {
@@ -187,4 +221,26 @@ public class NewmanAgent {
             logger.warn("Worker failed to unzip logs test result caught: {}", e);
         }
     }
+
+    private class KeepAliveTask extends TimerTask{
+
+        private String jobId;
+
+        public KeepAliveTask(String jobId){
+
+            this.jobId = jobId;
+        }
+
+        @Override
+        public void run() {
+            if (isActive()){
+                try {
+                    //logger.info("sending ping to server, jobid= {}", jobId);
+                    client.ping(name, jobId).toCompletableFuture().get(10, TimeUnit.SECONDS);
+                } catch (Exception ignored) {}
+            }
+        }
+    }
 }
+
+

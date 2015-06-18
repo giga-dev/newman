@@ -243,7 +243,7 @@ public class NewmanResource {
         Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
         UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.READY);
         jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), updateJobStatus);
-        UpdateOperations<Agent> updateAgentOps = agentDAO.createUpdateOperations().set("jobId", "");
+        UpdateOperations<Agent> updateAgentOps = agentDAO.createUpdateOperations().unset("jobId");
         agentDAO.getDatastore().updateFirst(agentDAO.createQuery().field("name").equal(agent.getName()), updateAgentOps, true);
         return job;
     }
@@ -657,11 +657,13 @@ public class NewmanResource {
         if (found != null) {
             // clear older agent data from other jobs.
             if (found.getState() == Agent.State.PREPARING) {
-                // clear job data.
-                UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().dec("preparingAgents");
-                Job oldJob = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(found.getJobId()), updateJobStatus);
-                broadcastMessage(MODIFIED_JOB, oldJob);
-                broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(oldJob.getSuite()));
+                // clear job data if exists.
+                if (found.getJobId() != null && !found.getJobId().isEmpty()) {
+                    UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().dec("preparingAgents");
+                    Job oldJob = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(found.getJobId()), updateJobStatus);
+                    broadcastMessage(MODIFIED_JOB, oldJob);
+                    broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(oldJob.getSuite()));
+                }
             } else if (found.getState() == Agent.State.RUNNING && !found.getCurrentTests().isEmpty() && found.getJobId() != null) {
                 returnTests(found);
             }
