@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# load env if config file exists
+source newman-server-env.sh
+
 # make sure keys have been generated, if not create for development
 if [ ! -d "../keys" ]; then
   ./keysgen.sh
