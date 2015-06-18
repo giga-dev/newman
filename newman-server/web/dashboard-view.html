@@ -38,6 +38,7 @@
                     </thead>
                     <tbody>
                     <template repeat="{{activeBuild in data.activeBuilds}}">
+                        <template if="{{activeBuild.buildStatus.totalJobs > 0}}">
                         <tr>
                             <td title="{{activeBuild.name}}"><a href="{{urlFor('build', {id: activeBuild.id})}}">{{activeBuild.name}}</a></td>
                             <td title="{{activeBuild.branch}}">{{activeBuild.branch}}</td>
@@ -60,6 +61,7 @@
                                 </template>
                             </td>
                         </tr>
+                        </template>
                     </template>
 
                     </tbody>
@@ -82,25 +84,27 @@
                     </thead>
                     <tbody>
                     <template repeat="{{historyBuild in data.historyBuilds}}">
-                        <tr class="{{{'succeed-row' : historyBuild.buildStatus.passedTests == historyBuild.buildStatus.totalTests, 'default-row' : historyBuild.buildStatus.passedTests != historyBuild.buildStatus.totalTests} | tokenList}}">
-                            <td title="{{historyBuild.name}}"><a href="{{urlFor('build', {id: historyBuild.id})}}">{{historyBuild.name}}</a></td>
-                            <td title="{{historyBuild.branch}}">{{historyBuild.branch}}</td>
-                            <td>{{historyBuild.buildTime | formatDate}}</td>
-                            <td>
-                                <span class="label label-success">{{historyBuild.buildStatus.passedTests}}</span>
-                                <span class="label label-danger">{{historyBuild.buildStatus.failedTests}}</span>
-                                <span class="label label-default">{{historyBuild.buildStatus.totalTests}}</span>
-                            </td>
+                        <template if="{{historyBuild.buildStatus.totalJobs > 0}}">
+                            <tr class="{{{'succeed-row' : historyBuild.buildStatus.passedTests == historyBuild.buildStatus.totalTests, 'default-row' : historyBuild.buildStatus.passedTests != historyBuild.buildStatus.totalTests} | tokenList}}">
+                                <td title="{{historyBuild.name}}"><a href="{{urlFor('build', {id: historyBuild.id})}}">{{historyBuild.name}}</a></td>
+                                <td title="{{historyBuild.branch}}">{{historyBuild.branch}}</td>
+                                <td>{{historyBuild.buildTime | formatDate}}</td>
+                                <td>
+                                    <span class="label label-success">{{historyBuild.buildStatus.passedTests}}</span>
+                                    <span class="label label-danger">{{historyBuild.buildStatus.failedTests}}</span>
+                                    <span class="label label-default">{{historyBuild.buildStatus.totalTests}}</span>
+                                </td>
 
-                            <td>{{historyBuild.buildStatus.totalJobs}}</td>
-                            <td>
-                                <template repeat="{{suiteId, index in historyBuild.buildStatus.suitesIds}}">
-                                    <template if="{{index!== 'undefined' && historyBuild.buildStatus.suitesNames[index]}}">
-                                        <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(historyBuild.buildStatus.suitesNames[index])}}</span></a>
+                                <td>{{historyBuild.buildStatus.totalJobs}}</td>
+                                <td>
+                                    <template repeat="{{suiteId, index in historyBuild.buildStatus.suitesIds}}">
+                                        <template if="{{index!== 'undefined' && historyBuild.buildStatus.suitesNames[index]}}">
+                                            <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(historyBuild.buildStatus.suitesNames[index])}}</span></a>
+                                        </template>
                                     </template>
-                                </template>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                        </template>
                     </template>
 
                     </tbody>
