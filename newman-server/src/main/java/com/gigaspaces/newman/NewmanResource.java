@@ -37,6 +37,7 @@ import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.MorphiaIterator;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import org.mongodb.morphia.query.UpdateResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -242,9 +243,9 @@ public class NewmanResource {
                     Query<Test> query = testDAO.createQuery();
                     query.and(query.criteria("jobId").equal(id), query.criteria("status").equal(Test.Status.RUNNING));
                     UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("status", Test.Status.PENDING);
-                    //? can be more than one test
-                    Test result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
-                    logger.info( "---toggelJobPause, state is READY, affected test:" + result );
+
+                    UpdateResults update = testDAO.getDatastore().update(query, updateOps);
+                    logger.info( "---ToggleJobPause, state is READY, affected count:" + update.getUpdatedCount() );
                 }
 //                broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( job.getSuite() ) );
                 return job;
