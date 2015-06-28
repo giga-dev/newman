@@ -37,7 +37,6 @@ public class NewmanAgent {
             agent.deactivateAgent(e, "Agent was stopped unexpectedly");
         } finally {
             agent.close();
-            logger.warn("Agent is restarting due to unexpected crash");
         }
     }
 
@@ -50,9 +49,10 @@ public class NewmanAgent {
         logger.info("Agent is initializing...");
         this.active = true;
         try {
-            //this.client = NewmanClient.create("localhost", "8443","root", "root");
             this.client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                     config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
+            //try to connect to fail fast when server is down
+            client.getJobs().toCompletableFuture().get();
         } catch (Exception e) {
             deactivateAgent(e, "Rest client failed to initialize, exiting ...");
         }
