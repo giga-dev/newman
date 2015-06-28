@@ -27,7 +27,7 @@ public class NewmanAgentConfig {
     private static final String DEFAULT_NEWMAN_SERVER_REST_PW = "root";
 
     private static final int NUM_OF_WORKERS = Integer.getInteger("newman.agent.workers", 5);
-    private static final int JOB_POLL_INTERVAL = Integer.getInteger("newman.agent.job-poll-interval", 2000);
+    private static final int JOB_POLL_INTERVAL = Integer.getInteger("newman.agent.job-poll-interval", 1000 * 10);
     private static final int PING_INTERVAL = Integer.getInteger("newman.agent.ping-interval", 1000 * 30);
 
     private Properties properties;

@@ -65,8 +65,6 @@ public class NewmanAgent {
             deactivateAgent(e, "Failed to create logs folder in " +append(config.getNewmanHome(), "logs"));
         }
 
-
-
         while (isActive()){
             Job job = waitForJob();
             // ping server during job setup and execution
@@ -84,6 +82,9 @@ public class NewmanAgent {
                 } catch (Exception e) {
                     logger.warn("Failed to unsubscribe agent {} due to failure in job setup of job {}", name, job.getId());
                 }
+                try {
+                    Thread.sleep(config.getJobPollInterval());
+                } catch (InterruptedException ignored) {}
                 continue;
             }
 
