@@ -1026,7 +1026,7 @@ public class NewmanResource {
         }
 
         Agent ag = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()),
-                agentDAO.createUpdateOperations().unset("jobId").set("currentTests", new HashSet<>()).set("state", Agent.State.IDLING));
+                agentDAO.createUpdateOperations().set("currentTests", new HashSet<>()).set("state", Agent.State.IDLING));
 
         for (Test test : tests) {
             broadcastMessage(MODIFIED_TEST, test);
