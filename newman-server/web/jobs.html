@@ -53,6 +53,7 @@
                         <th>Job Id</th>
                         <th width="6%">Build</th>
                         <th>Suite</th>
+                        <th>Duration</th>
                         <th width="9%">Submitted At</th>
                         <th>Tests URI</th>
                         <th width="9%">Submitted By</th>
@@ -80,6 +81,7 @@
                             </td>
                             <td title="{{item.suite.name}}"><a href="{{urlFor('suite', {id: item.suite.id})}}">{{item.suite.name}}</a>
                             </td>
+                            <td title="{{item.duration}}">{{item | getDuration}}</td>
                             <td title="{{item.submitTime | formatDate}}">{{item.submitTime | formatDateFromNow}}</td>
                             <td title="{{item.testURI}}">{{item.testURI}}</td>
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
@@ -130,6 +132,10 @@
           return res;
       },
 
+        getDuration: function(item) {
+            var diff = item.endTime - item.startTime;
+            return moment.utc(diff).format("HH [h,] mm [m]")
+        },
         formatDate: function(date){
             return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
         },
