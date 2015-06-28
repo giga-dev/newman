@@ -1010,6 +1010,7 @@ public class NewmanResource {
                             .field("assignedAgent").equal(agent.getName()),
                     testDAO.createUpdateOperations().unset("assignedAgent").unset("startTime").set("status", Test.Status.PENDING));
             if (found != null) {
+                logger.warn("test {} was released since agent {} not seen for a long time", found, agent);
                 tests.add(found);
             }
         }
