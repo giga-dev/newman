@@ -133,7 +133,11 @@
       },
 
         getDuration: function(item) {
-            var diff = item.endTime - item.startTime;
+            var endTime = item.endTime;
+            if (endTime == null) {
+                endTime = new Date().getTime();
+            }
+            var diff = endTime - item.startTime;
             return moment.utc(diff).format("HH [h,] mm [m]")
         },
         formatDate: function(date){
