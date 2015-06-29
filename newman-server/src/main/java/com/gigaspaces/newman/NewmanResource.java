@@ -634,7 +634,7 @@ public class NewmanResource {
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (lock) {
             if (agent.getState() == Agent.State.PREPARING) {
-                pj = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), jobDAO.createUpdateOperations().dec("preparingAgents"));
+                pj = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), jobDAO.createUpdateOperations().removeAll("preparingAgents", agent.getName()));
             }
         }
 
@@ -709,7 +709,7 @@ public class NewmanResource {
             if (found.getState() == Agent.State.PREPARING) {
                 // clear job data if exists.
                 if (found.getJobId() != null && !found.getJobId().isEmpty()) {
-                    UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().dec("preparingAgents");
+                    UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().removeAll("preparingAgents", agent.getName());
                     Job oldJob = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(found.getJobId()), updateJobStatus);
                     broadcastMessage(MODIFIED_JOB, oldJob);
                     broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(oldJob.getSuite()));
@@ -733,7 +733,7 @@ public class NewmanResource {
         if (job != null) {
             updateOps.set("jobId", job.getId());
             updateOps.set("state", Agent.State.PREPARING);
-            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("preparingAgents");
+            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().add("preparingAgents", agent.getName());
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), updateJobStatus);
             broadcastMessage(MODIFIED_JOB, job);
             broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(job.getSuite()));
@@ -1018,7 +1018,7 @@ public class NewmanResource {
         if (agent.getJobId() != null && !tests.isEmpty()) {
             UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations();
             if (agent.getState() == Agent.State.PREPARING) {
-                jobUpdateOps.dec("preparingAgents");
+                jobUpdateOps.removeAll("preparingAgents", agent.getName());
             } else if (agent.getState() == Agent.State.RUNNING) {
                 jobUpdateOps.inc("runningTests", 0 - tests.size());
             }

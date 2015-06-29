@@ -29,6 +29,7 @@ public class NewmanAgentConfig {
     private static final int NUM_OF_WORKERS = Integer.getInteger("newman.agent.workers", 5);
     private static final int JOB_POLL_INTERVAL = Integer.getInteger("newman.agent.job-poll-interval", 1000 * 10);
     private static final int PING_INTERVAL = Integer.getInteger("newman.agent.ping-interval", 1000 * 30);
+    private static final boolean PERSISTENT_NAME = Boolean.getBoolean("newman.agent.persistent-name");
 
     private Properties properties;
 
@@ -48,6 +49,10 @@ public class NewmanAgentConfig {
         } catch (UnknownHostException e) {
             return "unknown";
         }
+    }
+
+    public boolean isPersistentName() {
+        return PERSISTENT_NAME;
     }
 
     public int getPingInterval() {

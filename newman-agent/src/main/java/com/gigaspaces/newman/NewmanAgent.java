@@ -1,6 +1,8 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.beans.Agent;
+import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.beans.Test;
 import com.gigaspaces.newman.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -24,13 +27,15 @@ public class NewmanAgent {
     private static final Logger logger = LoggerFactory.getLogger(NewmanAgent.class);
     private final NewmanAgentConfig config;
     private final ThreadPoolExecutor workers;
-    private final String name;
+    private String name;
     private NewmanClient client;
     private volatile boolean active = true;
     private final Timer timer = new Timer(true);
+    private final String agentNameFile = append(Paths.get("."), "newman_agent_name.txt").toAbsolutePath().normalize().toString();
 
     public static void main(String[] args) {
         NewmanAgent agent = new NewmanAgent();
+        agent.initialize();
         try {
             agent.start();
         } catch (Exception e) {
@@ -42,12 +47,14 @@ public class NewmanAgent {
 
     public NewmanAgent(){
         this.config = new NewmanAgentConfig();
-        this.name = "newman-agent-" + UUID.randomUUID().toString();
         this.workers = new ThreadPoolExecutor(config.getNumOfWorkers(), config.getNumOfWorkers(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>());
-        logger.info("Agent is initializing...");
         this.active = true;
+    }
+
+    private void initialize() {
+        logger.info("Agent is initializing...");
         try {
             this.client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                     config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
@@ -56,15 +63,38 @@ public class NewmanAgent {
         } catch (Exception e) {
             deactivateAgent(e, "Rest client failed to initialize, exiting ...");
         }
-    }
-
-    private void start() {
         try {
             FileUtils.createFolder(append(config.getNewmanHome(), "logs"));
         } catch (IOException e) {
             deactivateAgent(e, "Failed to create logs folder in " +append(config.getNewmanHome(), "logs"));
         }
+        setFinalAgentName();
+    }
 
+    private void setFinalAgentName() {
+        if (!config.isPersistentName()){
+            this.name = "newman-agent-" + UUID.randomUUID().toString();
+        }
+        // persist name in working directory
+        else {
+            try {
+                final File nameFile = new File(agentNameFile);
+                if (!nameFile.exists()) {
+                    this.name = "newman-agent-" + UUID.randomUUID().toString();
+                    FileUtils.writeLineToFile(agentNameFile, name);
+                }
+                // read from file if exists after recovery
+                else {
+                    this.name = FileUtils.readTextFile(nameFile.toPath());
+                    logger.info("read agent name {} from file {} after process recovery", name, agentNameFile);
+                }
+            } catch (Exception e) {
+                deactivateAgent(e, "failed to persist agent name: " + name + " to a file: " + agentNameFile);
+            }
+        }
+    }
+
+    private void start() {
         while (isActive()){
             Job job = waitForJob();
             // ping server during job setup and execution
@@ -173,7 +203,7 @@ public class NewmanAgent {
                 Job job = client.subscribe(agent).toCompletableFuture().get();
                 if (job != null)
                     return job;
-                logger.info("Agent did not find a job to run, will try again in {} ms", config.getJobPollInterval());
+                logger.info("Agent[{}] did not find a job to run, will try again in {} ms", agent, config.getJobPollInterval());
             } catch (ExecutionException e) {
                 logger.warn("Agent failed while polling newman-server at {} for a job (retry in {} ms): " + e, config.getNewmanServerHost(), config.getJobPollInterval());
             }

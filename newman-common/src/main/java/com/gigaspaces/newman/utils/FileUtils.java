@@ -4,10 +4,7 @@ import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -35,6 +32,19 @@ public class FileUtils {
 
     public static Path append(String path, String subfolder) {
         return Paths.get(path, subfolder);
+    }
+
+    public static void writeLineToFile(String fileName, String line) throws FileNotFoundException, UnsupportedEncodingException {
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(fileName, "UTF-8");
+            writer.println(line);
+        }
+        finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
     }
 
     public static Path createFolder(Path folder) throws IOException {

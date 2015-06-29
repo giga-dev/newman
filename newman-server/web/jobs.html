@@ -85,7 +85,7 @@
                             <td title="{{item.submitTime | formatDate}}">{{item.submitTime | formatDateFromNow}}</td>
                             <td title="{{item.testURI}}">{{item.testURI}}</td>
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
-                            <td>{{item.preparingAgents}}</td>
+                            <td>{{item.preparingAgents.length}}</td>
                             <td><span class="label label-info">{{item.runningTests}}</span> / <span class="label label-success">{{item.passedTests}}</span> / <span class="label label-danger">{{item.failedTests}}</span> / <span class="label label-default">{{item.totalTests}}</span></td>
                         </tr>
                     </template>
