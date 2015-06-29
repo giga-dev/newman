@@ -76,7 +76,7 @@
                                     </div>
                                 </template>
                             </td>
-                            <td><a href="{{urlFor('job', {id: item.id})}}">{{item.id}}</a></td>
+                            <td title="{{item.id}}"><a href="{{urlFor('job', {id: item.id})}}">{{item.id}}</a></td>
                             <td title="{{item.build.name}}"><a href="{{urlFor('build', {id: item.build.id})}}">{{item.build.name}}</a>
                             </td>
                             <td title="{{item.suite.name}}"><a href="{{urlFor('suite', {id: item.suite.id})}}">{{item.suite.name}}</a>
