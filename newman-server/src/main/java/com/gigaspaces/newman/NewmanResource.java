@@ -107,7 +107,7 @@ public class NewmanResource {
     private final AgentDAO agentDAO;
     private final SuiteDAO suiteDAO;
     private final Config config;
-    private static final String SERVER_UPLOAD_LOCATION_FOLDER = "web/logs";
+    private static final String SERVER_UPLOAD_LOCATION_FOLDER = "tests-logs";
     @SuppressWarnings("FieldCanBeLocal")
     private final Timer timer = new Timer(true);
 
