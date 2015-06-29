@@ -32,7 +32,8 @@ public class Job {
     private int passedTests;
     private int failedTests;
     private int runningTests;
-    private int preparingAgents;
+    @Embedded
+    private Set<String> preparingAgents;
 
 
     public Job() {
@@ -143,11 +144,11 @@ public class Job {
         this.suite = suite;
     }
 
-    public int getPreparingAgents() {
+    public Set<String> getPreparingAgents() {
         return preparingAgents;
     }
 
-    public void setPreparingAgents(int preparingAgents) {
+    public void setPreparingAgents(Set<String> preparingAgents) {
         this.preparingAgents = preparingAgents;
     }
 
