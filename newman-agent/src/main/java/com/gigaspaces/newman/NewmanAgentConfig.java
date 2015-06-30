@@ -5,6 +5,7 @@ import com.gigaspaces.newman.utils.FileUtils;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
+import java.util.UUID;
 
 import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
 
@@ -16,7 +17,7 @@ public class NewmanAgentConfig {
 
     private static final String NEWMAN_HOME = "newman.agent.home";
     private static final String NEWMAN_AGENT_HOST_NAME = "newman.agent.hostname";
-    private static final String DEFAULT_NEWMAN_HOME = FileUtils.append(System.getProperty("user.home"), "newman-agent").toString();
+    private static final String DEFAULT_NEWMAN_HOME = FileUtils.append(System.getProperty("user.home"), "newman-agent-" + UUID.randomUUID()).toString();
     private static final String NEWMAN_SERVER_HOST = "newman.agent.server-host";
     private static final String DEFAULT_NEWMAN_SERVER_HOST = "localhost";
     private static final String NEWMAN_SERVER_PORT = "newman.agent.server-port";

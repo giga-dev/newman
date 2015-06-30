@@ -146,6 +146,13 @@ public class NewmanResource {
                 getAgentsNotSeenInLastMillis(1000 * 60 * 3).forEach(NewmanResource.this::handleUnseenAgent);
             }
         }, 1000 * 30, 1000 * 30);
+
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                getZombieAgents(1000 * 60 * 20).forEach(NewmanResource.this::handleZombieAgent);
+            }
+        }, 1000 * 30, 1000 * 30);
     }
 
     @GET
@@ -287,17 +294,31 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Job unsubscribe(final Agent agent) {
         String jobId = agent.getJobId();
+        Job job = null;
         if (jobId == null) {
             throw new BadRequestException("can't unsubscribe agent without a job " + agent);
         }
-        Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
-        UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.READY);
-        jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), updateJobStatus);
+        if (agent.getState() == Agent.State.PREPARING) {
+            job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), jobDAO.createUpdateOperations().removeAll("preparingAgents", agent.getName()));
+            broadcastMessage(MODIFIED_JOB, job);
+        }
         UpdateOperations<Agent> updateAgentOps = agentDAO.createUpdateOperations().unset("jobId");
         agentDAO.getDatastore().updateFirst(agentDAO.createQuery().field("name").equal(agent.getName()), updateAgentOps, true);
+        broadcastMessage(MODIFIED_AGENT, agent);
         return job;
     }
 
+    @POST
+    @Path("freeAgent/{agentName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Agent freeAgent(@PathParam("agentName")final String agentName) {
+        Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agentName));
+        if (agent != null){
+            returnTests(agent);
+            handleZombieAgent(agent);
+        }
+        return agent;
+    }
 
     @PUT
     @Path("test")
@@ -992,6 +1013,18 @@ public class NewmanResource {
         return agentDAO.find(agentDAO.createQuery().field("state").notEqual(Agent.State.IDLING).field("lastTouchTime").lessThan(new Date(System.currentTimeMillis() - delay))).asList();
     }
 
+    private List<Agent> getZombieAgents(long delay) {
+        return agentDAO.find(agentDAO.createQuery().field("state").equal(Agent.State.IDLING).field("lastTouchTime").lessThan(new Date(System.currentTimeMillis() - delay))).asList();
+    }
+
+    private void handleZombieAgent(Agent agent) {
+        logger.warn("Agent {} is did not report on time while he was IDLING and will be deleted", agent);
+        final Agent toDelete = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agent.getName()));
+        if (toDelete != null){
+            agentDAO.getDatastore().findAndDelete(agentDAO.createIdQuery(toDelete.getId()));
+        }
+    }
+
     private void handleUnseenAgent(Agent agent) {
         logger.warn("Agent {} is did not report on time", agent);
         returnTests(agent);
@@ -1015,11 +1048,11 @@ public class NewmanResource {
             }
         }
         Job job = null;
-        if (agent.getJobId() != null && !tests.isEmpty()) {
+        if (agent.getJobId() != null) {
             UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations();
             if (agent.getState() == Agent.State.PREPARING) {
                 jobUpdateOps.removeAll("preparingAgents", agent.getName());
-            } else if (agent.getState() == Agent.State.RUNNING) {
+            } else if (agent.getState() == Agent.State.RUNNING && !tests.isEmpty()) {
                 jobUpdateOps.inc("runningTests", 0 - tests.size());
             }
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);

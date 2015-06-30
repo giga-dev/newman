@@ -113,6 +113,10 @@ public class NewmanClient {
         return restClient.target(uri).path("unsubscribe").request().rx().post(Entity.json(agent), Job.class);
     }
 
+    public CompletionStage<Agent> freeAgent(String agentName) {
+        return restClient.target(uri).path("freeAgent").path(agentName).request().rx().post(Entity.text(""), Agent.class);
+    }
+
     public CompletionStage<Suite> addSuite(Suite suite) {
         return restClient.target(uri).path("suite").request().rx().post(Entity.json(suite), Suite.class);
     }

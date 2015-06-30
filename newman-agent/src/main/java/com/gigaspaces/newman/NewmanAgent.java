@@ -55,6 +55,7 @@ public class NewmanAgent {
 
     private void initialize() {
         logger.info("Agent is initializing...");
+        logger.info("Agent home dir is {}, please make sure no other agent is using this folder", config.getNewmanHome());
         try {
             this.client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                     config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
@@ -69,6 +70,32 @@ public class NewmanAgent {
             deactivateAgent(e, "Failed to create logs folder in " +append(config.getNewmanHome(), "logs"));
         }
         setFinalAgentName();
+
+        attachShutDownHook();
+    }
+
+    private void attachShutDownHook(){
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                logger.warn("Shutting down...");
+                close();
+                try {
+                    FileUtils.delete(new File(config.getNewmanHome()).toPath());
+                }
+                catch (IOException e) {
+                    logger.warn("failed to clean newman agent dir {} retrying ...", config.getNewmanHome());
+                    try {
+                        // retry if race condition occurred and worker threads already deleted files while shutting down
+                        Thread.sleep(1000 * 5);
+                        FileUtils.delete(new File(config.getNewmanHome()).toPath());
+                    }
+                    catch (Exception e2){
+                        logger.warn("failed to clean newman agent dir {}", config.getNewmanHome());
+                    }
+                }
+            }
+        });
     }
 
     private void setFinalAgentName() {
@@ -77,6 +104,7 @@ public class NewmanAgent {
         }
         // persist name in working directory
         else {
+            logger.info("Agent name will be stored in {}, please make sure no other agent is running on the same working directory", agentNameFile);
             try {
                 final File nameFile = new File(agentNameFile);
                 if (!nameFile.exists()) {
@@ -86,7 +114,7 @@ public class NewmanAgent {
                 // read from file if exists after recovery
                 else {
                     this.name = FileUtils.readTextFile(nameFile.toPath());
-                    logger.info("read agent name {} from file {} after process recovery", name, agentNameFile);
+                    logger.info("read agent name {} from file {} after agent recovery", name, agentNameFile);
                 }
             } catch (Exception e) {
                 deactivateAgent(e, "failed to persist agent name: " + name + " to a file: " + agentNameFile);
@@ -167,9 +195,15 @@ public class NewmanAgent {
         if (isActive()) {
             active = false;
             logger.info("Closing newman agent {}", name);
-            if (client != null)
-                client.close();
             shutDownWorkers();
+            if (client != null) {
+                try {
+                    client.freeAgent(name).toCompletableFuture().get();
+                } catch (Exception e) {
+                    logger.error("failed to free the agent" + name, e);
+                }
+                client.close();
+            }
         }
         if (timer != null){
             timer.cancel();
