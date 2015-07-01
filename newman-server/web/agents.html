@@ -2,6 +2,8 @@
 
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
+<link rel="import" href="../components/paper-button/paper-button.html">
+<link rel="import" href="../components/paper-dialog/paper-action-dialog.html">
 
 <polymer-element name="agent-table" attributes="url" on-modified-agent="{{onModifiedAgent}}">
     <template>
@@ -52,7 +54,7 @@
                             </td>
                             <td>{{item.lastTouchTime | formatDate}}</td>
                             <td>
-                                <button type="button" class="btn btn-success" on-click="{{dropOne}}" data-collection="{{item.id}}">
+                                <button class="btn btn-success" on-click="{{toggleDropAgentConfirmationDialog}}" class="btn btn-danger" data-agent-id="{{item.id}}" data-agent-name="{{item.name}}">
                                     <span class="glyphicon glyphicon glyphicon-remove"></span>
                                 </button>
                             </td>
@@ -63,6 +65,13 @@
             </div>
             <table-pagination total="{{pages.length}}" current="{{currentPage}}"
                               on-page-change="{{onPageChange}}"></table-pagination>
+
+            <paper-action-dialog backdrop autoCloseDisabled  id="confirmdialogdeleteagent" heading="Drop agent [{{dropAgentName}}]?" transition="paper-dialog-transition-bottom" style="position: fixed; outline: none; display: none;">
+                <p>Are you sure you want to delete agent [{{dropAgentName}}]?</p>
+                <paper-button affirmative raised class="colored" on-click="{{dropOne}}">OK</paper-button>
+                <paper-button raised affirmative default>Cancel</paper-button>
+            </paper-action-dialog>
+
         </div>
     </template>
 
@@ -70,6 +79,8 @@
     <script>
     Polymer({
       applyAuthorStyles: true,
+      dropAgentId : '',
+      dropAgentName: '',
       created: function() {
           this.filter = null;
           this.allValues = [];
@@ -101,10 +112,13 @@
       formatDate: function(date){
            return moment(new Date(date)).fromNow();
       },
+      toggleDropAgentConfirmationDialog: function(event, detail,target) {
+            this.dropAgentId = target.attributes['data-agent-id'].textContent;
+            this.dropAgentName = target.attributes['data-agent-name'].textContent;
+            this.$.confirmdialogdeleteagent.toggle();
+      },
       dropOne: function(event, detail,target){
-           var dataCollection = target.attributes['data-collection'];
-           var agentId = dataCollection.textContent;
-           this.$.del.url= 'api/newman/agent/' + agentId;
+           this.$.del.url= 'api/newman/agent/' + this.dropAgentId;
            this.$.del.go();
       },
       reload : function(){
