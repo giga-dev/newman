@@ -6,6 +6,11 @@
 <polymer-element name="agent-table" attributes="url" on-modified-agent="{{onModifiedAgent}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+
+
+        <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
+        <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}" withCredentials="true"></core-ajax>
+
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
         <div class="content" flex>
             <form class="form-inline">
@@ -25,6 +30,7 @@
                         <th>Job</th>
                         <th>CurrentTests</th>
                         <th>Last seen</th>
+                        <th>Drop</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -45,6 +51,11 @@
                             </template>
                             </td>
                             <td>{{item.lastTouchTime | formatDate}}</td>
+                            <td>
+                                <button type="button" class="btn btn-success" on-click="{{dropOne}}" data-collection="{{item.id}}">
+                                    <span class="glyphicon glyphicon glyphicon-remove"></span>
+                                </button>
+                            </td>
                         </tr>
                     </template>
                     </tbody>
@@ -89,6 +100,15 @@
         },
       formatDate: function(date){
            return moment(new Date(date)).fromNow();
+      },
+      dropOne: function(event, detail,target){
+           var dataCollection = target.attributes['data-collection'];
+           var agentId = dataCollection.textContent;
+           this.$.del.url= 'api/newman/agent/' + agentId;
+           this.$.del.go();
+      },
+      reload : function(){
+            this.$.reload.go();
       },
       ajaxResponse: function(event,resp){
            this.allValues = resp.response.values;

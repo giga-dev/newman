@@ -841,7 +841,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteCollections() {
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
-        List<String> deleted = new ArrayList<>();
+        List<String> deleted = new ArrayList<String>();
         for (String name : db.listCollectionNames()) {
             if (!"system.indexes".equals(name)) {
                 MongoCollection myCollection = db.getCollection(name);
@@ -850,6 +850,17 @@ public class NewmanResource {
             }
         }
         return Response.ok(Entity.json(deleted)).build();
+    }
+
+    @DELETE
+    @Path("agent/{agentId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteAgent( final @PathParam("agentId") String agentId ) {
+
+        Query<Agent> idAgentQuery = agentDAO.createIdQuery(agentId);
+        Datastore datastore = agentDAO.getDatastore();
+        datastore.findAndDelete( idAgentQuery );
+        return Response.ok( Entity.json( agentId ) ).build();
     }
 
     @DELETE
