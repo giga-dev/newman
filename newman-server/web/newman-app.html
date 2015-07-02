@@ -14,6 +14,7 @@
 <link rel="import" href="sse-sender.html">
 <link rel="import" href="routes.html">
 <link rel="import" href="tests.html">
+<link rel="import" href="test-history.html">
 <link rel="import" href="test.html">
 <link rel="import" href="jobs.html">
 <link rel="import" href="job.html">
@@ -105,10 +106,18 @@
                                                 url="api/newman/test?jobId={{route('job').params.id}}&all=true" jobId="{{route('job').params.id}}"></tests-table>
                                     </template>
                                 </section>
-                                <section route="build">
+                                <section route="test-history">
+                                    <template if="{{route('test-history').params.id}}">
+                                        <test-history url="api/newman/test-history/{{route('test-history').params.id}}"></test-history>
+                                        <h1>Test History</h1>
+                                        <test-history-table
+                                                url="api/newman/test-history?id={{route('test-history').params.id}}" testId="{{route('test-history').params.id}}"></test-history-table>
+                                    </template>
+                                </section>
+                                <section route="build" attributes="url active" active>
                                     <h1>Details for build {{route('build').params.id}}</h1>
 
-                                    <h2>build {{route('build').params.id}} participate in the following jobs</h2>
+                                    <h2>build {{route('build').params.branch}} participate in the following jobs</h2>
                                     <jobs-table
                                             url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
                                 </section>
@@ -144,6 +153,9 @@
       ajaxResponse:function(event, object){
         this.user = object.response;
         this.heading = "Hello " + this.user.userName;
+      },
+      activeChanged: function(oldValue, newValue){
+          console.info("build view activeChanged to ", newValue);
       }
     });
 

@@ -965,6 +965,18 @@ public class NewmanResource {
         return Response.ok(Entity.json(suitesWithJobs)).build();
     }
 
+    @GET
+    @Path("test-history")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getTests( @QueryParam("id") String testName ) {
+        logger.info("--- getTests() START ---, testName", testName );
+        Query<Test> testsQuery = testDAO.createQuery().field( "name" ).equal( testName );
+        List<Test> tests = testDAO.find( testsQuery ).asList();
+        Collections.reverse( tests );
+        logger.info("--- getTests() END ---");
+        return Response.ok(Entity.json(tests)).build();
+    }
+
     private SuiteWithJobs createSuiteWithJobs(Suite suite) {
 
         String suiteId = suite.getId();

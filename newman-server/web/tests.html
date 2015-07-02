@@ -64,6 +64,7 @@
                         <th>startTime</th>
                         <th>endTime</th>
                         <th>duration</th>
+                        <th>History</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -78,6 +79,14 @@
                             <td title="{{item.startTime | formatDate }}">{{item.startTime | formatDateFromNow }}</td>
                             <td title="{{item.endTime | formatDate }}">{{item.endTime | formatDateFromNow }}</td>
                             <td>{{item | formatTotalTime}}</td>
+                            <td>
+<!--
+                                <button type="button" class="btn btn-default" aria-label="Left Align" on-click="{{showTestHistory}}" data-collection="{{item.id}}">
+                                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                                </button>
+-->
+                                <a href="{{urlFor('test-history', {id: item.name})}}">History</a>
+                            </td>
                         </tr>
                     </template>
                     </tbody>
@@ -139,6 +148,10 @@
             }else{
                 return values;
             }
+      },
+      showTestHistory: function(event, detail,target){
+        var test = target.attributes['data-collection'].textContent;
+        console.log( 'showTestHistory=', test);
       },
       showOnlyFailedChanged: function(){
           this.onlyFailed = this.$.onlyFailed.checked;
