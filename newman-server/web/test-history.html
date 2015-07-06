@@ -2,9 +2,12 @@
 
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
+<link rel="import" href="table-pagination.html">
+<link rel="import" href="test-status.html">
 
 <polymer-element name="test-history-table" attributes="url active">
     <template>
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <style>
             .table-nowrap {
                 table-layout:fixed;
@@ -18,7 +21,6 @@
                 text-overflow: ellipsis;
             }
         </style>
-        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax id="ajax" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true">
         </core-ajax>
         <div class="content" flex>
@@ -35,17 +37,25 @@
                 <table class="table table-bordered table-striped table-nowrap table-hover">
                     <thead>
                     <tr>
-                        <th>Id</th>
-                        <th>Job id</th>
-                        <th>Status</th>
+                        <th width="14%">Test Id</th>
+                        <th width="14%">Job Id</th>
+                        <th width="8%">Start Time</th>
+                        <th width="10%">Duration</th>
+                        <th width="7%">Status</th>
+                        <th>Error Message</th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
-                            <td>{{item.id}}</td>
-                            <td>{{item.jobId}}</td>
-                            <td>{{item.status}}</td>
+                            <td title="{{item.id}}"><a href="{{urlFor('test', {id: item.id})}}">{{item.id}}</a></td>
+                            <td title="{{item.jobId}}"><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
+                            <td title="{{item.startTime | formatDate }}">{{item.startTime | formatDateFromNow }}</td>
+                            <td>{{item | formatTotalTime}}</td>
+                            <td>
+                                <test-status test="{{item}}"></test-status>
+                            </td>
+                            <td>{{item.errorMessage}}</td>
                         </tr>
                     </template>
                     </tbody>
@@ -76,6 +86,8 @@
                 var res = [];
                 var current = [];
                 for(var i = 0; i < this.data.length; ++i){
+                    //cause to progress bars be filled with their color
+                    this.data[i].progressPercent=100;
                     current.push(this.data[i]);
                     if(current.length === 25){
                         res.push(current);
@@ -87,7 +99,6 @@
                 }
                 return res;
             },
-
             formatDate: function(date){
                 return moment(new Date(date)).fromNow();
             },
@@ -112,7 +123,12 @@
             onPageChange : function(event){
                 this.currentPage = event.detail.currentPage;
             },
-
+            formatTotalTime: function(item){
+                if(!item.endTime || !item.startTime){
+                    return null;
+                }
+                return moment.duration(item.endTime - item.startTime).humanize();
+            },
             formatDateFromNow: function(date){
                 if(!date){
                     return date;

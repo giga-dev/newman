@@ -80,3 +80,8 @@ body{
 .default-row{
     background-color: #F5F5F5;
 }
+
+.test-name-label{
+    color: dodgerblue;
+    font-weight: bold;
+}
