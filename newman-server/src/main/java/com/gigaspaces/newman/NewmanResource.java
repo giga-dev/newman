@@ -13,6 +13,7 @@ import com.gigaspaces.newman.beans.State;
 import com.gigaspaces.newman.beans.Suite;
 import com.gigaspaces.newman.beans.SuiteWithJobs;
 import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.beans.TestHistoryItem;
 import com.gigaspaces.newman.beans.UserPrefs;
 import com.gigaspaces.newman.config.Config;
 import com.gigaspaces.newman.dao.AgentDAO;
@@ -973,8 +974,22 @@ public class NewmanResource {
         Query<Test> testsQuery = testDAO.createQuery().field( "name" ).equal( testName );
         List<Test> tests = testDAO.find( testsQuery ).asList();
         Collections.reverse( tests );
+
+        List<TestHistoryItem> testHistoryItemsList = new ArrayList<>( tests.size() );
+        for( Test test : tests ){
+            TestHistoryItem testHistoryItem = createTestHistoryItem( test );
+            testHistoryItemsList.add( testHistoryItem );
+        }
+
         logger.info("--- getTests() END ---");
-        return Response.ok(Entity.json(tests)).build();
+        return Response.ok(Entity.json(testHistoryItemsList)).build();
+    }
+
+
+    private TestHistoryItem createTestHistoryItem( Test test ) {
+
+        Job job = getJob( test.getJobId() );
+        return new TestHistoryItem( test, job );
     }
 
     private SuiteWithJobs createSuiteWithJobs(Suite suite) {
@@ -990,7 +1005,6 @@ public class NewmanResource {
         logger.info("--- getAllSuitesWithJobs(), jobs list size:" + jobsList.size());
         logger.info("--- getAllSuitesWithJobs(), jobs:" + Arrays.toString(jobsList.toArray(new Job[jobsList.size()])));
 */
-
         return new SuiteWithJobs(suite, jobsList);
     }
 

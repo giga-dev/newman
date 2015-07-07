@@ -39,6 +39,8 @@
                     <tr>
                         <th width="14%">Test Id</th>
                         <th width="14%">Job Id</th>
+                        <th width="8%">Build</th>
+                        <th width="8%">Branch</th>
                         <th width="8%">Start Time</th>
                         <th width="10%">Duration</th>
                         <th width="7%">Status</th>
@@ -48,14 +50,16 @@
                     <tbody>
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
-                            <td title="{{item.id}}"><a href="{{urlFor('test', {id: item.id})}}">{{item.id}}</a></td>
-                            <td title="{{item.jobId}}"><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
-                            <td title="{{item.startTime | formatDate }}">{{item.startTime | formatDateFromNow }}</td>
-                            <td>{{item | formatTotalTime}}</td>
+                            <td title="{{item.test.id}}"><a href="{{urlFor('test', {id: item.test.id})}}">{{item.test.id}}</a></td>
+                            <td title="{{item.test.jobId}}"><a href="{{urlFor('job', {id: item.test.jobId})}}">{{item.test.jobId}}</a></td>
+                            <td title="{{item.job.build.name}}"><a href="{{urlFor('build', {id: item.job.build.id})}}">{{item.job.build.name}}</a></td>
+                            <td title="{{item.job.build.branch}}">{{item.job.build.branch}}</td>
+                            <td title="{{item.test.startTime | formatDate }}">{{item.job.startTime | formatDateFromNow }}</td>
+                            <td>{{item.test | formatTotalTime}}</td>
                             <td>
-                                <test-status test="{{item}}"></test-status>
+                                <test-status test="{{item.test}}"></test-status>
                             </td>
-                            <td>{{item.errorMessage}}</td>
+                            <td>{{item.test.errorMessage}}</td>
                         </tr>
                     </template>
                     </tbody>
@@ -87,7 +91,7 @@
                 var current = [];
                 for(var i = 0; i < this.data.length; ++i){
                     //cause to progress bars be filled with their color
-                    this.data[i].progressPercent=100;
+                    //this.data[i].test.progressPercent=100;
                     current.push(this.data[i]);
                     if(current.length === 25){
                         res.push(current);
@@ -104,15 +108,23 @@
             },
             ajaxResponse: function(event,resp){
                 this.allValues = resp.response.entity;
-                this.allValues.forEach(window.app.jobProgressPercent);
+                //this.allValues.forEach(window.app.jobProgressPercent);
                 this.runFilter();
             },
             applyFilter: function(filter, values){
                 if(values && filter != null && filter != undefined && filter != ""){
                     return values.filter(function(obj){
                         return Object.getOwnPropertyNames(obj).find(function(key){
-                            var val = obj[key];
-                            return val &&  typeof val === "string" && -1 < val.toLowerCase().indexOf(filter.toLowerCase());
+                            var test = obj.test;
+                            var job = obj.job;
+                            //var val = obj[key];
+                            return test && job &&
+                                    ( -1 < test.id.toLowerCase().indexOf( filter.toLowerCase() ) ||
+                                      -1 < test.jobId.toLowerCase().indexOf( filter.toLowerCase() ) ||
+                                      -1 < test.status.toLowerCase().indexOf( filter.toLowerCase() ) ||
+                                      -1 < job.build.name.toLowerCase().indexOf( filter.toLowerCase() ) ||
+                                      -1 < job.build.branch.toLowerCase().indexOf( filter.toLowerCase() ) ||
+                                      ( !!test.errorMessage && -1 < test.errorMessage.toLowerCase().indexOf( filter.toLowerCase() ) ) );
                         });
                         return false
                     });
