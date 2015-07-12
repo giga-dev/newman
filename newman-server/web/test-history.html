@@ -34,17 +34,17 @@
                 </div>
             </form>
             <div class="table-responsive" on-switch-clicked="{{onSwitchClicked}}">
-                <table class="table table-bordered table-striped table-nowrap table-hover">
+                <table class="table table-bordered table-striped table-nowrap table-hover"><!--data-sort-name="name" data-sort-order="desc"-->
                     <thead>
                     <tr>
-                        <th width="14%">Test Id</th>
-                        <th width="14%">Job Id</th>
-                        <th width="8%">Build</th>
-                        <th width="8%">Branch</th>
-                        <th width="8%">Start Time</th>
-                        <th width="10%">Duration</th>
-                        <th width="7%">Status</th>
-                        <th>Error Message</th>
+                        <th width="14%" data-sortable="true">Test Id</th>
+                        <th width="14%" data-sortable="true">Job Id</th>
+                        <th width="8%" data-sortable="true">Build</th>
+                        <th width="8%" data-sortable="true">Branch</th>
+                        <th width="8%" data-sortable="true">Start Time</th>
+                        <th width="10%" data-sortable="true">Duration</th>
+                        <th width="7%" data-sortable="true">Status</th>
+                        <th data-sortable="true">Error Message</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -90,8 +90,6 @@
                 var res = [];
                 var current = [];
                 for(var i = 0; i < this.data.length; ++i){
-                    //cause to progress bars be filled with their color
-                    //this.data[i].test.progressPercent=100;
                     current.push(this.data[i]);
                     if(current.length === 25){
                         res.push(current);
@@ -108,7 +106,6 @@
             },
             ajaxResponse: function(event,resp){
                 this.allValues = resp.response.entity;
-                //this.allValues.forEach(window.app.jobProgressPercent);
                 this.runFilter();
             },
             applyFilter: function(filter, values){
@@ -117,7 +114,7 @@
                         return Object.getOwnPropertyNames(obj).find(function(key){
                             var test = obj.test;
                             var job = obj.job;
-                            //var val = obj[key];
+
                             return test && job &&
                                     ( -1 < test.id.toLowerCase().indexOf( filter.toLowerCase() ) ||
                                       -1 < test.jobId.toLowerCase().indexOf( filter.toLowerCase() ) ||

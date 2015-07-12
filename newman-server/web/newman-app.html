@@ -18,6 +18,7 @@
 <link rel="import" href="test.html">
 <link rel="import" href="jobs.html">
 <link rel="import" href="job.html">
+<link rel="import" href="build.html">
 <link rel="import" href="builds.html">
 <link rel="import" href="agents.html">
 <link rel="import" href="mongo-admin.html">
@@ -115,11 +116,9 @@
                                     </template>
                                 </section>
                                 <section route="build" attributes="url active" active>
-                                    <h1>Details for build {{route('build').params.id}}</h1>
-
-                                    <h2>build {{route('build').params.branch}} participate in the following jobs</h2>
-                                    <jobs-table
-                                            url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
+                                    <build-info url="api/newman/build?id={{route('build').params.id}}"></build-info>
+                                    <h2>Participate in the following jobs:</h2>
+                                    <jobs-table url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
                                 </section>
                                 <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
                                 <section route="suite">

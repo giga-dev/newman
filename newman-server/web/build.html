@@ -1,0 +1,59 @@
+<script src="../components/webcomponentsjs/webcomponents.js"></script>
+
+<link rel="import" href="routes.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+
+<polymer-element name="build-info" attributes="url data">
+    <template>
+        <link rel="stylesheet" href="app.css">
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <style>
+            section {
+                width: 100px;
+            }
+        </style>
+        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
+
+        <template if="{{build}}">
+
+            <h1>Details for build <span class="test-name-label">{{build.name}}</span></h1>
+
+            <dl class="dl-horizontal">
+                <dt class="newman-build-table-cell">Build Id</dt>
+                <dd class="newman-build-table-cell">{{build.id}}</dd>
+                <dt class="newman-build-table-cell">Branch</dt>
+                <dd class="newman-build-table-cell">{{build.branch}}</dd>
+                <dt class="newman-build-table-cell">Build Time</dt>
+                <dd class="newman-build-table-cell" title="{{build.buildTime | formatDate}}">{{build.buildTime | formatDate}}</dd>
+                <dt class="newman-build-table-cell">Commits</dt>
+                <dd class="newman-build-table-cell">
+                    <P>{{build.shas.shas.keys}}</P>
+                    <template repeat="{{key in build.shas.keys}}">
+                        <!--<label>"{{build.shas[key]}"</label>-->
+                        <P>{{key}}</P>
+                    </template>
+                </dd>
+            </dl>
+        </template>
+    </template>
+    <script src="../components/moment/moment.js"></script>
+
+    <script>
+    Polymer({
+      applyAuthorStyles: true,
+      ready: function() {
+          this.build = null;
+      },
+      ajaxResponse: function(event,resp){
+           if(resp.response.values){
+               this.build = resp.response.values[0];
+           }
+      },
+      formatDate: function(date){
+            if(!date){
+                return date;
+            }
+           return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
+      }    });
+    </script>
+</polymer-element>

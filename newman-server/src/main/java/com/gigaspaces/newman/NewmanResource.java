@@ -809,6 +809,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Build updateBuild(final @PathParam("id") String id, final Build build) {
+        logger.info( "---updateBuild()" );
         UpdateOperations<Build> updateOps = buildDAO.createUpdateOperations();
         if (build.getShas() != null) {
             updateOps.set("shas", build.getShas());
@@ -833,7 +834,9 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Build getBuild(final @PathParam("id") String id) {
-        return buildDAO.findOne(buildDAO.createIdQuery(id));
+        Build build = buildDAO.findOne(buildDAO.createIdQuery(id));
+        logger.info( "build=" + build );
+        return build;
     }
 
 
