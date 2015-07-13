@@ -27,7 +27,7 @@
                 <dd class="newman-build-table-cell" title="{{build.buildTime | formatDate}}">{{build.buildTime | formatDate}}</dd>
                 <dt class="newman-build-table-cell">Commits</dt>
                 <dd class="newman-build-table-cell">
-                    <P>{{build.shas.shas.keys}}</P>
+                    <P>{{build.shas.keys}}</P>
                     <template repeat="{{key in build.shas.keys}}">
                         <!--<label>"{{build.shas[key]}"</label>-->
                         <P>{{key}}</P>
@@ -45,8 +45,8 @@
           this.build = null;
       },
       ajaxResponse: function(event,resp){
-           if(resp.response.values){
-               this.build = resp.response.values[0];
+           if(resp.response){
+               this.build = resp.response;
            }
       },
       formatDate: function(date){

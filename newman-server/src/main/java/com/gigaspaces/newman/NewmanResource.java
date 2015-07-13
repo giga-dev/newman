@@ -832,7 +832,6 @@ public class NewmanResource {
     @GET
     @Path("build/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     public Build getBuild(final @PathParam("id") String id) {
         Build build = buildDAO.findOne(buildDAO.createIdQuery(id));
         logger.info( "build=" + build );
