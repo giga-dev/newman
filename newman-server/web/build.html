@@ -18,42 +18,48 @@
 
             <h1>Details for build <span class="test-name-label">{{build.name}}</span></h1>
 
-            <dl class="dl-horizontal">
-                <dt class="newman-build-table-cell">Build Id</dt>
+            <dl class="dl-horizontal" style="width:100%">
+                <dt class="newman-build-table-cell" style="width:80%">Build Id</dt>
                 <dd class="newman-build-table-cell">{{build.id}}</dd>
-                <dt class="newman-build-table-cell">Branch</dt>
-                <dd class="newman-build-table-cell">{{build.branch}}</dd>
+                <dt class="newman-build-table-cell ">Branch</dt>
+                <dd class="newman-build-table-cell" >{{build.branch}}</dd>
                 <dt class="newman-build-table-cell">Build Time</dt>
                 <dd class="newman-build-table-cell" title="{{build.buildTime | formatDate}}">{{build.buildTime | formatDate}}</dd>
-                <dt class="newman-build-table-cell">Commits</dt>
-                <dd class="newman-build-table-cell">
-                    <P>{{build.shas.keys}}</P>
-                    <template repeat="{{key in build.shas.keys}}">
-                        <!--<label>"{{build.shas[key]}"</label>-->
-                        <P>{{key}}</P>
-                    </template>
-                </dd>
+                <template repeat="{{key in shasKeys}}">
+                    <dt class="newman-build-table-cell ">{{key}}:</dt>
+                    <dd class="newman-build-table-cell">
+                        <a target="_blank" href='https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}'>https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}</a>
+                    </dd>
+                </template>
             </dl>
         </template>
     </template>
     <script src="../components/moment/moment.js"></script>
 
     <script>
-    Polymer({
-      applyAuthorStyles: true,
-      ready: function() {
-          this.build = null;
-      },
-      ajaxResponse: function(event,resp){
-           if(resp.response){
-               this.build = resp.response;
-           }
-      },
-      formatDate: function(date){
-            if(!date){
-                return date;
+        Polymer({
+            applyAuthorStyles: true,
+            ready: function() {
+                this.build = null;
+                this.shasMap = null;
+                this.shasKeys = [];
+            },
+            ajaxResponse: function(event,resp){
+                if(resp.response){
+                    this.build = resp.response;
+                    this.shasMap = this.build.shas;
+                    for( key in this.shasMap ) {
+                        this.shasKeys.push( key );
+                        //console.log( 'key=', key, ', value=', shasMap[key] );
+                    }
+                }
+            },
+            formatDate: function(date){
+                if(!date){
+                    return date;
+                }
+                return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
             }
-           return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
-      }    });
+    });
     </script>
 </polymer-element>
