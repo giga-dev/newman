@@ -120,6 +120,8 @@ public class JobExecutor {
                 test.setStatus(Test.Status.FAIL);
                 test.setErrorMessage("Test exceeded timeout - " + test.getTimeout() + "ms");
             }
+            // call teardown test if exists
+            teardownTest(test);
         }
         catch (Throwable t) {
             test.setStatus(Test.Status.FAIL);
@@ -147,6 +149,22 @@ public class JobExecutor {
         }
 
         return test; //return same reference
+    }
+
+    private void teardownTest(Test test) {
+        Path testFolder = append(jobFolder, "test-" + test.getId());
+        Path outputFile = append(append(testFolder, "output"), "teardown-" + test.getTestType() + "-test.log");
+        Path teardownScript = append(jobFolder, "teardown-" + test.getTestType() + "-test" + SCRIPT_SUFFIX);
+        if (exists(teardownScript)) {
+            logger.info("Executing teardown for test {}", test);
+            try {
+                ProcessUtils.executeAndWait(teardownScript, test.getArguments(),testFolder,
+                         outputFile, 10 * 60 * 1000);
+                // TODO: Inspect exit code and log warning if non-zero.
+            } catch (Exception e) {
+                logger.warn("failed to teardown test" + test, e);
+            }
+        }
     }
 
     public void teardown() {
