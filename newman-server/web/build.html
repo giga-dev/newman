@@ -26,7 +26,11 @@
                 <dt class="newman-build-table-cell">Build Time</dt>
                 <dd class="newman-build-table-cell" title="{{build.buildTime | formatDate}}">{{build.buildTime | formatDate}}</dd>
                 <dt class="newman-build-table-cell">Resources</dt>
-                <dd class="newman-build-table-cell">{{build.resources}}</dd>
+                <dd class="newman-build-table-cell">
+                    <template repeat="{{resource in build.resources}}">
+                        <a target="_blank" href='{{resource}}'>{{resource}}</a><BR>
+                    </template>
+                </dd>
                 <dt class="newman-build-table-cell">Tests Metadata</dt>
                 <dd class="newman-build-table-cell">{{build.testsMetadata}}</dd>
                 <dt class="newman-build-table-cell">Commits:</dt>
