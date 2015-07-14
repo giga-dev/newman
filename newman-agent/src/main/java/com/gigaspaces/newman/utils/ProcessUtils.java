@@ -1,5 +1,8 @@
 package com.gigaspaces.newman.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -8,7 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 public class ProcessUtils {
 
-    private static final long DEFAULT_SCRIPT_TIMEOUT = 10 * 60 * 1000;
+    private static final Logger logger = LoggerFactory.getLogger(ProcessUtils.class);
+    private static final long DEFAULT_SCRIPT_TIMEOUT = 20 * 60 * 1000;
 
     public static ProcessResult executeAndWait(Path file, Path workingFolder, Path outputPath) throws IOException, InterruptedException {
         return executeAndWait(file, Collections.emptyList(), workingFolder, outputPath, DEFAULT_SCRIPT_TIMEOUT);
@@ -34,7 +38,11 @@ public class ProcessUtils {
         if (exited) {
             result.setExitCode(process.exitValue());
         } else {
-            process.destroyForcibly();
+            logger.info("ref ["+process.hashCode()+"] Destroying forcibly due to timeout ("+timeout+") ms - file: " + file.getFileName() + " args: " + arguments);
+            Process destroyed = process.destroyForcibly();
+            if (!destroyed.waitFor(10, TimeUnit.SECONDS)) {
+                logger.warn("ref ["+process.hashCode()+"] Failed to destroy forcibly after 10 seconds");
+            }
         }
         result.setEndTime(System.currentTimeMillis());
 
