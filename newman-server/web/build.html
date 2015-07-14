@@ -18,25 +18,47 @@
 
             <h1>Details for build <span class="test-name-label">{{build.name}}</span></h1>
 
-            <dl class="dl-horizontal" style="width:100%">
-                <dt class="newman-build-table-cell" style="width:80%">Build Id</dt>
+            <dl class="dl-horizontal">
+                <dt class="newman-build-table-cell">Build Id</dt>
                 <dd class="newman-build-table-cell">{{build.id}}</dd>
                 <dt class="newman-build-table-cell ">Branch</dt>
                 <dd class="newman-build-table-cell" >{{build.branch}}</dd>
                 <dt class="newman-build-table-cell">Build Time</dt>
                 <dd class="newman-build-table-cell" title="{{build.buildTime | formatDate}}">{{build.buildTime | formatDate}}</dd>
+                <dt class="newman-build-table-cell">Resources</dt>
+                <dd class="newman-build-table-cell">{{build.resources}}</dd>
+                <dt class="newman-build-table-cell">Tests Metadata</dt>
+                <dd class="newman-build-table-cell">{{build.testsMetadata}}</dd>
+                <dt class="newman-build-table-cell">Commits:</dt>
+                <dd class="newman-build-table-cell">
+                </dd>
                 <template repeat="{{key in shasKeys}}">
-                    <dt class="newman-build-table-cell ">{{key}}:</dt>
-                    <dd class="newman-build-table-cell">
-                        <a target="_blank" href='https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}'>https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}</a>
-                    </dd>
+                    <template if="{{key=='xap'}}">
+                        <dt class="newman-build-table-cell ">{{key}}</dt>
+                        <dd class="newman-build-table-cell">
+                            <a target="_blank" href='https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}'>https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}</a>
+                        </dd>
+                    </template>
+                    <template if="{{key!='xap'}}">
+                        <dt class="newman-build-table-cell newman-build-optional-property-hidden newman-build-optional-marker">{{key}}</dt>
+                        <dd class="newman-build-table-cell newman-build-optional-property-hidden newman-build-optional-marker">
+                            <a target="_blank" href='https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}'>https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}</a>
+                        </dd>
+                    </template>
                 </template>
+                <dt class="newman-build-table-cell"></dt>
+                <dd class="newman-build-table-cell">
+                    <button class="btn btn-success" on-click="{{onDetailsClick}}">
+                        <span id="detailButton" class="glyphicon glyphicon-menu-down"></span>
+                    </button>
+                </dd>
             </dl>
         </template>
     </template>
     <script src="../components/moment/moment.js"></script>
 
     <script>
+
         Polymer({
             applyAuthorStyles: true,
             ready: function() {
@@ -50,7 +72,6 @@
                     this.shasMap = this.build.shas;
                     for( key in this.shasMap ) {
                         this.shasKeys.push( key );
-                        //console.log( 'key=', key, ', value=', shasMap[key] );
                     }
                 }
             },
@@ -59,6 +80,28 @@
                     return date;
                 }
                 return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
+            },
+            onDetailsClick: function(event, detail, sender){
+
+                var markerClassName = 'newman-build-optional-marker';
+                var hiddenClassName = 'newman-build-optional-property-hidden';
+                var optionalPropertiesElements = this.shadowRoot.querySelectorAll('.' + markerClassName);
+
+                var button = this.shadowRoot.querySelector('#detailButton');
+                if( button.getAttribute('class').indexOf( 'glyphicon-menu-up' ) >=0 ) {
+                    button.setAttribute('class', 'glyphicon glyphicon-menu-down');
+                    for( i = 0; i < optionalPropertiesElements.length; i++ ){
+                        var optionalElement = optionalPropertiesElements[ i ];
+                        optionalElement.classList.add( hiddenClassName );
+                    }
+                }
+                else if( button.getAttribute('class').indexOf( 'glyphicon-menu-down' ) >=0 ) {
+                    button.setAttribute('class', 'glyphicon glyphicon-menu-up');
+                    for( i = 0; i < optionalPropertiesElements.length; i++ ){
+                        var optionalElement = optionalPropertiesElements[ i ];
+                        optionalElement.classList.remove( hiddenClassName );
+                    }
+                }
             }
     });
     </script>

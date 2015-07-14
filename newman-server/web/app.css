@@ -89,3 +89,9 @@ body{
     color: dodgerblue;
     font-weight: bold;
 }
+
+.newman-build-optional-property-hidden{
+    visibility: hidden;
+    padding: 0px;
+    height: 0px;
+}
