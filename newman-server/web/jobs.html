@@ -76,7 +76,10 @@
                                 </template>
                             </td>
                             <td title="{{item.id}}"><a href="{{urlFor('job', {id: item.id})}}">{{item.id}}</a></td>
-                            <td title="{{item.suite.name}}"><a href="{{urlFor('suite', {id: item.suite.id})}}">{{item.suite.name}}</a>
+                            <td title="{{item.suite.name}}">
+                                <template if="{{item.suite.id != null}}">
+                                    <a href="{{urlFor('suite', {id: item.suite.id})}}">{{item.suite.name}}</a>
+                                </template>
                             </td>
                             <td title="{{item.duration}}">{{item | getDuration}}</td>
                             <td title="{{item.submitTime | formatDate}}">{{item.submitTime | formatDateFromNow}}</td>
