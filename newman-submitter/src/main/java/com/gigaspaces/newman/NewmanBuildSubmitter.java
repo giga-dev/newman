@@ -24,51 +24,45 @@ import java.util.concurrent.ExecutionException;
 public class NewmanBuildSubmitter {
     private static final Logger logger = LoggerFactory.getLogger(NewmanBuildSubmitter.class);
 
-    private static final String BUILD_S3_PUBLISH_FOLDER = "BUILD_S3_PUBLISH_FOLDER";
-    private static final String NEWMAN_BUILD_MILESTONE = "NEWMAN_BUILD_MILESTONE";
-    private static final String NEWMAN_BUILD_VERSION = "NEWMAN_BUILD_VERSION";
-    private static final String NEWMAN_BUILD_NUMBER = "NEWMAN_BUILD_NUMBER";
-    private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
-
     private static final String NEWMAN_HOST = "NEWMAN_HOST";
     private static final String NEWMAN_PORT = "NEWMAN_PORT";
     private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
     private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
 
+    private NewmanClient newmanClient;
+    private NewmanBuildMetadata buildMetadata;
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException {
+    public NewmanBuildSubmitter(NewmanBuildMetadata buildMetadata, String host, String port, String username, String password) {
 
-        // build arguments
-        String publishFolder = getEnvironment(BUILD_S3_PUBLISH_FOLDER);
-        String newmanBuildMilestone = getEnvironment(NEWMAN_BUILD_MILESTONE);
-        String newmanBuildVersion = getEnvironment(NEWMAN_BUILD_VERSION);
-        String buildBranch = getEnvironment(NEWMAN_BUILD_BRANCH);
-        String buildNumber = getEnvironment(NEWMAN_BUILD_NUMBER);
+        this.buildMetadata = buildMetadata;
 
-        // connection arguments
-        String host = getEnvironment(NEWMAN_HOST);
-        String port = getEnvironment(NEWMAN_PORT);
-        String username = getEnvironment(NEWMAN_USER_NAME);
-        String password = getEnvironment(NEWMAN_PASSWORD);
+        logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
+        try {
+            newmanClient = NewmanClient.create(host, port, username, password);
+        } catch (Exception e) {
+            logger.error("Failed to init client, exiting...", e);
+            System.exit(1);
+        }
+    }
+
+    public String submitBuild() throws IOException, ExecutionException, InterruptedException {
 
         String buildPathPrefix = "http://tarzan/builds/GigaSpacesBuilds/";
-        String baseBuildURI = buildPathPrefix + newmanBuildVersion + "/build_" + buildNumber;
-        String buildZipFile = baseBuildURI +"/xap-premium/1.5/gigaspaces-xap-premium-" + newmanBuildVersion + "-" +newmanBuildMilestone + "-b" + buildNumber +".zip";
+        String baseBuildURI = buildPathPrefix + buildMetadata.getNewmanBuildVersion() + "/build_" + buildMetadata.getBuildNumber();
+        String buildZipFile = baseBuildURI +"/xap-premium/1.5/gigaspaces-xap-premium-" + buildMetadata.getNewmanBuildVersion() +
+                "-" +buildMetadata.getNewmanBuildMilestone() + "-b" + buildMetadata.getBuildNumber() +".zip";
         String testsZipFile = baseBuildURI + "/testsuite-1.5.zip";
         String buildMetadataFile = baseBuildURI + "/xap-premium/1.5/metadata.txt";
-        String newmanArtifactsUri = "https://s3-eu-west-1.amazonaws.com/gigaspaces-repository-eu/com/gigaspaces/xap-core/newman/"+ publishFolder +"/newman-artifacts.zip";
+        String newmanArtifactsUri = "https://s3-eu-west-1.amazonaws.com/gigaspaces-repository-eu/com/gigaspaces/xap-core/newman/"+ buildMetadata.getPublishFolder() +"/newman-artifacts.zip";
         String newmanTgridMetadataUri = "jar:" + testsZipFile +"!/QA/metadata/tgrid-tests-metadata.json";
 
         logger.info("Initialized newman build submitter with the following arguments:");
         logger.info("\nbuildZipFile={}\ntestsZipFile={}\nbuildMetadataFile={}\nnewmanArtifactsUri={}\nnewmanTgridMetadataUri={}",
                 buildZipFile, testsZipFile, buildMetadataFile, newmanArtifactsUri, newmanTgridMetadataUri);
-
-        logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
-        NewmanClient newmanClient = NewmanClient.create(host, port, username, password);
         try {
             Build b = new Build();
-            b.setName(buildNumber);
-            b.setBranch(buildBranch);
+            b.setName(buildMetadata.getBuildNumber());
+            b.setBranch(buildMetadata.getBuildBranch());
             Map<String, String> shas = parseBuildMetadata(buildMetadataFile);
             b.setShas(shas);
             URI artifactsURI = URI.create(newmanArtifactsUri);
@@ -86,14 +80,15 @@ public class NewmanBuildSubmitter {
             //TODO add sgtest metadata
             b.setTestsMetadata(testMetadata);
             Build build = newmanClient.createBuild(b).toCompletableFuture().get();
-
             logger.info("Build {} was created successfully", build);
+            return build.getId();
+
         } finally {
             newmanClient.close();
         }
     }
 
-    private static String getEnvironment(String var) {
+    public static String getEnvironment(String var) {
         String v = System.getenv(var);
         if (v == null){
             logger.error("Please set the environment variable {} and try again.", var);
@@ -102,7 +97,7 @@ public class NewmanBuildSubmitter {
         return v;
     }
 
-    private static Map<String, String> parseBuildMetadata(String buildMetadataFile) throws IOException {
+    private Map<String, String> parseBuildMetadata(String buildMetadataFile) throws IOException {
         Map<String,String> shas = new HashMap<>();
         InputStream is = null;
         try {
@@ -124,4 +119,26 @@ public class NewmanBuildSubmitter {
         }
         return shas;
     }
+
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException {
+
+        String publishFolder = getEnvironment(NewmanBuildMetadata.BUILD_S3_PUBLISH_FOLDER);
+        String newmanBuildMilestone = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_MILESTONE);
+        String newmanBuildVersion = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_VERSION);
+        String buildBranch = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_BRANCH);
+        String buildNumber = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_NUMBER);
+
+        NewmanBuildMetadata buildMetadata = new NewmanBuildMetadata(publishFolder, newmanBuildMilestone, newmanBuildVersion, buildBranch, buildNumber);
+
+        // connection arguments
+        String host = getEnvironment(NEWMAN_HOST);
+        String port = getEnvironment(NEWMAN_PORT);
+        String username = getEnvironment(NEWMAN_USER_NAME);
+        String password = getEnvironment(NEWMAN_PASSWORD);
+
+        NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(buildMetadata, host, port, username, password);
+
+        buildSubmitter.submitBuild();
+    }
+
 }

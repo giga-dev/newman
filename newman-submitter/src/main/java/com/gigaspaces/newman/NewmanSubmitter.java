@@ -1,24 +1,17 @@
 package com.gigaspaces.newman;
 
 
-import com.gigaspaces.newman.beans.*;
-import com.gigaspaces.newman.beans.criteria.Criteria;
-import com.gigaspaces.newman.beans.criteria.CriteriaEvaluator;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import com.gigaspaces.newman.beans.Batch;
+import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.beans.State;
+import com.gigaspaces.newman.beans.Suite;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -28,90 +21,112 @@ import java.util.concurrent.ExecutionException;
 
 public class NewmanSubmitter {
 
+    private static final String NEWMAN_HOST = "NEWMAN_HOST";
+    private static final String NEWMAN_PORT = "NEWMAN_PORT";
+    private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
+    private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
+    private static final String NEWMAN_SUITE = "NEWMAN_SUITE";
     private static final Logger logger = LoggerFactory.getLogger(NewmanSubmitter.class);
-    //0- suiteId, 1-buildId, 2-host, 3- port, 4- user, 5- password
-    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException {
 
-        if (args.length != 6){
-            logger.error("Usage: java -jar newman-submitter-1.0-shaded.jar <suiteid> <buildId>" +
-                    " <newmanServerHost> <newmanServerPort> <newmanUser> <newmanPassword>");
-            System.exit(1);
-        }
+    private NewmanClient newmanClient;
+    private String suiteId;
+    private NewmanBuildMetadata buildMetadata;
+    private String host;
+    private String port;
+    private String username;
+    private String password;
 
-        //TODO validate arguments
-        String suiteId = args[0];
-        String buildId = args[1];
-        String host = args[2];
-        String port = args[3];
-        String username = args[4];
-        String password = args[5];
+    public NewmanSubmitter(String suiteId, NewmanBuildMetadata buildMetadata, String host, String port, String username, String password){
+
+        this.suiteId = suiteId;
+        this.buildMetadata = buildMetadata;
+        this.host = host;
+        this.port = port;
+        this.username = username;
+        this.password = password;
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
-        NewmanClient newmanClient = NewmanClient.create(host, port, username, password);
+        try {
+            newmanClient = NewmanClient.create(host, port, username, password);
+        } catch (Exception e) {
+            logger.error("Failed to init client, exiting...", e);
+            System.exit(1);
+        }
+    }
+
+    public void work() throws ExecutionException, InterruptedException, IOException, ParseException {
         try {
             Suite suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
             if (suite == null) {
                 throw new IllegalArgumentException("suite with id: " + suiteId + " does not exists");
             }
 
-            Build build = newmanClient.getBuild(buildId).toCompletableFuture().get();
-            if (build == null) {
-                throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
+            NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(buildMetadata, host, port, username, password);
+
+            String buildId = buildSubmitter.submitBuild();
+
+            final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
+
+            String jobId = jobSubmitter.submitJob();
+
+            while (!isJobFinished(jobId)) {
+                logger.info("waiting for job {} to end", jobId);
+                Thread.sleep(10 * 1000);
             }
-
-            Job job = addJob(newmanClient, suiteId, buildId);
-            logger.info("added a new job {}", job);
-            Collection<URI> testsMetadata = build.getTestsMetadata();
-
-            if (testsMetadata == null) {
-                logger.error("can't submit job when there is no tests metadata in the build [{}]", buildId);
-                System.exit(1);
-            }
-
-            for (URI testMetadata : testsMetadata) {
-                logger.info("parsing metadata file {}", testMetadata);
-                List<Test> listOfTests = parseMetadata(testMetadata.toURL().openStream());
-                Criteria criteria = suite.getCriteria();
-                CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(criteria);
-                for (Test test : listOfTests) {
-                    if (criteriaEvaluator.evaluate(test)) {
-                        test.setJobId(job.getId());
-                        addTest(test, newmanClient);
-                    }
-                }
-            }
-        } finally {
-            newmanClient.close();
-        }
-    }
-
-    private static Job addJob(NewmanClient client, String suiteId, String buildId) throws ExecutionException, InterruptedException {
-        JobRequest jobRequest = new JobRequest();
-        jobRequest.setBuildId(buildId);
-        jobRequest.setSuiteId(suiteId);
-        return client.createJob(jobRequest).toCompletableFuture().get();
-    }
-
-    private static void addTest(Test test, NewmanClient client) throws ExecutionException, InterruptedException {
-        client.createTest(test).toCompletableFuture().get();
-    }
-
-    private static List<Test> parseMetadata(InputStream is) throws IOException, ParseException {
-        JSONParser parser = new JSONParser();
-        Reader in = null;
-        try {
-            in = new InputStreamReader(is);
-            JSONObject metadataJson = (JSONObject) parser.parse(in);
-            String type = (String) metadataJson.get("type");
-            if (type == null)
-                throw new IllegalArgumentException("metadata must have 'type' field");
-
-            NewmanTestsMetadataParser newmanTestsMetadataParser = NewmanTestsMetadataParserFactory.create(type);
-            return newmanTestsMetadataParser.parse(metadataJson);
         }
         finally {
-            if (in != null)
-                in.close();
+            if (newmanClient != null)
+                newmanClient.close();
         }
+    }
+
+    private boolean isJobFinished(String jobId) {
+        try {
+            Job job = null;
+            final Batch<Job> jobBatch = newmanClient.getJobs().toCompletableFuture().get();
+            for (Job j : jobBatch.getValues()) {
+                if (j.getId().equals(jobId)){
+                    job = j;
+                    break;
+                }
+            }
+            if (job == null){
+                throw new IllegalArgumentException("No such job with id: " + jobId);
+            }
+            return job.getState() == State.DONE;
+
+        } catch (Exception e) {
+            logger.error("failed to check if job is finished", e);
+            return false;
+        }
+    }
+
+    public static String getEnvironment(String var) {
+        String v = System.getenv(var);
+        if (v == null){
+            logger.error("Please set the environment variable {} and try again.", var);
+            throw new IllegalArgumentException("the environment variable " + var + " must be set");
+        }
+        return v;
+    }
+
+    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException {
+        String publishFolder = getEnvironment(NewmanBuildMetadata.BUILD_S3_PUBLISH_FOLDER);
+        String newmanBuildMilestone = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_MILESTONE);
+        String newmanBuildVersion = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_VERSION);
+        String buildBranch = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_BRANCH);
+        String buildNumber = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_NUMBER);
+        // connection arguments
+        String host = getEnvironment(NEWMAN_HOST);
+        String port = getEnvironment(NEWMAN_PORT);
+        String username = getEnvironment(NEWMAN_USER_NAME);
+        String password = getEnvironment(NEWMAN_PASSWORD);
+        // suite to run
+        String suiteId = getEnvironment(NEWMAN_SUITE);
+
+        NewmanBuildMetadata buildMetadata = new NewmanBuildMetadata(publishFolder, newmanBuildMilestone, newmanBuildVersion, buildBranch, buildNumber);
+
+        NewmanSubmitter newmanSubmitter = new NewmanSubmitter(suiteId, buildMetadata, host, port, username, password);
+        newmanSubmitter.work();
     }
 }
