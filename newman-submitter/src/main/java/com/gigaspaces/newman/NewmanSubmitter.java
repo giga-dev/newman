@@ -54,7 +54,7 @@ public class NewmanSubmitter {
         }
     }
 
-    public void work() throws ExecutionException, InterruptedException, IOException, ParseException {
+    public void submitAndWait() throws ExecutionException, InterruptedException, IOException, ParseException {
         try {
             Suite suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
             if (suite == null) {
@@ -127,6 +127,6 @@ public class NewmanSubmitter {
         NewmanBuildMetadata buildMetadata = new NewmanBuildMetadata(publishFolder, newmanBuildMilestone, newmanBuildVersion, buildBranch, buildNumber);
 
         NewmanSubmitter newmanSubmitter = new NewmanSubmitter(suiteId, buildMetadata, host, port, username, password);
-        newmanSubmitter.work();
+        newmanSubmitter.submitAndWait();
     }
 }
