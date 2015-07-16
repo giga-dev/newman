@@ -30,16 +30,14 @@ public class NewmanSubmitter {
 
     private NewmanClient newmanClient;
     private String suiteId;
-    private NewmanBuildMetadata buildMetadata;
     private String host;
     private String port;
     private String username;
     private String password;
 
-    public NewmanSubmitter(String suiteId, NewmanBuildMetadata buildMetadata, String host, String port, String username, String password){
+    public NewmanSubmitter(String suiteId, String host, String port, String username, String password){
 
         this.suiteId = suiteId;
-        this.buildMetadata = buildMetadata;
         this.host = host;
         this.port = port;
         this.username = username;
@@ -61,7 +59,7 @@ public class NewmanSubmitter {
                 throw new IllegalArgumentException("suite with id: " + suiteId + " does not exists");
             }
 
-            NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(buildMetadata, host, port, username, password);
+            NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(host, port, username, password);
 
             String buildId = buildSubmitter.submitBuild();
 
@@ -111,11 +109,6 @@ public class NewmanSubmitter {
     }
 
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException {
-        String publishFolder = getEnvironment(NewmanBuildMetadata.BUILD_S3_PUBLISH_FOLDER);
-        String newmanBuildMilestone = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_MILESTONE);
-        String newmanBuildVersion = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_VERSION);
-        String buildBranch = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_BRANCH);
-        String buildNumber = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_NUMBER);
         // connection arguments
         String host = getEnvironment(NEWMAN_HOST);
         String port = getEnvironment(NEWMAN_PORT);
@@ -124,9 +117,7 @@ public class NewmanSubmitter {
         // suite to run
         String suiteId = getEnvironment(NEWMAN_SUITE);
 
-        NewmanBuildMetadata buildMetadata = new NewmanBuildMetadata(publishFolder, newmanBuildMilestone, newmanBuildVersion, buildBranch, buildNumber);
-
-        NewmanSubmitter newmanSubmitter = new NewmanSubmitter(suiteId, buildMetadata, host, port, username, password);
+        NewmanSubmitter newmanSubmitter = new NewmanSubmitter(suiteId, host, port, username, password);
         newmanSubmitter.submitAndWait();
     }
 }

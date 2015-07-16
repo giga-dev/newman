@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 /**
  * @author Boris
@@ -32,9 +33,9 @@ public class NewmanBuildSubmitter {
     private NewmanClient newmanClient;
     private NewmanBuildMetadata buildMetadata;
 
-    public NewmanBuildSubmitter(NewmanBuildMetadata buildMetadata, String host, String port, String username, String password) {
+    public NewmanBuildSubmitter(String host, String port, String username, String password) {
 
-        this.buildMetadata = buildMetadata;
+        this.buildMetadata = getBuildMetadata();
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         try {
@@ -45,40 +46,56 @@ public class NewmanBuildSubmitter {
         }
     }
 
+    private NewmanBuildMetadata getBuildMetadata() {
+        NewmanBuildMetadata buildMetadata = new NewmanBuildMetadata();
+        //e.g "13507-106"
+        String buildNumber = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_NUMBER);
+        buildMetadata.setBuildNumber(buildNumber);
+
+        //e.g "master"
+        String buildBranch = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_BRANCH);
+        buildMetadata.setBuildBranch(buildBranch);
+
+        //e.g "http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13507-106/xap-premium/1.5/metadata.txt";
+        String newmanBuildShasFile = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_SHAS_FILE);
+        buildMetadata.setBuildShasFile(newmanBuildShasFile);
+
+        //e.g "http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13507-106/testsuite-1.5.zip,
+        //      http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13507-106/xap-premium/1.5/gigaspaces-xap-premium-10.2.0-ga-b13507-106.zip,
+        //      https://s3-eu-west-1.amazonaws.com/gigaspaces-repository-eu/com/gigaspaces/xap-core/newman/10.2.0-13507-106-SNAPSHOT/newman-artifacts.zip"
+        String newmanBuildResources = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_RESOURCES);
+        Collection<String> resources = new ArrayList<>();
+        for (String resource : newmanBuildResources.split(",")) {
+            resources.add(resource);
+        }
+        buildMetadata.setResources(resources);
+
+        //e.g "jar:http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13507-106/testsuite-1.5.zip!/QA/metadata/tgrid-tests-metadata.json"
+        String newmanBuildTestsMetadata = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_TESTS_METADATA);
+        Collection<String> testsMetadata = new ArrayList<>();
+        for (String testMetadata : newmanBuildTestsMetadata.split(",")) {
+            testsMetadata.add(testMetadata);
+        }
+        buildMetadata.setTestsMetadata(testsMetadata);
+
+        return buildMetadata;
+    }
+
     public String submitBuild() throws IOException, ExecutionException, InterruptedException {
 
-        String buildPathPrefix = "http://tarzan/builds/GigaSpacesBuilds/";
-        String baseBuildURI = buildPathPrefix + buildMetadata.getNewmanBuildVersion() + "/build_" + buildMetadata.getBuildNumber();
-        String buildZipFile = baseBuildURI +"/xap-premium/1.5/gigaspaces-xap-premium-" + buildMetadata.getNewmanBuildVersion() +
-                "-" +buildMetadata.getNewmanBuildMilestone() + "-b" + buildMetadata.getBuildNumber() +".zip";
-        String testsZipFile = baseBuildURI + "/testsuite-1.5.zip";
-        String buildMetadataFile = baseBuildURI + "/xap-premium/1.5/metadata.txt";
-        String newmanArtifactsUri = "https://s3-eu-west-1.amazonaws.com/gigaspaces-repository-eu/com/gigaspaces/xap-core/newman/"+ buildMetadata.getPublishFolder() +"/newman-artifacts.zip";
-        String newmanTgridMetadataUri = "jar:" + testsZipFile +"!/QA/metadata/tgrid-tests-metadata.json";
-
-        logger.info("Initialized newman build submitter with the following arguments:");
-        logger.info("\nbuildZipFile={}\ntestsZipFile={}\nbuildMetadataFile={}\nnewmanArtifactsUri={}\nnewmanTgridMetadataUri={}",
-                buildZipFile, testsZipFile, buildMetadataFile, newmanArtifactsUri, newmanTgridMetadataUri);
+        logger.info("Initialized newman build submitter with the following build metadata: " + buildMetadata);
         try {
             Build b = new Build();
             b.setName(buildMetadata.getBuildNumber());
             b.setBranch(buildMetadata.getBuildBranch());
-            Map<String, String> shas = parseBuildMetadata(buildMetadataFile);
+            Map<String, String> shas = parseBuildShasFile(buildMetadata.getBuildShasFile());
             b.setShas(shas);
-            URI artifactsURI = URI.create(newmanArtifactsUri);
-            URI testsURI = URI.create(testsZipFile);
-            URI buildURI = URI.create(buildZipFile);
-
-            Collection<URI> collection = new ArrayList<>();
-            collection.add(artifactsURI);
-            collection.add(testsURI);
-            collection.add(buildURI);
-            b.setResources(collection);
-            Collection<URI> testMetadata = new ArrayList<>();
-            URI tgridMetadata = URI.create(newmanTgridMetadataUri);
-            testMetadata.add(tgridMetadata);
-            //TODO add sgtest metadata
-            b.setTestsMetadata(testMetadata);
+            // set resources
+            Collection<URI> buildResources = buildMetadata.getResources().stream().map(URI::create).collect(Collectors.toList());
+            b.setResources(buildResources);
+            // set tests metadata
+            Collection<URI> testsMetadata = buildMetadata.getTestsMetadata().stream().map(URI::create).collect(Collectors.toList());
+            b.setTestsMetadata(testsMetadata);
             Build build = newmanClient.createBuild(b).toCompletableFuture().get();
             logger.info("Build {} was created successfully", build);
             return build.getId();
@@ -97,11 +114,11 @@ public class NewmanBuildSubmitter {
         return v;
     }
 
-    private Map<String, String> parseBuildMetadata(String buildMetadataFile) throws IOException {
+    private Map<String, String> parseBuildShasFile(String buildShasFile) throws IOException {
         Map<String,String> shas = new HashMap<>();
         InputStream is = null;
         try {
-            is = URI.create(buildMetadataFile).toURL().openStream();
+            is = URI.create(buildShasFile).toURL().openStream();
             String metadata = FileUtils.readTextFile(is);
             String modifiedMetadata = metadata.replace("[", "");
             modifiedMetadata = modifiedMetadata.replace("]", "");
@@ -121,22 +138,13 @@ public class NewmanBuildSubmitter {
     }
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException {
-
-        String publishFolder = getEnvironment(NewmanBuildMetadata.BUILD_S3_PUBLISH_FOLDER);
-        String newmanBuildMilestone = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_MILESTONE);
-        String newmanBuildVersion = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_VERSION);
-        String buildBranch = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_BRANCH);
-        String buildNumber = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_NUMBER);
-
-        NewmanBuildMetadata buildMetadata = new NewmanBuildMetadata(publishFolder, newmanBuildMilestone, newmanBuildVersion, buildBranch, buildNumber);
-
         // connection arguments
         String host = getEnvironment(NEWMAN_HOST);
         String port = getEnvironment(NEWMAN_PORT);
         String username = getEnvironment(NEWMAN_USER_NAME);
         String password = getEnvironment(NEWMAN_PASSWORD);
 
-        NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(buildMetadata, host, port, username, password);
+        NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(host, port, username, password);
 
         buildSubmitter.submitBuild();
     }
