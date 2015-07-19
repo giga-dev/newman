@@ -133,6 +133,11 @@
       },
 
         getDuration: function(item) {
+
+            if( item.startTime === null ){
+                return '';
+            }
+
             var endTime = item.endTime;
             if (endTime == null) {
                 endTime = new Date().getTime();
