@@ -31,7 +31,7 @@
                         <th width="18%">Name</th>
                         <th width="7%">Branch</th>
                         <th width="11%">Date</th>
-                        <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
+                        <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
                         <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
                         <th width="26%"><span class="label label-header">Suites</span></th>
                     </tr>
@@ -46,7 +46,7 @@
                             <td>
                                 <span class="label label-success">{{activeBuild.buildStatus.passedTests}}</span>
                                 <span class="label label-danger">{{activeBuild.buildStatus.failedTests}}</span>
-                                <span class="label label-default">{{activeBuild.buildStatus.totalTests}}</span>
+                                <span class="label label-primary">{{activeBuild.buildStatus.totalTests - activeBuild.buildStatus.passedTests - activeBuild.buildStatus.failedTests}}</span>
                             </td>
 
                             <td>
