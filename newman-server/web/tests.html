@@ -60,9 +60,6 @@
                         <th>Name</th>
                         <th>Status</th>
                         <th>AssignedAgent</th>
-                        <th>scheduledAt</th>
-                        <th>startTime</th>
-                        <th>endTime</th>
                         <th>duration</th>
                         <th>History</th>
                     </tr>
@@ -75,9 +72,6 @@
                                 <test-status test="{{item}}"></test-status>
                             </td>
                             <td>{{item.assignedAgent}}</td>
-                            <td title="{{item.scheduledAt | formatDate }}">{{item.scheduledAt | formatDateFromNow }}</td>
-                            <td title="{{item.startTime | formatDate }}">{{item.startTime | formatDateFromNow }}</td>
-                            <td title="{{item.endTime | formatDate }}">{{item.endTime | formatDateFromNow }}</td>
                             <td>{{item | formatTotalTime}}</td>
                             <td>
 <!--
@@ -160,18 +154,6 @@
       onPageChange : function(event){
             this.currentPage = event.detail.currentPage;
       },
-        formatDate: function(date){
-            if(!date){
-                return date;
-            }
-            return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
-        },
-        formatDateFromNow: function(date){
-            if(!date){
-                return date;
-            }
-            return moment(new Date(date)).fromNow();
-        },
       formatTotalTime: function(item){
             if(!item.endTime || !item.startTime){
                 return null;
