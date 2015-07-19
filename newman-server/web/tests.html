@@ -132,7 +132,9 @@
                 return values.filter(function(value){
                     var r = true;
                     if(filter != null && filter != undefined){
-                       r = value.name != undefined && value.name != null && -1 < value.name.indexOf(filter);
+                       var status = value.status;
+                       r = ( value.name != undefined && value.name != null && -1 < value.name.indexOf(filter) ) ||
+                               ( status !== null && -1 < status.toLowerCase().indexOf( filter.toLowerCase() ) );
                     }
                     if(r && onlyFailed){
                         r = value.status == 'FAIL';
