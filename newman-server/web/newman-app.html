@@ -105,37 +105,37 @@
                                         <h1>Job Tests</h1>
                                         <tests-table
                                                 url="api/newman/test?jobId={{route('job').params.id}}&all=true" jobId="{{route('job').params.id}}"></tests-table>
-                                    </template>
-                                </section>
-                                <section route="test-history">
-                                    <template if="{{route('test-history').params.id}}">
-                                        <test-history url="api/newman/test-history/{{route('test-history').params.id}}"></test-history>
-                                        <test-history-table
-                                                url="api/newman/test-history?id={{route('test-history').params.id}}" testId="{{route('test-history').params.id}}"></test-history-table>
-                                    </template>
-                                </section>
-                                <section route="build" attributes="url active" active>
-                                    <build-info url="api/newman/build/{{route('build').params.id}}"></build-info>
-                                    <h2>Participate in the following jobs:</h2>
-                                    <jobs-table url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
-                                </section>
-                                <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
-                                <section route="suite">
-                                    <template if="{{route('suite').params.id}}">
-                                        <suite-view url="api/newman/suite/{{route('suite').params.id}}"
-                                                ></suite-view>
-                                    </template>
-                                </section>
-                                <section route="mongo-admin">
-                                    <h1>A very simple Mongo admin {{route('mongo-admin').params.id}}</h1>
-                                    <mongo-admin url="api/newman/db"></mongo-admin>
-                                </section>
-                            </core-pages>
-                        </more-route-selector>
-                    </main>
-                </core-header-panel>
-            </core-drawer-panel>
-        </sse-sender>
+    </template>
+    </section>
+    <section route="test-history">
+        <template if="{{route('test-history').params.id}}">
+            <test-history url="api/newman/test-history/{{route('test-history').params.id}}"></test-history>
+            <test-history-table
+                    url="api/newman/test-history?id={{route('test-history').params.id}}" testId="{{route('test-history').params.id}}"></test-history-table>
+        </template>
+    </section>
+    <section route="build" attributes="url active" active>
+        <build-info url="api/newman/build/{{route('build').params.id}}"></build-info>
+        <h2>Participate in the following jobs:</h2>
+        <jobs-table url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
+    </section>
+    <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
+    <section route="suite">
+        <template if="{{route('suite').params.id}}">
+            <suite-view url="api/newman/suite/{{route('suite').params.id}}"
+                    ></suite-view>
+        </template>
+    </section>
+    <section route="mongo-admin">
+        <h1>A very simple Mongo admin {{route('mongo-admin').params.id}}</h1>
+        <mongo-admin url="api/newman/db"></mongo-admin>
+    </section>
+    </core-pages>
+    </more-route-selector>
+    </main>
+    </core-header-panel>
+    </core-drawer-panel>
+    </sse-sender>
     </template>
     <script>
     Polymer({
