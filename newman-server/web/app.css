@@ -87,7 +87,7 @@ body{
 
 .test-name-label{
     color: dodgerblue;
-    font-weight: bold;
+    font-weight: normal;
 }
 
 .newman-build-optional-property-hidden{

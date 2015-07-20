@@ -110,7 +110,7 @@
                                 <section route="test-history">
                                     <template if="{{route('test-history').params.id}}">
                                         <test-history url="api/newman/test-history/{{route('test-history').params.id}}"></test-history>
-                                        <h1>Test <span class="test-name-label">{{route('test-history').params.id}}</span> History</h1>
+                                        <h1>Test <span class="test-name-label">{{route('test-history').params.name}}</span> History</h1>
                                         <test-history-table
                                                 url="api/newman/test-history?id={{route('test-history').params.id}}" testId="{{route('test-history').params.id}}"></test-history-table>
                                     </template>

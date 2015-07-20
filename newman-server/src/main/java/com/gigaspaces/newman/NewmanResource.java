@@ -971,9 +971,14 @@ public class NewmanResource {
     @GET
     @Path("test-history")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getTests( @QueryParam("id") String testName ) {
-        logger.info("--- getTests() START ---, testName", testName );
-        Query<Test> testsQuery = testDAO.createQuery().field( "name" ).equal( testName );
+    public Response getTests( @QueryParam("id") String id ) {
+
+        logger.info("--- getTests() START ---, testId", id );
+        Test thisTest = getTest(id);
+        String testName = thisTest.getName();
+        List<String> testArguments = thisTest.getArguments();
+
+        Query<Test> testsQuery = testDAO.createQuery().field( "name" ).equal( testName ).field("arguments").equal( testArguments );
         List<Test> tests = testDAO.find( testsQuery ).asList();
         Collections.reverse( tests );
 
