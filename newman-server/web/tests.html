@@ -2,6 +2,7 @@
 
 <link rel="import" href="routes.html">
 <link rel="import" href="test-status.html">
+<link rel="import" href="test-arguments.html">
 <link rel="import" href="table-pagination.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 <link rel="import" href="../components/core-label/core-label.html">
@@ -54,33 +55,33 @@
                 </div>
             </core-label>
             <div class="table-responsive">
-                <table class="table table-hover table-striped table-bordered table-condensed">
+                <table class="table table-hover table-striped table-bordered table-condensed" style="table-layout: fixed; width: 100%">
                     <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>AssignedAgent</th>
-                        <th>duration</th>
-                        <th>History</th>
+                        <th width="34%">Name</th>
+                        <th width="28%">Arguments</th>
+                        <th width="100px">Status</th>
+                        <th width="80px">History</th>
+                        <th width="250px">AssignedAgent</th>
+                        <th width="150px">Duration</th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
-                            <td><a href="{{urlFor('test', {id: item.id})}}">{{item.name}}</a></td>
+                            <td style="word-wrap: break-word"><a href="{{urlFor('test', {id: item.id})}}">{{item.name}}</a></td>
+                            <td style="word-wrap: break-word"><test-arguments test="{{item}}"></test-arguments></td>
+                            <td><test-status test="{{item}}"></test-status></td>
                             <td>
-                                <test-status test="{{item}}"></test-status>
+                                <!--
+                                                                <button type="button" class="btn btn-default" aria-label="Left Align" on-click="{{showTestHistory}}" data-collection="{{item.id}}">
+                                                                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                                                                </button>
+                                -->
+                                <a href="{{urlFor('test-history', {id:item.id, name:item.name} )}}">History</a>
                             </td>
                             <td>{{item.assignedAgent}}</td>
                             <td>{{item | formatTotalTime}}</td>
-                            <td>
-<!--
-                                <button type="button" class="btn btn-default" aria-label="Left Align" on-click="{{showTestHistory}}" data-collection="{{item.id}}">
-                                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
-                                </button>
--->
-                                <a href="{{urlFor('test-history', {id: item.id, name: item.name} )}}">History</a>
-                            </td>
                         </tr>
                     </template>
                     </tbody>
@@ -155,13 +156,13 @@
       },
       onPageChange : function(event){
             this.currentPage = event.detail.currentPage;
-      },
-      formatTotalTime: function(item){
-            if(!item.endTime || !item.startTime){
-                return null;
-            }
-            return moment.duration(item.endTime - item.startTime).humanize();
-      },
+          },
+          formatTotalTime: function(item){
+                if(!item.endTime || !item.startTime){
+                    return null;
+                }
+                return moment.duration(item.endTime - item.startTime).humanize();
+          },
       onCreatedTest : function(ev, test){
             if(test.jobId && this.jobId && test.jobId == this.jobId){
                 this.allValues.unshift(test);
