@@ -1,10 +1,7 @@
 package com.gigaspaces.newman;
 
 
-import com.gigaspaces.newman.beans.Batch;
-import com.gigaspaces.newman.beans.Job;
-import com.gigaspaces.newman.beans.State;
-import com.gigaspaces.newman.beans.Suite;
+import com.gigaspaces.newman.beans.*;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +9,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.ExecutionException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.*;
 
 /**
  @author Boris
@@ -25,23 +25,27 @@ public class NewmanSubmitter {
     private static final String NEWMAN_PORT = "NEWMAN_PORT";
     private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
     private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
-    private static final String NEWMAN_SUITE = "NEWMAN_SUITE";
+    private static final String NEWMAN_SUITES = "NEWMAN_SUITES";
     private static final Logger logger = LoggerFactory.getLogger(NewmanSubmitter.class);
 
     private NewmanClient newmanClient;
-    private String suiteId;
+    private List<String> suites;
     private String host;
     private String port;
     private String username;
     private String password;
+    private ThreadPoolExecutor workers;
 
-    public NewmanSubmitter(String suiteId, String host, String port, String username, String password){
+    public NewmanSubmitter(String suitesId, String host, String port, String username, String password){
 
-        this.suiteId = suiteId;
+        this.suites = Arrays.asList(suitesId.split(","));
         this.host = host;
         this.port = port;
         this.username = username;
         this.password = password;
+        this.workers = new ThreadPoolExecutor(suites.size(), suites.size(),
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>());
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         try {
@@ -53,28 +57,54 @@ public class NewmanSubmitter {
     }
 
     public void submitAndWait() throws ExecutionException, InterruptedException, IOException, ParseException {
+        NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(host, port, username, password);
+        String buildId = buildSubmitter.submitBuild();
+        // Submit jobs for suites and wait for them
         try {
-            Suite suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
-            if (suite == null) {
-                throw new IllegalArgumentException("suite with id: " + suiteId + " does not exists");
+            List<Future<?>> jobs = new ArrayList<>();
+            for (String suiteId : suites) {
+                Future<?> worker = workers.submit(() -> {
+                    Suite suite = null;
+                    try {
+                        suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
+                        if (suite == null) {
+                            throw new IllegalArgumentException("suite with id: " + suites + " does not exists");
+                        }
+                        final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
+
+                        String jobId = jobSubmitter.submitJob();
+
+                        while (!isJobFinished(jobId)) {
+                            logger.info("waiting for job {} to end", jobId);
+                            Thread.sleep(60 * 1000);
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException("terminating submission due to exception", e);
+                    }
+                });
+                jobs.add(worker);
+            }
+            for (Future<?> job : jobs) {
+                job.get();
             }
 
-            NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(host, port, username, password);
-
-            String buildId = buildSubmitter.submitBuild();
-
-            final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
-
-            String jobId = jobSubmitter.submitJob();
-
-            while (!isJobFinished(jobId)) {
-                logger.info("waiting for job {} to end", jobId);
-                Thread.sleep(10 * 1000);
-            }
         }
         finally {
             if (newmanClient != null)
                 newmanClient.close();
+            // shut down job submitters workers
+            workers.shutdown();
+            try {
+                if (!workers.awaitTermination(30, TimeUnit.SECONDS)) {
+                    logger.warn("workers executor did not terminate in the specified time.");
+                    List<Runnable> droppedTasks = workers.shutdownNow();
+                    logger.warn("workers executor was abruptly shut down. {} tasks will not be executed.", droppedTasks.size());
+                }
+            } catch (InterruptedException e) {
+                logger.warn("workers executor did not terminate in the specified time.");
+                List<Runnable> droppedTasks = workers.shutdownNow();
+                logger.warn("workers executor was abruptly shut down. {} tasks will not be executed.", droppedTasks.size());
+            }
         }
     }
 
@@ -114,10 +144,10 @@ public class NewmanSubmitter {
         String port = getEnvironment(NEWMAN_PORT);
         String username = getEnvironment(NEWMAN_USER_NAME);
         String password = getEnvironment(NEWMAN_PASSWORD);
-        // suite to run
-        String suiteId = getEnvironment(NEWMAN_SUITE);
+        // suites to run separated by comma
+        String suitesId = getEnvironment(NEWMAN_SUITES);
 
-        NewmanSubmitter newmanSubmitter = new NewmanSubmitter(suiteId, host, port, username, password);
+        NewmanSubmitter newmanSubmitter = new NewmanSubmitter(suitesId, host, port, username, password);
         newmanSubmitter.submitAndWait();
     }
 }
