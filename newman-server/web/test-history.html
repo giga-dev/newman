@@ -7,6 +7,7 @@
 
 <polymer-element name="test-history-table" attributes="url active">
     <template>
+        <link rel="stylesheet" href="app.css">
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <style>
             .table-nowrap {
@@ -23,6 +24,10 @@
         </style>
         <core-ajax id="ajax" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true">
         </core-ajax>
+        <h1>Test History</h1>
+        <h2>Name and arguments:<span class="test-name-label">
+             {{pages[0][0].test.arguments}}
+        </span></h2>
         <div class="content" flex>
             <form class="form-inline">
                 <div class="form-group">
@@ -52,7 +57,16 @@
                         <tr>
                             <td title="{{item.test.id}}"><a href="{{urlFor('test', {id: item.test.id})}}">{{item.test.id}}</a></td>
                             <td title="{{item.test.jobId}}"><a href="{{urlFor('job', {id: item.test.jobId})}}">{{item.test.jobId}}</a></td>
-                            <td title="{{item.job.build.name}}"><a href="{{urlFor('build', {id: item.job.build.id})}}">{{item.job.build.name}}</a></td>
+                            <td title="{{item.job.build.name}}">
+                                <template if="{{item.job.build.id != null}}">
+                                    <a href="{{urlFor('build', {id: item.job.build.id})}}">
+                                        {{item.job.build.name}}
+                                    </a>
+                                </template>
+                                <template if="{{item.job.build.id == null}}">
+                                    N/A
+                                </template>
+                            </td>
                             <td title="{{item.job.build.branch}}">{{item.job.build.branch}}</td>
                             <td title="{{item.test.startTime | formatDate }}">{{item.job.startTime | formatDateFromNow }}</td>
                             <td>{{item.test | formatTotalTime}}</td>
