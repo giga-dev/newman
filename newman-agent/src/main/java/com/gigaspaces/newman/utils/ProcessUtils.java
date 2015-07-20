@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class ProcessUtils {
@@ -14,17 +15,24 @@ public class ProcessUtils {
     private static final Logger logger = LoggerFactory.getLogger(ProcessUtils.class);
     private static final long DEFAULT_SCRIPT_TIMEOUT = 20 * 60 * 1000;
 
-    public static ProcessResult executeAndWait(Path file, Path workingFolder, Path outputPath) throws IOException, InterruptedException {
-        return executeAndWait(file, Collections.emptyList(), workingFolder, outputPath, DEFAULT_SCRIPT_TIMEOUT);
+    public static ProcessResult executeAndWait(Path file, Path workingFolder, Path outputPath, String customVariables) throws IOException, InterruptedException {
+        return executeAndWait(file, Collections.emptyList(), workingFolder, outputPath, customVariables, DEFAULT_SCRIPT_TIMEOUT);
     }
 
     public static ProcessResult executeAndWait(Path file, Collection<String> arguments, Path workingFolder,
-                                               Path outputPath, long timeout)
+                                               Path outputPath, String customVariables, long timeout)
             throws IOException, InterruptedException {
         // Setup:
         ProcessBuilder processBuilder = new ProcessBuilder(file.toString());
         if (arguments != null)
             processBuilder.command().addAll(arguments);
+        // pass custom environment variables to scripts
+        if (customVariables != null){
+            final Map<String, String> environment = processBuilder.environment();
+            for (String variableKeyValue : customVariables.split(",")){
+                environment.put(variableKeyValue.split("=")[0], variableKeyValue.split("=")[1]);
+            }
+        }
         processBuilder.directory(workingFolder.toFile());
         processBuilder.redirectErrorStream(true);
         if (outputPath != null)

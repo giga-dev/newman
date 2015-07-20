@@ -33,6 +33,7 @@ public class NewmanSuiteSubmitter {
 
     //suite env variables
     public static final String NEWMAN_SUITE_NAME = "NEWMAN_SUITE_NAME";
+    public static final String NEWMAN_SUITE_CUSTOM_VARIABLES = "NEWMAN_SUITE_CUSTOM_VARIABLES";
     public static final String NEWMAN_CRITERIA_TEST_TYPE = "NEWMAN_CRITERIA_TEST_TYPE";
     public static final String NEWMAN_CRITERIA_INCLUDE_LIST = "NEWMAN_CRITERIA_INCLUDE_LIST";
     public static final String NEWMAN_CRITERIA_EXCLUDE_LIST = "NEWMAN_CRITERIA_EXCLUDE_LIST";
@@ -53,6 +54,7 @@ public class NewmanSuiteSubmitter {
         try {
             Suite suite = new Suite();
             suite.setName(getEnvironment(NEWMAN_SUITE_NAME, true /*required*/));
+            suite.setCustomVariables(getEnvironment(NEWMAN_SUITE_CUSTOM_VARIABLES, false));
             suite.setCriteria(getNewmanSuiteCriteria());
 
             logger.info("Adding suite: " + suite);

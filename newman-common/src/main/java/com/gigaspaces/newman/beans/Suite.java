@@ -17,6 +17,8 @@ public class Suite {
 
     private String name;
 
+    private String customVariables; //key=value separated by comma, e.g SUITE_TYPE=tgrid,SUPPORT_SGTEST=sgtest
+
     @Embedded
     private Criteria criteria;
 
@@ -47,11 +49,20 @@ public class Suite {
         this.name = name;
     }
 
+    public String getCustomVariables() {
+        return customVariables;
+    }
+
+    public void setCustomVariables(String customVariables) {
+        this.customVariables = customVariables;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
                 .append("id", id)
                 .append("name", name)
+                .append("custom environment variables", customVariables)
                 .append("criteria", criteria)
                 .toString();
     }

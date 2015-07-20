@@ -69,7 +69,8 @@ public class JobExecutor {
 
             logger.info("Executing setup script...");
             Path setupScript = append(jobFolder, "job-setup" + SCRIPT_SUFFIX);
-            ProcessResult result = ProcessUtils.executeAndWait(setupScript, jobFolder, append(jobFolder, "job-setup.log"));
+            String customVariables = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
+            ProcessResult result = ProcessUtils.executeAndWait(setupScript, jobFolder, append(jobFolder, "job-setup.log"), customVariables);
             if (result.getExitCode() == null || result.getExitCode() != 0)
                 throw new IOException("Setup script " + ((result.getExitCode() == null) ? "timed out" : "returned ") + result.getExitCode());
 
@@ -97,8 +98,9 @@ public class JobExecutor {
             logger.info("Starting test script");
             Path testScript = append(jobFolder, "run-" + test.getTestType() + SCRIPT_SUFFIX);
             Path outputFile = append(outputFolder, "runner-output.log");
+            String customVariables = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
             ProcessResult scriptResult = ProcessUtils.executeAndWait(testScript, test.getArguments(), testFolder,
-                    outputFile, test.getTimeout().longValue());
+                    outputFile, customVariables, test.getTimeout().longValue());
 
             // Generate result:
             test.setStartTime(new Date(scriptResult.getStartTime()));
@@ -158,8 +160,9 @@ public class JobExecutor {
         if (exists(teardownScript)) {
             logger.info("Executing teardown for test {}", test);
             try {
+                String customVariables = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
                 ProcessUtils.executeAndWait(teardownScript, test.getArguments(),testFolder,
-                         outputFile, 10 * 60 * 1000);
+                         outputFile, customVariables, 10 * 60 * 1000);
                 // TODO: Inspect exit code and log warning if non-zero.
             } catch (Exception e) {
                 logger.warn("failed to teardown test" + test, e);
@@ -174,7 +177,8 @@ public class JobExecutor {
             Path teardownScript = append(jobFolder, "job-teardown" + SCRIPT_SUFFIX);
             if (exists(teardownScript)) {
                 logger.info("Executing teardown script...");
-                ProcessUtils.executeAndWait(teardownScript, jobFolder, append(jobFolder, "job-teardown.log"));
+                String customVariables = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
+                ProcessUtils.executeAndWait(teardownScript, jobFolder, append(jobFolder, "job-teardown.log"), customVariables);
                 // TODO: Inspect exit code and log warning if non-zero.
             }
             logger.info("Deleting job folder {}", jobFolder);
