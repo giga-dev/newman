@@ -155,8 +155,8 @@ public class JobExecutor {
 
     private void teardownTest(Test test) {
         Path testFolder = append(jobFolder, "test-" + test.getId());
-        Path outputFile = append(append(testFolder, "output"), "teardown-" + test.getTestType() + "-test.log");
-        Path teardownScript = append(jobFolder, "teardown-" + test.getTestType() + "-test" + SCRIPT_SUFFIX);
+        Path outputFile = append(append(testFolder, "output"), "end-" + test.getTestType() + ".log");
+        Path teardownScript = append(jobFolder, "end-" + test.getTestType() + SCRIPT_SUFFIX);
         if (exists(teardownScript)) {
             logger.info("Executing teardown for test {}", test);
             try {
