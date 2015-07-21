@@ -148,7 +148,7 @@ public class NewmanAgent {
 
             // Submit workers:
             List<Future<?>> workersTasks = new ArrayList<>();
-            for (int i =0; i < config.getNumOfWorkers(); i++) {
+            for (int i =0; i < calculateNumberOfWorkers(job); i++) {
                 final int id = i;
                 Future<?> worker = workers.submit(() -> {
                     logger.info("Starting worker #{} for job {}", id, jobExecutor.getJob().getId());
@@ -173,6 +173,19 @@ public class NewmanAgent {
             keepAliveTask.cancel();
             jobExecutor.teardown();
         }
+    }
+
+    private int calculateNumberOfWorkers(Job job) {
+        int res = config.getNumOfWorkers();
+        if (job.getSuite() != null && job.getSuite().getCustomVariables() != null) {
+            String[] customVars = job.getSuite().getCustomVariables().split(",");
+            for (String customVar : customVars) {
+                if (customVar.split("=")[0].equals("THREADS_LIMIT")) {
+                    res = Math.min(res, Integer.parseInt(customVar.split("=")[1]));
+                }
+            }
+        }
+        return res;
     }
 
 
