@@ -7,6 +7,8 @@
 <link rel="import" href="table-pagination.html">
 <link rel="import" href="multi-status.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
+<link rel="import" href="../components/paper-button/paper-button.html">
+<link rel="import" href="../components/paper-dialog/paper-action-dialog.html">
 
 <polymer-element name="jobs-table" attributes="url" on-created-job="{{onCreatedJob}}"
                  on-modified-job="{{onModifiedJob}}">
@@ -26,10 +28,12 @@
             text-overflow: ellipsis;
             }
         </style>
-        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
-                   withCredentials="true"></core-ajax>
-        <core-ajax id="jobToggler" handleAs="json"
-                   withCredentials="true" method="post"></core-ajax>
+
+        <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
+        <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}" withCredentials="true"></core-ajax>
+        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
+
+        <core-ajax id="jobToggler" handleAs="json" withCredentials="true" method="post"></core-ajax>
         <div class="content" flex>
             <form class="form-inline">
                 <div class="form-group">
@@ -54,10 +58,11 @@
                         <th width="10%">Suite</th>
                         <th width="6%">Duration</th>
                         <th width="9%">Submitted At</th>
-                        <th width="9%">Tests URI</th>
-                        <th width="9%">Submitted By</th>
+                        <th width="8%">Tests URI</th>
+                        <th width="8%">Submitted By</th>
                         <th width="10%">#Preparing Agents</th>
-                        <th width="23%"><span class="label label-info"># Running</span> <span class="label label-success"># Passed</span> <span class="label label-danger">Failed</span> <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
+                        <th width="20%"><span class="label label-info"># Running</span> <span class="label label-success"># Passed</span> <span class="label label-danger">Failed</span> <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
+                        <th width="5%">Drop</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -87,14 +92,26 @@
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
                             <td>{{item.preparingAgents.length}}</td>
                             <td><span class="label label-info">{{item.runningTests}}</span> / <span class="label label-success">{{item.passedTests}}</span> / <span class="label label-danger">{{item.failedTests}}</span> / <span class="label label-default">{{item.totalTests}}</span></td>
+                            <td>
+                                <template if="{{ (item.state == 'DONE' || item.state == 'PAUSED') && item.runningTests <= 0 }}">
+                                    <button class="btn btn-success" on-click="{{toggleDropCollectionConfirmationDialog}}" class="btn btn-danger"  data-collection="{{item.id}}">
+                                        <span class="glyphicon glyphicon glyphicon-remove"></span>
+                                    </button>
+                                </template>
+                            </td>
                         </tr>
                     </template>
 
                     </tbody>
                 </table>
             </div>
-            <table-pagination total="{{pages.length}}" current="{{currentPage}}"
-                              on-page-change="{{onPageChange}}"></table-pagination>
+            <table-pagination total="{{pages.length}}" current="{{currentPage}}" on-page-change="{{onPageChange}}"></table-pagination>
+
+            <paper-action-dialog backdrop autoCloseDisabled  id="confirmdialogdropcollection" heading="Drop Job?" transition="paper-dialog-transition-bottom" style="position: fixed; outline: none; display: none;">
+                <p>Are you sure you want to delete job [{{jobId}}]?</p>
+                <paper-button affirmative raised class="colored" on-click="{{dropJob}}">OK</paper-button>
+                <paper-button raised affirmative default>Cancel</paper-button>
+            </paper-action-dialog>
 
         </div>
     </template>
@@ -103,6 +120,7 @@
     <script>
     Polymer({
       applyAuthorStyles: true,
+      jobId : '',
 
       created: function() {
           this.filter = null;
@@ -196,6 +214,18 @@
                     return;
                 }
             }
+      },
+      toggleDropCollectionConfirmationDialog: function( event, detail, target ) {
+            var jobIdLocal = target.attributes['data-collection'].textContent;
+            this.jobId=jobIdLocal;
+            this.$.confirmdialogdropcollection.toggle();
+      },
+      dropJob: function(event, detail,target){
+            this.$.del.url='api/newman/job/' + this.jobId;
+            this.$.del.go();
+      },
+      reload : function(){
+            this.$.reload.go();
       },
       onSwitchClicked : function(event){
             var detail = event.detail;

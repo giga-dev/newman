@@ -856,13 +856,35 @@ public class NewmanResource {
     }
 
     @DELETE
+    @Path("job/{jobId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteJob( final @PathParam("jobId") String jobId ) {
+        performDeleteJob(jobId);
+        performDeleteTests(jobId);
+        return Response.ok( Entity.json( jobId ) ).build();
+    }
+
+    private void performDeleteJob( String jobId ) {
+        Query<Job> idJobQuery = jobDAO.createIdQuery(jobId);
+        Datastore datastore = jobDAO.getDatastore();
+        datastore.findAndDelete(idJobQuery);
+    }
+
+    private void performDeleteTests( String jobId ) {
+        Query<Test> testQuery = testDAO.createQuery();
+        testQuery.and( testQuery.criteria("jobId").equal(jobId) );
+        Datastore datastore = testDAO.getDatastore();
+        datastore.delete(testQuery);
+    }
+
+    @DELETE
     @Path("agent/{agentId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteAgent( final @PathParam("agentId") String agentId ) {
 
         Query<Agent> idAgentQuery = agentDAO.createIdQuery(agentId);
         Datastore datastore = agentDAO.getDatastore();
-        datastore.findAndDelete( idAgentQuery );
+        datastore.findAndDelete(idAgentQuery);
         return Response.ok( Entity.json( agentId ) ).build();
     }
 
