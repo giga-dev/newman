@@ -1,0 +1,7 @@
+xap@xap-newman-agent1
+xap@xap-newman-agent2
+xap@xap-newman-agent3
+xap@192.168.50.54
+xap@192.168.50.59
+xap@192.168.50.60
+
