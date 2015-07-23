@@ -278,7 +278,7 @@ public class NewmanResource {
         Query<Job> query = jobDAO.createQuery();
         query.criteria("state").equal(State.DONE);
         query.field("build.id").hasNoneOf(Arrays.asList("foo", "bar"));
-        query.order("submitTime");
+        query.order("-submitTime");
         Iterator<Job> iterator = jobDAO.find(query).iterator();
         while (iterator.hasNext()) {
             Job next = iterator.next();
@@ -744,7 +744,7 @@ public class NewmanResource {
         Query<Job> query = jobDAO.createQuery();
         query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
         query.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
-        query.order("submitTime");
+        query.order("-submitTime");
         Job job = jobDAO.findOne(query);
         UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
                 .set("lastTouchTime", new Date());
@@ -1027,7 +1027,7 @@ public class NewmanResource {
         Query<Job> jobsQuery = jobDAO.createQuery();
         jobsQuery.field("suite.id").equal(suiteId);
         jobsQuery.criteria("state").equal(State.DONE);
-        jobsQuery.order("endTime").limit(maxJobsPerSuite);
+        jobsQuery.order("-endTime").limit(maxJobsPerSuite);
 
         List<Job> jobsList = jobDAO.find(jobsQuery).asList();
 /*
