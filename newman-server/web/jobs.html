@@ -80,7 +80,7 @@
                                     </div>
                                 </template>
                             </td>
-                            <td title="{{item.id}}"><a href="{{urlFor('job', {id: item.id})}}">{{item.id}}</a></td>
+                            <td title="{{item.id}}"><a href="{{urlFor('job', {id: item.id, filterByStatus: 'ALL'})}}">{{item.id}}</a></td>
                             <td title="{{item.suite.name}}">
                                 <template if="{{item.suite.id != null}}">
                                     <a href="{{urlFor('suite', {id: item.suite.id})}}">{{item.suite.name}}</a>
@@ -91,7 +91,22 @@
                             <td title="{{item.testURI}}">{{item.testURI}}</td>
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
                             <td>{{item.preparingAgents.length}}</td>
-                            <td><span class="label label-info">{{item.runningTests}}</span> / <span class="label label-success">{{item.passedTests}}</span> / <span class="label label-danger">{{item.failedTests}}</span> / <span class="label label-default">{{item.totalTests}}</span></td>
+                            <td>
+
+                                <span class="label label-info">
+                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'RUNNING'})}}" class="link-color">{{item.runningTests}}</a>
+                                </span> /
+                                <span class="label label-success">
+                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'SUCCESS'})}}" class="link-color">{{item.passedTests}}</a>
+                                </span> /
+                                <span class="label label-danger">
+                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'FAIL'})}}" class="link-color">{{item.failedTests}}</a>
+                                </span> /
+                                <span class="label label-default">
+                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'ALL'})}}" class="link-color">{{item.totalTests}}</a>
+                                </span>
+
+                            </td>
                             <td>
                                 <template if="{{ (item.state == 'DONE' || item.state == 'PAUSED') && item.runningTests <= 0 }}">
                                     <button class="btn btn-success" on-click="{{toggleDropCollectionConfirmationDialog}}" class="btn btn-danger"  data-collection="{{item.id}}">

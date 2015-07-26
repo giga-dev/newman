@@ -103,8 +103,8 @@
                                     <template if="{{route('job').params.id}}">
                                         <job-info url="api/newman/job/{{route('job').params.id}}"></job-info>
                                         <h1>Job Tests</h1>
-                                        <tests-table
-                                                url="api/newman/test?jobId={{route('job').params.id}}&all=true" jobId="{{route('job').params.id}}"></tests-table>
+                                        <tests-table url="api/newman/test?jobId={{route('job').params.id}}&all=true&filterByStatus={{route('job').params.filterByStatus}}" jobId="{{route('job').params.id}}">
+                                        </tests-table>
     </template>
     </section>
     <section route="test-history">

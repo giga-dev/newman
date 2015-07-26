@@ -56,7 +56,7 @@
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
                             <td title="{{item.test.id}}"><a href="{{urlFor('test', {id: item.test.id})}}">{{item.test.id}}</a></td>
-                            <td title="{{item.test.jobId}}"><a href="{{urlFor('job', {id: item.test.jobId})}}">{{item.test.jobId}}</a></td>
+                            <td title="{{item.test.jobId}}"><a href="{{urlFor('job', {id: item.test.jobId, filterByStatus: 'ALL'})}}">{{item.test.jobId}}</a></td>
                             <td title="{{item.job.build.name}}">
                                 <template if="{{item.job.build.id != null}}">
                                     <a href="{{urlFor('build', {id: item.job.build.id})}}">

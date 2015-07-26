@@ -42,7 +42,7 @@
                             <td>{{item.state}}</td>
                             <td>{{item.host}}</td>
                             <template if="{{item.jobId}}">
-                                <td><a href="{{urlFor('job', {id: item.jobId})}}">{{item.jobId}}</a></td>
+                                <td><a href="{{urlFor('job', {id: item.jobId, filterByStatus: 'ALL'})}}">{{item.jobId}}</a></td>
                             </template>
                             <template if="{{!item.jobId}}">
                                 <td></td>

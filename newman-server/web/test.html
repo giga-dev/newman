@@ -24,7 +24,7 @@
             <dd>{{data.id}}</dd>
             <template bind if="{{data.jobId}}">
                 <dt>jobId</dt>
-                <dd><a href="{{urlFor('job', {id: data.jobId})}}">{{data.jobId}}</a></dd>
+                <dd><a href="{{urlFor('job', {id: data.jobId, filterByStatus: 'ALL'})}}">{{data.jobId}}</a></dd>
             </template>
             <dt>arguments</dt>
             <dd>{{data.arguments}}</dd>
@@ -88,6 +88,5 @@
       }
 
     });
-
     </script>
 </polymer-element>
