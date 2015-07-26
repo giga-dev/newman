@@ -48,11 +48,17 @@
                                     <td>{{job.build.branch}}</td>
                                     <td>
                                         <template bind if="{{job.failedTests>0}}">
-                                            <span class="label label-danger">{{job.failedTests}}</span>
-                                            <span class="label label-default">{{job.totalTests}}</span>
+                                            <span class="label label-danger">
+                                                <a href="{{urlFor('job', {id: job.id, filterByStatus: 'FAIL'})}}" class="link-color">{{job.failedTests}}</a>
+                                            </span>
+                                            <span class="label label-default">
+                                                <a href="{{urlFor('job', {id: job.id, filterByStatus: 'ALL'})}}" class="link-color">{{job.totalTests}}</a>
+                                            </span>
                                         </template>
                                         <template bind if="{{job.totalTests==job.passedTests}}">
-                                            <span class="label label-success">{{job.totalTests}}</span>
+                                            <span class="label label-success">
+                                                <a href="{{urlFor('job', {id: job.id, filterByStatus: 'SUCCESS'})}}" class="link-color">{{job.totalTests}}</a>
+                                            </span>
                                         </template>
                                     </td>
                                     <td>{{job.submitTime | formatDate}}</td>
