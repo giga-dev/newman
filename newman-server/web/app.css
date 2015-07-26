@@ -95,6 +95,7 @@ body{
     padding: 0px;
     height: 0px;
 }
-.link-color{
+.tests-num-link{
     color: #ffffff;
+    text-decoration: underline;
 }

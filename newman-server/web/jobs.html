@@ -94,16 +94,16 @@
                             <td>
 
                                 <span class="label label-info">
-                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'RUNNING'})}}" class="link-color">{{item.runningTests}}</a>
+                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'RUNNING'})}}" class="tests-num-link">{{item.runningTests}}</a>
                                 </span> /
                                 <span class="label label-success">
-                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'SUCCESS'})}}" class="link-color">{{item.passedTests}}</a>
+                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'SUCCESS'})}}" class="tests-num-link">{{item.passedTests}}</a>
                                 </span> /
                                 <span class="label label-danger">
-                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'FAIL'})}}" class="link-color">{{item.failedTests}}</a>
+                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'FAIL'})}}" class="tests-num-link">{{item.failedTests}}</a>
                                 </span> /
                                 <span class="label label-default">
-                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'ALL'})}}" class="link-color">{{item.totalTests}}</a>
+                                    <a href="{{urlFor('job', {id: item.id, filterByStatus: 'ALL'})}}" class="tests-num-link">{{item.totalTests}}</a>
                                 </span>
 
                             </td>
