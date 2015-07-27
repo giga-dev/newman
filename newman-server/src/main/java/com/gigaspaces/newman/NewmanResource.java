@@ -750,6 +750,8 @@ public class NewmanResource {
                 .set("lastTouchTime", new Date());
         if (agent.getHost() != null) {
             updateOps.set("host", agent.getHost());
+            updateOps.set("hostAddress", agent.getHostAddress());
+            updateOps.set("pid", agent.getPid());
         }
         updateOps.set("currentTests", new HashSet<String>());
         if (job != null) {

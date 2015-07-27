@@ -29,6 +29,8 @@
                         <th>Name</th>
                         <th>State</th>
                         <th>Host</th>
+                        <th>IP Address</th>
+                        <th>PID</th>
                         <th>Job</th>
                         <th>CurrentTests</th>
                         <th>Last seen</th>
@@ -41,6 +43,8 @@
                             <td>{{item.name}}</td>
                             <td>{{item.state}}</td>
                             <td>{{item.host}}</td>
+                            <td>{{item.hostAddress}}</td>
+                            <td>{{item.pid}}</td>
                             <template if="{{item.jobId}}">
                                 <td><a href="{{urlFor('job', {id: item.jobId, filterByStatus: 'ALL'})}}">{{item.jobId}}</a></td>
                             </template>
