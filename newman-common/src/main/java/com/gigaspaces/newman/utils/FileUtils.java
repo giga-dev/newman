@@ -60,6 +60,10 @@ public class FileUtils {
         org.apache.commons.io.FileUtils.deleteDirectory(path.toFile());
     }
 
+    public static void clearDirectory(Path path) throws IOException {
+        org.apache.commons.io.FileUtils.cleanDirectory(path.toFile());
+    }
+
     public static String readTextFile(Path file) throws IOException {
         return new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
     }

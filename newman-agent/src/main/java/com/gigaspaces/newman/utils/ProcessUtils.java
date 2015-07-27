@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,5 +56,20 @@ public class ProcessUtils {
         result.setEndTime(System.currentTimeMillis());
 
         return result;
+    }
+
+    public static String getProcessId(final String fallback) {
+        // Note: may fail in some JVM implementations
+        // therefore fallback has to be provided
+        final String jvmName = ManagementFactory.getRuntimeMXBean().getName();
+        final int index = jvmName.indexOf('@');
+
+        if (index < 1) {
+            return fallback;
+        }
+        try {
+            return Long.toString(Long.parseLong(jvmName.substring(0, index)));
+        } catch (NumberFormatException ignored) {}
+        return fallback;
     }
 }

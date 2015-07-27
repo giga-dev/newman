@@ -26,6 +26,8 @@ public class Agent {
     @Embedded
     private Set<String> currentTests;
     private Agent.State state;
+    private String hostAddress;
+    private String pid;
 
     public Agent() {
         currentTests = new HashSet<>();
@@ -96,10 +98,28 @@ public class Agent {
                 .append("name", name)
                 .append("state", state)
                 .append("host", host)
+                .append("hostAddress", hostAddress)
+                .append("pid", pid)
                 .append("jobId", jobId)
                 .append("currentTests", currentTests)
                 .append("lastTouchTime", lastTouchTime)
                 .toString();
+    }
+
+    public void setHostAddress(String hostAddress) {
+        this.hostAddress = hostAddress;
+    }
+
+    public String getHostAddress() {
+        return hostAddress;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
+    }
+
+    public String getPid() {
+        return pid;
     }
 
     public enum State{

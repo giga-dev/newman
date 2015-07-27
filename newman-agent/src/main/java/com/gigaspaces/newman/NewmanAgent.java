@@ -4,6 +4,7 @@ import com.gigaspaces.newman.beans.Agent;
 import com.gigaspaces.newman.beans.Job;
 import com.gigaspaces.newman.beans.Test;
 import com.gigaspaces.newman.utils.FileUtils;
+import com.gigaspaces.newman.utils.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -244,7 +245,8 @@ public class NewmanAgent {
         Agent agent = new Agent();
         agent.setName(name);
         agent.setHost(config.getHostName());
-
+        agent.setHostAddress(config.getHostAddress());
+        agent.setPid(ProcessUtils.getProcessId("unknownPID"));
         while (true){
             try {
                 Job job = client.subscribe(agent).toCompletableFuture().get();

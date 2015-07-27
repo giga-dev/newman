@@ -28,7 +28,7 @@ public class JobExecutor {
 
     public JobExecutor(Job job, String basePath) {
         this.job = job;
-        newmanLogFolder = append(Paths.get(basePath), "logs");
+        this.newmanLogFolder = append(Paths.get(basePath), "logs");
         this.jobFolder = append(basePath, "job-" + job.getId()+ "-" + UUID.randomUUID()); // generate unique job folder for each execution
     }
 
@@ -183,6 +183,7 @@ public class JobExecutor {
             }
             logger.info("Deleting job folder {}", jobFolder);
             delete(jobFolder);
+            clearDirectory(newmanLogFolder);
         } catch (IOException e) {
             logger.error("Teardown for job {} has failed: {}", job.getId(), e);
         } catch (InterruptedException e) {

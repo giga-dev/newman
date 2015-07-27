@@ -2,8 +2,11 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.utils.FileUtils;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -17,6 +20,7 @@ public class NewmanAgentConfig {
 
     private static final String NEWMAN_HOME = "newman.agent.home";
     private static final String NEWMAN_AGENT_HOST_NAME = "newman.agent.hostname";
+    private static final String NEWMAN_AGENT_HOST_ADDRESS = "newman.agent.address";
     private static final String DEFAULT_NEWMAN_HOME = FileUtils.append(System.getProperty("user.home"), "newman-agent-" + UUID.randomUUID()).toString();
     private static final String NEWMAN_SERVER_HOST = "newman.agent.server-host";
     private static final String DEFAULT_NEWMAN_SERVER_HOST = "localhost";
@@ -37,6 +41,7 @@ public class NewmanAgentConfig {
     public NewmanAgentConfig() {
         properties = new Properties();
         properties.putIfAbsent(NEWMAN_AGENT_HOST_NAME, loadHostName());
+        properties.putIfAbsent(NEWMAN_AGENT_HOST_ADDRESS, loadHostAddress());
         properties.putIfAbsent(NEWMAN_HOME, getNonEmptySystemProperty(NEWMAN_HOME, DEFAULT_NEWMAN_HOME));
         properties.putIfAbsent(NEWMAN_SERVER_HOST, getNonEmptySystemProperty(NEWMAN_SERVER_HOST, DEFAULT_NEWMAN_SERVER_HOST));
         properties.putIfAbsent(NEWMAN_SERVER_PORT, getNonEmptySystemProperty(NEWMAN_SERVER_PORT, DEFAULT_NEWMAN_SERVER_PORT));
@@ -48,9 +53,36 @@ public class NewmanAgentConfig {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
-            return "unknown";
+            return "unknownHostName";
         }
     }
+
+    private String loadHostAddress() {
+            String res = null;
+            try {
+                String localhost = InetAddress.getLocalHost().getHostAddress();
+                Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+                while (e.hasMoreElements()) {
+                    NetworkInterface ni = e.nextElement();
+                    if(ni.isLoopback())
+                        continue;
+                    if(ni.isPointToPoint())
+                        continue;
+                    Enumeration<InetAddress> addresses = ni.getInetAddresses();
+                    while(addresses.hasMoreElements()) {
+                        InetAddress address = addresses.nextElement();
+                        if(address instanceof Inet4Address) {
+                            String ip = address.getHostAddress();
+                            if(!ip.equals(localhost))
+                                System.out.println((res = ip));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                return "unknownHostAddress";
+            }
+            return res;
+        }
 
     public boolean isPersistentName() {
         return PERSISTENT_NAME;
@@ -62,6 +94,10 @@ public class NewmanAgentConfig {
 
     public String getHostName(){
         return properties.getProperty(NEWMAN_AGENT_HOST_NAME);
+    }
+
+    public String getHostAddress(){
+        return properties.getProperty(NEWMAN_AGENT_HOST_ADDRESS);
     }
 
     public String getNewmanHome() {
