@@ -266,9 +266,30 @@ public class NewmanResource {
     @Path("dashboard")
     @Produces(MediaType.APPLICATION_JSON)
     public DashboardData getActiveJobGroup(@Context UriInfo uriInfo) {
-        List<Build> activeBuilds = buildDAO.find(buildDAO.createQuery().where("this.buildStatus.totalJobs>0").where("this.buildStatus.doneJobs < this.buildStatus.totalJobs").order("-buildTime")).asList();
-        List<Build> historyBuilds = buildDAO.find(buildDAO.createQuery().where("this.buildStatus.totalJobs>0").where("this.buildStatus.doneJobs == this.buildStatus.totalJobs").limit(5).order("-buildTime")).asList();
-        return new DashboardData(activeBuilds, historyBuilds);
+        List<Build> activeBuilds =
+                buildDAO.find(buildDAO.createQuery().
+                        where("this.buildStatus.runningJobs>0").
+                        where("this.buildStatus.totalJobs>0").
+                        where("this.buildStatus.doneJobs < this.buildStatus.totalJobs").
+                        order("-buildTime")).
+                        asList();
+        List<Build> pendingBuilds =
+                buildDAO.find(buildDAO.createQuery().
+                        where("this.buildStatus.pendingJobs>0").
+                        where("this.buildStatus.runningJobs==0").
+                        where("this.buildStatus.totalJobs>0").
+                        where("this.buildStatus.doneJobs < this.buildStatus.totalJobs").
+                        limit(5).
+                        order("-buildTime")).
+                        asList();
+        List<Build> historyBuilds =
+                buildDAO.find(buildDAO.createQuery().
+                        where("this.buildStatus.totalJobs>0").
+                        where("this.buildStatus.doneJobs == this.buildStatus.totalJobs").
+                        limit(5).
+                        order("-buildTime")).
+                        asList();
+        return new DashboardData( activeBuilds, pendingBuilds, historyBuilds );
     }
 
     @GET
@@ -351,7 +372,7 @@ public class NewmanResource {
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Test finishTest(final Test test) {
+    public synchronized Test finishTest(final Test test) {
         if (test.getId() == null) {
             throw new BadRequestException("can't finish test without testId: " + test);
         }

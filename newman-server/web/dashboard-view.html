@@ -68,6 +68,52 @@
                 </table>
             </div>
 
+
+            <div class="table-responsive">
+                <h1>Pending Builds</h1>
+                <table class="table table-bordered table-striped table-hover table-nowrap">
+                    <thead>
+                    <tr>
+                        <th width="18%">Name</th>
+                        <th width="7%">Branch</th>
+                        <th width="11%">Date</th>
+                        <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
+                        <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
+                        <th width="26%"><span class="label label-header">Suites</span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <template repeat="{{pendingBuild in data.pendingBuilds}}">
+                        <template if="{{pendingBuild.buildStatus.totalJobs > 0}}">
+                            <tr>
+                                <td title="{{pendingBuild.name}}"><a href="{{urlFor('build', {id: pendingBuild.id})}}">{{pendingBuild.name}}</a></td>
+                                <td title="{{pendingBuild.branch}}">{{pending.branch}}</td>
+                                <td>{{pendingBuild.buildTime | formatDate}}</td>
+                                <td>
+                                    <span class="label label-success">{{pendingBuild.buildStatus.passedTests}}</span>
+                                    <span class="label label-danger">{{pendingBuild.buildStatus.failedTests}}</span>
+                                    <span class="label label-primary">{{pendingBuild.buildStatus.totalTests - pendingBuild.buildStatus.passedTests - pendingBuild.buildStatus.failedTests}}</span>
+                                </td>
+
+                                <td>
+                                    <span class="label label-success">{{pendingBuild.buildStatus.doneJobs}}</span>
+                                    <span class="label label-default">{{pendingBuild.buildStatus.totalJobs}}</span>
+                                </td>
+                                <td>
+                                    <template repeat="{{suiteId, index in pendingBuild.buildStatus.suitesIds}}">
+                                        <template if="{{index!== 'undefined' && pendingBuild.buildStatus.suitesNames[index]}}">
+                                            <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(pendingBuild.buildStatus.suitesNames[index])}}</span> </a>
+                                        </template>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                    </template>
+
+                    </tbody>
+                </table>
+            </div>
+
             <h1>History</h1>
 
             <div class="table-responsive">

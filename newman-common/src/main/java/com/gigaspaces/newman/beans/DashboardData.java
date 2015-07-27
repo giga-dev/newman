@@ -8,13 +8,15 @@ import java.util.List;
  */
 public class DashboardData {
     private List<Build> activeBuilds;
+    private List<Build> pendingBuilds;
     private List<Build> historyBuilds;
 
     public DashboardData() {
     }
 
-    public DashboardData(List<Build> activeBuilds, List<Build> historyBuilds) {
+    public DashboardData(List<Build> activeBuilds, List<Build> pendingBuilds, List<Build> historyBuilds) {
         this.activeBuilds = activeBuilds;
+        this.pendingBuilds = pendingBuilds;
         this.historyBuilds = historyBuilds;
     }
 
@@ -24,6 +26,14 @@ public class DashboardData {
 
     public void setActiveBuilds(List<Build> activeBuilds) {
         this.activeBuilds = activeBuilds;
+    }
+
+    public List<Build> getPendingBuilds() {
+        return pendingBuilds;
+    }
+
+    public void setPendingBuilds(List<Build> pendingBuilds) {
+        this.pendingBuilds = pendingBuilds;
     }
 
     public List<Build> getHistoryBuilds() {
@@ -38,6 +48,7 @@ public class DashboardData {
     public String toString() {
         return "DashboardData{" +
                 "activeBuilds=" + activeBuilds +
+                ", pendingBuilds=" + pendingBuilds +
                 ", historyBuilds=" + historyBuilds +
                 '}';
     }
