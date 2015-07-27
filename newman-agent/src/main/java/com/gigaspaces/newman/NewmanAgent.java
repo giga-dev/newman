@@ -242,12 +242,20 @@ public class NewmanAgent {
         agent.setHost(config.getHostName());
         agent.setHostAddress(config.getHostAddress());
         agent.setPid(ProcessUtils.getProcessId("unknownPID"));
+        int logRepeats = 3;
         while (true){
             try {
                 Job job = client.subscribe(agent).toCompletableFuture().get();
                 if (job != null)
                     return job;
-                logger.info("Agent[{}] did not find a job to run, will try again in {} ms", agent, config.getJobPollInterval());
+
+                if ( --logRepeats >= 0) {
+                    if (logRepeats == 0) {
+                        logger.info("Agent[{}] will quietly try to find a job to run every {} ms", agent, config.getJobPollInterval());
+                    } else {
+                        logger.info("Agent[{}] did not find a job to run, will try again in {} ms", agent, config.getJobPollInterval());
+                    }
+                }
             } catch (ExecutionException e) {
                 logger.warn("Agent failed while polling newman-server at {} for a job (retry in {} ms): " + e, config.getNewmanServerHost(), config.getJobPollInterval());
             }
