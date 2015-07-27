@@ -2,6 +2,7 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.Agent;
 import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.beans.Suite;
 import com.gigaspaces.newman.beans.Test;
 import com.gigaspaces.newman.utils.FileUtils;
 import com.gigaspaces.newman.utils.ProcessUtils;
@@ -177,16 +178,10 @@ public class NewmanAgent {
     }
 
     private int calculateNumberOfWorkers(Job job) {
-        int res = config.getNumOfWorkers();
-        if (job.getSuite() != null && job.getSuite().getCustomVariables() != null) {
-            String[] customVars = job.getSuite().getCustomVariables().split(",");
-            for (String customVar : customVars) {
-                if (customVar.split("=")[0].equals("THREADS_LIMIT")) {
-                    res = Math.min(res, Integer.parseInt(customVar.split("=")[1]));
-                }
-            }
-        }
-        return res;
+        if (job.getSuite() == null || job.getSuite().getCustomVariables() == null)
+            return config.getNumOfWorkers();
+        String limit = Suite.parseCustomVariables(job.getSuite().getCustomVariables()).getOrDefault(Suite.THREADS_LIMIT, Integer.toString(config.getNumOfWorkers()));
+        return Math.min(config.getNumOfWorkers(), Integer.parseInt(limit));
     }
 
 

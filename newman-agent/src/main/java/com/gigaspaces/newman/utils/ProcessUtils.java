@@ -14,25 +14,23 @@ import java.util.concurrent.TimeUnit;
 public class ProcessUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ProcessUtils.class);
-    private static final long DEFAULT_SCRIPT_TIMEOUT = 20 * 60 * 1000;
+    public static final long DEFAULT_SCRIPT_TIMEOUT = 20 * 60 * 1000;
 
-    public static ProcessResult executeAndWait(Path file, Path workingFolder, Path outputPath, String customVariables) throws IOException, InterruptedException {
+    public static ProcessResult executeAndWait(Path file, Path workingFolder, Path outputPath, Map<String,String> customVariables) throws IOException, InterruptedException {
         return executeAndWait(file, Collections.emptyList(), workingFolder, outputPath, customVariables, DEFAULT_SCRIPT_TIMEOUT);
     }
 
     public static ProcessResult executeAndWait(Path file, Collection<String> arguments, Path workingFolder,
-                                               Path outputPath, String customVariables, long timeout)
+                                               Path outputPath, Map<String,String> customVariables, long timeout)
             throws IOException, InterruptedException {
         // Setup:
         ProcessBuilder processBuilder = new ProcessBuilder(file.toString());
         if (arguments != null)
             processBuilder.command().addAll(arguments);
         // pass custom environment variables to scripts
-        if (customVariables != null){
-            final Map<String, String> environment = processBuilder.environment();
-            for (String variableKeyValue : customVariables.split(",")){
-                environment.put(variableKeyValue.split("=")[0], variableKeyValue.split("=")[1]);
-            }
+        final Map<String, String> environment = processBuilder.environment();
+        for (Map.Entry<String,String> variableKeyValue : customVariables.entrySet()){
+            environment.put(variableKeyValue.getKey(), variableKeyValue.getValue());
         }
         processBuilder.directory(workingFolder.toFile());
         processBuilder.redirectErrorStream(true);

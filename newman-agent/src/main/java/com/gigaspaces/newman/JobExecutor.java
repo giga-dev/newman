@@ -1,6 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.beans.Suite;
 import com.gigaspaces.newman.beans.Test;
 import com.gigaspaces.newman.utils.FileUtils;
 import com.gigaspaces.newman.utils.ProcessResult;
@@ -13,7 +14,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.gigaspaces.newman.utils.FileUtils.*;
@@ -69,8 +72,8 @@ public class JobExecutor {
 
             logger.info("Executing setup script...");
             Path setupScript = append(jobFolder, "job-setup" + SCRIPT_SUFFIX);
-            String customVariables = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
-            ProcessResult result = ProcessUtils.executeAndWait(setupScript, jobFolder, append(jobFolder, "job-setup.log"), customVariables);
+            ProcessResult result = ProcessUtils.executeAndWait(setupScript, Collections.emptyList(), jobFolder,
+                    append(jobFolder, "job-setup.log"), getCustomVariablesFromSuite(), overrideSetupTimeoutIfRequested());
             if (result.getExitCode() == null || result.getExitCode() != 0)
                 throw new IOException("Setup script " + ((result.getExitCode() == null) ? "timed out" : "returned ") + result.getExitCode());
 
@@ -83,6 +86,12 @@ public class JobExecutor {
             logger.error("Setup for job {} was interrupted", job.getId());
             return false;
         }
+    }
+
+    private long overrideSetupTimeoutIfRequested() {
+        Map<String, String> customVariablesFromSuite = getCustomVariablesFromSuite();
+        String customTimeout = customVariablesFromSuite.get(Suite.CUSTOM_SETUP_TIMEOUT);
+        return customTimeout != null ? Long.parseLong(customTimeout) : ProcessUtils.DEFAULT_SCRIPT_TIMEOUT;
     }
 
     public Test run(Test test) {
@@ -98,9 +107,8 @@ public class JobExecutor {
             logger.info("Starting test script");
             Path testScript = append(jobFolder, "run-" + test.getTestType() + SCRIPT_SUFFIX);
             Path outputFile = append(outputFolder, "runner-output.log");
-            String customVariables = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
             ProcessResult scriptResult = ProcessUtils.executeAndWait(testScript, test.getArguments(), testFolder,
-                    outputFile, customVariables, test.getTimeout().longValue());
+                    outputFile, getCustomVariablesFromSuite(), test.getTimeout().longValue());
 
             // Generate result:
             test.setStartTime(new Date(scriptResult.getStartTime()));
@@ -160,14 +168,18 @@ public class JobExecutor {
         if (exists(teardownScript)) {
             logger.info("Executing teardown for test {}", test);
             try {
-                String customVariables = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
                 ProcessUtils.executeAndWait(teardownScript, test.getArguments(),testFolder,
-                         outputFile, customVariables, 10 * 60 * 1000);
+                         outputFile, getCustomVariablesFromSuite(), 10 * 60 * 1000);
                 // TODO: Inspect exit code and log warning if non-zero.
             } catch (Exception e) {
                 logger.warn("failed to teardown test" + test, e);
             }
         }
+    }
+
+    private Map<String, String> getCustomVariablesFromSuite() {
+        String customVariableString = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
+        return Suite.parseCustomVariables(customVariableString);
     }
 
     public void teardown() {
@@ -177,8 +189,7 @@ public class JobExecutor {
             Path teardownScript = append(jobFolder, "job-teardown" + SCRIPT_SUFFIX);
             if (exists(teardownScript)) {
                 logger.info("Executing teardown script...");
-                String customVariables = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
-                ProcessUtils.executeAndWait(teardownScript, jobFolder, append(jobFolder, "job-teardown.log"), customVariables);
+                ProcessUtils.executeAndWait(teardownScript, jobFolder, append(jobFolder, "job-teardown.log"), getCustomVariablesFromSuite());
                 // TODO: Inspect exit code and log warning if non-zero.
             }
             logger.info("Deleting job folder {}", jobFolder);

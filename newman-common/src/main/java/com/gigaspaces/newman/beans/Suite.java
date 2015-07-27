@@ -6,12 +6,19 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by moran
  * on 4/29/15.
  */
 @Entity
 public class Suite {
+
+    public static final String THREADS_LIMIT = "THREADS_LIMIT";
+    public static final String CUSTOM_SETUP_TIMEOUT = "CUSTOM_SETUP_TIMEOUT"; // in milliseconds
+
     @Id
     private String id;
 
@@ -55,6 +62,16 @@ public class Suite {
 
     public void setCustomVariables(String customVariables) {
         this.customVariables = customVariables;
+    }
+
+    public static Map<String,String> parseCustomVariables(String customVariables){
+        Map<String,String> res = new HashMap<>();
+        if (customVariables != null) {
+            for (String variableKeyValue : customVariables.split(",")) {
+                res.put(variableKeyValue.split("=")[0], variableKeyValue.split("=")[1]);
+            }
+        }
+        return res;
     }
 
     @Override
