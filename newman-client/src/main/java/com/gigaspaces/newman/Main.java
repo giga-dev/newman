@@ -124,7 +124,8 @@ public class Main {
         Agent foo = new Agent();
         foo.setName("foo");
         foo.setHost(InetAddress.getLocalHost().getCanonicalHostName());
-
+        foo.setHostAddress(InetAddress.getLocalHost().getHostAddress());
+        foo.setPid("123456");
 
         //noinspection InfiniteLoopStatement
         while (true) {
