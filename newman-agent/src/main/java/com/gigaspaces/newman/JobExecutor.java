@@ -118,7 +118,7 @@ public class JobExecutor {
                 //set error message when test failed
                 if (test.getStatus() == Test.Status.FAIL){
                     try {
-                        String errorMessage = readTextFile(append(testFolder, "error.txt"));
+                        String errorMessage = readTextFile(append(outputFolder, "error.txt"));
                         test.setErrorMessage(errorMessage);
                     }
                     catch (IOException e){
