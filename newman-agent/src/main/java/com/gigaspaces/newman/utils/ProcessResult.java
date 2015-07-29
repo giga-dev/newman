@@ -28,4 +28,13 @@ public class ProcessResult {
     public void setEndTime(long endTime) {
         this.endTime = endTime;
     }
+
+    @Override
+    public String toString() {
+        return "ProcessResult{" +
+                "exitCode=" + exitCode +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                '}';
+    }
 }
