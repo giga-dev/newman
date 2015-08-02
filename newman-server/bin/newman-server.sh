@@ -12,6 +12,16 @@ fi
 mkdir -p ../config
 if [ ! -a "../config/realm.properties" ]; then
    echo "root: root, admin" >> ../config/realm.properties
+   echo "tamirt: tamirt, user" >> ../config/realm.properties
+   echo "tamirs: tamirs, user" >> ../config/realm.properties
+   echo "yohana: yohana, user" >> ../config/realm.properties
+   echo "kobi: kobi, user" >> ../config/realm.properties
+   echo "yechiel: yechiel, user" >> ../config/realm.properties
+   echo "evgeny: evgeny, user" >> ../config/realm.properties
+   echo "niv: niv, user" >> ../config/realm.properties
+   echo "boris: boris, user" >> ../config/realm.properties
+   echo "moran: moran, user" >> ../config/realm.properties
+   echo "barak: barak, user" >> ../config/realm.properties
 fi
 
 # System environment variables
