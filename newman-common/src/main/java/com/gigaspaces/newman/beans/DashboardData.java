@@ -1,6 +1,7 @@
 package com.gigaspaces.newman.beans;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Barak Bar Orion
@@ -10,14 +11,17 @@ public class DashboardData {
     private List<Build> activeBuilds;
     private List<Build> pendingBuilds;
     private List<Build> historyBuilds;
+    //key is build id
+    private Map<String,List<Job>> activeJobs;
 
     public DashboardData() {
     }
 
-    public DashboardData(List<Build> activeBuilds, List<Build> pendingBuilds, List<Build> historyBuilds) {
+    public DashboardData(List<Build> activeBuilds, List<Build> pendingBuilds, List<Build> historyBuilds, Map<String,List<Job>> activeJobs ) {
         this.activeBuilds = activeBuilds;
         this.pendingBuilds = pendingBuilds;
         this.historyBuilds = historyBuilds;
+        this.activeJobs = activeJobs;
     }
 
     public List<Build> getActiveBuilds() {
@@ -42,6 +46,14 @@ public class DashboardData {
 
     public void setHistoryBuilds(List<Build> historyBuilds) {
         this.historyBuilds = historyBuilds;
+    }
+
+    public Map<String, List<Job>> getActiveJobs() {
+        return activeJobs;
+    }
+
+    public void setActiveJobs(Map<String, List<Job>> activeJobs) {
+        this.activeJobs = activeJobs;
     }
 
     @Override

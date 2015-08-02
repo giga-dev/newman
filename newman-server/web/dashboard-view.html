@@ -5,7 +5,7 @@
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
 <polymer-element name="dashboard-view" attributes="url active" on-created-build="{{onCreatedBuild}}"
-                 on-modified-build="{{onModifiedBuild}}">
+                                    on-modified-build="{{onModifiedBuild}}" on-modified-job="{{onModifiedJob}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <link rel="stylesheet" href="app.css">
@@ -15,17 +15,17 @@
             }
 
             .table-nowrap td {
-                 white-space: nowrap;
-                 overflow: hidden;
-                 text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         </style>
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
         <div class="content" flex>
             <div class="table-responsive">
-                <h1>Active Builds</h1>
-                <table class="table table-bordered table-striped table-hover table-nowrap">
+                <h1>Active Builds and Jobs</h1>
+                <table class="table table-bordered table-striped table-hover table-nowrap" style="margin-bottom: 0px">
                     <thead>
                     <tr>
                         <th width="18%">Name</th>
@@ -39,31 +39,57 @@
                     <tbody>
                     <template repeat="{{activeBuild in data.activeBuilds}}">
                         <template if="{{activeBuild.buildStatus.totalJobs > 0}}">
-                        <tr>
-                            <td title="{{activeBuild.name}}"><a href="{{urlFor('build', {id: activeBuild.id})}}">{{activeBuild.name}}</a></td>
-                            <td title="{{activeBuild.branch}}">{{activeBuild.branch}}</td>
-                            <td>{{activeBuild.buildTime | formatDate}}</td>
-                            <td>
-                                <span class="label label-success">{{activeBuild.buildStatus.passedTests}}</span>
-                                <span class="label label-danger">{{activeBuild.buildStatus.failedTests}}</span>
-                                <span class="label label-primary">{{activeBuild.buildStatus.totalTests - activeBuild.buildStatus.passedTests - activeBuild.buildStatus.failedTests}}</span>
-                            </td>
+                            <tr>
+                                <td title="{{activeBuild.name}}"><a href="{{urlFor('build', {id: activeBuild.id})}}">{{activeBuild.name}}</a></td>
+                                <td title="{{activeBuild.branch}}">{{activeBuild.branch}}</td>
+                                <td>{{activeBuild.buildTime | formatDate}}</td>
+                                <td>
+                                    <span class="label label-success">{{activeBuild.buildStatus.passedTests}}</span>
+                                    <span class="label label-danger">{{activeBuild.buildStatus.failedTests}}</span>
+                                    <span class="label label-primary">{{activeBuild.buildStatus.totalTests - activeBuild.buildStatus.passedTests - activeBuild.buildStatus.failedTests}}</span>
+                                </td>
 
-                            <td>
-                                <span class="label label-success">{{activeBuild.buildStatus.doneJobs}}</span>
-                                <span class="label label-default">{{activeBuild.buildStatus.totalJobs}}</span>
-                            </td>
-                            <td>
-                                <template repeat="{{suiteId, index in activeBuild.buildStatus.suitesIds}}">
-                                    <template if="{{index!== 'undefined' && activeBuild.buildStatus.suitesNames[index]}}">
-                                        <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(activeBuild.buildStatus.suitesNames[index])}}</span> </a>
+                                <td>
+                                    <span class="label label-success">{{activeBuild.buildStatus.doneJobs}}</span>
+                                    <span class="label label-default">{{activeBuild.buildStatus.totalJobs}}</span>
+                                </td>
+                                <td>
+                                    <template repeat="{{suiteId, index in activeBuild.buildStatus.suitesIds}}">
+                                        <template if="{{index!== 'undefined' && activeBuild.buildStatus.suitesNames[index]}}">
+                                            <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(activeBuild.buildStatus.suitesNames[index])}}</span> </a>
+                                        </template>
                                     </template>
-                                </template>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                            <template repeat="{{activeJob in data.activeJobs[activeBuild.id]}}">
+                                <tr>
+                                    <td title="{{activeJob.id}}" style="padding-left: 22px">
+                                        &#8627;Job:<a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'ALL'})}}">{{activeJob.id}}</a>
+                                    </td>
+                                    <td title="{{activeJob.suite.name}}">
+                                        {{activeJob.suite.name}}
+                                    </td>
+                                    <td title="{{activeJob.duration}}">
+                                        {{activeJob | getDuration}}
+                                    </td>
+                                    <td colspan="3">
+                                        <span class="label label-info">
+                                            <a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'RUNNING'})}}" class="tests-num-link">{{activeJob.runningTests}}</a>
+                                        </span> /
+                                        <span class="label label-success">
+                                            <a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'SUCCESS'})}}" class="tests-num-link">{{activeJob.passedTests}}</a>
+                                        </span> /
+                                        <span class="label label-danger">
+                                            <a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'FAIL'})}}" class="tests-num-link">{{activeJob.failedTests}}</a>
+                                        </span> /
+                                        <span class="label label-default">
+                                            <a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'ALL'})}}" class="tests-num-link">{{activeJob.totalTests}}</a>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </template>
                         </template>
                     </template>
-
                     </tbody>
                 </table>
             </div>
@@ -167,60 +193,205 @@
       created: function() {
           this.data = [];
           this.actives = {};
+          this.pending = {};
           this.history = {};
+          this.activeJobs = {};
           this.active = false;
       },
       formatDate: function(date){
            return moment(new Date(date)).fromNow();
       },
-      ajaxResponse: function(event,resp){
-           this.data = resp.response;
-           var actives = this.actives;
-           this.data.activeBuilds.forEach(function(build){
+        ajaxResponse: function(event,resp){
+            this.data = resp.response;
+            var actives = this.actives;
+            var that = this;
+            this.data.activeBuilds.forEach(function(build){
                 actives[build.id] = build;
-           });
-           var history = this.history;
-           this.data.historyBuilds.forEach(function(build){
+                if( that.data.activeJobs != null ){
+                    var activeBuildJobsList =  that.data.activeJobs[ build.id ];
+                    console.info( '~~~~~, ajaxResponse, within if, build id', build.id, ', active jobs list=', activeBuildJobsList );
+                    if( activeBuildJobsList != null ){
+                        activeBuildJobsList.forEach(function(activeJob){
+                            that.activeJobs[activeJob.id] = activeJob;
+                        });
+                    }
+                }
+            });
+
+            var pending = this.pending;
+            this.data.pendingBuilds.forEach(function(build){
+                pending[build.id] = build;
+            });
+            var history = this.history;
+            this.data.historyBuilds.forEach(function(build){
                 history[build.id] = build;
-           });
-           console.info("dashboard ", this.data);
-      },
-      onCreatedBuild: function(ev, build){
-            this.data.activeBuilds.unshift(build);
-            this.actives[build.id] = build;
+            });
+            console.info("dashboard ", this.data);
+        },
+      onCreatedBuild: function(ev, build) {
+          var runningJobs = build.buildStatus.runningJobs;
+          if( runningJobs > 0 ) {
+              this.data.activeBuilds.unshift(build);
+              this.actives[build.id] = build;
+          }
+          else{
+              this.data.pendingBuilds.unshift(build);
+              this.pending[build.id] = build;
+          }
       },
       onModifiedBuild: function(ev, build){
-            var found = this.actives[build.id];
-            if(found){
-                app.update(build, found);
-                if(found.buildStatus.totalJobs === found.buildStatus.doneJobs){
-                    delete this.actives[found.id];
-                    var index = this.data.activeBuilds.indexOf(found);
-                    if(-1 < index){
-                        this.data.activeBuilds.splice(index, 1);
-                    }
-                    this.history[found.id] = found;
-                    this.data.historyBuilds.unshift(found);
-                    if(5 < this.data.historyBuilds.length){
-                        this.data.historyBuilds.pop();
-                    }
-                }
-            }else if(found = this.history[build.id]){
-                app.update(build, found);
-                if(found.buildStatus.doneJobs < found.buildStatus.totalJobs){
-                    delete this.history[found.id];
-                    var index = this.data.historyBuilds.indexOf(found);
-                    if(-1 < index){
-                        this.data.historyBuilds.splice(index, 1);
-                    }
-                    this.actives[found.id] = found;
-                    this.data.activeBuilds.unshift(found);
+          var found;
+          var activeBuildFound = this.actives[build.id];
+          var pendingBuildFound = this.pending[build.id];
+
+          if(activeBuildFound){
+              app.update(build, activeBuildFound);
+
+              if(activeBuildFound.buildStatus.totalJobs === activeBuildFound.buildStatus.doneJobs){
+                  delete this.actives[activeBuildFound.id];
+                  var index = this.data.activeBuilds.indexOf(activeBuildFound);
+                  if(-1 < index){
+                      this.data.activeBuilds.splice(index, 1);
+                  }
+
+                  this.history[activeBuildFound.id] = activeBuildFound;
+                  this.data.historyBuilds.unshift(activeBuildFound);
+                  if(5 < this.data.historyBuilds.length){
+                      this.data.historyBuilds.pop();
+                  }
+              }
+              else if(activeBuildFound.buildStatus.runningJobs === 0 && activeBuildFound.buildStatus.pendingJobs > 0 ){
+                  delete this.actives[activeBuildFound.id];
+                  var index = this.data.activeBuilds.indexOf(activeBuildFound);
+                  if(-1 < index){
+                      this.data.activeBuilds.splice(index, 1);
+                  }
+                  this.pending[activeBuildFound.id] = activeBuildFound;
+                  this.data.pendingBuilds.unshift(activeBuildFound);
+                  if(5 < this.data.pendingBuilds.length){
+                      this.data.pendingBuilds.pop();
+                  }
+              }
+          }
+          if(pendingBuildFound){
+              app.update(build, pendingBuildFound);
+
+              if(pendingBuildFound.buildStatus.totalJobs === pendingBuildFound.buildStatus.doneJobs){
+                  delete this.pending[pendingBuildFound.id];
+                  var index = this.data.pendingBuilds.indexOf(pendingBuildFound);
+                  if(-1 < index){
+                      this.data.pendingBuilds.splice(index, 1);
+                  }
+                  this.history[pendingBuildFound.id] = pendingBuildFound;
+                  this.data.historyBuilds.unshift(pendingBuildFound);
+                  if(5 < this.data.historyBuilds.length){
+                      this.data.historyBuilds.pop();
+                  }
+              }
+              else if( pendingBuildFound.buildStatus.runningJobs > 0 ){
+                  delete this.pending[pendingBuildFound.id];
+                  var index = this.data.pendingBuilds.indexOf(pendingBuildFound);
+                  if(-1 < index){
+                      this.data.pendingBuilds.splice(index, 1);
+                  }
+                  this.actives[pendingBuildFound.id] = pendingBuildFound;
+                  this.data.activeBuilds.unshift(pendingBuildFound);
+/*
+                  if(5 < this.data.activeBuilds.length){
+                      this.data.activeBuilds.pop();
+                  }
+*/
+              }
+          }
+          else {
+              if (found = this.history[build.id]) {
+                  app.update(build, found);
+                  if (found.buildStatus.doneJobs < found.buildStatus.totalJobs) {
+                      delete this.history[found.id];
+                      var index = this.data.historyBuilds.indexOf(found);
+                      if (-1 < index) {
+                          this.data.historyBuilds.splice(index, 1);
+                      }
+                      var runningJobs = found.buildStatus.runningJobs;
+                      if (runningJobs > 0) {
+                          this.actives[found.id] = found;
+                          this.data.activeBuilds.unshift(found);
+                      }
+                      else if (found.buildStatus.pendingJobs > 0) {
+                          this.pending[found.id] = found;
+                          this.data.pendingBuilds.unshift(found);
+                      }
+                  }
+              }
+          }
+      },
+        onModifiedJob: function(ev, job){
+            var buildId = job.build.id;
+            var activeBuild = this.actives[ buildId ];
+
+            if( !this.activeJobs[job.id] ) {
+                if ( job.state == 'RUNNING' ) {
+                    this.activeJobs[job.id] = job;
                 }
             }
-      },
-      activeChanged: function(oldValue, newValue){
-           console.info("dashboard activeChanged to ", newValue);
-      },
+            else if( job.state == 'DONE' ) {
+                //if state is DONE than remove this job from active jobs
+                var storedJob = this.activeJobs[job.id];
+                if( storedJob != null ) {
+                    delete this.activeJobs[job.id];
+                    if (this.data.activeJobs[buildId] != null) {
+                        var activeJobIndex = this.data.activeJobs[buildId].indexOf(storedJob);
+                        if (activeJobIndex >= 0) {
+                            this.data.activeJobs[buildId].splice(activeJobIndex, 1);
+                        }
+                    }
+                }
+            }
+
+
+            if( activeBuild && this.activeJobs[job.id]) {
+                window.app.update(job, this.activeJobs[job.id]);
+                var buildActiveJobsList = this.data.activeJobs[buildId];
+
+                //initialize map and
+                if( buildActiveJobsList == null ) {
+                    this.data.activeJobs[ buildId ] = [];
+                }
+
+                if( this.data.activeJobs[ buildId ] != null ) {
+
+                    var storedJob = this.activeJobs[job.id];
+
+                    var activeJobIndex = this.data.activeJobs[buildId].indexOf(storedJob);
+                    //if does not exist
+                    if( activeJobIndex < 0 ){
+                        this.data.activeJobs[buildId].unshift(storedJob);
+                    }
+                }
+            }
+        },
+        activeChanged: function(oldValue, newValue){
+            console.info("dashboard activeChanged to ", newValue);
+        },
+        getDuration: function(item) {
+
+            if( item.startTime === null ){
+                return '';
+            }
+
+            var endTime = item.endTime;
+            if (endTime == null) {
+                endTime = new Date().getTime();
+            }
+            var diff = endTime - item.startTime;
+            return moment.utc(diff).format("HH [h,] mm [m]")
+        },
+        formatDate: function(date){
+            return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
+        },
+        formatDateFromNow: function(date){
+            return moment(new Date(date)).fromNow();
+        },
       calculateShortSuiteName: function( suiteName ) {
               return suiteName;
               /*var maxLength = 7;

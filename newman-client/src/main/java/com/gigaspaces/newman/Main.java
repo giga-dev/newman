@@ -1,6 +1,12 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.beans.Agent;
+import com.gigaspaces.newman.beans.Batch;
+import com.gigaspaces.newman.beans.Build;
+import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.beans.JobRequest;
+import com.gigaspaces.newman.beans.Suite;
+import com.gigaspaces.newman.beans.Test;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.client.rx.RxClient;
@@ -18,7 +24,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 
@@ -29,6 +39,7 @@ public class Main {
     private final static int NUMBER_OF_BUILDS = 1;
     private final static int NUMBER_OF_SUITES_PER_BUILD = 1;
     private final static int NUMBER_OF_JOBS_PER_SUITE = 2;
+    private final static int NUMBER_OF_TESTS_PER_JOB = 10;
     private final static long DELAY_BETWEEN_TESTS_MS = 1000;
     private final static long TEST_PROCESS_TIME_MS = 1000;
     private final static long PREPARE_JOB_TIME_MS = 5000;
@@ -108,7 +119,7 @@ public class Main {
             if (job.getTotalTests() != 0) {
                 continue; //ignore job with tests
             }
-            for (int i = 0; i < 3 * 10; i++) {
+            for (int i = 0; i < NUMBER_OF_TESTS_PER_JOB; i++) {
                 Test test = new Test();
                 test.setJobId(job.getId());
                 test.setName("test_" + i);
@@ -117,12 +128,14 @@ public class Main {
                 test = newmanClient.uploadLog(test.getId(), new File("mongo.txt")).toCompletableFuture().get();
                 logger.info("**** Test is {} ", test);
             }
-            Batch<Test> tests = newmanClient.getTests(job.getId(), 0, 30).toCompletableFuture().get();
+            Batch<Test> tests = newmanClient.getTests(job.getId(), 0, NUMBER_OF_TESTS_PER_JOB).toCompletableFuture().get();
             logger.info("tests are {}", tests);
         }
 
         Agent foo = new Agent();
         foo.setName("foo");
+        foo.setHostAddress(InetAddress.getLocalHost().getHostAddress());
+        foo.setPid(String.valueOf(1234));
         foo.setHost(InetAddress.getLocalHost().getCanonicalHostName());
         foo.setHostAddress(InetAddress.getLocalHost().getHostAddress());
         foo.setPid("123456");

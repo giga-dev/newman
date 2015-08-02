@@ -73,9 +73,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -289,7 +291,10 @@ public class NewmanResource {
                         limit(5).
                         order("-buildTime")).
                         asList();
-        return new DashboardData( activeBuilds, pendingBuilds, historyBuilds );
+
+        Map<String, List<Job>> activeJobsMap = createActiveJobsMap(activeBuilds);
+
+        return new DashboardData( activeBuilds, pendingBuilds, historyBuilds, activeJobsMap );
     }
 
     @GET
@@ -1040,7 +1045,7 @@ public class NewmanResource {
 
     private TestHistoryItem createTestHistoryItem( Test test ) {
 
-        Job job = getJob( test.getJobId() );
+        Job job = getJob(test.getJobId());
         return new TestHistoryItem( test, job );
     }
 
@@ -1053,11 +1058,39 @@ public class NewmanResource {
         jobsQuery.order("-endTime").limit(maxJobsPerSuite);
 
         List<Job> jobsList = jobDAO.find(jobsQuery).asList();
-/*
-        logger.info("--- getAllSuitesWithJobs(), jobs list size:" + jobsList.size());
-        logger.info("--- getAllSuitesWithJobs(), jobs:" + Arrays.toString(jobsList.toArray(new Job[jobsList.size()])));
-*/
         return new SuiteWithJobs(suite, jobsList);
+    }
+
+    private List<BuildWithJobs> createBuildsWithJobs( List<Build> builds ){
+        List<BuildWithJobs> resultList = new ArrayList<>();
+        for( Build build : builds ) {
+            BuildWithJobs buildWithJobs = createBuildWithJobs(build);
+            resultList.add( buildWithJobs );
+        }
+
+        return  resultList;
+    }
+
+    private Map<String,List<Job>> createActiveJobsMap( List<Build> builds ){
+        Map<String,List<Job>> resultsMap = new HashMap<>();
+        for( Build build : builds ) {
+            resultsMap.put( build.getId(), getActiveBuildJobs( build ) );
+        }
+
+        return resultsMap;
+    }
+
+    private BuildWithJobs createBuildWithJobs(Build build) {
+
+        List<Job> jobs = getActiveBuildJobs(build);
+        return new BuildWithJobs( build, jobs );
+    }
+
+    private List<Job> getActiveBuildJobs(Build build) {
+
+        Query<Job> query = jobDAO.createQuery();
+        query.field( "build.id" ).equal( build.getId() ).field("state").equal(State.RUNNING);
+        return jobDAO.find(query).asList();
     }
 
     @GET
