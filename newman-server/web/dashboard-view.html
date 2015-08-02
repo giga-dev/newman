@@ -67,7 +67,9 @@
                                         &#8627;Job:<a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'ALL'})}}">{{activeJob.id}}</a>
                                     </td>
                                     <td title="{{activeJob.suite.name}}">
-                                        {{activeJob.suite.name}}
+                                        <template if="{{activeJob.suite.id != null}}">
+                                            <a href="{{urlFor('suite', {id: activeJob.suite.id})}}">{{activeJob.suite.name}}</a>
+                                        </template>
                                     </td>
                                     <td title="{{activeJob.duration}}">
                                         {{activeJob | getDuration}}
