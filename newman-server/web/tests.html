@@ -58,8 +58,7 @@
                 <table class="table table-hover table-striped table-bordered table-condensed" style="table-layout: fixed; width: 100%">
                     <thead>
                     <tr>
-                        <th width="34%">Name</th>
-                        <th width="28%">Arguments</th>
+                        <th width="62%">Name(&Arguments)</th>
                         <th width="100px">Status</th>
                         <th width="80px">History</th>
                         <th width="250px">AssignedAgent</th>
@@ -69,8 +68,7 @@
                     <tbody>
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
-                            <td style="word-wrap: break-word"><a href="{{urlFor('test', {id: item.id})}}">{{item.name}}</a></td>
-                            <td style="word-wrap: break-word"><test-arguments test="{{item}}"></test-arguments></td>
+                            <td style="word-wrap: break-word"><a href="{{urlFor('test', {id: item.id})}}"><test-arguments test="{{item}}"></test-arguments></a></td>
                             <td><test-status test="{{item}}"></test-status></td>
                             <td>
                                 <!--

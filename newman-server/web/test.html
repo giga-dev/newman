@@ -3,6 +3,7 @@
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
+
 <polymer-element name="test-info" attributes="url data">
     <template>
         <style>
@@ -27,7 +28,7 @@
                 <dd><a href="{{urlFor('job', {id: data.jobId, filterByStatus: 'ALL'})}}">{{data.jobId}}</a></dd>
             </template>
             <dt>arguments</dt>
-            <dd>{{data.arguments}}</dd>
+            <dd><test-arguments test="{{data}}"></test-arguments></dd>
             <dt>test type</dt>
             <dd>{{data.testType}}</dd>
             <dt>timeout</dt>
@@ -67,6 +68,15 @@
       data: null,
       ajaxResponse: function(event,resp){
            this.data = resp.response;
+      },
+      formatArguments: function(test){
+          if( test ) {
+              var arguments = test.arguments;
+              if( arguments ) {
+                  return arguments.join(" ");
+              }
+          }
+          return '';
       },
       formatDate: function(date){
             if(!date){

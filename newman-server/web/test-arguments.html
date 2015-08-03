@@ -10,10 +10,12 @@
 
     <script>
     Polymer({
-         formatTestArguments: function(arguments){
-             //delete first argument that is actually test name
-             arguments.shift();
-             return arguments.join(" ");
+         formatTestArguments: function(arguments) {
+             if (arguments) {
+                 return arguments.join(" ");
+             }
+
+             return '';
          }
     });
     </script>
