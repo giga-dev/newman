@@ -15,7 +15,13 @@
         <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}"
                    withCredentials="true"></core-ajax>
 
+        <core-ajax id="delLogs" handleAs="text" method="DELETE" on-core-response="{{logSizeResponse}}"
+                   withCredentials="true"></core-ajax>
+
         <core-ajax id="config" handleAs="json" on-core-response="{{configResponse}}"
+                   withCredentials="true"></core-ajax>
+
+        <core-ajax id="logSize" handleAs="text" on-core-response="{{logSizeResponse}}"
                    withCredentials="true"></core-ajax>
 
         <div class="content" flex>
@@ -44,6 +50,14 @@
                             </td>
                         </tr>
                     </template>
+                        <tr>
+                            <td>Logs Disk Usage: {{du}}</td>
+                            <td>
+                                <button class="btn btn-success" on-click="{{deleteLogs}}" class="btn btn-danger" >
+                                    <span class="glyphicon glyphicon glyphicon-remove"></span>
+                                </button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -74,12 +88,15 @@
       data: [],
       config : {},
       dropCollectionName : '',
+      du : 0,
       runFilter: function(){
           this.data  = this.applyFilter(this.filter, this.allValues);
       },
       ajaxResponse: function(event,resp){
            this.$.config.url=this.url.replace("/db","/config");
            this.$.config.go();
+           this.$.logSize.url=this.url.replace("/db","/log/size");
+           this.$.logSize.go();
            this.allValues = resp.response.entity;
            this.runFilter();
       },
@@ -105,6 +122,13 @@
            this.$.del.url=this.url + "/" + this.dropCollectionName;
            this.$.del.go();
       },
+      logSizeResponse: function(event, resp){
+            this.du = this.humanFileSize(resp.response, false);
+      },
+      deleteLogs : function(){
+           this.$.delLogs.url= this.url.replace("/db","/log");
+           this.$.delLogs.go();
+      },
       applyFilter: function(filter, values){
             if(values && filter != null && filter != undefined){
                 return values.filter(function(value){
@@ -113,7 +137,22 @@
             }else{
                 return values;
             }
-      }
+      },
+      humanFileSize : function (bytes, si) {
+            var thresh = si ? 1000 : 1024;
+            if(Math.abs(bytes) < thresh) {
+                return bytes + ' B';
+            }
+            var units = si
+                ? ['kB','MB','GB','TB','PB','EB','ZB','YB']
+                : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
+            var u = -1;
+            do {
+                bytes /= thresh;
+                ++u;
+            } while(Math.abs(bytes) >= thresh && u < units.length - 1);
+         return bytes.toFixed(1)+' '+units[u];
+       }
     });
 
 

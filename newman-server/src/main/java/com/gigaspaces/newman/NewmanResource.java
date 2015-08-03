@@ -21,6 +21,7 @@ import com.gigaspaces.newman.dao.BuildDAO;
 import com.gigaspaces.newman.dao.JobDAO;
 import com.gigaspaces.newman.dao.SuiteDAO;
 import com.gigaspaces.newman.dao.TestDAO;
+import com.gigaspaces.newman.utils.FileUtils;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -43,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.BadRequestException;
@@ -579,6 +581,33 @@ public class NewmanResource {
 
 
     @GET
+    @Path("log/size")
+    public Response computeLogDirSize(){
+        try {
+            return Response.ok(String.valueOf(Files.walk(Paths.get(SERVER_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum()), MediaType.TEXT_PLAIN_TYPE).build();
+        } catch (Exception e) {
+            logger.error(e.toString(), e);
+            return Response.status(Response.Status.EXPECTATION_FAILED).build();
+        }
+    }
+
+
+    @DELETE
+    @Path("log")
+    @RolesAllowed("admin")
+    public Response deleteLogs(){
+        try {
+            java.nio.file.Path path = Paths.get(SERVER_UPLOAD_LOCATION_FOLDER);
+            FileUtils.delete(path);
+            FileUtils.createFolder(path);
+            return Response.ok(String.valueOf(Files.walk(path).mapToLong(p -> p.toFile().length()).sum()), MediaType.TEXT_PLAIN_TYPE).build();
+        } catch (Exception e) {
+            logger.error(e.toString(), e);
+            return Response.status(Response.Status.EXPECTATION_FAILED).build();
+        }
+    }
+
+    @GET
     @Path("subscribe")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Agent> getSubscriptions(@DefaultValue("0") @QueryParam("offset") int offset,
@@ -936,6 +965,7 @@ public class NewmanResource {
     @DELETE
     @Path("db")
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("admin")
     public Response deleteCollections() {
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         List<String> deleted = new ArrayList<String>();
@@ -952,6 +982,7 @@ public class NewmanResource {
     @DELETE
     @Path("job/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("admin")
     public Response deleteJob( final @PathParam("jobId") String jobId ) {
         performDeleteJob(jobId);
         performDeleteTests(jobId);
@@ -985,6 +1016,7 @@ public class NewmanResource {
     @DELETE
     @Path("db/{collectionName}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("admin")
     public Response deleteCollection(final @PathParam("collectionName") String collectionName) {
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         MongoCollection myCollection = db.getCollection(collectionName);
