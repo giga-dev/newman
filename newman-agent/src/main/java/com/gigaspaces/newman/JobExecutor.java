@@ -140,15 +140,16 @@ public class JobExecutor {
 
         // Pack & upload output files (logs, etc.)
         try {
-            zip(outputFolder, append(testFolder, "output.zip"));
+            //noinspection unchecked
+            zip(FileUtils.listFilesInFolder(outputFolder.toFile()), append(testFolder, "output.zip"));
         } catch (IOException e) {
-            logger.warn("Failed to zip output folder folder {}", outputFolder);
+            logger.warn("Failed to zip output folder: " + outputFolder, e);
         }
         // TODO: Where should the output.zip be uploaded to? synchronously?
         try {
             FileUtils.copyFile(append(testFolder, "output.zip"), append(newmanLogFolder , "output-" + test.getId() + ".zip"));
         } catch (IOException e) {
-            logger.warn("Failed to upload output zip");
+            logger.warn("Failed to upload output zip", e);
         }
 
         // Cleanup:

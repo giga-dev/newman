@@ -2,7 +2,6 @@ package com.gigaspaces.newman.utils;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.ZipParameters;
 
 import java.io.*;
 import java.net.URL;
@@ -14,6 +13,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 
 public class FileUtils {
@@ -97,16 +98,37 @@ public class FileUtils {
         }
     }
 
-    public static void zip(Path sourceFolder, Path targetZipFile) throws IOException {
-        try {
-            ZipFile zipFile = new ZipFile(targetZipFile.toFile());
-            ZipParameters zipParameters = new ZipParameters();
-            zipParameters.setIncludeRootFolder(false);
-            zipFile.addFolder(sourceFolder.toFile(), zipParameters);
-        } catch (ZipException e) {
-            throw new IOException("Failed to zip " + sourceFolder + " into " + targetZipFile, e);
+    public static void zip(Collection<File> fileList, Path targetZipFile) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(targetZipFile.toFile()); ZipOutputStream zos = new ZipOutputStream(fos)){
+            for (File file : fileList) {
+                if (!file.isDirectory()) { // we only zip files, not directories
+                    addToZip(file, zos);
+                }
+            }
         }
     }
+
+    private static void addToZip(File file, ZipOutputStream zos) throws FileNotFoundException,
+            IOException {
+
+        FileInputStream fis = new FileInputStream(file);
+
+        // we want the zipEntry's path to be a relative path that is relative
+        // to the directory being zipped, so chop off the rest of the path
+        String zipFilePath = file.getName();
+        ZipEntry zipEntry = new ZipEntry(zipFilePath);
+        zos.putNextEntry(zipEntry);
+
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = fis.read(bytes)) >= 0) {
+            zos.write(bytes, 0, length);
+        }
+
+        zos.closeEntry();
+        fis.close();
+    }
+
 
     public static void unzipFileFromZip(String fileName,Path targetFolder, Path inputZipFile) throws IOException {
         try {
