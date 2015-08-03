@@ -62,9 +62,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -82,6 +80,9 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 /**
  * Created by Barak Bar Orion
@@ -477,6 +478,15 @@ public class NewmanResource {
         ContentDisposition contentDispositionHeader = filePart.getContentDisposition();
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
         String fileName = contentDispositionHeader.getFileName();
+        if(fileName.toLowerCase().endsWith(".zip")){
+            handleLogBundle(id, uriInfo, fileInputStream, fileName);
+        }else{
+            handleLogFile(id, uriInfo, fileInputStream, fileName);
+        }
+        return null;
+    }
+
+    private void handleLogFile(String id, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
         String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + fileName;
         try {
             saveFile(fileInputStream, filePath);
@@ -488,7 +498,38 @@ public class NewmanResource {
         } catch (IOException e) {
             logger.error("Failed to save log at {} for test {}", filePath, id, e);
         }
-        return null;
+    }
+    private void handleLogBundle(String id, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + fileName;
+        try {
+            saveFile(fileInputStream, filePath);
+            Set<String> entries = extractZipEntries(filePath);
+            URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
+            UpdateOperations<Test> updateOps = testDAO.createUpdateOperations();
+            for (String entry : entries) {
+                updateOps.set("logs." + entry.replaceAll("\\.", "_"), uri.toASCIIString() + "!/" + entry);
+                //https://localhost:8443/api/newman/test/1/logBundle/logs.zip!/logs/pom_files/microsoft.owa.extendedmaillistview.mouse.js
+            }
+            Test test = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(id), updateOps);
+            broadcastMessage(MODIFIED_TEST, test);
+        } catch (IOException e) {
+            logger.error("Failed to save log at {} for test {}", filePath, id, e);
+        }
+    }
+
+
+    private Set<String> extractZipEntries(String filePath) throws IOException {
+            Set<String> res = new HashSet<>();
+            ZipEntry zEntry;
+            try (FileInputStream fis  = new FileInputStream(filePath); ZipInputStream zipIs = new ZipInputStream(new BufferedInputStream(fis))){
+                while((zEntry = zipIs.getNextEntry()) != null){
+                    if(!zEntry.isDirectory()) {
+                        res.add(zEntry.getName());
+                    }
+                }
+                zipIs.close();
+            }
+        return res;
     }
 
     @GET
@@ -503,9 +544,34 @@ public class NewmanResource {
             mediaType = MediaType.TEXT_PLAIN_TYPE;
         }
         String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + name;
+
         return Response.ok(new File(filePath), mediaType).build();
     }
 
+    @GET
+    @Path("test/{id}/log/{name:.*\\.zip!/.*}")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response downloadCompressLog(@PathParam("id") String id, @PathParam("name") String name,
+                                @DefaultValue("false") @QueryParam("download") boolean download) {
+        try {
+            MediaType mediaType;
+            if (download) {
+                mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+            } else {
+                mediaType = MediaType.TEXT_PLAIN_TYPE;
+            }
+            String[] splited = name.split("!");
+            String zipPath = splited[0];
+            String entryName = splited[1].substring(1);
+            String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + zipPath;
+            ZipFile zip = new ZipFile(filePath);
+            InputStream is = zip.getInputStream(zip.getEntry(entryName));
+            return Response.ok(is, mediaType).build();
+        }catch(Exception e){
+            logger.error(e.toString(), e);
+            return Response.status(Response.Status.EXPECTATION_FAILED).build();
+        }
+    }
 
     private String getLogName(String fileName) {
         return fileName.replaceAll("\\.[^.]*$", "");
