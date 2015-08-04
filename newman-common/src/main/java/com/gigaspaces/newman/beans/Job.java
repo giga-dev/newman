@@ -5,6 +5,7 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.Transient;
 
 import java.net.URI;
 import java.util.*;
@@ -34,7 +35,8 @@ public class Job {
     private int runningTests;
     @Embedded
     private Set<String> preparingAgents;
-
+    @Transient
+    private Set<String> agents = Collections.EMPTY_SET;
 
     public Job() {
         state = State.READY;
@@ -170,5 +172,13 @@ public class Job {
                 .append("runningTests", runningTests)
                 .append("preparingAgents", preparingAgents)
                 .toString();
+    }
+
+    public Set<String> getAgents() {
+        return agents;
+    }
+
+    public void setAgents(Set<String> agents) {
+        this.agents = agents;
     }
 }

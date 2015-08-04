@@ -17,15 +17,15 @@
         <link rel="stylesheet" href="app.css">
         <style>
             .table-nowrap {
-            table-layout:fixed;
+                table-layout:fixed;
             }
             .table > tbody > tr > td{
-            vertical-align: middle;
+                vertical-align: middle;
             }
             .table-nowrap td {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         </style>
 
@@ -54,13 +54,13 @@
                     <tr>
                         <th width="7%">State</th>
                         <th width="7%">Progress</th>
-                        <th width="10%">Job Id</th>
-                        <th width="10%">Suite</th>
-                        <th width="6%">Duration</th>
-                        <th width="9%">Submitted At</th>
+                        <th width="12%">Job Id</th>
+                        <th width="11%">Suite</th>
+                        <th width="7%">Duration</th>
+                        <th width="10%">Submitted At</th>
                         <th width="8%">Tests URI</th>
                         <th width="8%">Submitted By</th>
-                        <th width="10%">#Preparing Agents</th>
+                        <th width="5%">#Agents</th>
                         <th width="20%"><span class="label label-info"># Running</span> <span class="label label-success"># Passed</span> <span class="label label-danger">Failed</span> <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
                         <th width="5%">Drop</th>
                     </tr>
@@ -90,7 +90,7 @@
                             <td title="{{item.submitTime | formatDate}}">{{item.submitTime | formatDateFromNow}}</td>
                             <td title="{{item.testURI}}">{{item.testURI}}</td>
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
-                            <td>{{item.preparingAgents.length}}</td>
+                            <td>{{item.preparingAgents.length+item.agents.length}}</td>
                             <td>
 
                                 <span class="label label-info">
@@ -133,127 +133,127 @@
     <script src="../components/moment/moment.js"></script>
 
     <script>
-    Polymer({
-      applyAuthorStyles: true,
-      jobId : '',
+        Polymer({
+            applyAuthorStyles: true,
+            jobId : '',
 
-      created: function() {
-          this.filter = null;
-          this.allValues =[];
-          this.data = [];
-          this.pages = [];
-          this.currentPage = 0;
-      },
-      runFilter: function(){
-          this.data  = this.applyFilter(this.filter, this.allValues);
-          this.pages = this.splitToPages();
-          this.currentPage = 0;
-      },
-      splitToPages: function(){
-          var res = [];
-          var current = [];
-          for(var i = 0; i < this.data.length; ++i){
-              current.push(this.data[i]);
-              if(current.length === 25){
-                  res.push(current);
-                  current = [];
-              }
-          }
-          if(0 < current.length){
-                res.push(current);
-          }
-          return res;
-      },
+            created: function() {
+                this.filter = null;
+                this.allValues =[];
+                this.data = [];
+                this.pages = [];
+                this.currentPage = 0;
+            },
+            runFilter: function(){
+                this.data  = this.applyFilter(this.filter, this.allValues);
+                this.pages = this.splitToPages();
+                this.currentPage = 0;
+            },
+            splitToPages: function(){
+                var res = [];
+                var current = [];
+                for(var i = 0; i < this.data.length; ++i){
+                    current.push(this.data[i]);
+                    if(current.length === 25){
+                        res.push(current);
+                        current = [];
+                    }
+                }
+                if(0 < current.length){
+                    res.push(current);
+                }
+                return res;
+            },
 
-        getDuration: function(item) {
+            getDuration: function(item) {
 
-            if( item.startTime === null ){
-                return '';
-            }
+                if( item.startTime === null ){
+                    return '';
+                }
 
-            var endTime = item.endTime;
-            if (endTime == null) {
-                endTime = new Date().getTime();
-            }
-            var diff = endTime - item.startTime;
-            return moment.utc(diff).format("HH [h,] mm [m]")
-        },
-        formatDate: function(date){
-            return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
-        },
-        formatDateFromNow: function(date){
-            return moment(new Date(date)).fromNow();
-        },
-      ajaxResponse: function(event,resp){
-           this.allValues = resp.response.values;
-           this.allValues.forEach(window.app.jobProgressPercent);
-           this.runFilter();
-      },
-      applyFilter: function(filter, values){
-            if(values && filter != null && filter != undefined && filter != ""){
-                return values.filter(function(obj){
-                    return Object.getOwnPropertyNames(obj).find(function(key){
-                        var val = obj[key];
-                        return val &&  typeof val === "string" && -1 < val.toLowerCase().indexOf(filter.toLowerCase());
+                var endTime = item.endTime;
+                if (endTime == null) {
+                    endTime = new Date().getTime();
+                }
+                var diff = endTime - item.startTime;
+                return moment.utc(diff).format("HH [h,] mm [m]")
+            },
+            formatDate: function(date){
+                return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
+            },
+            formatDateFromNow: function(date){
+                return moment(new Date(date)).fromNow();
+            },
+            ajaxResponse: function(event,resp){
+                this.allValues = resp.response.values;
+                this.allValues.forEach(window.app.jobProgressPercent);
+                this.runFilter();
+            },
+            applyFilter: function(filter, values){
+                if(values && filter != null && filter != undefined && filter != ""){
+                    return values.filter(function(obj){
+                        return Object.getOwnPropertyNames(obj).find(function(key){
+                            var val = obj[key];
+                            return val &&  typeof val === "string" && -1 < val.toLowerCase().indexOf(filter.toLowerCase());
+                        });
+                        return false
                     });
-                    return false
-                    });
-            }else{
-                return values;
-            }
-      },
-      onPageChange : function(event){
-            this.currentPage = event.detail.currentPage;
-      },
+                }else{
+                    return values;
+                }
+            },
+            onPageChange : function(event){
+                this.currentPage = event.detail.currentPage;
+            },
 
-      onCreatedJob: function(ev, job){
-            this.allValues.unshift(job);
-            this.runFilter();
-      },
-      findById : function(id){
-            var arrayLength = this.data.length;
-            for (var i = 0; i < arrayLength; i++) {
-                var found = this.data[i];
-                if(found.id == id){
-                    return found;
+            onCreatedJob: function(ev, job){
+                this.allValues.unshift(job);
+                this.runFilter();
+            },
+            findById : function(id){
+                var arrayLength = this.data.length;
+                for (var i = 0; i < arrayLength; i++) {
+                    var found = this.data[i];
+                    if(found.id == id){
+                        return found;
+                    }
+                }
+                return null;
+            },
+            onModifiedJob: function(ev, job){
+                var arrayLength = this.data.length;
+                for (var i = 0; i < arrayLength; i++) {
+                    var found = this.data[i];
+                    if(found.id == job.id){
+                        window.app.update(job, found);
+                        return;
+                    }
+                }
+            },
+            toggleDropCollectionConfirmationDialog: function( event, detail, target ) {
+                var jobIdLocal = target.attributes['data-collection'].textContent;
+                this.jobId=jobIdLocal;
+                this.$.confirmdialogdropcollection.toggle();
+            },
+            dropJob: function(event, detail,target){
+                this.$.del.url='api/newman/job/' + this.jobId;
+                this.$.del.go();
+            },
+            reload : function(){
+                this.$.reload.go();
+            },
+            onSwitchClicked : function(event){
+                var detail = event.detail;
+                var id = detail.value;
+                var job = this.findById(id);
+                if(job){
+                    if(job.state != "DONE"){
+                        this.$.jobToggler.url = "api/newman/job/" + id +"/toggle"
+                        this.$.jobToggler.go();
+                    }
                 }
             }
-            return null;
-      },
-      onModifiedJob: function(ev, job){
-            var arrayLength = this.data.length;
-            for (var i = 0; i < arrayLength; i++) {
-                var found = this.data[i];
-                if(found.id == job.id){
-                    window.app.update(job, found);
-                    return;
-                }
-            }
-      },
-      toggleDropCollectionConfirmationDialog: function( event, detail, target ) {
-            var jobIdLocal = target.attributes['data-collection'].textContent;
-            this.jobId=jobIdLocal;
-            this.$.confirmdialogdropcollection.toggle();
-      },
-      dropJob: function(event, detail,target){
-            this.$.del.url='api/newman/job/' + this.jobId;
-            this.$.del.go();
-      },
-      reload : function(){
-            this.$.reload.go();
-      },
-      onSwitchClicked : function(event){
-            var detail = event.detail;
-            var id = detail.value;
-            var job = this.findById(id);
-            if(job){
-                if(job.state != "DONE"){
-                    this.$.jobToggler.url = "api/newman/job/" + id +"/toggle"
-                    this.$.jobToggler.go();
-                }
-            }
-      }
-    });
+        });
 
 
 

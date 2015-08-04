@@ -19,16 +19,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 
@@ -38,8 +39,8 @@ public class Main {
 
     private final static int NUMBER_OF_BUILDS = 1;
     private final static int NUMBER_OF_SUITES_PER_BUILD = 1;
-    private final static int NUMBER_OF_JOBS_PER_SUITE = 2;
-    private final static int NUMBER_OF_TESTS_PER_JOB = 10;
+    private final static int NUMBER_OF_JOBS_PER_SUITE = 1;
+    private final static int NUMBER_OF_TESTS_PER_JOB = 20;
     private final static long DELAY_BETWEEN_TESTS_MS = 1000;
     private final static long TEST_PROCESS_TIME_MS = 1000;
     private final static long PREPARE_JOB_TIME_MS = 5000;
@@ -123,55 +124,89 @@ public class Main {
                 Test test = new Test();
                 test.setJobId(job.getId());
                 test.setName("test_" + i);
+                test.setArguments(Arrays.asList( Test.class.getName()/*, "arg1", "arg2" */) );
                 test = newmanClient.createTest(test).toCompletableFuture().get();
                 logger.info("added test {}", test);
-                test = newmanClient.uploadLog(test.getId(), new File("mongo.txt")).toCompletableFuture().get();
+//                test = newmanClient.uploadLog(test.getId(), new File("mongo.txt")).toCompletableFuture().get();
                 logger.info("**** Test is {} ", test);
             }
             Batch<Test> tests = newmanClient.getTests(job.getId(), 0, NUMBER_OF_TESTS_PER_JOB).toCompletableFuture().get();
             logger.info("tests are {}", tests);
         }
 
-        Agent foo = new Agent();
-        foo.setName("foo");
-        foo.setHostAddress(InetAddress.getLocalHost().getHostAddress());
-        foo.setPid(String.valueOf(1234));
-        foo.setHost(InetAddress.getLocalHost().getCanonicalHostName());
-        foo.setHostAddress(InetAddress.getLocalHost().getHostAddress());
-        foo.setPid("123456");
+        Agent foo1Agent = new Agent();
+        foo1Agent.setName("foo1");
+        foo1Agent.setHostAddress(InetAddress.getLocalHost().getHostAddress());
+        foo1Agent.setPid(String.valueOf(1234));
+        foo1Agent.setHost(InetAddress.getLocalHost().getCanonicalHostName());
+        foo1Agent.setHostAddress(InetAddress.getLocalHost().getHostAddress());
+        foo1Agent.setPid("123456");
 
+        Agent foo2Agent = new Agent();
+        foo2Agent.setName("foo2");
+        foo2Agent.setHostAddress(InetAddress.getLocalHost().getHostAddress());
+        foo2Agent.setPid(String.valueOf(1111));
+        foo2Agent.setHost(InetAddress.getLocalHost().getCanonicalHostName());
+        foo2Agent.setHostAddress(InetAddress.getLocalHost().getHostAddress());
+        foo2Agent.setPid("123");
+
+        int index = 0;
         //noinspection InfiniteLoopStatement
         while (true) {
-            Job job = newmanClient.subscribe(foo).toCompletableFuture().get();
-            logger.info("agent {} subscribe to {}", foo.getName(), job);
-            if (job == null) {
+            index++;
+
+            CompletionStage<Job> subscribeToAgent1 = newmanClient.subscribe(foo1Agent);
+            CompletableFuture<Job> jobCompletableFuture1 = subscribeToAgent1.toCompletableFuture();
+
+            CompletionStage<Job> subscribeToAgent2 = newmanClient.subscribe(foo2Agent);
+            CompletableFuture<Job> jobCompletableFuture2 = subscribeToAgent2.toCompletableFuture();
+
+            Job job1 = jobCompletableFuture1.get();
+            Job job2 = jobCompletableFuture2.get();
+
+            logger.info("agent {} subscribe to {}", foo1Agent.getName(), job1);
+            if (job1 == null ) {
                 Thread.sleep(1000);
                 // continue to try maybe there are paused job or there will be new job some time later.
                 continue;
             } else {
-                logger.info("agent {} preparing folder for processing {}, it should take {} millis", foo.getName(), job, PREPARE_JOB_TIME_MS);
+                logger.info("agent {} preparing folder for processing {}, it should take {} millis", foo1Agent.getName(), job1, PREPARE_JOB_TIME_MS);
                 Thread.sleep(PREPARE_JOB_TIME_MS);
             }
-            Random rand = new Random(System.currentTimeMillis());
+
+            if (job2 == null ) {
+                Thread.sleep(1000);
+                // continue to try maybe there are paused job or there will be new job some time later.
+                continue;
+            } else {
+                logger.info("agent {} preparing folder for processing {}, it should take {} millis", foo2Agent.getName(), job2, PREPARE_JOB_TIME_MS);
+                Thread.sleep(PREPARE_JOB_TIME_MS);
+            }
+
+
             //noinspection InfiniteLoopStatement
             while (true) {
-                List<Test> tests = takeTests(newmanClient, foo.getName(), job.getId());
+
+                Agent agent = ( new Random(System.currentTimeMillis()).nextInt()%2 == 0 ) ? foo1Agent : foo2Agent;
+
+                List<Test> tests = takeTests(newmanClient, agent.getName(), job1.getId());
                 if(tests.isEmpty()){
                     break;
                 }
                 int threadNumber = 0;
                 for (Test test : tests) {
-                    logger.info("agent {} processing test {}", foo.getName() + ":" + threadNumber, test);
+
+                    logger.info("agent {} processing test {}", agent.getName() + ":" + threadNumber, test);
                     Thread.sleep(TEST_PROCESS_TIME_MS);
-                    if (rand.nextInt() % 9 != 0) {
+                    if ( new Random(System.currentTimeMillis()).nextInt() % 9 != 0) {
                         test.setStatus(Test.Status.SUCCESS);
                         newmanClient.finishTest(test).toCompletableFuture().get();
-                        logger.info("agent {} SUCCESS test {}", foo.getName()  + ":" + threadNumber, test);
+                        logger.info("agent {} SUCCESS test {}", agent.getName()  + ":" + threadNumber, test);
                     } else {
                         test.setStatus(Test.Status.FAIL);
                         test.setErrorMessage(new IllegalArgumentException().toString());
                         newmanClient.finishTest(test).toCompletableFuture().get();
-                        logger.info("agent {} FAIL test {}", test, foo.getName()  + ":" + threadNumber);
+                        logger.info("agent {} FAIL test {}", test, agent.getName()  + ":" + threadNumber);
                     }
                     threadNumber += 1;
                     Thread.sleep(DELAY_BETWEEN_TESTS_MS);

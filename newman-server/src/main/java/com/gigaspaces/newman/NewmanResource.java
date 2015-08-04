@@ -21,9 +21,10 @@ import com.gigaspaces.newman.dao.BuildDAO;
 import com.gigaspaces.newman.dao.JobDAO;
 import com.gigaspaces.newman.dao.SuiteDAO;
 import com.gigaspaces.newman.dao.TestDAO;
-import com.gigaspaces.newman.utils.FileUtils;
 import com.mongodb.MongoClient;
+import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.types.ObjectId;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
@@ -44,7 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.BadRequestException;
@@ -64,7 +64,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -181,7 +185,28 @@ public class NewmanResource {
         if (!all) {
             query.offset(offset).limit(limit);
         }
-        return new Batch<>(jobDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
+
+        List<Job> jobs = jobDAO.find(query).asList();
+
+        MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
+        MongoCollection testCollection = db.getCollection("Test");
+
+        for( Job job : jobs ) {
+            String jobId = job.getId();
+            DistinctIterable assignedAgent =
+                    testCollection.distinct("assignedAgent", String.class).
+                            filter(com.mongodb.client.model.Filters.eq("jobId", jobId));
+            MongoCursor iterator = assignedAgent.iterator();
+            Set<String> agents = new HashSet<>();
+            while(iterator.hasNext()){
+                Object next = iterator.next();
+                logger.info( "NEXT=" + next );
+                agents.add( next.toString() );
+            }
+            job.setAgents( agents );
+        }
+
+        return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
     }
 
     @GET
@@ -521,16 +546,16 @@ public class NewmanResource {
 
 
     private Set<String> extractZipEntries(String filePath) throws IOException {
-            Set<String> res = new HashSet<>();
-            ZipEntry zEntry;
-            try (FileInputStream fis  = new FileInputStream(filePath); ZipInputStream zipIs = new ZipInputStream(new BufferedInputStream(fis))){
-                while((zEntry = zipIs.getNextEntry()) != null){
-                    if(!zEntry.isDirectory()) {
-                        res.add(zEntry.getName());
-                    }
+        Set<String> res = new HashSet<>();
+        ZipEntry zEntry;
+        try (FileInputStream fis  = new FileInputStream(filePath); ZipInputStream zipIs = new ZipInputStream(new BufferedInputStream(fis))){
+            while((zEntry = zipIs.getNextEntry()) != null){
+                if(!zEntry.isDirectory()) {
+                    res.add(zEntry.getName());
                 }
-                zipIs.close();
             }
+            zipIs.close();
+        }
         return res;
     }
 
@@ -554,7 +579,7 @@ public class NewmanResource {
     @Path("test/{id}/log/{name:.*\\.zip!/.*}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response downloadCompressLog(@PathParam("id") String id, @PathParam("name") String name,
-                                @DefaultValue("false") @QueryParam("download") boolean download) {
+                                        @DefaultValue("false") @QueryParam("download") boolean download) {
         try {
             MediaType mediaType;
             if (download) {
@@ -579,33 +604,6 @@ public class NewmanResource {
         return fileName.replaceAll("\\.[^.]*$", "");
     }
 
-
-    @GET
-    @Path("log/size")
-    public Response computeLogDirSize(){
-        try {
-            return Response.ok(String.valueOf(Files.walk(Paths.get(SERVER_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum()), MediaType.TEXT_PLAIN_TYPE).build();
-        } catch (Exception e) {
-            logger.error(e.toString(), e);
-            return Response.status(Response.Status.EXPECTATION_FAILED).build();
-        }
-    }
-
-
-    @DELETE
-    @Path("log")
-    @RolesAllowed("admin")
-    public Response deleteLogs(){
-        try {
-            java.nio.file.Path path = Paths.get(SERVER_UPLOAD_LOCATION_FOLDER);
-            FileUtils.delete(path);
-            FileUtils.createFolder(path);
-            return Response.ok(String.valueOf(Files.walk(path).mapToLong(p -> p.toFile().length()).sum()), MediaType.TEXT_PLAIN_TYPE).build();
-        } catch (Exception e) {
-            logger.error(e.toString(), e);
-            return Response.status(Response.Status.EXPECTATION_FAILED).build();
-        }
-    }
 
     @GET
     @Path("subscribe")
@@ -965,7 +963,6 @@ public class NewmanResource {
     @DELETE
     @Path("db")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("admin")
     public Response deleteCollections() {
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         List<String> deleted = new ArrayList<String>();
@@ -982,7 +979,6 @@ public class NewmanResource {
     @DELETE
     @Path("job/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("admin")
     public Response deleteJob( final @PathParam("jobId") String jobId ) {
         performDeleteJob(jobId);
         performDeleteTests(jobId);
@@ -1016,7 +1012,6 @@ public class NewmanResource {
     @DELETE
     @Path("db/{collectionName}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("admin")
     public Response deleteCollection(final @PathParam("collectionName") String collectionName) {
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         MongoCollection myCollection = db.getCollection(collectionName);
