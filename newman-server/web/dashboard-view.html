@@ -33,7 +33,7 @@
                         <th width="11%">Date</th>
                         <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
                         <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
-                        <th width="26%"><span class="label label-header">Suites</span></th>
+                        <th width="26%"><span class="label label-header">Suite(s)</span></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -63,18 +63,13 @@
                             </tr>
                             <template repeat="{{activeJob in data.activeJobs[activeBuild.id]}}">
                                 <tr>
-                                    <td title="{{activeJob.id}}" style="padding-left: 22px">
+                                    <td colspan="2" title="{{activeJob.id}}" style="padding-left: 45px">
                                         &#8627;Job:<a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'ALL'})}}">{{activeJob.id}}</a>
-                                    </td>
-                                    <td title="{{activeJob.suite.name}}">
-                                        <template if="{{activeJob.suite.id != null}}">
-                                            <a href="{{urlFor('suite', {id: activeJob.suite.id})}}">{{activeJob.suite.name}}</a>
-                                        </template>
                                     </td>
                                     <td title="{{activeJob.duration}}">
                                         {{activeJob | getDuration}}
                                     </td>
-                                    <td colspan="3">
+                                    <td colspan="2">
                                         <span class="label label-info">
                                             <a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'RUNNING'})}}" class="tests-num-link">{{activeJob.runningTests}}</a>
                                         </span> /
@@ -87,6 +82,11 @@
                                         <span class="label label-default">
                                             <a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'ALL'})}}" class="tests-num-link">{{activeJob.totalTests}}</a>
                                         </span>
+                                    </td>
+                                    <td title="{{activeJob.suite.name}}">
+                                        <template if="{{activeJob.suite.id != null}}">
+                                            <a href="{{urlFor('suite', {id: activeJob.suite.id})}}">{{activeJob.suite.name}}</a>
+                                        </template>
                                     </td>
                                 </tr>
                             </template>
