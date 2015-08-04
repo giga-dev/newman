@@ -980,15 +980,44 @@ public class NewmanResource {
     @Path("job/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteJob( final @PathParam("jobId") String jobId ) {
-        performDeleteJob(jobId);
+        Job deletedJob = performDeleteJob(jobId);
+        updateBuildWithDeletedJob( deletedJob );
         performDeleteTests(jobId);
         return Response.ok( Entity.json( jobId ) ).build();
     }
 
-    private void performDeleteJob( String jobId ) {
+    private void updateBuildWithDeletedJob( Job deletedJob ) {
+        Query<Build> query = buildDAO.createIdQuery(deletedJob.getBuild().getId());
+        Build associatedBuild = buildDAO.findOne(query);
+        BuildStatus associatedBuildStatus = associatedBuild.getBuildStatus();
+        State state = deletedJob.getState();
+
+        UpdateOperations<Build> updateOps = buildDAO.createUpdateOperations();
+
+        if( state == State.DONE ){
+            int curDoneJobs = associatedBuildStatus.getDoneJobs();
+            if( curDoneJobs > 0 ) {
+                updateOps.set("buildStatus.doneJobs", curDoneJobs - 1 );
+            }
+        }
+        else if( state == State.PAUSED ){
+            int curPendingJobs = associatedBuildStatus.getPendingJobs();
+            if( curPendingJobs > 0 ) {
+                updateOps.set("buildStatus.pendingJobs", curPendingJobs - 1 );
+            }
+        }
+
+        updateOps.set("buildStatus.totalJobs", associatedBuildStatus.getTotalJobs() - 1);
+
+        Build modifiedBuild = buildDAO.getDatastore().findAndModify(query, updateOps);
+        broadcastMessage(MODIFIED_BUILD, modifiedBuild);
+    }
+
+    private Job performDeleteJob( String jobId ) {
         Query<Job> idJobQuery = jobDAO.createIdQuery(jobId);
         Datastore datastore = jobDAO.getDatastore();
-        datastore.findAndDelete(idJobQuery);
+        Job deletedJob = datastore.findAndDelete(idJobQuery);
+        return deletedJob;
     }
 
     private void performDeleteTests( String jobId ) {
