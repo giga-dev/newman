@@ -33,6 +33,9 @@
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax auto url="api/newman/user" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
+        <core-ajax auto url="api/newman/log/size" handleAs="text" on-core-response="{{logSizeResponse}}"
+                   withCredentials="true"></core-ajax>
+
         <sse-sender>
             <core-drawer-panel id="drawerPanel" drawerWidth="140px">
                 <core-header-panel drawer>
@@ -70,7 +73,8 @@
                 <core-header-panel main>
                     <core-toolbar>
                         <paper-icon-button core-drawer-toggle icon="menu"></paper-icon-button>
-                        <div>{{heading}}</div>
+                        <div>{{heading}},</div>
+                        <div>{{logsDiskUsage}}</div>
                         <span flex></span>
                         <paper-icon-button icon="search"></paper-icon-button>
                     </core-toolbar>
@@ -141,6 +145,7 @@
     Polymer({
       user : null,
       heading : "",
+      logsDiskUsage: "",
       selected:0,
       heading : "Hello Newman users!",
       created: function() {
@@ -154,7 +159,10 @@
       },
       activeChanged: function(oldValue, newValue){
           console.info("build view activeChanged to ", newValue);
-      }
+      },
+      logSizeResponse: function(event, resp){
+          this.logsDiskUsage = "Logs size: " + window.app.humanFileSize(resp.response, false);
+      },
     });
 
 
