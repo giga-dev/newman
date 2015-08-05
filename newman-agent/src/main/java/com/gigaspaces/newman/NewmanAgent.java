@@ -278,14 +278,14 @@ public class NewmanAgent {
     }
 
     private void reportTest(Test testResult) {
-        logger.info("Reporting Test #{} status: {}", testResult.getId(), testResult.getStatus());
+        logger.info("Reporting Test #{} JobId #{} Status: {}", testResult.getId(), testResult.getJobId(), testResult.getStatus());
 
         try {
             //update test removes Agent assignment
             client.finishTest(testResult).toCompletableFuture().get();
             Path logs = append(config.getNewmanHome(), "logs");
             Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
-            client.uploadLog(testResult.getId(), testLogsFile.toFile());
+            client.uploadLog( testResult.getJobId(), testResult.getId(), testLogsFile.toFile());
         } catch (InterruptedException e) {
             logger.info("Worker was interrupted while updating test result: {}", testResult);
         } catch (ExecutionException e) {

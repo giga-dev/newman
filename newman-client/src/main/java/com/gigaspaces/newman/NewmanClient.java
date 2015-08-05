@@ -143,7 +143,7 @@ public class NewmanClient {
     }
 
 
-    public CompletionStage<Test> uploadLog(String testId, File log) {
+    public CompletionStage<Test> uploadLog( String jobId, String testId, File log) {
         final FileDataBodyPart filePart = new FileDataBodyPart("file", log);
 
         final MultiPart multipart = new FormDataMultiPart()
@@ -151,7 +151,7 @@ public class NewmanClient {
                 .bodyPart(filePart);
 
 //        @Path("test/{id}/log")
-        RxWebTarget<RxCompletionStageInvoker> target = restClient.target(uri).path("test").path(testId).path("log");
+        RxWebTarget<RxCompletionStageInvoker> target = restClient.target(uri).path("test").path(jobId).path(testId).path("log");
         return target.request().rx()
                 .post(Entity.entity(multipart, multipart.getMediaType()), Test.class);
 

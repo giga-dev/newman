@@ -495,10 +495,11 @@ public class NewmanResource {
     }
 
     @POST
-    @Path("test/{id}/log")
+    @Path("test/{jobId}/{id}/log")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Test uploadLog(FormDataMultiPart form,
+                          @PathParam("jobId") String jobId,
                           @PathParam("id") String id,
                           @Context UriInfo uriInfo) {
         FormDataBodyPart filePart = form.getField("file");
@@ -506,21 +507,17 @@ public class NewmanResource {
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
         String fileName = contentDispositionHeader.getFileName();
 
-        Query<Test> idQuery = testDAO.createIdQuery( id );
-        Test test = testDAO.findOne( idQuery );
-        if( test != null ) {
-            String jobId = test.getJobId();
-            if (fileName.toLowerCase().endsWith(".zip")) {
-                handleLogBundle(id, jobId, uriInfo, fileInputStream, fileName);
-            } else {
-                handleLogFile(id, jobId, uriInfo, fileInputStream, fileName);
-            }
+        if (fileName.toLowerCase().endsWith(".zip")) {
+            handleLogBundle(id, jobId, uriInfo, fileInputStream, fileName);
+        } else {
+            handleLogFile(id, jobId, uriInfo, fileInputStream, fileName);
         }
+
         return null;
     }
 
     private void handleLogFile(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + fileName;
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + testId + "/" + fileName;
         try {
             saveFile(fileInputStream, filePath);
             URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
@@ -534,7 +531,7 @@ public class NewmanResource {
     }
     private void handleLogBundle(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
 
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + fileName;
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + testId + "/" + fileName;
         try {
             saveFile(fileInputStream, filePath);
             Set<String> entries = extractZipEntries(filePath);
@@ -567,9 +564,9 @@ public class NewmanResource {
     }
 
     @GET
-    @Path("test/{id}/log/{name}")
+    @Path("test/{jobId}/{id}/log/{name}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response downloadLog(@PathParam("id") String id, @PathParam("name") String name,
+    public Response downloadLog(@PathParam("jobId") String jobId,@PathParam("id") String id, @PathParam("name") String name,
                                 @DefaultValue("false") @QueryParam("download") boolean download) {
         MediaType mediaType;
         if (download) {
@@ -577,7 +574,7 @@ public class NewmanResource {
         } else {
             mediaType = MediaType.TEXT_PLAIN_TYPE;
         }
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + name;
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + id + "/" + name;
 
         return Response.ok(new File(filePath), mediaType).build();
     }
@@ -612,9 +609,10 @@ public class NewmanResource {
     }
 
     @GET
-    @Path("test/{id}/log/{name:.*\\.zip!/.*}")
+    @Path("test/{jobId}/{id}/log/{name:.*\\.zip!/.*}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response downloadCompressLog(@PathParam("id") String id, @PathParam("name") String name,
+    public Response downloadCompressLog(@PathParam("jobId") String jobId, @PathParam("id") String id,
+                                        @PathParam("name") String name,
                                         @DefaultValue("false") @QueryParam("download") boolean download) {
         try {
             MediaType mediaType;
@@ -626,7 +624,7 @@ public class NewmanResource {
             String[] splited = name.split("!");
             String zipPath = splited[0];
             String entryName = splited[1].substring(1);
-            String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + zipPath;
+            String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + id + "/" + zipPath;
             ZipFile zip = new ZipFile(filePath);
             InputStream is = zip.getInputStream(zip.getEntry(entryName));
             return Response.ok(is, mediaType).build();

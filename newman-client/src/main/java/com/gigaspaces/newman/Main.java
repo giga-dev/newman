@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
@@ -120,14 +121,15 @@ public class Main {
             if (job.getTotalTests() != 0) {
                 continue; //ignore job with tests
             }
+            String jobId = job.getId();
             for (int i = 0; i < NUMBER_OF_TESTS_PER_JOB; i++) {
                 Test test = new Test();
-                test.setJobId(job.getId());
+                test.setJobId(jobId);
                 test.setName("test_" + i);
-                test.setArguments(Arrays.asList( Test.class.getName()/*, "arg1", "arg2" */) );
+                test.setArguments(Arrays.asList(Test.class.getName()/*, "arg1", "arg2" */));
                 test = newmanClient.createTest(test).toCompletableFuture().get();
                 logger.info("added test {}", test);
-//                test = newmanClient.uploadLog(test.getId(), new File("mongo.txt")).toCompletableFuture().get();
+                test = newmanClient.uploadLog( jobId, test.getId(), new File("mongo.txt")).toCompletableFuture().get();
                 logger.info("**** Test is {} ", test);
             }
             Batch<Test> tests = newmanClient.getTests(job.getId(), 0, NUMBER_OF_TESTS_PER_JOB).toCompletableFuture().get();
