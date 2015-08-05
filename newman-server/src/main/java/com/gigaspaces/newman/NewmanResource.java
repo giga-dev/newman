@@ -201,9 +201,7 @@ public class NewmanResource {
             MongoCursor iterator = assignedAgent.iterator();
             Set<String> agents = new HashSet<>();
             while(iterator.hasNext()){
-                Object next = iterator.next();
-                logger.info( "NEXT=" + next );
-                agents.add( next.toString() );
+                agents.add( iterator.next().toString() );
             }
             job.setAgents( agents );
         }
