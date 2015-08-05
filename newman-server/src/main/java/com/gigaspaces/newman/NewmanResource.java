@@ -507,29 +507,36 @@ public class NewmanResource {
         ContentDisposition contentDispositionHeader = filePart.getContentDisposition();
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
         String fileName = contentDispositionHeader.getFileName();
-        if(fileName.toLowerCase().endsWith(".zip")){
-            handleLogBundle(id, uriInfo, fileInputStream, fileName);
-        }else{
-            handleLogFile(id, uriInfo, fileInputStream, fileName);
+
+        Query<Test> idQuery = testDAO.createIdQuery( id );
+        Test test = testDAO.findOne( idQuery );
+        if( test != null ) {
+            String jobId = test.getJobId();
+            if (fileName.toLowerCase().endsWith(".zip")) {
+                handleLogBundle(id, jobId, uriInfo, fileInputStream, fileName);
+            } else {
+                handleLogFile(id, jobId, uriInfo, fileInputStream, fileName);
+            }
         }
         return null;
     }
 
-    private void handleLogFile(String id, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + fileName;
+    private void handleLogFile(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + fileName;
         try {
             saveFile(fileInputStream, filePath);
             URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
             String name = getLogName(fileName);
             UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("logs." + name, uri.toASCIIString());
-            Test test = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(id), updateOps);
+            Test test = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(testId), updateOps);
             broadcastMessage(MODIFIED_TEST, test);
         } catch (IOException e) {
-            logger.error("Failed to save log at {} for test {}", filePath, id, e);
+            logger.error("Failed to save log at {} for test {} jobId {}", filePath, testId, jobId, e);
         }
     }
-    private void handleLogBundle(String id, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + id + "/" + fileName;
+    private void handleLogBundle(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
+
+        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + fileName;
         try {
             saveFile(fileInputStream, filePath);
             Set<String> entries = extractZipEntries(filePath);
@@ -539,10 +546,10 @@ public class NewmanResource {
                 updateOps.set("logs." + entry.replaceAll("\\.", "_"), uri.toASCIIString() + "!/" + entry);
                 //https://localhost:8443/api/newman/test/1/logBundle/logs.zip!/logs/pom_files/microsoft.owa.extendedmaillistview.mouse.js
             }
-            Test test = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(id), updateOps);
+            Test test = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(testId), updateOps);
             broadcastMessage(MODIFIED_TEST, test);
         } catch (IOException e) {
-            logger.error("Failed to save log at {} for test {}", filePath, id, e);
+            logger.error("Failed to save log at {} for test {} jobid {}", filePath, testId, jobId, e);
         }
     }
 
@@ -1012,9 +1019,21 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteJob( final @PathParam("jobId") String jobId ) {
         Job deletedJob = performDeleteJob(jobId);
+        performDeleteTestsLogs(jobId);
         updateBuildWithDeletedJob(deletedJob);
         performDeleteTests(jobId);
         return Response.ok( Entity.json( jobId ) ).build();
+    }
+
+    private void performDeleteTestsLogs( String jobId ) {
+        java.nio.file.Path path = Paths.get( SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId );
+        try {
+            FileUtils.delete( path );
+            logger.info( "Log file {} was deleted", path );
+        }
+        catch (IOException e) {
+            logger.error( e.toString(), e );
+        }
     }
 
     private void updateBuildWithDeletedJob( Job deletedJob ) {
