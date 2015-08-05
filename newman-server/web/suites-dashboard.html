@@ -6,18 +6,29 @@
 
 
 <polymer-element name="suites-dashboard" attributes="url" on-created-suite="{{onCreatedSuite}}" on-modified-suite="{{onModifiedSuite}}">
+
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <link rel="stylesheet" href="app.css">
+
+        <div class="btn-group" style="margin-bottom: 10px">
+            <template repeat="{{suite in allValues}}">
+                <span style="margin-right: 3px">
+                    <button type="button" class="{{{'btn btn-success' : suite.jobs.length>0 && suite.jobs[0].passedTests==suite.jobs[0].totalTests,'btn btn-danger' : suite.jobs.length>0 && suite.jobs[0].failedTests>0, 'btn btn-default' : suite.jobs.length==0} | tokenList}}" on-click="{{filterBySuiteName}}">{{suite.name}}</button>
+                </span>
+            </template>
+        </div>
 
         <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
                    withCredentials="true"></core-ajax>
 
         <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}"
                    withCredentials="true"></core-ajax>
+
+
         <div class="content" flex>
             <form class="form-inline">
-                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Suite name filter" class="form-control">
+                <input type="text" id="filterfield" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Suite name filter" class="form-control">
             </form>
             <div class="table-responsive">
                 <table class="table table-hover table-striped table-bordered table-condensed">
@@ -125,6 +136,16 @@
                 else{
                     window.app.update(suiteWithJob, found);
                 }
+            },
+            filterBySuiteName: function(event, detail,target) {
+                if( this.$.filterfield.value != target.textContent ){
+                    this.$.filterfield.value=target.textContent;
+                }
+                else{
+                    this.$.filterfield.value='';
+                }
+                this.filter = this.$.filterfield.value;
+                this.runFilter();
             }
         });
     </script>
