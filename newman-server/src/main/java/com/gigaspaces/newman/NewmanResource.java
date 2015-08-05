@@ -580,6 +580,9 @@ public class NewmanResource {
     @Path("log/size")
     public Response computeLogDirSize(){
         try {
+            if (! new File(SERVER_UPLOAD_LOCATION_FOLDER).exists()){
+                return Response.ok("0").build();
+            }
             return Response.ok(String.valueOf(Files.walk(Paths.get(SERVER_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum()), MediaType.TEXT_PLAIN_TYPE).build();
         } catch (Exception e) {
             logger.error(e.toString(), e);
