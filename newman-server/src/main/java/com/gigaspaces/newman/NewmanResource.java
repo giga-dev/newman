@@ -21,6 +21,7 @@ import com.gigaspaces.newman.dao.BuildDAO;
 import com.gigaspaces.newman.dao.JobDAO;
 import com.gigaspaces.newman.dao.SuiteDAO;
 import com.gigaspaces.newman.dao.TestDAO;
+import com.gigaspaces.newman.utils.FileUtils;
 import com.mongodb.MongoClient;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
@@ -45,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.BadRequestException;
@@ -574,6 +576,32 @@ public class NewmanResource {
 
         return Response.ok(new File(filePath), mediaType).build();
     }
+    @GET
+    @Path("log/size")
+    public Response computeLogDirSize(){
+        try {
+            return Response.ok(String.valueOf(Files.walk(Paths.get(SERVER_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum()), MediaType.TEXT_PLAIN_TYPE).build();
+        } catch (Exception e) {
+            logger.error(e.toString(), e);
+            return Response.status(Response.Status.EXPECTATION_FAILED).build();
+        }
+    }
+
+
+    @DELETE
+    @Path("log")
+    @RolesAllowed("admin")
+    public Response deleteLogs(){
+        try {
+            java.nio.file.Path path = Paths.get(SERVER_UPLOAD_LOCATION_FOLDER);
+            FileUtils.delete(path);
+            FileUtils.createFolder(path);
+            return Response.ok(String.valueOf(Files.walk(path).mapToLong(p -> p.toFile().length()).sum()), MediaType.TEXT_PLAIN_TYPE).build();
+        } catch (Exception e) {
+            logger.error(e.toString(), e);
+            return Response.status(Response.Status.EXPECTATION_FAILED).build();
+        }
+    }
 
     @GET
     @Path("test/{id}/log/{name:.*\\.zip!/.*}")
@@ -981,7 +1009,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteJob( final @PathParam("jobId") String jobId ) {
         Job deletedJob = performDeleteJob(jobId);
-        updateBuildWithDeletedJob( deletedJob );
+        updateBuildWithDeletedJob(deletedJob);
         performDeleteTests(jobId);
         return Response.ok( Entity.json( jobId ) ).build();
     }
