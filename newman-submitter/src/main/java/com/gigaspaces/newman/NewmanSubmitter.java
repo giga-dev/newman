@@ -78,7 +78,7 @@ public class NewmanSubmitter {
                             logger.info("waiting for job {} to end", jobId);
                             Thread.sleep(60 * 1000);
                         }
-                    } catch (Exception e) {
+                    } catch (InterruptedException | ExecutionException | ParseException | IOException e) {
                         throw new RuntimeException("terminating submission due to exception", e);
                     }
                 });
