@@ -68,7 +68,7 @@ public class Suite {
         Map<String,String> res = new HashMap<>();
         if (customVariables != null) {
             for (String variableKeyValue : customVariables.split(",")) {
-                res.put(variableKeyValue.split("=")[0], variableKeyValue.split("=")[1]);
+                res.put(variableKeyValue.split("=")[0], variableKeyValue.substring(variableKeyValue.indexOf("=") + 1));
             }
         }
         return res;

@@ -123,7 +123,8 @@ public class NewmanSubmitter {
             }
             return job.getState() == State.DONE;
 
-        } catch (Exception e) {
+        }
+        catch (InterruptedException | ExecutionException e) {
             logger.error("failed to check if job is finished", e);
             return false;
         }
