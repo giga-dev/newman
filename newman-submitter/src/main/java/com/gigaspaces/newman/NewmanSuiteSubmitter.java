@@ -66,6 +66,259 @@ public class NewmanSuiteSubmitter {
         }
     }
 
+    public void manualSubmitJetty9() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("SGTest-Jetty9");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1,JETTY_VERSION=9");
+            String testType = "sgtest";
+
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(
+                            PatternCriteria.containsCriteria(".PUInstanceLifeCycleTest#"),
+                            PatternCriteria.containsCriteria(".PUStatusChangesTest#"),
+                            PatternCriteria.containsCriteria(".PureSpringMVCWebAppSharedModeTest#"),
+                            PatternCriteria.containsCriteria(".PureSpringMVCWebAppTest#"),
+                            PatternCriteria.containsCriteria(".PureSpringMVCWithEmbeddedSpaceWebAppTest#"),
+                            PatternCriteria.containsCriteria(".PureSpringMVCWithRemoteSpaceWebAppTest#"),
+                    TestCriteria.createCriteriaByTestType(testType))
+
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitTgrid() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("regression-tgrid");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,JAVA_VERSION=8");
+            String testType = "tgrid";
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                    CriteriaBuilder.exclude(
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.Performance"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.oneway_replication.OnewayMultithreaded"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.multicast"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.tg"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress.map"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.async.AsyncExtensionTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.zetascale"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.disableoffheap"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.mapdb")
+                    )
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitSGTestEsm() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("SGTest-ESM");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(
+                            PatternCriteria.recursivePackageNameCriteria("test.gsm")),
+                    CriteriaBuilder.exclude(
+                            PatternCriteria.recursivePackageNameCriteria("test.gsm.security")),
+                    TestCriteria.createCriteriaByTestType("sgtest")
+
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+
+    public void manualSubmitServiceGrid() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("Service Grid");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,THREADS_LIMIT=1,CUSTOM_SETUP_TIMEOUT=1800000");
+            Criteria criteria = CriteriaBuilder.join(TestCriteria.createCriteriaByTestType("sgtest"),
+                    exclude(PatternCriteria.containsCriteria(".cloudify."),
+                            PatternCriteria.containsCriteria(".security."),
+                            PatternCriteria.containsCriteria(".webui."),
+                            PatternCriteria.containsCriteria(".gsm."),
+                            PatternCriteria.containsCriteria(".wan."),
+                            PatternCriteria.containsCriteria(".gateway."),
+                            PatternCriteria.containsCriteria(".xen."),
+                            PatternCriteria.containsCriteria(".usm."),
+                            PatternCriteria.containsCriteria(".cpp."),
+                            PatternCriteria.containsCriteria(".disconnect."),
+                            PatternCriteria.containsCriteria(".lookup.locators.dynamic."),
+                            PatternCriteria.containsCriteria(".DBShutdownTest#"),
+                            PatternCriteria.containsCriteria(".ClusterAndMirrorDeploymentWhileDBisDownTest#"),
+                            PatternCriteria.containsCriteria(".EdsDocClassNotInCLientTest#")
+                            //---------------------------------- SSHUtils ------------------------------
+                            //                      containsCriteria(".examples."),
+                            //                      containsCriteria(".groovy."),
+                            //                      containsCriteria(".httpsession."),
+                            //                      containsCriteria(".maven."),
+                            //                      containsCriteria(".mongoEDS."),
+                            //                      containsCriteria(".scripts."),
+                            //                      containsCriteria(".servicegrid.initialLoadQuery."),
+                            //                      containsCriteria(".servicegrid.metrics."),
+                            //                      containsCriteria(".web.jboss.")
+                    )
+
+
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitTgridMapdb() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("regression-tgrid-mapdb");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=false -Dblobstore.entriespercentage=0 -Dcom.gigaspaces.quality.tf.mapdb-blobstore.enabled=true");
+            String testType = "tgrid";
+            String mapdbExcludePermutationFile = "file:///home/boris/dev/sources/git/xap/tests/sanity/mapdb_excluded_permutations.txt";
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                    CriteriaBuilder.exclude(
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.Performance"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.oneway_replication.OnewayMultithreaded"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.multicast"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.tg"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress.map"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.async.AsyncExtensionTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.zetascale"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.disableoffheap"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock")
+                    ),
+                    CriteriaBuilder.exclude(getTestCriteriasFromPermutationURI(mapdbExcludePermutationFile))
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitTgridOffHeap() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("regression-tgrid-offheap");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dcom.gs.OffHeapData=true -Dcom.gs.OffHeapDataNewInterface=true -Dcom.gs.DirectPersistencyLastPrimaryStateDir=/tmp/lastprimary/lastprimary.properties");
+            String testType = "tgrid";
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                    CriteriaBuilder.exclude(
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.Performance"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.oneway_replication.OnewayMultithreaded"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.multicast"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.tg"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress.map"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.async.AsyncExtensionTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.zetascale"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.mapdb"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.async.AsyncExtensionTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.basic.EvictOnlyLRUSpaceTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.basic.RecentUpdatesTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.basic.UIDMatchTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cacheloader"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.LRUMultiThreadedTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.unique_constraint.UniqueConstraintLRUNegativeTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.view.local.EDSLRULocalViewReliabilityFailOverTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.view.local.EDSLRULocalViewReliabilityTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.lru"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.reliable_async"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.change.persistency.PersistencyLruChangeAutoGenFalseTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.change.persistency.PersistencyLruChangeAutoGenTrueTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.failover.TransactionFailOverLoadWithMirror"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.lb.LB_primaryBackup_WarmInitTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.recovery.PrimaryBackupClusterRecovery"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.basic_replication.LocalViewSpaceWithMirrorRemoveTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.primary_backup.DropStayBlockedTargetInSync"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.writeMultipleTimeout.mirror.WriteMultipleTimeoutMirror"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.TransactionMirrorBulkSizeTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.fs.case6483.ReadByIdObjectNotInSpaceTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.commerzebankcase7833.DirectPersistencyLruCentralDistTransactionTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.cabank.case6613.PartialUpdateTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.cabank.case6500.QueryParamTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.betamedia.case8555.LeaseCancelAfterEvictTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.betamedia.case8439.ChangeSwapAndMirrorTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.barclays.LruLeaseTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.barclays.Case8259"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.SocieteGenerale.Case4232.SimpleReader"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.space_filter.Filters"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.space_api.GetRuntimeInfoTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.redolog.RedoLogMonitorBlockMirrorDropBackupTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.persistent.UnsafeWriteUpdateOnlyTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.persistent.BasicUnsafeWriteTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.persistent.BasicUnsafeWriteMultipleTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.persistency.sharediterator.SharedIteratorModeEDSTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.persistency.cassandra.SpaceCassandraPojoInitalLoadTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.persistency.cassandra.SpaceCassandraLoadTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.persistency.cassandra.SpaceCassandraDocumentInitalLoadTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.persistency.cassandra"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.mem_usage.MemoryManagerReadThruTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.mem_usage.BackupMemoryManagerTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.lease"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.change.basic.ChangeMirrorSpecificSupportTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.swap.SwapRedoLogNotifyTemplateTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.sync_replication.FailOverBackupTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.SQLQueryEdsCollectionQuery"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.datasource.MissingTypeDescMirrorDelegateToSyncEndpointTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.datasource.SynchronizationStorageAdapterInitialMetadataLoadTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.datasource.SynchronizationStorageAdapterSyncTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.datasource.SynchronizationStorageAdapterTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.fifo.LRUFifoTransientTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.indexing.DynamicIndexInheritanceLRUPersistentTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.indexing.IndexUpdateEDSTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.indexing.UniqueIndexBasicTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cleanup.MemoryCleanupAfterShutdown"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.zetascale"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.clear_by_id.ClearByIdsExceptionTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.indexing.IllegalIndexValueChangeTest")
+                    )
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
     private static NewmanClient getNewmanClient() throws Exception {
         // connection arguments
         String host = getEnvironment(NEWMAN_HOST, true /*required*/);

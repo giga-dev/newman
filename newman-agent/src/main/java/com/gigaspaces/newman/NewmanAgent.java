@@ -192,7 +192,7 @@ public class NewmanAgent {
         return active;
     }
 
-    private synchronized void deactivateAgent(Exception e, String s) {
+    private void deactivateAgent(Exception e, String s) {
         logger.error(s, e);
         active = false;
     }
@@ -210,10 +210,10 @@ public class NewmanAgent {
                 }
                 client.close();
             }
-        }
-        if (timer != null) {
-            timer.cancel();
-            timer.purge();
+            if (timer != null) {
+                timer.cancel();
+                timer.purge();
+            }
         }
     }
 
