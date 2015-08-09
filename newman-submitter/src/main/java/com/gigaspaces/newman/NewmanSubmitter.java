@@ -110,14 +110,7 @@ public class NewmanSubmitter {
 
     private boolean isJobFinished(String jobId) {
         try {
-            Job job = null;
-            final Batch<Job> jobBatch = newmanClient.getJobs().toCompletableFuture().get();
-            for (Job j : jobBatch.getValues()) {
-                if (j.getId().equals(jobId)){
-                    job = j;
-                    break;
-                }
-            }
+            final Job job = newmanClient.getJob(jobId).toCompletableFuture().get();
             if (job == null){
                 throw new IllegalArgumentException("No such job with id: " + jobId);
             }
