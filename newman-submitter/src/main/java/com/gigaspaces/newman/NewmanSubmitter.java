@@ -2,6 +2,7 @@ package com.gigaspaces.newman;
 
 
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.utils.EnvUtils;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,8 @@ public class NewmanSubmitter {
     private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
     private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
     private static final String NEWMAN_SUITES = "NEWMAN_SUITES";
+    private static final String NEWMAN_BUILD_ID = "NEWMAN_BUILD_ID";
+
     private static final Logger logger = LoggerFactory.getLogger(NewmanSubmitter.class);
 
     private NewmanClient newmanClient;
@@ -56,9 +59,11 @@ public class NewmanSubmitter {
         }
     }
 
-    public void submitAndWait() throws ExecutionException, InterruptedException, IOException, ParseException {
-        NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(host, port, username, password);
-        String buildId = buildSubmitter.submitBuild();
+    public void submitAndWait(String buildId) throws InterruptedException, ExecutionException, IOException {
+        // Submit a new build if no buildId was provided, pay attention to provide all the environment variables for the build in that case
+        // (see NewmanBuildSubmitter.getBuildMetadata method).
+        final String bId = buildIfNeeded(buildId);
+        logger.info("Using build with id: {}", buildId);
         // Submit jobs for suites and wait for them
         try {
             List<Future<?>> jobs = new ArrayList<>();
@@ -70,7 +75,7 @@ public class NewmanSubmitter {
                         if (suite == null) {
                             throw new IllegalArgumentException("suite with id: " + suites + " does not exists");
                         }
-                        final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
+                        final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, bId, host, port, username, password);
 
                         String jobId = jobSubmitter.submitJob();
 
@@ -108,6 +113,14 @@ public class NewmanSubmitter {
         }
     }
 
+    private String buildIfNeeded(String buildId) throws IOException, ExecutionException, InterruptedException {
+        if (buildId == null) {
+            NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(host, port, username, password);
+            buildId = buildSubmitter.submitBuild();
+        }
+        return buildId;
+    }
+
     private boolean isJobFinished(String jobId) {
         try {
             final Job job = newmanClient.getJob(jobId).toCompletableFuture().get();
@@ -123,25 +136,17 @@ public class NewmanSubmitter {
         }
     }
 
-    public static String getEnvironment(String var) {
-        String v = System.getenv(var);
-        if (v == null){
-            logger.error("Please set the environment variable {} and try again.", var);
-            throw new IllegalArgumentException("the environment variable " + var + " must be set");
-        }
-        return v;
-    }
-
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException {
         // connection arguments
-        String host = getEnvironment(NEWMAN_HOST);
-        String port = getEnvironment(NEWMAN_PORT);
-        String username = getEnvironment(NEWMAN_USER_NAME);
-        String password = getEnvironment(NEWMAN_PASSWORD);
+        String host = EnvUtils.getEnvironment(NEWMAN_HOST, logger);
+        String port = EnvUtils.getEnvironment(NEWMAN_PORT, logger);
+        String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, logger);
+        String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, logger);
         // suites to run separated by comma
-        String suitesId = getEnvironment(NEWMAN_SUITES);
+        String suitesId = EnvUtils.getEnvironment(NEWMAN_SUITES, logger);
+        String buildId = EnvUtils.getEnvironment(NEWMAN_BUILD_ID, false, logger);
 
         NewmanSubmitter newmanSubmitter = new NewmanSubmitter(suitesId, host, port, username, password);
-        newmanSubmitter.submitAndWait();
+        newmanSubmitter.submitAndWait(buildId);
     }
 }

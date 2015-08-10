@@ -1,6 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.Build;
+import com.gigaspaces.newman.utils.EnvUtils;
 import com.gigaspaces.newman.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,21 +50,21 @@ public class NewmanBuildSubmitter {
     private NewmanBuildMetadata getBuildMetadata() {
         NewmanBuildMetadata buildMetadata = new NewmanBuildMetadata();
         //e.g "13507-106"
-        String buildNumber = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_NUMBER);
+        String buildNumber = EnvUtils.getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_NUMBER, logger);
         buildMetadata.setBuildNumber(buildNumber);
 
         //e.g "master"
-        String buildBranch = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_BRANCH);
+        String buildBranch = EnvUtils.getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_BRANCH, logger);
         buildMetadata.setBuildBranch(buildBranch);
 
         //e.g "http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13507-106/xap-premium/1.5/metadata.txt";
-        String newmanBuildShasFile = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_SHAS_FILE);
+        String newmanBuildShasFile = EnvUtils.getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_SHAS_FILE, logger);
         buildMetadata.setBuildShasFile(newmanBuildShasFile);
 
         //e.g "http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13507-106/testsuite-1.5.zip,
         //      http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13507-106/xap-premium/1.5/gigaspaces-xap-premium-10.2.0-ga-b13507-106.zip,
         //      https://s3-eu-west-1.amazonaws.com/gigaspaces-repository-eu/com/gigaspaces/xap-core/newman/10.2.0-13507-106-SNAPSHOT/newman-artifacts.zip"
-        String newmanBuildResources = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_RESOURCES);
+        String newmanBuildResources = EnvUtils.getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_RESOURCES, logger);
         Collection<String> resources = new ArrayList<>();
         for (String resource : newmanBuildResources.split(",")) {
             resources.add(resource);
@@ -71,7 +72,7 @@ public class NewmanBuildSubmitter {
         buildMetadata.setResources(resources);
 
         //e.g "jar:http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13507-106/testsuite-1.5.zip!/QA/metadata/tgrid-tests-metadata.json"
-        String newmanBuildTestsMetadata = getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_TESTS_METADATA);
+        String newmanBuildTestsMetadata = EnvUtils.getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_TESTS_METADATA, logger);
         Collection<String> testsMetadata = new ArrayList<>();
         for (String testMetadata : newmanBuildTestsMetadata.split(",")) {
             testsMetadata.add(testMetadata);
@@ -105,15 +106,6 @@ public class NewmanBuildSubmitter {
         }
     }
 
-    public static String getEnvironment(String var) {
-        String v = System.getenv(var);
-        if (v == null){
-            logger.error("Please set the environment variable {} and try again.", var);
-            throw new IllegalArgumentException("the environment variable " + var + " must be set");
-        }
-        return v;
-    }
-
     private Map<String, String> parseBuildShasFile(String buildShasFile) throws IOException {
         Map<String,String> shas = new HashMap<>();
         InputStream is = null;
@@ -139,10 +131,10 @@ public class NewmanBuildSubmitter {
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException {
         // connection arguments
-        String host = getEnvironment(NEWMAN_HOST);
-        String port = getEnvironment(NEWMAN_PORT);
-        String username = getEnvironment(NEWMAN_USER_NAME);
-        String password = getEnvironment(NEWMAN_PASSWORD);
+        String host = EnvUtils.getEnvironment(NEWMAN_HOST, logger);
+        String port = EnvUtils.getEnvironment(NEWMAN_PORT, logger);
+        String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, logger);
+        String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, logger);
 
         NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(host, port, username, password);
 

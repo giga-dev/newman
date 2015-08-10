@@ -5,6 +5,7 @@ import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.beans.criteria.CriteriaBuilder;
 import com.gigaspaces.newman.beans.criteria.PatternCriteria;
 import com.gigaspaces.newman.beans.criteria.TestCriteria;
+import com.gigaspaces.newman.utils.EnvUtils;
 import com.gigaspaces.newman.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,6 @@ import java.util.List;
 
 import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.exclude;
 import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.include;
-import static com.gigaspaces.newman.utils.StringUtils.isEmpty;
 import static com.gigaspaces.newman.utils.StringUtils.notEmpty;
 
 /**
@@ -53,8 +53,8 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName(getEnvironment(NEWMAN_SUITE_NAME, true /*required*/));
-            suite.setCustomVariables(getEnvironment(NEWMAN_SUITE_CUSTOM_VARIABLES, false));
+            suite.setName(EnvUtils.getEnvironment(NEWMAN_SUITE_NAME, true /*required*/, logger));
+            suite.setCustomVariables(EnvUtils.getEnvironment(NEWMAN_SUITE_CUSTOM_VARIABLES, false, logger));
             suite.setCriteria(getNewmanSuiteCriteria());
 
             logger.info("Adding suite: " + suite);
@@ -321,10 +321,10 @@ public class NewmanSuiteSubmitter {
 
     private static NewmanClient getNewmanClient() throws Exception {
         // connection arguments
-        String host = getEnvironment(NEWMAN_HOST, true /*required*/);
-        String port = getEnvironment(NEWMAN_PORT, true /*required*/);
-        String username = getEnvironment(NEWMAN_USER_NAME, true /*required*/);
-        String password = getEnvironment(NEWMAN_PASSWORD, true /*required*/);
+        String host = EnvUtils.getEnvironment(NEWMAN_HOST, true /*required*/, logger);
+        String port = EnvUtils.getEnvironment(NEWMAN_PORT, true /*required*/, logger);
+        String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, true /*required*/, logger);
+        String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, true /*required*/, logger);
 
         return NewmanClient.create(host, port, username, password);
     }
@@ -341,15 +341,6 @@ public class NewmanSuiteSubmitter {
             }
         }
         return listOfCriterias.toArray(new Criteria[listOfCriterias.size()]);
-    }
-
-    private static String getEnvironment(String var, boolean required) {
-        String v = System.getenv(var);
-        if (isEmpty(v) && required) {
-            logger.error("Please set the environment variable {} and try again.", var);
-            throw new IllegalArgumentException("the environment variable " + var + " must be set");
-        }
-        return v;
     }
 
     @SuppressWarnings("unchecked")
@@ -379,22 +370,22 @@ public class NewmanSuiteSubmitter {
     public static Criteria getNewmanSuiteCriteria() throws Exception {
         List<Criteria> criterias = new ArrayList<>();
 
-        String testType = getEnvironment(NEWMAN_CRITERIA_TEST_TYPE, false /*required*/);
+        String testType = EnvUtils.getEnvironment(NEWMAN_CRITERIA_TEST_TYPE, false /*required*/, logger);
         if (notEmpty(testType)) {
             criterias.add(TestCriteria.createCriteriaByTestType(testType));
         }
 
-        String includeList = getEnvironment(NEWMAN_CRITERIA_INCLUDE_LIST, false /*required*/);
+        String includeList = EnvUtils.getEnvironment(NEWMAN_CRITERIA_INCLUDE_LIST, false /*required*/, logger);
         if (notEmpty(includeList)) {
             criterias.add(include(parseCommaDelimitedList(includeList)));
         }
 
-        String excludeList = getEnvironment(NEWMAN_CRITERIA_EXCLUDE_LIST, false /*required*/);
+        String excludeList = EnvUtils.getEnvironment(NEWMAN_CRITERIA_EXCLUDE_LIST, false /*required*/, logger);
         if (notEmpty(excludeList)) {
             criterias.add(exclude(parseCommaDelimitedList(excludeList)));
         }
 
-        String permutationURI = getEnvironment(NEWMAN_CRITERIA_PERMUTATION_URI, false /*required*/);
+        String permutationURI = EnvUtils.getEnvironment(NEWMAN_CRITERIA_PERMUTATION_URI, false /*required*/, logger);
         if (notEmpty(permutationURI)) {
             criterias.add(include(getTestCriteriasFromPermutationURI(permutationURI)));
         }
