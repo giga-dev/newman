@@ -190,7 +190,7 @@ public class NewmanResource {
 
         List<Job> jobs = jobDAO.find(query).asList();
 
-        MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
+        /*MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         MongoCollection testCollection = db.getCollection("Test");
 
         for( Job job : jobs ) {
@@ -204,7 +204,7 @@ public class NewmanResource {
                 agents.add( iterator.next().toString() );
             }
             job.setAgents( agents );
-        }
+        }*/
 
         return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
     }
