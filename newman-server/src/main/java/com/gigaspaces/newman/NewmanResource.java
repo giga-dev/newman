@@ -23,8 +23,11 @@ import com.gigaspaces.newman.dao.SuiteDAO;
 import com.gigaspaces.newman.dao.TestDAO;
 import com.gigaspaces.newman.utils.FileUtils;
 import com.mongodb.MongoClient;
+import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -124,6 +127,7 @@ public class NewmanResource {
     private final ConcurrentHashMap<String, Object> agentLocks = new ConcurrentHashMap<>();
 
     private static final int maxJobsPerSuite = 5;
+    private final DistinctIterable distinctTestsByAssignedAgentFilter;
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
@@ -150,6 +154,11 @@ public class NewmanResource {
         buildDAO = new BuildDAO(morphia, mongoClient, config.getMongo().getDb());
         agentDAO = new AgentDAO(morphia, mongoClient, config.getMongo().getDb());
         suiteDAO = new SuiteDAO(morphia, mongoClient, config.getMongo().getDb());
+
+        MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
+        MongoCollection testCollection = db.getCollection("Test");
+        distinctTestsByAssignedAgentFilter = testCollection.distinct("assignedAgent", String.class);
+
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -187,23 +196,6 @@ public class NewmanResource {
         }
 
         List<Job> jobs = jobDAO.find(query).asList();
-
-        /*MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
-        MongoCollection testCollection = db.getCollection("Test");
-
-        for( Job job : jobs ) {
-            String jobId = job.getId();
-            DistinctIterable assignedAgent =
-                    testCollection.distinct("assignedAgent", String.class).
-                            filter(com.mongodb.client.model.Filters.eq("jobId", jobId));
-            MongoCursor iterator = assignedAgent.iterator();
-            Set<String> agents = new HashSet<>();
-            while(iterator.hasNext()){
-                agents.add( iterator.next().toString() );
-            }
-            job.setAgents( agents );
-        }*/
-
         return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
     }
 
@@ -211,7 +203,20 @@ public class NewmanResource {
     @Path("job/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Job getJob(@PathParam("id") final String id) {
-        return jobDAO.findOne(jobDAO.createQuery().field("_id").equal(new ObjectId(id)));
+
+        Job job = jobDAO.findOne( jobDAO.createQuery().field( "_id" ).equal( new ObjectId(id) ) );
+        if( job != null ){
+            Bson jobIdFilter = Filters.eq("jobId", id);
+            long filterTestsStart = System.currentTimeMillis();
+            DistinctIterable assignedAgents = distinctTestsByAssignedAgentFilter.filter(jobIdFilter);
+            Set<String> agents = (Set)assignedAgents.into( new HashSet<>() );
+            job.setAgents( agents );
+            long filterTestsEnd = System.currentTimeMillis();
+
+            logger.info( "distinct filter by job id took {} msec.", ( filterTestsEnd - filterTestsStart ) );
+        }
+
+        return job;
     }
 
     @PUT
