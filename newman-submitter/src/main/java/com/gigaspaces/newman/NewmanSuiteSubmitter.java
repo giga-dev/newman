@@ -391,6 +391,29 @@ public class NewmanSuiteSubmitter {
         }
     }
 
+    public void manualSubmitHTTPSession() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("httpsession");
+            suite.setCustomVariables("SUITE_TYPE=httpsession,JAVA_VERSION=7");
+            String testType = "httpsession";
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                    CriteriaBuilder.exclude(
+                            PatternCriteria.containsCriteria("com.gigaspaces.httpsession.qa")
+                    )
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
     private static NewmanClient getNewmanClient() throws Exception {
         // connection arguments
         String host = EnvUtils.getEnvironment(NEWMAN_HOST, true /*required*/, logger);
