@@ -307,7 +307,7 @@ public class NewmanSuiteSubmitter {
         try {
             Suite suite = new Suite();
             suite.setName("regression-tgrid-offheap");
-            suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dcom.gs.OffHeapData=true -Dcom.gs.OffHeapDataNewInterface=true -Dcom.gs.DirectPersistencyLastPrimaryStateDir=/tmp/lastprimary/lastprimary.properties");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dcom.gs.OffHeapData=true -Dcom.gs.OffHeapDataNewInterface=true -Dcom.gs.DirectPersistencyLastPrimaryStatePath=./output/lastprimary.properties");
             String testType = "tgrid";
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
