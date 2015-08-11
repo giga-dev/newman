@@ -23,9 +23,7 @@ import com.gigaspaces.newman.dao.SuiteDAO;
 import com.gigaspaces.newman.dao.TestDAO;
 import com.gigaspaces.newman.utils.FileUtils;
 import com.mongodb.MongoClient;
-import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.types.ObjectId;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
@@ -517,7 +515,7 @@ public class NewmanResource {
     }
 
     private void handleLogFile(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + testId + "/" + fileName;
+        String filePath = calculateTestLogFilePath( jobId, testId ) + fileName;
         try {
             saveFile(fileInputStream, filePath);
             URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
@@ -529,9 +527,14 @@ public class NewmanResource {
             logger.error("Failed to save log at {} for test {} jobId {}", filePath, testId, jobId, e);
         }
     }
+
+    private static String calculateTestLogFilePath( String jobId, String testId ){
+        return SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + testId + "/";
+    }
+
     private void handleLogBundle(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
 
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + testId + "/" + fileName;
+        String filePath = calculateTestLogFilePath( jobId, testId ) + fileName;
         try {
             saveFile(fileInputStream, filePath);
             Set<String> entries = extractZipEntries(filePath);
@@ -574,7 +577,7 @@ public class NewmanResource {
         } else {
             mediaType = MediaType.TEXT_PLAIN_TYPE;
         }
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + id + "/" + name;
+        String filePath = calculateTestLogFilePath( jobId, id ) + name;
 
         return Response.ok(new File(filePath), mediaType).build();
     }
@@ -624,7 +627,7 @@ public class NewmanResource {
             String[] splited = name.split("!");
             String zipPath = splited[0];
             String entryName = splited[1].substring(1);
-            String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + id + "/" + zipPath;
+            String filePath = calculateTestLogFilePath( jobId, id ) + zipPath;
             ZipFile zip = new ZipFile(filePath);
             InputStream is = zip.getInputStream(zip.getEntry(entryName));
             return Response.ok(is, mediaType).build();
