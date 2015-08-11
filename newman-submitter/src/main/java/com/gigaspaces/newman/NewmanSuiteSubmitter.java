@@ -398,12 +398,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("httpsession");
             suite.setCustomVariables("SUITE_TYPE=httpsession,JAVA_VERSION=7");
             String testType = "httpsession";
-            Criteria criteria = CriteriaBuilder.join(
-                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
-                    CriteriaBuilder.exclude(
-                            PatternCriteria.containsCriteria("com.gigaspaces.httpsession.qa")
-                    )
-            );
+            Criteria criteria = CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType));
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
