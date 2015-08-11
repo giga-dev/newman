@@ -81,8 +81,8 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria(".PureSpringMVCWebAppSharedModeTest#"),
                             PatternCriteria.containsCriteria(".PureSpringMVCWebAppTest#"),
                             PatternCriteria.containsCriteria(".PureSpringMVCWithEmbeddedSpaceWebAppTest#"),
-                            PatternCriteria.containsCriteria(".PureSpringMVCWithRemoteSpaceWebAppTest#"),
-                    TestCriteria.createCriteriaByTestType(testType))
+                            PatternCriteria.containsCriteria(".PureSpringMVCWithRemoteSpaceWebAppTest#")),
+                    TestCriteria.createCriteriaByTestType(testType)
 
             );
             suite.setCriteria(criteria);
@@ -116,6 +116,78 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.mapdb")
                     )
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitSGTestWan() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("SGTest-WAN");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(
+                            PatternCriteria.containsCriteria("test.gateway")),
+                    CriteriaBuilder.exclude(
+                            PatternCriteria.recursivePackageNameCriteria("test.gateway.network_manipulation.latency")),
+                    TestCriteria.createCriteriaByTestType("sgtest")
+
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitDisconnect() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("SGTest-DISCONNECT");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(
+                            PatternCriteria.containsCriteria("test.disconnect"),
+                            PatternCriteria.containsCriteria("test.gateway.network_manipulation.latency")),
+                    TestCriteria.createCriteriaByTestType("sgtest")
+
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitSGTestSecurity() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("SGTest-SECURITY");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(
+                            PatternCriteria.containsCriteria("security")),
+                    CriteriaBuilder.exclude(
+                            PatternCriteria.recursivePackageNameCriteria("test.gsm.security"),
+                            PatternCriteria.recursivePackageNameCriteria("test.gateway.security")),
+                    TestCriteria.createCriteriaByTestType("sgtest")
+
             );
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);

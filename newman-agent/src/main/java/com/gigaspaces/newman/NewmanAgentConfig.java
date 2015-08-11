@@ -57,7 +57,7 @@ public class NewmanAgentConfig {
         }
     }
 
-    private String loadHostAddress() {
+    public String loadHostAddress() {
             String res = null;
             try {
                 String localhost = InetAddress.getLocalHost().getHostAddress();
@@ -67,6 +67,8 @@ public class NewmanAgentConfig {
                     if(ni.isLoopback())
                         continue;
                     if(ni.isPointToPoint())
+                        continue;
+                    if(ni.getName().contains("docker"))
                         continue;
                     Enumeration<InetAddress> addresses = ni.getInetAddresses();
                     while(addresses.hasMoreElements()) {
@@ -131,4 +133,5 @@ public class NewmanAgentConfig {
     public Properties getProperties() {
         return properties;
     }
+
 }
