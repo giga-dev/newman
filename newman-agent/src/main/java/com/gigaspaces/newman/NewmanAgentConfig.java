@@ -2,10 +2,7 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.utils.FileUtils;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.UUID;
@@ -60,23 +57,28 @@ public class NewmanAgentConfig {
     public String loadHostAddress() {
             String res = null;
             try {
-                String localhost = InetAddress.getLocalHost().getHostAddress();
                 Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
                 while (e.hasMoreElements()) {
                     NetworkInterface ni = e.nextElement();
-                    if(ni.isLoopback())
+                    if(ni.isLoopback()) {
                         continue;
-                    if(ni.isPointToPoint())
+                    }
+                    if(ni.isPointToPoint()) {
                         continue;
-                    if(ni.getName().contains("docker"))
+                    }
+                    if(ni.getDisplayName() != null && ni.getDisplayName().contains("docker")) {
                         continue;
+                    }
+                    if(ni.getName().contains("docker")) {
+                        continue;
+                    }
                     Enumeration<InetAddress> addresses = ni.getInetAddresses();
                     while(addresses.hasMoreElements()) {
                         InetAddress address = addresses.nextElement();
+                        System.out.println("INet Address: " + address);
                         if(address instanceof Inet4Address) {
                             String ip = address.getHostAddress();
-                            if(!ip.equals(localhost))
-                                System.out.println((res = ip));
+                            System.out.println((res = ip));
                         }
                     }
                 }
