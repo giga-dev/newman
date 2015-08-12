@@ -1063,6 +1063,12 @@ public class NewmanResource {
 
         updateOps.set("buildStatus.totalJobs", associatedBuildStatus.getTotalJobs() - 1);
 
+        Suite suite = deletedJob.getSuite();
+        if( suite != null ) {
+            updateOps.removeAll("buildStatus.suitesNames", suite.getName());
+            updateOps.removeAll("buildStatus.suitesIds", suite.getId());
+        }
+
         Build modifiedBuild = buildDAO.getDatastore().findAndModify(query, updateOps);
         broadcastMessage(MODIFIED_BUILD, modifiedBuild);
     }
