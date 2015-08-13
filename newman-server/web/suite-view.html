@@ -6,56 +6,90 @@
 <polymer-element name="suite-view" attributes="url active" active>
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
-        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
-                   withCredentials="true"></core-ajax>
+        <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
+        <core-ajax id="update" handleAs="json" method="POST" withCredentials="true"></core-ajax>
         <div class="content" flex>
             <h2>Suite</h2>
-
-            <div class="table-responsive">
+            <div class="table-responsive" style="padding-top: 5px; margin-bottom: -14px">
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Id</th>
-                        <th>Criteria</th>
+                        <th width="18%">Name</th>
+                        <th width="18%">Id</th>
+                        <th width="24%">Custom variables</th>
+                        <th width="40%">Criteria</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <template if="{{data.id}}">
-                        <tr>
-                            <td>{{data.name}}</td>
-                            <td>{{data.id}}</td>
+
+                        <tr class="{{{'hidden' : !suite.id, 'visible' : suite.id} | tokenList}}">
+                            <td>{{suite.name}}</td>
+                            <td>{{suite.id}}</td>
                             <td>
-                                <pre>
-                                    <code>
-{{data.criteria | removeNulls | json}}
-                                    </code>
-                                </pre>
+                                <textarea id="customvariablestextarea" style="height: 450px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.customVariables}}</textarea>
+                            </td>
+                            <td>
+                                <textarea id="criteriatextarea" style="height: 450px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.criteria | removeNulls | json}}</textarea>
                             </td>
                         </tr>
-                    </template>
                     </tbody>
                 </table>
             </div>
+            <span style="">
+                <button type="button" id="editsuitebutton" class='btn btn-default edit-suite-button' on-click="{{editSuite}}">Edit</button>
+                <button type="button" id="savesuitebutton" class='btn btn-default save-suite-button disabled' on-click="{{saveSuite}}">Save</button>
+            </span>
         </div>
     </template>
     <script src="../components/moment/moment.js"></script>
-
     <script>
     Polymer({
       applyAuthorStyles: true,
-      data: [],
+      suite: [],
 
-      ajaxResponse: function(event,resp){
-           this.data = resp.response;
-      },
-      activeChanged: function(oldValue, newValue){
+        ajaxResponse: function(event,resp){
+            this.suite = resp.response;
+        },
+        reload : function(){
+            this.$.reload.go();
+        },
+        editSuite: function(event,resp){
+            var saveButton = this.getSaveButton();
+            var editButton = this.getEditButton();
+            editButton.classList.add('disabled');
+            saveButton.classList.remove('disabled');
+
+            var criteriaTextArea = this.getCriteriaTextArea();
+            criteriaTextArea.removeAttribute('readonly');
+        },
+        saveSuite: function(event,resp){
+            var saveButton = this.getSaveButton();
+            var editButton = this.getEditButton();
+            saveButton.classList.add('disabled')
+            editButton.classList.remove('disabled')
+            var criteriaTextArea = this.getCriteriaTextArea();
+
+            var updatedSuiteCriteria = criteriaTextArea.value;
+            console.info( '>>> save, updatedSuiteCriteria=', updatedSuiteCriteria );
+            criteriaTextArea.setAttribute('readonly', '');
+
+            this.suite.criteria=updatedSuiteCriteria;
+
+            this.$.update.url=this.url;// + "/" + this.suite;
+            this.$.update.go();
+        },
+        getSaveButton: function(){
+            return this.$.savesuitebutton;
+        },
+        getEditButton: function(){
+            return this.$.editsuitebutton;
+        },
+        getCriteriaTextArea: function(){
+            return this.$.criteriatextarea;
+        },
+        activeChanged: function(oldValue, newValue){
            console.info("suite-view activeChanged to ", newValue);
       }
     });
-
-
-
-
     </script>
 </polymer-element>

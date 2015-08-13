@@ -17,23 +17,19 @@
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Id</th>
-                        <th>Criteria</th>
+                        <th width="18%">Name</th>
+                        <th width="18%">Id</th>
+                        <th width="24%">Custom variables</th>
+                        <th width="40%">Criteria</th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{item in data}}">
                         <tr>
-                            <td>{{item.name}}</td>
-                            <td>{{item.id}}</td>
-                            <td>
-                                <pre>
-                                    <code>
-{{item.criteria | removeNulls | json}}
-                                    </code>
-                                </pre>
-                            </td>
+                            <td><a href="{{urlFor('suite', {id: item.id})}}">{{item.name}}</a></td>
+                            <td><a href="{{urlFor('suite', {id: item.id})}}">{{item.id}}</a></td>
+                            <td>{{item.customVariables}}</td>
+                            <td><pre><code>{{item.criteria | removeNulls | json}}</code></pre></td>
                         </tr>
                     </template>
                     </tbody>

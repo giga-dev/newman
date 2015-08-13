@@ -7,6 +7,12 @@ import com.gigaspaces.newman.beans.Job;
 import com.gigaspaces.newman.beans.JobRequest;
 import com.gigaspaces.newman.beans.Suite;
 import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.beans.criteria.Criteria;
+import com.gigaspaces.newman.beans.criteria.CriteriaBuilder;
+import com.gigaspaces.newman.beans.criteria.PatternCriteria;
+import com.gigaspaces.newman.beans.criteria.TestCriteria;
+import com.gigaspaces.newman.utils.EnvUtils;
+import com.gigaspaces.newman.utils.FileUtils;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.client.rx.RxClient;
@@ -20,8 +26,9 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -33,6 +40,10 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+
+import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.exclude;
+import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.include;
+import static com.gigaspaces.newman.utils.StringUtils.notEmpty;
 
 public class Main {
 
@@ -46,6 +57,11 @@ public class Main {
     private final static long TEST_PROCESS_TIME_MS = 1000;
     private final static long PREPARE_JOB_TIME_MS = 5000;
     private final static int AGENT_THREADS = 2;
+
+    public static final String NEWMAN_CRITERIA_TEST_TYPE = "NEWMAN_CRITERIA_TEST_TYPE";
+    public static final String NEWMAN_CRITERIA_INCLUDE_LIST = "NEWMAN_CRITERIA_INCLUDE_LIST";
+    public static final String NEWMAN_CRITERIA_EXCLUDE_LIST = "NEWMAN_CRITERIA_EXCLUDE_LIST";
+    public static final String NEWMAN_CRITERIA_PERMUTATION_URI = "NEWMAN_CRITERIA_PERMUTATION_URI";
 
     public static NewmanClient createNewmanClient() throws KeyManagementException, NoSuchAlgorithmException {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -98,12 +114,14 @@ public class Main {
         }
     }
 
-    private static void createAndRunJob(NewmanClient newmanClient, Build build) throws InterruptedException, java.util.concurrent.ExecutionException, UnknownHostException {
+    private static void createAndRunJob(NewmanClient newmanClient, Build build) throws Exception {
 
         for (int s = 0; s < NUMBER_OF_SUITES_PER_BUILD; s++) {
 
             Suite mySuite = new Suite();
             mySuite.setName("Suite-" + UUID.randomUUID().toString().substring(0, 3));
+            mySuite.setCustomVariables( "customVarKey1=val1,customVarKey2=val2" );
+            mySuite.setCriteria( getNewmanSuiteCriteria() );
             Suite newSuite = newmanClient.addSuite(mySuite).toCompletableFuture().get();
 
             for (int j = 0; j < NUMBER_OF_JOBS_PER_SUITE; j++) {
@@ -215,6 +233,68 @@ public class Main {
                 }
             }
         }
+    }
+
+    public static Criteria getNewmanSuiteCriteria() throws Exception {
+        List<Criteria> criterias = new ArrayList<>();
+
+        String testType = EnvUtils.getEnvironment(NEWMAN_CRITERIA_TEST_TYPE, false /*required*/, logger);
+        if (notEmpty(testType)) {
+            criterias.add(TestCriteria.createCriteriaByTestType(testType));
+        }
+
+        String includeList = EnvUtils.getEnvironment(NEWMAN_CRITERIA_INCLUDE_LIST, false /*required*/, logger);
+        if (notEmpty(includeList)) {
+            criterias.add(include(parseCommaDelimitedList(includeList)));
+        }
+
+        String excludeList = EnvUtils.getEnvironment(NEWMAN_CRITERIA_EXCLUDE_LIST, false /*required*/, logger);
+        if (notEmpty(excludeList)) {
+            criterias.add(exclude(parseCommaDelimitedList(excludeList)));
+        }
+
+        String permutationURI = EnvUtils.getEnvironment(NEWMAN_CRITERIA_PERMUTATION_URI, false /*required*/, logger);
+        if (notEmpty(permutationURI)) {
+            criterias.add(include(getTestCriteriasFromPermutationURI(permutationURI)));
+        }
+        return CriteriaBuilder.join(criterias.toArray(new Criteria[criterias.size()]));
+    }
+
+    private static Criteria[] getTestCriteriasFromPermutationURI(String permutationURI) throws Exception {
+        List<Criteria> criterias = new ArrayList<>();
+        InputStream is = null;
+        try {
+            is = URI.create(permutationURI).toURL().openStream();
+            List<String> permutations = FileUtils.readTextFileLines(is);
+            for (String permutation : permutations) {
+                if (permutation.length() <= 1)
+                    continue;
+                if (permutation.trim().charAt(0) == '#')
+                    continue;
+                TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(permutation.split(" "));
+                criterias.add(criteria);
+            }
+        }
+        finally {
+            if (is != null) {
+                is.close();
+            }
+        }
+        return criterias.toArray(new Criteria[criterias.size()]);
+    }
+
+    private static Criteria[] parseCommaDelimitedList(String list) {
+        if (list.length() == 0) return new Criteria[0];
+
+        List<Criteria> listOfCriterias = new ArrayList<>();
+        String[] split = list.trim().split(",");
+        for (String criteria : split) {
+            criteria = criteria.trim();
+            if (notEmpty(criteria)) {
+                listOfCriterias.add(PatternCriteria.containsCriteria(criteria));
+            }
+        }
+        return listOfCriterias.toArray(new Criteria[listOfCriterias.size()]);
     }
 
     private static List<Test> takeTests(NewmanClient newmanClient, String agentName, String jobId) throws ExecutionException, InterruptedException {

@@ -99,3 +99,10 @@ body{
     color: #ffffff;
     text-decoration: underline;
 }
+
+.hidden{
+    visibility: hidden;
+}
+.visible{
+    visibility: visible;
+}

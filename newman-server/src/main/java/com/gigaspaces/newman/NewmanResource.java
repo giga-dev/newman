@@ -989,8 +989,26 @@ public class NewmanResource {
             broadcastMessage(MODIFIED_BUILD, result);
         }
         return result;
-
     }
+
+    @POST
+    @Path("suite/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Suite updateSuite(final @PathParam("id") String id) {
+        logger.info( "---updateBuild()" );
+        UpdateOperations<Suite> updateOps = suiteDAO.createUpdateOperations();
+        Suite suite = new Suite();
+        if( suite.getCriteria() != null) {
+            updateOps.set("criteria", suite.getCriteria());
+        }
+        Query<Suite> query = suiteDAO.createIdQuery(id);
+        Suite result = suiteDAO.getDatastore().findAndModify(query, updateOps);
+        if( result != null) {
+            broadcastMessage(MODIFIED_SUITE, result);
+        }
+        return result;
+    }
+
 
     @GET
     @Path("build/{id}")
@@ -1151,6 +1169,8 @@ public class NewmanResource {
         broadcastMessage(CREATED_SUITE, new SuiteWithJobs(suite));
         return suite;
     }
+
+
 
     @GET
     @Path("suite/{id}")
