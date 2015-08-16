@@ -96,6 +96,9 @@ public class NewmanServer {
         ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/api/*");
         jerseyServlet.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
         jerseyServlet.setInitParameter("javax.ws.rs.Application", "com.gigaspaces.newman.NewmanApp");
+        jerseyServlet.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters", "com.sun.jersey.api.container.filter.LoggingFilter");
+        jerseyServlet.setInitParameter("com.sun.jersey.spi.container.ContainerResponseFilters", "com.sun.jersey.api.container.filter.LoggingFilter");
+        jerseyServlet.setInitParameter("com.sun.jersey.config.feature.Trace", "true");
 
         jerseyServlet.setInitOrder(0);
 
