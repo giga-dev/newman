@@ -10,7 +10,6 @@
     </parent>
     <artifactId>newman-common</artifactId>
     <packaging>jar</packaging>
-    <name>tests repository common</name>
 
     <repositories>
         <repository>

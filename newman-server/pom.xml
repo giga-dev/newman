@@ -11,8 +11,6 @@
     <artifactId>newman-server</artifactId>
     <packaging>jar</packaging>
 
-    <name>tests repository server</name>
-
     <repositories>
         <repository>
             <id>snapshot-repository.java.net</id>

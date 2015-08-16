@@ -10,7 +10,6 @@
     </parent>
     <artifactId>newman-client</artifactId>
     <packaging>jar</packaging>
-    <name>tests repository client</name>
 
     <repositories>
         <repository>
