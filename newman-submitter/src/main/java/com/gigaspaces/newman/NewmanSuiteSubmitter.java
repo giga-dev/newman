@@ -408,6 +408,23 @@ public class NewmanSuiteSubmitter {
             newmanClient.close();
         }
     }
+    public void manualSubmitMongoDb() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("mongo-db");
+            suite.setCustomVariables("SUITE_TYPE=mongodb");
+            String testType = "mongodb";
+            Criteria criteria = CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType));
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
 
     private static NewmanClient getNewmanClient() throws Exception {
         // connection arguments
