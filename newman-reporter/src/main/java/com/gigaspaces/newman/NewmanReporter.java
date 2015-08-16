@@ -58,7 +58,7 @@ public class NewmanReporter {
 
         Trigger trigger = newTrigger()
                 .startNow()
-                //.withSchedule(cronSchedule("0 0/2 * * * ?"))
+                .withSchedule(cronSchedule("0 0 8 ? * SUN-THU")) //Fire at 08:00am every Sunday - Thursday
                 .build();
 
         scheduler.scheduleJob(job, trigger);
