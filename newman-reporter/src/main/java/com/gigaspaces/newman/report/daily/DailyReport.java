@@ -3,6 +3,8 @@ package com.gigaspaces.newman.report.daily;
 import com.gigaspaces.newman.NewmanClient;
 import com.gigaspaces.newman.NewmanReporterConfig;
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.smtp.mailman.MailProperties;
+import com.gigaspaces.newman.smtp.mailman.Mailman;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -33,7 +35,7 @@ public class DailyReport implements org.quartz.Job{
             newmanClient = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                     config.getNewmanServerRestUser(), config.getNewmanServerRestPassword());
 
-            prepareReport(buildRef, newmanClient);
+            prepareReport(buildRef, newmanClient, config);
 
 
         } catch (Exception e) {
@@ -45,7 +47,7 @@ public class DailyReport implements org.quartz.Job{
     }
     }
 
-    private void prepareReport(AtomicReference<Build> buildRef, NewmanClient newmanClient) throws Exception {
+    private void prepareReport(AtomicReference<Build> buildRef, NewmanClient newmanClient, NewmanReporterConfig config) throws Exception {
 
         DashboardData dashboardData = newmanClient.getDashboard().toCompletableFuture().get();
 
@@ -65,6 +67,8 @@ public class DailyReport implements org.quartz.Job{
         System.out.println("^^^^^^^^^^");
         System.out.println(body);
         System.out.println("---\n");
+
+        Mailman.createEmail(new MailProperties().setPassword(config.getNewmanMailPassword()), config.getNewmanMailUser(), config.getNewmanMailRecipients(), subject.toString(), body.toString());
 
         //save latest_build for next time we wake up
         buildRef.set(latest_build);
@@ -113,8 +117,9 @@ public class DailyReport implements org.quartz.Job{
         }
 
         for (SuiteDiff diff : suiteDiffMap) {
-            suiteData.append(diff.suite.getName()).append("\t");
-            suiteData.append(diff.failedTests);
+            suiteData.append(diff.suite.getName()).append(padWithSpaces(22 - diff.suite.getName().length()));
+            suiteData.append("failed: ").append(diff.failedTests);
+            int lenghtStart = suiteData.length();
             if (diff.diffFailedTests != 0) {
                 suiteData.append(" ").append('(');
                 if (diff.diffFailedTests > 0) {
@@ -124,8 +129,8 @@ public class DailyReport implements org.quartz.Job{
                 }
                 suiteData.append(')');
             }
-            suiteData.append("\t\t");
-            suiteData.append(diff.totalTests);
+            suiteData.append(padWithSpaces(12 - (suiteData.length() - lenghtStart)));
+            suiteData.append("total: ").append(diff.totalTests);
             if (diff.diffTotalTests != 0) {
                 suiteData.append(" ").append('(');
                 if (diff.diffTotalTests > 0) {
@@ -139,6 +144,14 @@ public class DailyReport implements org.quartz.Job{
         }
 
         return suiteData;
+    }
+
+    private char[] padWithSpaces(int padding) {
+        char[] cc = new char[padding];
+        for (int i=0; i<cc.length; i++) {
+            cc[i] = ' ';
+        }
+        return cc;
     }
 
     private StringBuilder prepareSubject(Build latest_build) {
