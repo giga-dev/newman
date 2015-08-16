@@ -56,6 +56,11 @@ public class NewmanClient {
         });
     }
 
+    public CompletionStage<Batch<Job>> getJobs(String buildId) {
+        return restClient.target(uri).path("job").queryParam("buildId", buildId).queryParam("all", "true").request().rx().get(new GenericType<Batch<Job>>() {
+        });
+    }
+
     public CompletionStage<Job> createJob(JobRequest jobRequest) {
         return restClient.target(uri).path("job").request().rx().put(Entity.json(jobRequest), Job.class);
     }
