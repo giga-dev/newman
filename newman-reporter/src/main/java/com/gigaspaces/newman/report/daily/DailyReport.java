@@ -39,7 +39,9 @@ public class DailyReport implements org.quartz.Job{
             newmanClient = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                     config.getNewmanServerRestUser(), config.getNewmanServerRestPassword());
 
-            sendEmail(buildRef, newmanClient, config);
+            StringTemplate htmlTemplate = createHtmlTemplate();
+
+            sendEmail(buildRef, newmanClient, config, htmlTemplate);
 
 
         } catch (Exception e) {
@@ -51,7 +53,15 @@ public class DailyReport implements org.quartz.Job{
     }
     }
 
-    private void sendEmail(AtomicReference<Build> buildRef, NewmanClient newmanClient, NewmanReporterConfig config) throws Exception {
+    private StringTemplate createHtmlTemplate() {
+        StringTemplateGroup group =  new StringTemplateGroup("group",
+                Paths.get(".").toAbsolutePath().normalize().toString(),
+                DefaultTemplateLexer.class);
+
+        return group.getInstanceOf("daily_report");
+    }
+
+    private void sendEmail(AtomicReference<Build> buildRef, NewmanClient newmanClient, NewmanReporterConfig config, StringTemplate htmlTemplate) throws Exception {
 
         DashboardData dashboardData = newmanClient.getDashboard().toCompletableFuture().get();
 
@@ -69,21 +79,16 @@ public class DailyReport implements org.quartz.Job{
         Set<SuiteDiff> suiteDiffs = compare(latest_mapSuite2Job, previous_mapSuite2Job);
         SuiteDiffSummary summary = getDiffSummary(suiteDiffs);
 
-        StringTemplateGroup group =  new StringTemplateGroup("group",
-                Paths.get(".").toAbsolutePath().normalize().toString(),
-                DefaultTemplateLexer.class);
-
-        StringTemplate compose = group.getInstanceOf("daily_report");
-        compose.setAttribute("summary", summary);
-        compose.setAttribute("diffs", suiteDiffs);
-        compose.setAttribute("latestUrl", "https://xap-newman:8443/#!/build/"+latest_build.getId());
-                compose.setAttribute("latestBuildName", latest_build.getName());
-        compose.setAttribute("previousUrl", "https://xap-newman:8443/#!/build/"+previous_build.getId());
-                compose.setAttribute("previousBuildName", previous_build.getName());
+        htmlTemplate.setAttribute("summary", summary);
+        htmlTemplate.setAttribute("diffs", suiteDiffs);
+        htmlTemplate.setAttribute("latestUrl", "https://xap-newman:8443/#!/build/" + latest_build.getId()); //TODO extract URL from newman client
+        htmlTemplate.setAttribute("latestBuildName", latest_build.getName());
+        htmlTemplate.setAttribute("previousUrl", "https://xap-newman:8443/#!/build/" + previous_build.getId());
+        htmlTemplate.setAttribute("previousBuildName", previous_build.getName());
 
 
-        String subject = prepareSubject(latest_build).toString();
-        String body = compose.toString();
+        String subject = prepareSubject(latest_build);
+        String body = htmlTemplate.toString();
 
         System.out.println(subject);
         System.out.println(body);
@@ -107,19 +112,11 @@ public class DailyReport implements org.quartz.Job{
         return summary;
     }
 
-    private char[] padWithSpaces(int padding) {
-        char[] cc = new char[padding];
-        for (int i=0; i<cc.length; i++) {
-            cc[i] = ' ';
-        }
-        return cc;
-    }
-
-    private StringBuilder prepareSubject(Build latest_build) {
+    private String prepareSubject(Build latest_build) {
         StringBuilder subject = new StringBuilder();
         subject.append('(').append(latest_build.getBranch()).append(')').append(" build ").append(latest_build.getName())
                 .append(" with ").append(latest_build.getBuildStatus().getFailedTests()).append(" failures");
-        return subject;
+        return subject.toString();
     }
 
     private Set<SuiteDiff> compare(Map<String, Job> latest_mapSuite2Job, Map<String, Job> previous_mapSuite2Job) {
@@ -172,9 +169,13 @@ public class DailyReport implements org.quartz.Job{
         return map;
     }
 
-    static class SuiteDiffSummary {
+    private static class SuiteDiffSummary {
         int positiveDiff;
         int negativeDiff;
+
+        //
+        // reflection methods used by org.antlr.stringtemplate (see daily_report.st files)
+        //
 
         public int getPositiveDiff() {
             return positiveDiff;
@@ -193,7 +194,7 @@ public class DailyReport implements org.quartz.Job{
         }
     }
 
-    static class SuiteDiff implements Comparable<SuiteDiff> {
+    private static class SuiteDiff implements Comparable<SuiteDiff> {
         Suite suite;
         int failedTests;
         int diffFailedTests;
@@ -202,15 +203,17 @@ public class DailyReport implements org.quartz.Job{
 
         @Override
         public int compareTo(SuiteDiff o) {
-            double thisFailures = ((double)failedTests)/totalTests;
-            double otherFailures = ((double)o.failedTests)/o.totalTests;
+            //compare failed+diff divided by total+diff
+            double thisFailures = ((double)(failedTests+diffFailedTests))/(totalTests+diffTotalTests);
+            double otherFailures = ((double)(o.failedTests+o.diffFailedTests))/(o.totalTests+o.diffTotalTests);
+
             int compareFailures = Double.valueOf(thisFailures).compareTo(Double.valueOf(otherFailures));
             if (compareFailures != 0) {
                 return -1 * compareFailures;
             }
 
-            //if equal go for diff
-            int compareDiff = Integer.valueOf(diffFailedTests).compareTo(Integer.valueOf(o.diffFailedTests));
+            //if equal compare without dividing
+            int compareDiff = Integer.valueOf(failedTests+diffFailedTests).compareTo(Integer.valueOf(o.failedTests+o.diffFailedTests));
             if (compareDiff != 0) {
                 return -1 * compareDiff;
             }
@@ -220,7 +223,7 @@ public class DailyReport implements org.quartz.Job{
         }
 
         //
-        // reflection method used by org.antlr.stringtemplate (see .st files)
+        // reflection methods used by org.antlr.stringtemplate (see daily_report.st files)
         //
 
         public String getSuiteName() {
