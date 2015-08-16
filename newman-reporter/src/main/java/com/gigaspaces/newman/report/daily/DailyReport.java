@@ -5,12 +5,16 @@ import com.gigaspaces.newman.NewmanReporterConfig;
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.smtp.mailman.MailProperties;
 import com.gigaspaces.newman.smtp.mailman.Mailman;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,7 +39,7 @@ public class DailyReport implements org.quartz.Job{
             newmanClient = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                     config.getNewmanServerRestUser(), config.getNewmanServerRestPassword());
 
-            prepareReport(buildRef, newmanClient, config);
+            sendEmail(buildRef, newmanClient, config);
 
 
         } catch (Exception e) {
@@ -47,7 +51,7 @@ public class DailyReport implements org.quartz.Job{
     }
     }
 
-    private void prepareReport(AtomicReference<Build> buildRef, NewmanClient newmanClient, NewmanReporterConfig config) throws Exception {
+    private void sendEmail(AtomicReference<Build> buildRef, NewmanClient newmanClient, NewmanReporterConfig config) throws Exception {
 
         DashboardData dashboardData = newmanClient.getDashboard().toCompletableFuture().get();
 
@@ -60,90 +64,47 @@ public class DailyReport implements org.quartz.Job{
         Build latest_build = historyBuilds.get(0);
         Build previous_build = getPreviousBuild(historyBuilds, buildRef.get(), latest_build);
 
-        StringBuilder subject = prepareSubject(latest_build);
-        StringBuilder body = prepareBody(newmanClient, latest_build, previous_build);
+        Map<String, Job> latest_mapSuite2Job = getJobsByBuildId(newmanClient, latest_build.getId());
+        Map<String, Job> previous_mapSuite2Job = getJobsByBuildId(newmanClient, previous_build.getId());
+        Set<SuiteDiff> suiteDiffs = compare(latest_mapSuite2Job, previous_mapSuite2Job);
+        SuiteDiffSummary summary = getDiffSummary(suiteDiffs);
+
+        StringTemplateGroup group =  new StringTemplateGroup("group",
+                Paths.get(".").toAbsolutePath().normalize().toString(),
+                DefaultTemplateLexer.class);
+
+        StringTemplate compose = group.getInstanceOf("daily_report");
+        compose.setAttribute("summary", summary);
+        compose.setAttribute("diffs", suiteDiffs);
+        compose.setAttribute("latestUrl", "https://xap-newman:8443/#!/build/"+latest_build.getId());
+                compose.setAttribute("latestBuildName", latest_build.getName());
+        compose.setAttribute("previousUrl", "https://xap-newman:8443/#!/build/"+previous_build.getId());
+                compose.setAttribute("previousBuildName", previous_build.getName());
+
+
+        String subject = prepareSubject(latest_build).toString();
+        String body = compose.toString();
 
         System.out.println(subject);
-        System.out.println("^^^^^^^^^^");
         System.out.println(body);
-        System.out.println("---\n");
 
-        Mailman.createEmail(new MailProperties().setPassword(config.getNewmanMailPassword()), config.getNewmanMailUser(), config.getNewmanMailRecipients(), subject.toString(), body.toString());
+        Mailman.createHtmlEmail(new MailProperties().setPassword(config.getNewmanMailPassword()),
+                config.getNewmanMailUser(), config.getNewmanMailRecipients(), subject, body);
 
         //save latest_build for next time we wake up
         buildRef.set(latest_build);
     }
 
-    private StringBuilder prepareBody(NewmanClient newmanClient, Build latest_build, Build previous_build) throws ExecutionException, InterruptedException {
-
-        StringBuilder suiteComparison = prepareSuiteComparison(newmanClient, latest_build, previous_build);
-
-        StringBuilder body = new StringBuilder();
-        body.append(suiteComparison).append("\n");
-        body.append("latest build: ").append(latest_build.getName()).append(" ").append(latest_build.getId()).append("\n");
-        body.append("previous build: ").append(previous_build.getName()).append(" ").append(previous_build.getId());
-
-        return body;
-    }
-
-    private StringBuilder prepareSuiteComparison(NewmanClient newmanClient, Build latest_build, Build previous_build) throws ExecutionException, InterruptedException {
-        StringBuilder suiteData = new StringBuilder();
-
-        Map<String, Job> latest_mapSuite2Job = getJobsByBuildId(newmanClient, latest_build.getId());
-        Map<String, Job> previous_mapSuite2Job = getJobsByBuildId(newmanClient, previous_build.getId());
-        Set<SuiteDiff> suiteDiffMap = compare(latest_mapSuite2Job, previous_mapSuite2Job);
-
-        int positiveDiff = 0;
-        int negativeDiff = 0;
-        for (SuiteDiff diff : suiteDiffMap) {
+    private SuiteDiffSummary getDiffSummary(Set<SuiteDiff> suiteDiffs) {
+        SuiteDiffSummary summary = new SuiteDiffSummary();
+        for (SuiteDiff diff : suiteDiffs) {
             if (diff.diffFailedTests > 0) {
-                positiveDiff += diff.diffFailedTests;
+                summary.positiveDiff += diff.diffFailedTests;
             } else if (diff.diffFailedTests < 0) {
-                negativeDiff += diff.diffFailedTests;
+                summary.negativeDiff += diff.diffFailedTests;
             }
         }
-
-        if (positiveDiff != 0 || negativeDiff != 0) {
-            suiteData.append("diff ");
-            if (positiveDiff != 0) {
-                suiteData.append('(').append('+').append(positiveDiff).append('↑').append(')');
-            }
-            if (negativeDiff != 0) {
-                suiteData.append('(').append(negativeDiff).append('↓').append(')');
-            }
-            suiteData.append("\n");
-        } else {
-            suiteData.append("No diff").append("\n");
-        }
-
-        for (SuiteDiff diff : suiteDiffMap) {
-            suiteData.append(diff.suite.getName()).append(padWithSpaces(22 - diff.suite.getName().length()));
-            suiteData.append("failed: ").append(diff.failedTests);
-            int lenghtStart = suiteData.length();
-            if (diff.diffFailedTests != 0) {
-                suiteData.append(" ").append('(');
-                if (diff.diffFailedTests > 0) {
-                    suiteData.append('+').append(diff.diffFailedTests).append('↑');
-                } else {
-                    suiteData.append(diff.diffFailedTests).append('↓');
-                }
-                suiteData.append(')');
-            }
-            suiteData.append(padWithSpaces(12 - (suiteData.length() - lenghtStart)));
-            suiteData.append("total: ").append(diff.totalTests);
-            if (diff.diffTotalTests != 0) {
-                suiteData.append(" ").append('(');
-                if (diff.diffTotalTests > 0) {
-                    suiteData.append('+').append(diff.diffTotalTests).append('↑');
-                } else {
-                    suiteData.append(diff.diffTotalTests).append('↓');
-                }
-                suiteData.append(')');
-            }
-            suiteData.append("\n");
-        }
-
-        return suiteData;
+        return summary;
     }
 
     private char[] padWithSpaces(int padding) {
@@ -211,7 +172,28 @@ public class DailyReport implements org.quartz.Job{
         return map;
     }
 
-    private class SuiteDiff implements Comparable<SuiteDiff> {
+    static class SuiteDiffSummary {
+        int positiveDiff;
+        int negativeDiff;
+
+        public int getPositiveDiff() {
+            return positiveDiff;
+        }
+
+        public int getNegativeDiff() {
+            return negativeDiff;
+        }
+
+        public boolean isPositiveDiff() {
+            return positiveDiff > 0;
+        }
+
+        public boolean isNegativeDiff() {
+            return negativeDiff > 0;
+        }
+    }
+
+    static class SuiteDiff implements Comparable<SuiteDiff> {
         Suite suite;
         int failedTests;
         int diffFailedTests;
@@ -235,6 +217,46 @@ public class DailyReport implements org.quartz.Job{
 
             //never return 0 when using TreeSet
             return -1;
+        }
+
+        //
+        // reflection method used by org.antlr.stringtemplate (see .st files)
+        //
+
+        public String getSuiteName() {
+            return suite.getName();
+        }
+
+        public int getFailedTests() {
+            return failedTests;
+        }
+
+        public int getDiffFailedTests() {
+            return diffFailedTests;
+        }
+
+        public boolean isIncreasingDiffFailedTests() {
+            return diffFailedTests > 0;
+        }
+
+        public boolean isDecreasingDiffFailedTests() {
+            return diffFailedTests < 0;
+        }
+
+        public int getTotalTests() {
+            return totalTests;
+        }
+
+        public int getDiffTotalTests() {
+            return diffTotalTests;
+        }
+
+        public boolean isIncreasingDiffTotalTests() {
+            return diffTotalTests > 0;
+        }
+
+        public boolean isDecreasingDiffTotalTests() {
+            return diffTotalTests < 0;
         }
     }
 }
