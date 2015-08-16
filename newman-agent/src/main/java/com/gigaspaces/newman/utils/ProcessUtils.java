@@ -6,11 +6,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class ProcessUtils {
@@ -20,6 +18,25 @@ public class ProcessUtils {
 
     public static ProcessResult executeAndWait(Path file, Path workingFolder, Path outputPath, Map<String,String> customVariables) throws IOException, InterruptedException {
         return executeAndWait(file, Collections.emptyList(), workingFolder, outputPath, customVariables, DEFAULT_SCRIPT_TIMEOUT, false);
+    }
+
+    public static ProcessResult executeCommandAndWait(String cmd, long timeout) throws IOException, InterruptedException {
+        ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c", cmd);
+        ProcessResult result = new ProcessResult();
+        result.setStartTime(System.currentTimeMillis());
+        Process process = processBuilder.start();
+        boolean exited = process.waitFor(timeout, TimeUnit.MILLISECONDS);
+        if (exited) {
+            result.setExitCode(process.exitValue());
+        } else {
+            logger.info("ref ["+process.hashCode()+"] Destroying forcibly due to timeout ("+timeout+") ms - command " + cmd);
+            Process destroyed = process.destroyForcibly();
+            if (!destroyed.waitFor(10, TimeUnit.SECONDS)) {
+                logger.warn("ref ["+process.hashCode()+"] Failed to destroy forcibly after 10 seconds");
+            }
+        }
+        result.setEndTime(System.currentTimeMillis());
+        return result;
     }
 
     public static ProcessResult executeAndWait(Path file, Collection<String> arguments, Path workingFolder,
@@ -48,6 +65,7 @@ public class ProcessUtils {
         ProcessResult result = new ProcessResult();
         result.setStartTime(System.currentTimeMillis());
         Process process = processBuilder.start();
+        final String pid = getPidFromProcess(process);
         // consume stream from the process and print it to file/file + stdout
         InputStreamConsumer consumer = new InputStreamConsumer(process.getInputStream(), outputPath, redirectToStdout);
         consumer.start();
@@ -61,9 +79,22 @@ public class ProcessUtils {
                 logger.warn("ref ["+process.hashCode()+"] Failed to destroy forcibly after 10 seconds");
             }
         }
+        forceKillProcessTree(pid);
         result.setEndTime(System.currentTimeMillis());
-        consumer.join();
+        consumer.join(10 * 1000);
+        consumer.interrupt();
         return result;
+    }
+
+    private static void forceKillProcessTree(String pid) {
+        if (!pid.equals("Unknown") && !System.getProperty("os.name").startsWith("Windows")){
+            String cmd = "kill -9 $(ps -o pid= --ppid "+pid+")";
+            try {
+                executeCommandAndWait(cmd, 10 * 1000);
+            } catch (Exception e) {
+                logger.warn("failed to kill process tree with pid: " + pid, e);
+            }
+        }
     }
 
     public static class InputStreamConsumer extends Thread {
@@ -73,6 +104,7 @@ public class ProcessUtils {
         private final FileOutputStream fileOutputStream;
 
         public InputStreamConsumer(InputStream is, Path outputPath, boolean redirectToStdout) {
+            setName("NewmanInputStreamConsumer");
             this.is = is;
             try {
                 fileOutputStream = new FileOutputStream(outputPath.toFile());
@@ -87,13 +119,20 @@ public class ProcessUtils {
 
             try {
                 int value;
-                while ((value = is.read()) != -1) {
-                    multiOut.write(value);
+                while (!Thread.currentThread().isInterrupted())
+                {
+                    int available = is.available();
+                    if (available > 0 && (value = is.read()) != -1) {
+                        multiOut.write(value);;
+                    }
+                    else
+                        Thread.sleep(1);
                 }
             } catch (IOException exp) {
                 logger.error("failed to read/write stream from the process", exp);
-            }
-            finally {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
                 try {
                     //close only file stream to avoid closing stdout
                     fileOutputStream.close();
@@ -109,7 +148,7 @@ public class ProcessUtils {
         final Path basePath = FileUtils.append(base, "");
         final Path file = FileUtils.append(basePath, "test.sh");
         final Path output = FileUtils.append(basePath, "test.log");
-        final ProcessResult processResult = ProcessUtils.executeAndWait(file, Collections.emptyList(), basePath, output, new HashMap<>(), DEFAULT_SCRIPT_TIMEOUT, true);
+        final ProcessResult processResult = ProcessUtils.executeAndWait(file, Collections.emptyList(), basePath, output, new HashMap<>(), 10 * 1000, true);
         System.out.println("result: " + processResult);
     }
 
@@ -126,5 +165,15 @@ public class ProcessUtils {
             return Long.toString(Long.parseLong(jvmName.substring(0, index)));
         } catch (NumberFormatException ignored) {}
         return fallback;
+    }
+
+    private static String getPidFromProcess(Process p){
+        try {
+            Field f = p.getClass().getDeclaredField("pid");
+            f.setAccessible(true);
+            return f.get(p).toString();
+        } catch (Exception e) {
+            return "Unknown";
+        }
     }
 }
