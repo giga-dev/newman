@@ -35,6 +35,13 @@ public class NewmanClient {
         this.uri = uri;
     }
 
+    /**
+     * @return e.g. https://xap-newman:8443
+     */
+    public String getBaseURI() {
+        return uri.substring(0, uri.indexOf("/api/newman"));
+    }
+
     public CompletionStage<Batch<Job>> getJobs(int offset, int limit) {
         return restClient.target(uri).path("job").queryParam("offset", offset).queryParam("limit", limit).request()
                 .rx().get(new GenericType<Batch<Job>>() {

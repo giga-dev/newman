@@ -26,6 +26,9 @@ public class DailyReport implements org.quartz.Job{
 
     private static final Logger logger = LoggerFactory.getLogger(DailyReport.class);
 
+    private static final String NEWMAN_MAIL_HTML_TEMPLATE_PATH = "newman.mail.html.template.path";
+
+
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
 
@@ -54,8 +57,9 @@ public class DailyReport implements org.quartz.Job{
     }
 
     private StringTemplate createHtmlTemplate() {
+        String templatePath = System.getProperty(NEWMAN_MAIL_HTML_TEMPLATE_PATH, Paths.get(".").toAbsolutePath().normalize().toString());
         StringTemplateGroup group =  new StringTemplateGroup("group",
-                Paths.get(".").toAbsolutePath().normalize().toString(),
+                templatePath,
                 DefaultTemplateLexer.class);
 
         return group.getInstanceOf("daily_report");
@@ -79,19 +83,22 @@ public class DailyReport implements org.quartz.Job{
         Set<SuiteDiff> suiteDiffs = compare(latest_mapSuite2Job, previous_mapSuite2Job);
         SuiteDiffSummary summary = getDiffSummary(suiteDiffs);
 
+        final String buildRestUrl = newmanClient.getBaseURI()+"/#!/build/";
         htmlTemplate.setAttribute("summary", summary);
         htmlTemplate.setAttribute("diffs", suiteDiffs);
-        htmlTemplate.setAttribute("latestUrl", "https://xap-newman:8443/#!/build/" + latest_build.getId()); //TODO extract URL from newman client
+        htmlTemplate.setAttribute("latestUrl", buildRestUrl + latest_build.getId());
         htmlTemplate.setAttribute("latestBuildName", latest_build.getName());
-        htmlTemplate.setAttribute("previousUrl", "https://xap-newman:8443/#!/build/" + previous_build.getId());
+        htmlTemplate.setAttribute("previousUrl", buildRestUrl + previous_build.getId());
         htmlTemplate.setAttribute("previousBuildName", previous_build.getName());
-
+        htmlTemplate.setAttribute("latestBuildDate", latest_build.getBuildTime());
+        htmlTemplate.setAttribute("previousBuildDate", previous_build.getBuildTime());
 
         String subject = prepareSubject(latest_build);
         String body = htmlTemplate.toString();
 
-        System.out.println(subject);
-        System.out.println(body);
+        if (logger.isDebugEnabled()) {
+            logger.debug("\nSubject: {}\n\n{}", subject, body);
+        }
 
         Mailman.createHtmlEmail(new MailProperties().setPassword(config.getNewmanMailPassword()),
                 config.getNewmanMailUser(), config.getNewmanMailRecipients(), subject, body);
@@ -104,9 +111,9 @@ public class DailyReport implements org.quartz.Job{
         SuiteDiffSummary summary = new SuiteDiffSummary();
         for (SuiteDiff diff : suiteDiffs) {
             if (diff.diffFailedTests > 0) {
-                summary.positiveDiff += diff.diffFailedTests;
+                summary.totalIncreasingDiff += diff.diffFailedTests;
             } else if (diff.diffFailedTests < 0) {
-                summary.negativeDiff += diff.diffFailedTests;
+                summary.totalDecreasingDiff += diff.diffFailedTests;
             }
         }
         return summary;
@@ -170,27 +177,27 @@ public class DailyReport implements org.quartz.Job{
     }
 
     private static class SuiteDiffSummary {
-        int positiveDiff;
-        int negativeDiff;
+        int totalIncreasingDiff;
+        int totalDecreasingDiff;
 
         //
         // reflection methods used by org.antlr.stringtemplate (see daily_report.st files)
         //
 
-        public int getPositiveDiff() {
-            return positiveDiff;
+        public int getTotalIncreasingDiff() {
+            return totalIncreasingDiff;
         }
 
-        public int getNegativeDiff() {
-            return negativeDiff;
+        public int getTotalDecreasingDiff() {
+            return totalDecreasingDiff;
         }
 
-        public boolean isPositiveDiff() {
-            return positiveDiff > 0;
+        public boolean isIncreasingDiff() {
+            return totalIncreasingDiff > 0;
         }
 
-        public boolean isNegativeDiff() {
-            return negativeDiff > 0;
+        public boolean isDecreasingDiff() {
+            return totalDecreasingDiff < 0;
         }
     }
 
@@ -203,19 +210,28 @@ public class DailyReport implements org.quartz.Job{
 
         @Override
         public int compareTo(SuiteDiff o) {
-            //compare failed+diff divided by total+diff
-            double thisFailures = ((double)(failedTests+diffFailedTests))/(totalTests+diffTotalTests);
-            double otherFailures = ((double)(o.failedTests+o.diffFailedTests))/(o.totalTests+o.diffTotalTests);
 
-            int compareFailures = Double.valueOf(thisFailures).compareTo(Double.valueOf(otherFailures));
-            if (compareFailures != 0) {
-                return -1 * compareFailures;
+            int compareToResult = 0;
+
+            //compare failures as equal disregarding diffs
+            compareToResult = Integer.valueOf(failedTests).compareTo(Integer.valueOf(o.failedTests));
+            if (compareToResult != 0) {
+                return -1 * compareToResult;
             }
 
-            //if equal compare without dividing
-            int compareDiff = Integer.valueOf(failedTests+diffFailedTests).compareTo(Integer.valueOf(o.failedTests+o.diffFailedTests));
-            if (compareDiff != 0) {
-                return -1 * compareDiff;
+            //compare failures as equal disregarding number of tests in suite
+            compareToResult = Integer.valueOf(failedTests+diffFailedTests).compareTo(Integer.valueOf(o.failedTests+o.diffFailedTests));
+            if (compareToResult != 0) {
+                return -1 * compareToResult;
+            }
+
+            //compare failed+diff divided by total+diff (ratio of failures)
+            double thisFailures = Double.valueOf(failedTests+diffFailedTests).doubleValue() / Double.valueOf(totalTests+diffTotalTests).doubleValue();
+            double otherFailures = Double.valueOf(o.failedTests+o.diffFailedTests).doubleValue() / Double.valueOf(o.totalTests+o.diffTotalTests).doubleValue();
+
+            compareToResult = Double.valueOf(thisFailures).compareTo(Double.valueOf(otherFailures));
+            if (compareToResult != 0) {
+                return -1 * compareToResult;
             }
 
             //never return 0 when using TreeSet
