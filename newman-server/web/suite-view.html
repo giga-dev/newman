@@ -7,7 +7,7 @@
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
-        <core-ajax id="update" handleAs="json" method="POST" withCredentials="true"></core-ajax>
+        <core-ajax id="update" handleAs="json" method="POST" withCredentials="true" content="text/plain" headers='{"Accept": "application/json","Content-Type": "text/plain" }'></core-ajax>
         <div class="content" flex>
             <h2>Suite</h2>
             <div class="table-responsive" style="padding-top: 5px; margin-bottom: -14px">
@@ -29,7 +29,7 @@
                                 <textarea id="customvariablestextarea" style="height: 450px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.customVariables}}</textarea>
                             </td>
                             <td>
-                                <textarea id="criteriatextarea" style="height: 450px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.criteria | removeNulls | json}}</textarea>
+                                <textarea id="criteriatextarea" style="height: 450px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.displayedCriteria}}</textarea>
                             </td>
                         </tr>
                     </tbody>
@@ -74,9 +74,16 @@
             criteriaTextArea.setAttribute('readonly', '');
 
             this.suite.criteria=updatedSuiteCriteria;
+            this.$.update.url=this.url;
 
-            this.$.update.url=this.url;// + "/" + this.suite;
+            this.$.update.body=JSON.stringify(this.suite);
+//            this.$.update.url='api/newman/updatesuite';// + "/" + this.suite;
             this.$.update.go();
+
+            criteriaTextArea.value=updatedSuiteCriteria;
+        },
+        createSuiteJSON: function(){
+          return JSON.stringify( this.suite );
         },
         getSaveButton: function(){
             return this.$.savesuitebutton;

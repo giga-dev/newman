@@ -1,6 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gigaspaces.newman.beans.Agent;
 import com.gigaspaces.newman.beans.Batch;
 import com.gigaspaces.newman.beans.Build;
@@ -22,11 +23,14 @@ import com.gigaspaces.newman.dao.JobDAO;
 import com.gigaspaces.newman.dao.SuiteDAO;
 import com.gigaspaces.newman.dao.TestDAO;
 import com.gigaspaces.newman.utils.FileUtils;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.util.JSON;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
@@ -83,6 +87,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -124,10 +129,14 @@ public class NewmanResource {
     @SuppressWarnings("FieldCanBeLocal")
     private final Timer timer = new Timer(true);
 
+    private Morphia morphia;
+
     private final ConcurrentHashMap<String, Object> agentLocks = new ConcurrentHashMap<>();
 
     private static final int maxJobsPerSuite = 5;
     private final DistinctIterable distinctTestsByAssignedAgentFilter;
+
+    private final static String CRITERIA_PROP_NAME = "criteria";
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
@@ -145,7 +154,7 @@ public class NewmanResource {
             }
         };
         mongoClient = new MongoClient(config.getMongo().getHost());
-        Morphia morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
+        morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
         Datastore ds = morphia.createDatastore(mongoClient, config.getMongo().getDb());
         ds.ensureIndexes();
         ds.ensureCaps();
@@ -972,7 +981,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Build updateBuild(final @PathParam("id") String id, final Build build) {
-        logger.info( "---updateBuild()" );
+        logger.info("---updateBuild()");
         UpdateOperations<Build> updateOps = buildDAO.createUpdateOperations();
         if (build.getShas() != null) {
             updateOps.set("shas", build.getShas());
@@ -994,19 +1003,46 @@ public class NewmanResource {
     @POST
     @Path("suite/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Suite updateSuite(final @PathParam("id") String id) {
-        logger.info( "---updateBuild()" );
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Suite updateSuite( final @PathParam("id") String id, final String suiteStr ) {
+
+        logger.info("---updateSuite()");
+
+        DBObject parsedSuite = (DBObject)JSON.parse(suiteStr);
+
+        //**have to perform following changes with received json in order to make it compliant to morphia json mapper**//
+        parsedSuite.removeField("id");
+        LinkedHashMap linkedHashMap= new LinkedHashMap();
+        linkedHashMap.put( "className", Suite.class.getName() );
+        linkedHashMap.put( "_id", id );
+        linkedHashMap.putAll( parsedSuite.toMap() );
+        //****//
+
+        BasicDBObject basicDBObject = new BasicDBObject( linkedHashMap );
+        Object criteriaVal = basicDBObject.get(CRITERIA_PROP_NAME);
+        if( criteriaVal != null && criteriaVal.toString().length() > 0 ) {
+            DBObject criteriaDBObject = (DBObject) JSON.parse(criteriaVal.toString());
+            basicDBObject.put( CRITERIA_PROP_NAME, criteriaDBObject );
+            System.out.println( ">>>criteriaDBObject=" + criteriaDBObject );
+        }
+
+        Suite suite = morphia.fromDBObject(Suite.class, basicDBObject);
+
         UpdateOperations<Suite> updateOps = suiteDAO.createUpdateOperations();
-        Suite suite = new Suite();
         if( suite.getCriteria() != null) {
-            updateOps.set("criteria", suite.getCriteria());
+            updateOps.set(CRITERIA_PROP_NAME, suite.getCriteria());
+        }
+
+        if( suite.getCustomVariables() != null) {
+            updateOps.set("customVariables", suite.getCustomVariables());
         }
         Query<Suite> query = suiteDAO.createIdQuery(id);
         Suite result = suiteDAO.getDatastore().findAndModify(query, updateOps);
         if( result != null) {
             broadcastMessage(MODIFIED_SUITE, result);
         }
-        return result;
+
+        return suite;
     }
 
 
@@ -1015,7 +1051,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Build getBuild(final @PathParam("id") String id) {
         Build build = buildDAO.findOne(buildDAO.createIdQuery(id));
-        logger.info( "build=" + build );
+        logger.info("build=" + build);
         return build;
     }
 
@@ -1048,7 +1084,7 @@ public class NewmanResource {
     }
 
     private void performDeleteTestsLogs( String jobId ) {
-        java.nio.file.Path path = Paths.get( SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId );
+        java.nio.file.Path path = Paths.get(SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId);
         try {
             FileUtils.delete( path );
             logger.info( "Log file {} was deleted", path );
@@ -1176,7 +1212,23 @@ public class NewmanResource {
     @Path("suite/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Suite getSuite(final @PathParam("id") String id) {
-        return suiteDAO.findOne(suiteDAO.createIdQuery(id));
+        Suite suite = suiteDAO.findOne(suiteDAO.createIdQuery(id));
+        String displayedCriteriaJson = "";
+        if( suite.getCriteria() != null ){
+            DBObject dbObject = morphia.toDBObject(suite.getCriteria());
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                displayedCriteriaJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString( dbObject );
+            }
+            catch (JsonProcessingException e) {
+                logger.error( e.toString(), e );
+                displayedCriteriaJson = dbObject.toString();
+            }
+        }
+
+        suite.setDisplayedCriteria( displayedCriteriaJson );
+
+        return suite;
     }
 
     @GET

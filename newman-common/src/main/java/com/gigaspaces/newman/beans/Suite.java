@@ -5,6 +5,7 @@ import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Transient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +29,9 @@ public class Suite {
 
     @Embedded
     private Criteria criteria;
+
+    @Transient
+    private String displayedCriteria;
 
     public Suite() {
     }
@@ -82,5 +86,13 @@ public class Suite {
                 .append("custom environment variables", customVariables)
                 .append("criteria", criteria)
                 .toString();
+    }
+
+    public String getDisplayedCriteria() {
+        return displayedCriteria;
+    }
+
+    public void setDisplayedCriteria(String displayedCriteria) {
+        this.displayedCriteria = displayedCriteria;
     }
 }
