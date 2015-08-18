@@ -19,6 +19,8 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
+
 /**
  * Created by moran on 8/13/15.
  */
@@ -27,6 +29,8 @@ public class DailyReport implements org.quartz.Job{
     private static final Logger logger = LoggerFactory.getLogger(DailyReport.class);
 
     private static final String NEWMAN_MAIL_HTML_TEMPLATE_PATH = "newman.mail.html.template.path";
+
+    private static final String NEWMAN_MAIL_PREVIOUS_BUILD_ID = "newman.mail.previous.build.id";
 
 
     @Override
@@ -57,7 +61,8 @@ public class DailyReport implements org.quartz.Job{
     }
 
     private StringTemplate createHtmlTemplate() {
-        String templatePath = System.getProperty(NEWMAN_MAIL_HTML_TEMPLATE_PATH, Paths.get(".").toAbsolutePath().normalize().toString());
+        String currentDirPath = Paths.get(".").toAbsolutePath().normalize().toString();
+        String templatePath = getNonEmptySystemProperty(NEWMAN_MAIL_HTML_TEMPLATE_PATH, currentDirPath);
         StringTemplateGroup group =  new StringTemplateGroup("group",
                 templatePath,
                 DefaultTemplateLexer.class);
@@ -76,7 +81,12 @@ public class DailyReport implements org.quartz.Job{
         }
 
         Build latest_build = historyBuilds.get(0);
-        Build previous_build = getPreviousBuild(historyBuilds, buildRef.get(), latest_build);
+        Build previous_build = getPreviousBuild(historyBuilds, buildRef.get(), latest_build, newmanClient);
+
+        if (!latest_build.getBranch().equals(previous_build.getBranch())) {
+            logger.info("Latest build branch doesn't match previous build branch");
+            return;
+        }
 
         Map<String, Job> latest_mapSuite2Job = getJobsByBuildId(newmanClient, latest_build.getId());
         Map<String, Job> previous_mapSuite2Job = getJobsByBuildId(newmanClient, previous_build.getId());
@@ -152,7 +162,15 @@ public class DailyReport implements org.quartz.Job{
         return suiteDiff;
     }
 
-    private Build getPreviousBuild(List<Build> historyBuilds, Build previous_build, Build latest_build) {
+    private Build getPreviousBuild(List<Build> historyBuilds, Build previous_build, Build latest_build, NewmanClient newmanClient) throws ExecutionException, InterruptedException {
+        //check sys prop for previous assigned build id
+        if (previous_build == null) {
+            String previousBuildId = getNonEmptySystemProperty(NEWMAN_MAIL_PREVIOUS_BUILD_ID, null);
+            if (previousBuildId != null) {
+                previous_build = newmanClient.getBuild(previousBuildId).toCompletableFuture().get();
+            }
+        }
+
         if (previous_build != null) {
             return previous_build;
         } else if (historyBuilds.size() > 1) {
