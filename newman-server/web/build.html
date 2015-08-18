@@ -71,6 +71,7 @@
                 this.shasKeys = [];
             },
             ajaxResponse: function(event,resp){
+                this.shasKeys = [];
                 if(resp.response){
                     this.build = resp.response;
                     this.shasMap = this.build.shas;
