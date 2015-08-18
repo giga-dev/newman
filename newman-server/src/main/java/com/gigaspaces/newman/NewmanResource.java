@@ -1032,7 +1032,6 @@ public class NewmanResource {
         if( suite.getCriteria() != null) {
             updateOps.set(CRITERIA_PROP_NAME, suite.getCriteria());
         }
-
         if( suite.getCustomVariables() != null) {
             updateOps.set("customVariables", suite.getCustomVariables());
         }

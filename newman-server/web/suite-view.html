@@ -61,6 +61,9 @@
 
             var criteriaTextArea = this.getCriteriaTextArea();
             criteriaTextArea.removeAttribute('readonly');
+
+            var customVariablesTextArea = this.getCustomVariablesTextArea();
+            customVariablesTextArea.removeAttribute('readonly');
         },
         saveSuite: function(event,resp){
             var saveButton = this.getSaveButton();
@@ -68,12 +71,18 @@
             saveButton.classList.add('disabled')
             editButton.classList.remove('disabled')
             var criteriaTextArea = this.getCriteriaTextArea();
+            var customVariablesTextArea = this.getCustomVariablesTextArea();
 
             var updatedSuiteCriteria = criteriaTextArea.value;
             console.info( '>>> save, updatedSuiteCriteria=', updatedSuiteCriteria );
             criteriaTextArea.setAttribute('readonly', '');
 
+            var updatedSuiteCustomVariables = customVariablesTextArea.value;
+            console.info( '>>> save, updatedSuiteCustomVariables=', updatedSuiteCustomVariables );
+            customVariablesTextArea.setAttribute('readonly', '');
+
             this.suite.criteria=updatedSuiteCriteria;
+            this.suite.customVariables=updatedSuiteCustomVariables;
             this.$.update.url=this.url;
 
             this.$.update.body=JSON.stringify(this.suite);
@@ -93,6 +102,9 @@
         },
         getCriteriaTextArea: function(){
             return this.$.criteriatextarea;
+        },
+        getCustomVariablesTextArea: function(){
+            return this.$.customvariablestextarea;
         },
         activeChanged: function(oldValue, newValue){
            console.info("suite-view activeChanged to ", newValue);
