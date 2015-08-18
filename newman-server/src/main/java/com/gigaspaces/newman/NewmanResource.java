@@ -1205,8 +1205,6 @@ public class NewmanResource {
         return suite;
     }
 
-
-
     @GET
     @Path("suite/{id}")
     @Produces(MediaType.APPLICATION_JSON)

@@ -106,3 +106,9 @@ body{
 .visible{
     visibility: visible;
 }
+.word-wrap-table{
+    table-layout:fixed;
+}
+.word-wrap-td{
+    word-wrap:break-word;
+}

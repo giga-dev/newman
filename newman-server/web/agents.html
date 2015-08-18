@@ -9,7 +9,6 @@
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
 
-
         <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
         <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}" withCredentials="true"></core-ajax>
 
@@ -58,7 +57,7 @@
                             </td>
                             <td>{{item.lastTouchTime | formatDate}}</td>
                             <td>
-                                <button class="btn btn-success" on-click="{{toggleDropAgentConfirmationDialog}}" class="btn btn-danger" data-agent-id="{{item.id}}" data-agent-name="{{item.name}}">
+                                <button class="btn btn-danger" on-click="{{toggleDropAgentConfirmationDialog}}" data-agent-id="{{item.id}}" data-agent-name="{{item.name}}">
                                     <span class="glyphicon glyphicon glyphicon-remove"></span>
                                 </button>
                             </td>

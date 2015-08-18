@@ -2,26 +2,31 @@
 
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
+<link rel="import" href="../components/paper-button/paper-button.html">
+<link rel="import" href="../components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../components/paper-input/paper-input.html">
 
 
 <polymer-element name="suites-view" attributes="url active" active on-created-suite="{{onCreatedSuite}}" on-modified-suite="{{onModifiedSuite}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
-        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
-                   withCredentials="true"></core-ajax>
+        <link rel="stylesheet" href="app.css">
+        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
+        <core-ajax id="copy" handleAs="json" method="POST" withCredentials="true" content="application/json" headers='{"Accept": "application/json","Content-Type": "application/json" }'></core-ajax>
         <div class="content" flex>
             <h2>Suites</h2>
             <form class="form-inline">
                 <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Suite name filter" class="form-control">
             </form>
             <div class="table-responsive">
-                <table class="table table-hover table-striped table-bordered table-condensed">
+                <table class="table table-hover table-striped table-bordered table-condensed word-wrap-table">
                     <thead>
                     <tr>
-                        <th width="18%">Name</th>
-                        <th width="18%">Id</th>
-                        <th width="24%">Custom variables</th>
-                        <th width="40%">Criteria</th>
+                        <th width="15%">Name</th>
+                        <th width="15%">Id</th>
+                        <th width="26%">Custom variables</th>
+                        <th width="39%">Criteria</th>
+                        <th width="5%">Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -29,13 +34,25 @@
                         <tr>
                             <td><a href="{{urlFor('suite', {id: item.id})}}">{{item.name}}</a></td>
                             <td><a href="{{urlFor('suite', {id: item.id})}}">{{item.id}}</a></td>
-                            <td>{{item.customVariables}}</td>
+                            <td class="word-wrap-td">{{item.customVariables}}</td>
                             <td><pre><code>{{item.criteria | removeNulls | json}}</code></pre></td>
+                            <td>
+                                <button data-toggle="tooltip" data-placement="left" title="Copy {{item.name}}" class="btn btn-success" on-click="{{toggleDropAgentConfirmationDialog}}" suite-id="{{item.id}}" suite-name="{{item.name}}">
+                                    <span class="glyphicon glyphicon-copy"></span>
+                                </button>
+                            </td>
                         </tr>
                     </template>
                     </tbody>
                 </table>
             </div>
+
+            <paper-action-dialog backdrop autoCloseDisabled  id="confirmdialogcopysuite" heading="Copy suite [{{selectedSuiteName}}] configuration?" transition="paper-dialog-transition-bottom" style="position: fixed; outline: none; display: none;">
+                <p>Duplicated Suite name:</p><paper-input id="copysuitename" label="Suite name" value="{{selectedSuiteNameForDialog}}"></paper-input>
+                <paper-button affirmative raised class="colored" on-click="{{copySuite}}">OK</paper-button>
+                <paper-button raised affirmative default>Cancel</paper-button>
+            </paper-action-dialog>
+
         </div>
     </template>
     <script src="../components/moment/moment.js"></script>
@@ -47,6 +64,10 @@
       allValues: [],
       byId : {},
       filter: null,
+      selectedSuite : null,
+      selectedSuiteId : '',
+      selectedSuiteName: '',
+      selectedSuiteNameForDialog: '',
 
       ajaxResponse: function(event,resp){
           this.allValues = resp.response.values;
@@ -90,11 +111,24 @@
             else{
                 return values;
             }
+        },
+        toggleDropAgentConfirmationDialog: function(event, detail,target) {
+            this.selectedSuiteId = target.attributes['suite-id'].textContent;
+            this.selectedSuiteName = target.attributes['suite-name'].textContent;
+            this.selectedSuite = this.byId[this.selectedSuiteId];
+            this.selectedSuiteNameForDialog = 'Copy of ' + target.attributes['suite-name'].textContent;
+            this.$.confirmdialogcopysuite.toggle();
+            this.$.copysuitename.focus();
+        },
+        copySuite: function(event, detail,target){
+            this.$.copy.url= 'api/newman/suite';
+            var newsuitename = this.$.copysuitename.value;
+            this.selectedSuite.name = newsuitename;
+            this.selectedSuite.id = null;
+            this.$.copy.body=JSON.stringify(this.selectedSuite);
+            this.$.copy.go();
         }
     });
-
-
-
 
     </script>
 </polymer-element>
