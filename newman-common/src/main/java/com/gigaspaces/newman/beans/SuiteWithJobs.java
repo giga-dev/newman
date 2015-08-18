@@ -15,6 +15,8 @@ public class SuiteWithJobs {
     @Id
     private String id;
 
+    private Suite suite;
+
     private String name;
 
     private List<Job> jobs = new ArrayList<Job>();
@@ -27,6 +29,7 @@ public class SuiteWithJobs {
     }
 
     public SuiteWithJobs(Suite suite, List<Job> jobsList) {
+        this.suite = suite;
         this.jobs = jobsList;
         setId( suite.getId() );
         setName( suite.getName() );
@@ -54,6 +57,14 @@ public class SuiteWithJobs {
 
     public void setJobs(List<Job> jobs) {
         this.jobs = jobs;
+    }
+
+    public Suite getSuite() {
+        return suite;
+    }
+
+    public void setSuite(Suite suite) {
+        this.suite = suite;
     }
 
     @Override

@@ -1038,7 +1038,7 @@ public class NewmanResource {
         Query<Suite> query = suiteDAO.createIdQuery(id);
         Suite result = suiteDAO.getDatastore().findAndModify(query, updateOps);
         if( result != null) {
-            broadcastMessage(MODIFIED_SUITE, result);
+            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( result ));
         }
 
         return suite;

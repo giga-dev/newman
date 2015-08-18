@@ -143,7 +143,6 @@
                 this.runFilter();
             },
             onModifiedSuite:function(ev, suiteWithJob){
-                var suite = suiteWithJob.suite;
                 var found = this.byId[suiteWithJob.id];
                 if(!found){
                     this.allValues.push(suiteWithJob);

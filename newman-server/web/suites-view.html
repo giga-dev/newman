@@ -3,7 +3,8 @@
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
-<polymer-element name="suites-view" attributes="url active" active>
+
+<polymer-element name="suites-view" attributes="url active" active on-created-suite="{{onCreatedSuite}}" on-modified-suite="{{onModifiedSuite}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
@@ -44,10 +45,15 @@
       applyAuthorStyles: true,
       data: [],
       allValues: [],
+      byId : {},
       filter: null,
 
       ajaxResponse: function(event,resp){
           this.allValues = resp.response.values;
+          var that = this;
+          this.allValues.forEach(function(suite){
+              that.byId[suite.id] = suite;
+          });
           this.runFilter();
       },
       activeChanged: function(oldValue, newValue){
@@ -56,6 +62,22 @@
 
         runFilter: function(){
             this.data  = this.applyFilter(this.filter, this.allValues);
+        },
+        onCreatedSuite: function(ev, suiteWithJob){
+            this.byId[suiteWithJob.id] = suiteWithJob.suite;
+            this.allValues.unshift(suiteWithJob.suite);
+            this.runFilter();
+        },
+        onModifiedSuite:function(ev, suiteWithJob){
+            var suite = suiteWithJob.suite;
+            var found = this.byId[suiteWithJob.id];
+            if(!found){
+                this.allValues.push(suite);
+                this.runFilter();
+            }
+            else{
+                window.app.update(suite, found);
+            }
         },
 
         applyFilter: function(filter, values){

@@ -16,7 +16,7 @@
 
 
     var event_mapping = {
-        'created-suite' : "suites-dashboard",
+        'created-suite' : "suites-dashboard, suites-view",
         'modified-agent' : "agent-table",
         'modified-job' : "jobs-table, job-info, dashboard-view",
         'created-job' : "jobs-table",
@@ -24,7 +24,7 @@
         'modified-test' : "tests-table",
         'modified-build' : "dashboard-view",
         'created-build' : "dashboard-view",
-        'modified-suite' : "suites-dashboard"
+        'modified-suite' : "suites-dashboard, suites-view"
     };
     Polymer('sse-sender', {
       ready: function(){
