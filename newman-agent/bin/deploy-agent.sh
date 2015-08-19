@@ -4,7 +4,7 @@ HOSTS_TO_DEPLOY_FILE=$1
 AGENT_FOLDER="/home/xap/newman-agent"
 echo "killing all old agents"
 for dest in $(<${HOSTS_TO_DEPLOY_FILE}); do
-  sshpass -p 'password' ssh ${dest} '/home/xap/newman-agent/stop-newman-agent.sh && pkill java'
+  sshpass -p 'password' ssh ${dest} '/home/xap/newman-agent/stop-newman-agent.sh && pkill -9 java'
 done
 echo "deploying new agent jar"
 for dest in $(<${HOSTS_TO_DEPLOY_FILE}); do

@@ -70,7 +70,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("SGTest-Jetty9");
+            suite.setName("jetty9");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1,JETTY_VERSION=9");
             String testType = "sgtest";
 
@@ -99,7 +99,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("regression-tgrid");
+            suite.setName("xap-core");
             suite.setCustomVariables("SUITE_TYPE=tgrid,JAVA_VERSION=8");
             String testType = "tgrid";
             Criteria criteria = CriteriaBuilder.join(
@@ -109,12 +109,14 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.oneway_replication.OnewayMultithreaded"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.multicast"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.tg"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress.map"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.async.AsyncExtensionTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.zetascale"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.disableoffheap"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.mapdb")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.mapdb"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.dcache.Extends"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest")
                     )
             );
             suite.setCriteria(criteria);
@@ -131,7 +133,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("SGTest-WAN");
+            suite.setName("wan");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(
@@ -155,7 +157,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("SGTest-DISCONNECT");
+            suite.setName("disconnect");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(
@@ -178,7 +180,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("SGTest-SECURITY");
+            suite.setName("security");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(
@@ -203,7 +205,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("SGTest-ESM");
+            suite.setName("elastic-service-manager");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(
@@ -228,7 +230,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("Service Grid");
+            suite.setName("service-grid");
             suite.setCustomVariables("SUITE_TYPE=sgtest,THREADS_LIMIT=1,CUSTOM_SETUP_TIMEOUT=1800000");
             Criteria criteria = CriteriaBuilder.join(TestCriteria.createCriteriaByTestType("sgtest"),
                     exclude(PatternCriteria.containsCriteria(".cloudify."),
@@ -273,7 +275,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("regression-tgrid-mapdb");
+            suite.setName("map-db");
             suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=false -Dblobstore.entriespercentage=0 -Dcom.gigaspaces.quality.tf.mapdb-blobstore.enabled=true");
             String testType = "tgrid";
             String mapdbExcludePermutationFile = "file:///home/boris/dev/sources/git/xap/tests/sanity/mapdb_excluded_permutations.txt";
@@ -284,11 +286,13 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.oneway_replication.OnewayMultithreaded"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.multicast"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.tg"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress.map"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.async.AsyncExtensionTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.zetascale"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.disableoffheap"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.dcache.Extends"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest")
                     ),
                     CriteriaBuilder.exclude(getTestCriteriasFromPermutationURI(mapdbExcludePermutationFile))
             );
@@ -306,7 +310,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("regression-tgrid-offheap");
+            suite.setName("off-heap");
             suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dcom.gs.OffHeapData=true -Dcom.gs.OffHeapDataNewInterface=true -Dcom.gs.DirectPersistencyLastPrimaryStatePath=./output/lastprimary.properties");
             String testType = "tgrid";
             Criteria criteria = CriteriaBuilder.join(
@@ -316,7 +320,7 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.oneway_replication.OnewayMultithreaded"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.multicast"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.tg"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress.map"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.async.AsyncExtensionTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.zetascale"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.mapdb"),
@@ -378,7 +382,9 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.cleanup.MemoryCleanupAfterShutdown"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.zetascale"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.clear_by_id.ClearByIdsExceptionTest"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.indexing.IllegalIndexValueChangeTest")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.indexing.IllegalIndexValueChangeTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.dcache.Extends"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest")
                     )
             );
             suite.setCriteria(criteria);
@@ -395,7 +401,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("httpsession");
+            suite.setName("http-session");
             suite.setCustomVariables("SUITE_TYPE=httpsession,JAVA_VERSION=7");
             String testType = "httpsession";
             Criteria criteria = CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType));
