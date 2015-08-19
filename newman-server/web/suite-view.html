@@ -6,7 +6,7 @@
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
-        <core-ajax id="update" handleAs="json" method="POST" withCredentials="true" content="text/plain" headers='{"Accept": "application/json","Content-Type": "text/plain" }'></core-ajax>
+        <core-ajax id="update" handleAs="json" method="POST" withCredentials="true" content="application/json" headers='{"Accept": "application/json","Content-Type": "application/json" }'></core-ajax>
         <div class="content" flex>
             <h2>Suite</h2>
             <div class="table-responsive" style="padding-top: 5px; margin-bottom: -14px">
@@ -28,7 +28,17 @@
                                 <textarea id="customvariablestextarea" style="height: 450px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.customVariables}}</textarea>
                             </td>
                             <td>
-                                <textarea id="criteriatextarea" style="height: 450px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.displayedCriteria}}</textarea>
+<!--
+                                <textarea id="suitecrieria">
+                                    {{suite.criteria | removeNulls | json}}
+                                </textarea>
+-->
+<!--                                <pre>
+                                <code id="suitecrieria">
+                                    {{suite.criteria | removeNulls | json}}
+                                </code>
+                                    </pre>-->
+                                <textarea id="criteriatextarea" style="height: 450px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.criteria | removeNulls | json}}</textarea>
                             </td>
                         </tr>
                     </tbody>
@@ -73,22 +83,17 @@
             var customVariablesTextArea = this.getCustomVariablesTextArea();
 
             var updatedSuiteCriteria = criteriaTextArea.value;
-            console.info( '>>> save, updatedSuiteCriteria=', updatedSuiteCriteria );
             criteriaTextArea.setAttribute('readonly', '');
 
             var updatedSuiteCustomVariables = customVariablesTextArea.value;
-            console.info( '>>> save, updatedSuiteCustomVariables=', updatedSuiteCustomVariables );
             customVariablesTextArea.setAttribute('readonly', '');
 
-            this.suite.criteria=updatedSuiteCriteria;
+            this.suite.displayedCriteria=updatedSuiteCriteria;
             this.suite.customVariables=updatedSuiteCustomVariables;
             this.$.update.url=this.url;
 
             this.$.update.body=JSON.stringify(this.suite);
-//            this.$.update.url='api/newman/updatesuite';// + "/" + this.suite;
             this.$.update.go();
-
-            criteriaTextArea.value=updatedSuiteCriteria;
         },
         createSuiteJSON: function(){
           return JSON.stringify( this.suite );

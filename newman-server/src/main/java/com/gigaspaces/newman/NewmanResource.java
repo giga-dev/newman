@@ -2,18 +2,33 @@ package com.gigaspaces.newman;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.beans.Agent;
+import com.gigaspaces.newman.beans.Batch;
+import com.gigaspaces.newman.beans.Build;
+import com.gigaspaces.newman.beans.BuildStatus;
+import com.gigaspaces.newman.beans.BuildWithJobs;
+import com.gigaspaces.newman.beans.DashboardData;
+import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.beans.JobRequest;
+import com.gigaspaces.newman.beans.State;
+import com.gigaspaces.newman.beans.Suite;
+import com.gigaspaces.newman.beans.SuiteWithJobs;
+import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.beans.TestHistoryItem;
+import com.gigaspaces.newman.beans.UserPrefs;
+import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.config.Config;
-import com.gigaspaces.newman.dao.*;
+import com.gigaspaces.newman.dao.AgentDAO;
+import com.gigaspaces.newman.dao.BuildDAO;
+import com.gigaspaces.newman.dao.JobDAO;
+import com.gigaspaces.newman.dao.SuiteDAO;
+import com.gigaspaces.newman.dao.TestDAO;
 import com.gigaspaces.newman.utils.FileUtils;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.mongodb.util.JSON;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
@@ -37,15 +52,44 @@ import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
-import javax.ws.rs.*;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.*;
-import java.io.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -957,42 +1001,32 @@ public class NewmanResource {
     @POST
     @Path("suite/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.TEXT_PLAIN)
-    public Suite updateSuite(final @PathParam("id") String id, final String suiteStr) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Suite updateSuite( final @PathParam("id") String id, final Suite suite ) {
 
         logger.info("---updateSuite()");
 
-        DBObject parsedSuite = (DBObject) JSON.parse(suiteStr);
-
-        //**have to perform following changes with received json in order to make it compliant to morphia json mapper**//
-        parsedSuite.removeField("id");
-        LinkedHashMap linkedHashMap = new LinkedHashMap();
-        linkedHashMap.put("className", Suite.class.getName());
-        linkedHashMap.put("_id", id);
-        linkedHashMap.putAll(parsedSuite.toMap());
-        //****//
-
-        BasicDBObject basicDBObject = new BasicDBObject(linkedHashMap);
-        Object criteriaVal = basicDBObject.get(CRITERIA_PROP_NAME);
-        if (criteriaVal != null && criteriaVal.toString().length() > 0) {
-            DBObject criteriaDBObject = (DBObject) JSON.parse(criteriaVal.toString());
-            basicDBObject.put(CRITERIA_PROP_NAME, criteriaDBObject);
-            System.out.println(">>>criteriaDBObject=" + criteriaDBObject);
+        if( suite.getDisplayedCriteria() != null ) {
+            try {
+                Criteria criteria = new ObjectMapper().readValue(suite.getDisplayedCriteria(), Criteria.class);
+                suite.setCriteria( criteria );
+            }
+            catch (IOException e) {
+                logger.error( e.toString(), e );
+            }
         }
-
-        Suite suite = morphia.fromDBObject(Suite.class, basicDBObject);
 
         UpdateOperations<Suite> updateOps = suiteDAO.createUpdateOperations();
-        if (suite.getCriteria() != null) {
+        if( suite.getCriteria() != null) {
             updateOps.set(CRITERIA_PROP_NAME, suite.getCriteria());
         }
-        if (suite.getCustomVariables() != null) {
+        if( suite.getCustomVariables() != null) {
             updateOps.set("customVariables", suite.getCustomVariables());
         }
         Query<Suite> query = suiteDAO.createIdQuery(id);
         Suite result = suiteDAO.getDatastore().findAndModify(query, updateOps);
-        if (result != null) {
-            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(result));
+        if( result != null) {
+            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( result ));
         }
 
         return suite;
@@ -1162,20 +1196,6 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Suite getSuite(final @PathParam("id") String id) {
         Suite suite = suiteDAO.findOne(suiteDAO.createIdQuery(id));
-        String displayedCriteriaJson = "";
-        if (suite.getCriteria() != null) {
-            DBObject dbObject = morphia.toDBObject(suite.getCriteria());
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                displayedCriteriaJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(dbObject);
-            } catch (JsonProcessingException e) {
-                logger.error(e.toString(), e);
-                displayedCriteriaJson = dbObject.toString();
-            }
-        }
-
-        suite.setDisplayedCriteria(displayedCriteriaJson);
-
         return suite;
     }
 
