@@ -3,6 +3,8 @@ package com.gigaspaces.newman.beans;
 import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.utils.IndexDirection;
 
 import java.net.URI;
 import java.util.*;
@@ -15,8 +17,10 @@ import java.util.*;
 public class Build {
     @Id
     private String id;
+    @Indexed(value= IndexDirection.ASC, unique=false)
     private String name;
     private Map<String, String> shas;
+    @Indexed(value= IndexDirection.ASC, unique=false)
     private String branch;
     private Collection<URI> resources;
     private Collection<URI> testsMetadata; //JSON metadata of the tests

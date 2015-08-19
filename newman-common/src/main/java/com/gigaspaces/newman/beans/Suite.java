@@ -2,10 +2,8 @@ package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.utils.ToStringBuilder;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Transient;
+import org.mongodb.morphia.annotations.*;
+import org.mongodb.morphia.utils.IndexDirection;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,8 +21,10 @@ public class Suite {
     @Id
     private String id;
 
+    @Indexed(value= IndexDirection.ASC, unique=false)
     private String name;
 
+    @Indexed(value= IndexDirection.ASC, unique=false)
     private String customVariables; //key=value separated by comma, e.g SUITE_TYPE=tgrid,SUPPORT_SGTEST=sgtest
 
     @Embedded

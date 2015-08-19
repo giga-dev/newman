@@ -3,6 +3,7 @@ package com.gigaspaces.newman.beans;
 import com.gigaspaces.newman.utils.StringUtils;
 import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.*;
+import org.mongodb.morphia.utils.IndexDirection;
 
 import java.util.*;
 
@@ -16,7 +17,9 @@ public class Test {
 
     @Id
     private String id;
+    @Indexed(value= IndexDirection.ASC, unique=false)
     private String jobId;
+    @Indexed(value= IndexDirection.ASC, unique=false)
     private String name;
     private List<String> arguments;
     private String testType;

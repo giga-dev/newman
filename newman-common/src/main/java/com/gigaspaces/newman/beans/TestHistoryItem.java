@@ -1,7 +1,8 @@
 package com.gigaspaces.newman.beans;
 
 /**
- * Created by evgenyf on 7/6/2015.
+ * Created by evgenyf
+ * on 7/6/2015.
  */
 public class TestHistoryItem {
 

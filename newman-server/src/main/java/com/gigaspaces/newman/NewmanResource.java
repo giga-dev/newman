@@ -1238,8 +1238,6 @@ public class NewmanResource {
             TestHistoryItem testHistoryItem = createTestHistoryItem(test);
             testHistoryItemsList.add(testHistoryItem);
         }
-
-        logger.info("--- getTests() END ---");
         return Response.ok(Entity.json(testHistoryItemsList)).build();
     }
 
