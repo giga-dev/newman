@@ -1,4 +1,3 @@
-<script src="../components/webcomponentsjs/webcomponents.js"></script>
 <link rel="import" href="../components/core-icons/core-icons.html">
 <link rel="import" href="../components/core-toolbar/core-toolbar.html">
 <link rel="import" href="../components/core-header-panel/core-header-panel.html">
@@ -158,7 +157,7 @@
         this.heading = "Hello " + this.user.userName;
       },
       activeChanged: function(oldValue, newValue){
-          console.info("build view activeChanged to ", newValue);
+          //console.info("build view activeChanged to ", newValue);
       },
       logSizeResponse: function(event, resp){
           this.logsDiskUsage = "Logs size: " + window.app.humanFileSize(resp.response, false);

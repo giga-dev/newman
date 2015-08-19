@@ -1,4 +1,3 @@
-<script src="../components/webcomponentsjs/webcomponents.js"></script>
 
 <link rel="import" href="routes.html">
 <link rel="import" href="newman-switch.html">
@@ -211,7 +210,6 @@
                 actives[build.id] = build;
                 if( that.data.activeJobs != null ){
                     var activeBuildJobsList =  that.data.activeJobs[ build.id ];
-                    console.info( '~~~~~, ajaxResponse, within if, build id', build.id, ', active jobs list=', activeBuildJobsList );
                     if( activeBuildJobsList != null ){
                         activeBuildJobsList.forEach(function(activeJob){
                             that.activeJobs[activeJob.id] = activeJob;
@@ -373,7 +371,7 @@
             }
         },
         activeChanged: function(oldValue, newValue){
-            console.info("dashboard activeChanged to ", newValue);
+            //console.info("dashboard activeChanged to ", newValue);
         },
         getDuration: function(item) {
 

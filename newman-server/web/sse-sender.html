@@ -1,4 +1,3 @@
-<script src="../components/webcomponentsjs/webcomponents.js"></script>
 <link rel="import" href="tests.html">
 <link rel="import" href="test.html">
 <link rel="import" href="jobs.html">
@@ -44,19 +43,19 @@
 
                 // When the socket has been open, let's cleanup the UI.
                 source.onopen = function () {
-                    console.info("sse opened");
+                  //  console.info("sse opened");
                 };
 
                 source.onclose = function(){
-                    console.info("sse closed");
+                    // console.info("sse closed");
                 };
 
                 source.onerror = function(){
-                    console.info("sse onerror", arguments);
+                    // console.info("sse onerror", arguments);
                 };
 
                 source.onmessage = function(e){
-                    console.info("sse onmessage", e);
+                    // console.info("sse onmessage", e);
                 }
                 function handler(e){
                     var type = e.type;
