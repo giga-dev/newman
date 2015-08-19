@@ -2,26 +2,9 @@ package com.gigaspaces.newman;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gigaspaces.newman.beans.Agent;
-import com.gigaspaces.newman.beans.Batch;
-import com.gigaspaces.newman.beans.Build;
-import com.gigaspaces.newman.beans.BuildStatus;
-import com.gigaspaces.newman.beans.BuildWithJobs;
-import com.gigaspaces.newman.beans.DashboardData;
-import com.gigaspaces.newman.beans.Job;
-import com.gigaspaces.newman.beans.JobRequest;
-import com.gigaspaces.newman.beans.State;
-import com.gigaspaces.newman.beans.Suite;
-import com.gigaspaces.newman.beans.SuiteWithJobs;
-import com.gigaspaces.newman.beans.Test;
-import com.gigaspaces.newman.beans.TestHistoryItem;
-import com.gigaspaces.newman.beans.UserPrefs;
+import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.config.Config;
-import com.gigaspaces.newman.dao.AgentDAO;
-import com.gigaspaces.newman.dao.BuildDAO;
-import com.gigaspaces.newman.dao.JobDAO;
-import com.gigaspaces.newman.dao.SuiteDAO;
-import com.gigaspaces.newman.dao.TestDAO;
+import com.gigaspaces.newman.dao.*;
 import com.gigaspaces.newman.utils.FileUtils;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -54,45 +37,15 @@ import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.ws.rs.core.*;
+import java.io.*;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -213,16 +166,16 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Job getJob(@PathParam("id") final String id) {
 
-        Job job = jobDAO.findOne( jobDAO.createQuery().field( "_id" ).equal( new ObjectId(id) ) );
-        if( job != null ){
+        Job job = jobDAO.findOne(jobDAO.createQuery().field("_id").equal(new ObjectId(id)));
+        if (job != null) {
             Bson jobIdFilter = Filters.eq("jobId", id);
             long filterTestsStart = System.currentTimeMillis();
             DistinctIterable assignedAgents = distinctTestsByAssignedAgentFilter.filter(jobIdFilter);
-            Set<String> agents = (Set)assignedAgents.into( new HashSet<>() );
-            job.setAgents( agents );
+            Set<String> agents = (Set) assignedAgents.into(new HashSet<>());
+            job.setAgents(agents);
             long filterTestsEnd = System.currentTimeMillis();
 
-            logger.info( "distinct filter by job id took {} msec.", ( filterTestsEnd - filterTestsStart ) );
+            logger.info("distinct filter by job id took {} msec.", (filterTestsEnd - filterTestsStart));
         }
 
         return job;
@@ -289,13 +242,13 @@ public class NewmanResource {
                 broadcastMessage(MODIFIED_JOB, job);
 
                 //change status of Test(s) from running to pending
-                if( state == State.READY ){
+                if (state == State.READY) {
                     Query<Test> query = testDAO.createQuery();
                     query.and(query.criteria("jobId").equal(id), query.criteria("status").equal(Test.Status.RUNNING));
                     UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("status", Test.Status.PENDING);
 
                     UpdateResults update = testDAO.getDatastore().update(query, updateOps);
-                    logger.info( "---ToggleJobPause, state is READY, affected count:" + update.getUpdatedCount() );
+                    logger.info("---ToggleJobPause, state is READY, affected count:" + update.getUpdatedCount());
                 }
 //                broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( job.getSuite() ) );
                 return job;
@@ -334,7 +287,7 @@ public class NewmanResource {
 
         Map<String, List<Job>> activeJobsMap = createActiveJobsMap(activeBuilds);
 
-        return new DashboardData( activeBuilds, pendingBuilds, historyBuilds, activeJobsMap );
+        return new DashboardData(activeBuilds, pendingBuilds, historyBuilds, activeJobsMap);
     }
 
     @GET
@@ -378,9 +331,9 @@ public class NewmanResource {
     @POST
     @Path("freeAgent/{agentName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Agent freeAgent(@PathParam("agentName")final String agentName) {
+    public Agent freeAgent(@PathParam("agentName") final String agentName) {
         Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agentName));
-        if (agent != null){
+        if (agent != null) {
             returnTests(agent);
             handleZombieAgent(agent);
         }
@@ -529,7 +482,7 @@ public class NewmanResource {
     }
 
     private void handleLogFile(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
-        String filePath = calculateTestLogFilePath( jobId, testId ) + fileName;
+        String filePath = calculateTestLogFilePath(jobId, testId) + fileName;
         try {
             saveFile(fileInputStream, filePath);
             URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
@@ -542,13 +495,13 @@ public class NewmanResource {
         }
     }
 
-    private static String calculateTestLogFilePath( String jobId, String testId ){
+    private static String calculateTestLogFilePath(String jobId, String testId) {
         return SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + testId + "/";
     }
 
     private void handleLogBundle(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
 
-        String filePath = calculateTestLogFilePath( jobId, testId ) + fileName;
+        String filePath = calculateTestLogFilePath(jobId, testId) + fileName;
         try {
             saveFile(fileInputStream, filePath);
             Set<String> entries = extractZipEntries(filePath);
@@ -569,9 +522,9 @@ public class NewmanResource {
     private Set<String> extractZipEntries(String filePath) throws IOException {
         Set<String> res = new HashSet<>();
         ZipEntry zEntry;
-        try (FileInputStream fis  = new FileInputStream(filePath); ZipInputStream zipIs = new ZipInputStream(new BufferedInputStream(fis))){
-            while((zEntry = zipIs.getNextEntry()) != null){
-                if(!zEntry.isDirectory()) {
+        try (FileInputStream fis = new FileInputStream(filePath); ZipInputStream zipIs = new ZipInputStream(new BufferedInputStream(fis))) {
+            while ((zEntry = zipIs.getNextEntry()) != null) {
+                if (!zEntry.isDirectory()) {
                     res.add(zEntry.getName());
                 }
             }
@@ -583,7 +536,7 @@ public class NewmanResource {
     @GET
     @Path("test/{jobId}/{id}/log/{name}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response downloadLog(@PathParam("jobId") String jobId,@PathParam("id") String id, @PathParam("name") String name,
+    public Response downloadLog(@PathParam("jobId") String jobId, @PathParam("id") String id, @PathParam("name") String name,
                                 @DefaultValue("false") @QueryParam("download") boolean download) {
         MediaType mediaType;
         if (download) {
@@ -591,15 +544,16 @@ public class NewmanResource {
         } else {
             mediaType = MediaType.TEXT_PLAIN_TYPE;
         }
-        String filePath = calculateTestLogFilePath( jobId, id ) + name;
+        String filePath = calculateTestLogFilePath(jobId, id) + name;
 
         return Response.ok(new File(filePath), mediaType).build();
     }
+
     @GET
     @Path("log/size")
-    public Response computeLogDirSize(){
+    public Response computeLogDirSize() {
         try {
-            if (! new File(SERVER_UPLOAD_LOCATION_FOLDER).exists()){
+            if (!new File(SERVER_UPLOAD_LOCATION_FOLDER).exists()) {
                 return Response.ok("0").build();
             }
             return Response.ok(String.valueOf(Files.walk(Paths.get(SERVER_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum()), MediaType.TEXT_PLAIN_TYPE).build();
@@ -613,7 +567,7 @@ public class NewmanResource {
     @DELETE
     @Path("log")
     @RolesAllowed("admin")
-    public Response deleteLogs(){
+    public Response deleteLogs() {
         try {
             java.nio.file.Path path = Paths.get(SERVER_UPLOAD_LOCATION_FOLDER);
             FileUtils.delete(path);
@@ -641,11 +595,11 @@ public class NewmanResource {
             String[] splited = name.split("!");
             String zipPath = splited[0];
             String entryName = splited[1].substring(1);
-            String filePath = calculateTestLogFilePath( jobId, id ) + zipPath;
+            String filePath = calculateTestLogFilePath(jobId, id) + zipPath;
             ZipFile zip = new ZipFile(filePath);
             InputStream is = zip.getInputStream(zip.getEntry(entryName));
             return Response.ok(is, mediaType).build();
-        }catch(Exception e){
+        } catch (Exception e) {
             logger.error(e.toString(), e);
             return Response.status(Response.Status.EXPECTATION_FAILED).build();
         }
@@ -1004,41 +958,41 @@ public class NewmanResource {
     @Path("suite/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
-    public Suite updateSuite( final @PathParam("id") String id, final String suiteStr ) {
+    public Suite updateSuite(final @PathParam("id") String id, final String suiteStr) {
 
         logger.info("---updateSuite()");
 
-        DBObject parsedSuite = (DBObject)JSON.parse(suiteStr);
+        DBObject parsedSuite = (DBObject) JSON.parse(suiteStr);
 
         //**have to perform following changes with received json in order to make it compliant to morphia json mapper**//
         parsedSuite.removeField("id");
-        LinkedHashMap linkedHashMap= new LinkedHashMap();
-        linkedHashMap.put( "className", Suite.class.getName() );
-        linkedHashMap.put( "_id", id );
-        linkedHashMap.putAll( parsedSuite.toMap() );
+        LinkedHashMap linkedHashMap = new LinkedHashMap();
+        linkedHashMap.put("className", Suite.class.getName());
+        linkedHashMap.put("_id", id);
+        linkedHashMap.putAll(parsedSuite.toMap());
         //****//
 
-        BasicDBObject basicDBObject = new BasicDBObject( linkedHashMap );
+        BasicDBObject basicDBObject = new BasicDBObject(linkedHashMap);
         Object criteriaVal = basicDBObject.get(CRITERIA_PROP_NAME);
-        if( criteriaVal != null && criteriaVal.toString().length() > 0 ) {
+        if (criteriaVal != null && criteriaVal.toString().length() > 0) {
             DBObject criteriaDBObject = (DBObject) JSON.parse(criteriaVal.toString());
-            basicDBObject.put( CRITERIA_PROP_NAME, criteriaDBObject );
-            System.out.println( ">>>criteriaDBObject=" + criteriaDBObject );
+            basicDBObject.put(CRITERIA_PROP_NAME, criteriaDBObject);
+            System.out.println(">>>criteriaDBObject=" + criteriaDBObject);
         }
 
         Suite suite = morphia.fromDBObject(Suite.class, basicDBObject);
 
         UpdateOperations<Suite> updateOps = suiteDAO.createUpdateOperations();
-        if( suite.getCriteria() != null) {
+        if (suite.getCriteria() != null) {
             updateOps.set(CRITERIA_PROP_NAME, suite.getCriteria());
         }
-        if( suite.getCustomVariables() != null) {
+        if (suite.getCustomVariables() != null) {
             updateOps.set("customVariables", suite.getCustomVariables());
         }
         Query<Suite> query = suiteDAO.createIdQuery(id);
         Suite result = suiteDAO.getDatastore().findAndModify(query, updateOps);
-        if( result != null) {
-            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( result ));
+        if (result != null) {
+            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(result));
         }
 
         return suite;
@@ -1074,26 +1028,25 @@ public class NewmanResource {
     @DELETE
     @Path("job/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteJob( final @PathParam("jobId") String jobId ) {
+    public Response deleteJob(final @PathParam("jobId") String jobId) {
         Job deletedJob = performDeleteJob(jobId);
         performDeleteTestsLogs(jobId);
         updateBuildWithDeletedJob(deletedJob);
         performDeleteTests(jobId);
-        return Response.ok( Entity.json( jobId ) ).build();
+        return Response.ok(Entity.json(jobId)).build();
     }
 
-    private void performDeleteTestsLogs( String jobId ) {
+    private void performDeleteTestsLogs(String jobId) {
         java.nio.file.Path path = Paths.get(SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId);
         try {
-            FileUtils.delete( path );
-            logger.info( "Log file {} was deleted", path );
-        }
-        catch (IOException e) {
-            logger.error( e.toString(), e );
+            FileUtils.delete(path);
+            logger.info("Log file {} was deleted", path);
+        } catch (IOException e) {
+            logger.error(e.toString(), e);
         }
     }
 
-    private void updateBuildWithDeletedJob( Job deletedJob ) {
+    private void updateBuildWithDeletedJob(Job deletedJob) {
         Query<Build> query = buildDAO.createIdQuery(deletedJob.getBuild().getId());
         Build associatedBuild = buildDAO.findOne(query);
         BuildStatus associatedBuildStatus = associatedBuild.getBuildStatus();
@@ -1101,23 +1054,22 @@ public class NewmanResource {
 
         UpdateOperations<Build> updateOps = buildDAO.createUpdateOperations();
 
-        if( state == State.DONE ){
+        if (state == State.DONE) {
             int curDoneJobs = associatedBuildStatus.getDoneJobs();
-            if( curDoneJobs > 0 ) {
-                updateOps.set("buildStatus.doneJobs", curDoneJobs - 1 );
+            if (curDoneJobs > 0) {
+                updateOps.set("buildStatus.doneJobs", curDoneJobs - 1);
             }
-        }
-        else if( state == State.PAUSED ){
+        } else if (state == State.PAUSED) {
             int curPendingJobs = associatedBuildStatus.getPendingJobs();
-            if( curPendingJobs > 0 ) {
-                updateOps.set("buildStatus.pendingJobs", curPendingJobs - 1 );
+            if (curPendingJobs > 0) {
+                updateOps.set("buildStatus.pendingJobs", curPendingJobs - 1);
             }
         }
 
         updateOps.set("buildStatus.totalJobs", associatedBuildStatus.getTotalJobs() - 1);
 
         Suite suite = deletedJob.getSuite();
-        if( suite != null ) {
+        if (suite != null) {
             updateOps.removeAll("buildStatus.suitesNames", suite.getName());
             updateOps.removeAll("buildStatus.suitesIds", suite.getId());
         }
@@ -1126,16 +1078,16 @@ public class NewmanResource {
         broadcastMessage(MODIFIED_BUILD, modifiedBuild);
     }
 
-    private Job performDeleteJob( String jobId ) {
+    private Job performDeleteJob(String jobId) {
         Query<Job> idJobQuery = jobDAO.createIdQuery(jobId);
         Datastore datastore = jobDAO.getDatastore();
         Job deletedJob = datastore.findAndDelete(idJobQuery);
         return deletedJob;
     }
 
-    private void performDeleteTests( String jobId ) {
+    private void performDeleteTests(String jobId) {
         Query<Test> testQuery = testDAO.createQuery();
-        testQuery.and( testQuery.criteria("jobId").equal(jobId) );
+        testQuery.and(testQuery.criteria("jobId").equal(jobId));
         Datastore datastore = testDAO.getDatastore();
         datastore.delete(testQuery);
     }
@@ -1143,12 +1095,12 @@ public class NewmanResource {
     @DELETE
     @Path("agent/{agentId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteAgent( final @PathParam("agentId") String agentId ) {
+    public Response deleteAgent(final @PathParam("agentId") String agentId) {
 
         Query<Agent> idAgentQuery = agentDAO.createIdQuery(agentId);
         Datastore datastore = agentDAO.getDatastore();
         datastore.findAndDelete(idAgentQuery);
-        return Response.ok( Entity.json( agentId ) ).build();
+        return Response.ok(Entity.json(agentId)).build();
     }
 
     @DELETE
@@ -1211,19 +1163,18 @@ public class NewmanResource {
     public Suite getSuite(final @PathParam("id") String id) {
         Suite suite = suiteDAO.findOne(suiteDAO.createIdQuery(id));
         String displayedCriteriaJson = "";
-        if( suite.getCriteria() != null ){
+        if (suite.getCriteria() != null) {
             DBObject dbObject = morphia.toDBObject(suite.getCriteria());
             ObjectMapper mapper = new ObjectMapper();
             try {
-                displayedCriteriaJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString( dbObject );
-            }
-            catch (JsonProcessingException e) {
-                logger.error( e.toString(), e );
+                displayedCriteriaJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(dbObject);
+            } catch (JsonProcessingException e) {
+                logger.error(e.toString(), e);
                 displayedCriteriaJson = dbObject.toString();
             }
         }
 
-        suite.setDisplayedCriteria( displayedCriteriaJson );
+        suite.setDisplayedCriteria(displayedCriteriaJson);
 
         return suite;
     }
@@ -1272,21 +1223,20 @@ public class NewmanResource {
     @GET
     @Path("test-history")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getTests( @QueryParam("id") String id ) {
+    public Response getTests(@QueryParam("id") String id) {
 
-        logger.info("--- getTests() START ---, testId", id );
         Test thisTest = getTest(id);
         String testName = thisTest.getName();
         List<String> testArguments = thisTest.getArguments();
 
-        Query<Test> testsQuery = testDAO.createQuery().field( "name" ).equal( testName ).field("arguments").equal( testArguments );
-        List<Test> tests = testDAO.find( testsQuery ).asList();
-        Collections.reverse( tests );
+        Query<Test> testsQuery = testDAO.createQuery().field("name").equal(testName).field("arguments").equal(testArguments);
+        List<Test> tests = testDAO.find(testsQuery).asList();
+        Collections.reverse(tests);
 
-        List<TestHistoryItem> testHistoryItemsList = new ArrayList<>( tests.size() );
-        for( Test test : tests ){
-            TestHistoryItem testHistoryItem = createTestHistoryItem( test );
-            testHistoryItemsList.add( testHistoryItem );
+        List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
+        for (Test test : tests) {
+            TestHistoryItem testHistoryItem = createTestHistoryItem(test);
+            testHistoryItemsList.add(testHistoryItem);
         }
 
         logger.info("--- getTests() END ---");
@@ -1294,10 +1244,10 @@ public class NewmanResource {
     }
 
 
-    private TestHistoryItem createTestHistoryItem( Test test ) {
+    private TestHistoryItem createTestHistoryItem(Test test) {
 
         Job job = getJob(test.getJobId());
-        return new TestHistoryItem( test, job );
+        return new TestHistoryItem(test, job);
     }
 
     private SuiteWithJobs createSuiteWithJobs(Suite suite) {
@@ -1312,20 +1262,20 @@ public class NewmanResource {
         return new SuiteWithJobs(suite, jobsList);
     }
 
-    private List<BuildWithJobs> createBuildsWithJobs( List<Build> builds ){
+    private List<BuildWithJobs> createBuildsWithJobs(List<Build> builds) {
         List<BuildWithJobs> resultList = new ArrayList<>();
-        for( Build build : builds ) {
+        for (Build build : builds) {
             BuildWithJobs buildWithJobs = createBuildWithJobs(build);
-            resultList.add( buildWithJobs );
+            resultList.add(buildWithJobs);
         }
 
-        return  resultList;
+        return resultList;
     }
 
-    private Map<String,List<Job>> createActiveJobsMap( List<Build> builds ){
-        Map<String,List<Job>> resultsMap = new HashMap<>();
-        for( Build build : builds ) {
-            resultsMap.put( build.getId(), getActiveBuildJobs( build ) );
+    private Map<String, List<Job>> createActiveJobsMap(List<Build> builds) {
+        Map<String, List<Job>> resultsMap = new HashMap<>();
+        for (Build build : builds) {
+            resultsMap.put(build.getId(), getActiveBuildJobs(build));
         }
 
         return resultsMap;
@@ -1334,13 +1284,13 @@ public class NewmanResource {
     private BuildWithJobs createBuildWithJobs(Build build) {
 
         List<Job> jobs = getActiveBuildJobs(build);
-        return new BuildWithJobs( build, jobs );
+        return new BuildWithJobs(build, jobs);
     }
 
     private List<Job> getActiveBuildJobs(Build build) {
 
         Query<Job> query = jobDAO.createQuery();
-        query.field( "build.id" ).equal( build.getId() ).field("state").equal(State.RUNNING);
+        query.field("build.id").equal(build.getId()).field("state").equal(State.RUNNING);
         return jobDAO.find(query).asList();
     }
 
@@ -1393,7 +1343,7 @@ public class NewmanResource {
     private void handleZombieAgent(Agent agent) {
         logger.warn("Agent {} is did not report on time while he was IDLING and will be deleted", agent);
         final Agent toDelete = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agent.getName()));
-        if (toDelete != null){
+        if (toDelete != null) {
             agentDAO.getDatastore().findAndDelete(agentDAO.createIdQuery(toDelete.getId()));
         }
     }
