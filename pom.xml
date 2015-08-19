@@ -139,7 +139,7 @@
             <dependency>
                 <groupId>org.glassfish.jersey.security</groupId>
                 <artifactId>oauth2-client</artifactId>
-                <version>${project.version}</version>
+                <version>${jersey.version}</version>
             </dependency>
 
             <dependency>
