@@ -5,7 +5,7 @@
 <polymer-element name="suite-view" attributes="url active" active>
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
-        <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
+        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" on-core-complete="{{postAjaxResponse}}" withCredentials="true"></core-ajax>
         <core-ajax id="update" handleAs="json" method="POST" withCredentials="true" content="application/json" headers='{"Accept": "application/json","Content-Type": "application/json" }'></core-ajax>
         <div class="content" flex>
             <h2>Suite</h2>
@@ -28,16 +28,6 @@
                                 <textarea id="customvariablestextarea" style="height: 450px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.customVariables}}</textarea>
                             </td>
                             <td>
-<!--
-                                <textarea id="suitecrieria">
-                                    {{suite.criteria | removeNulls | json}}
-                                </textarea>
--->
-<!--                                <pre>
-                                <code id="suitecrieria">
-                                    {{suite.criteria | removeNulls | json}}
-                                </code>
-                                    </pre>-->
                                 <textarea id="criteriatextarea" style="height: 450px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.criteria | removeNulls | json}}</textarea>
                             </td>
                         </tr>
@@ -59,8 +49,8 @@
         ajaxResponse: function(event,resp){
             this.suite = resp.response;
         },
-        reload : function(){
-            this.$.reload.go();
+        postAjaxResponse: function(event,resp){
+            console.info('postAjaxResponse');
         },
         editSuite: function(event,resp){
             var saveButton = this.getSaveButton();
