@@ -30,7 +30,6 @@
 
         <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
         <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}" withCredentials="true"></core-ajax>
-        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
 
         <core-ajax id="jobToggler" handleAs="json" withCredentials="true" method="post"></core-ajax>
         <div class="content" flex>
