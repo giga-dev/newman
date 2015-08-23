@@ -1,34 +1,44 @@
+<script src="../components/codemirror/lib/codemirror.js"></script>
+<script src="../components/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="../components/codemirror/addon/comment/continuecomment.js"></script>
+<script src="../components/codemirror/addon/comment/comment.js"></script>
+<script src="../components/codemirror/mode/javascript/javascript.js"></script>
+
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
+
+
 
 <polymer-element name="suite-view" attributes="url active" active>
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <link rel="stylesheet" href="../components/codemirror/lib/codemirror.css">
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" on-core-complete="{{postAjaxResponse}}" withCredentials="true"></core-ajax>
         <core-ajax id="update" handleAs="json" method="POST" withCredentials="true" content="application/json" headers='{"Accept": "application/json","Content-Type": "application/json" }'></core-ajax>
         <div class="content" flex>
             <h2>Suite</h2>
+
             <div class="table-responsive" style="padding-top: 5px; margin-bottom: -14px">
                 <table class="table table-hover table-striped table-bordered table-condensed">
-                    <tbody>
-                        <tr class="{{{'hidden' : !suite.id, 'visible' : suite.id} | tokenList}}">
+                    <tbody class="{{{'hidden' : !suite.id, 'visible' : suite.id} | tokenList}}">
+                        <tr>
                             <td width="10%">Name</td>
                             <td>{{suite.name}}</td>
                         </tr>
-                        <tr class="{{{'hidden' : !suite.id, 'visible' : suite.id} | tokenList}}">
+                        <tr>
                             <td>Id</td>
                             <td>{{suite.id}}</td>
                         </tr>
-                        <tr class="{{{'hidden' : !suite.id, 'visible' : suite.id} | tokenList}}">
+                        <tr>
                             <td>Custom variables</td>
                             <td>
                                 <textarea id="customvariablestextarea" style="height: 70px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.customVariables}}</textarea>
                             </td>
                         </tr>
-                        <tr class="{{{'hidden' : !suite.id, 'visible' : suite.id} | tokenList}}">
+                        <tr>
                             <td>Criteria</td>
                             <td>
-                                <textarea id="criteriatextarea" style="height: 550px; width:100%; font-size: inherit; background-color: inherit">{{suite.criteria | removeNulls | json}}</textarea>
+                                <textarea id="criteriatextarea" name="criteriatextarea"></textarea>
                             </td>
                         </tr>
                     </tbody>
@@ -44,12 +54,25 @@
     Polymer({
       applyAuthorStyles: true,
       suite: [],
+      codemirroreditor:null,
 
         ajaxResponse: function(event,resp){
             this.suite = resp.response;
         },
         postAjaxResponse: function(event,resp){
-            console.info('postAjaxResponse');
+            this.$.criteriatextarea.value=JSON.stringify(this.suite.criteria,null,2);
+            this.codemirroreditor = CodeMirror.fromTextArea(this.$.criteriatextarea, {
+                readOnly: true,
+                matchBrackets: true,
+                autoCloseBrackets: true,
+                mode: "application/ld+json",
+                lineWrapping: true
+            });
+            this.codemirroreditor.setSize( '100%', 500 );
+            var that = this;
+            setTimeout(function() {
+                that.codemirroreditor.refresh();
+            },1);
         },
         editSuite: function(event,resp){
             var saveButton = this.getSaveButton();
@@ -57,25 +80,23 @@
             editButton.classList.add('disabled');
             saveButton.classList.remove('disabled');
 
-            var criteriaTextArea = this.getCriteriaTextArea();
-            criteriaTextArea.removeAttribute('readonly');
-
             var customVariablesTextArea = this.getCustomVariablesTextArea();
             customVariablesTextArea.removeAttribute('readonly');
+
+            this.codemirroreditor.options.readOnly=false;
         },
         saveSuite: function(event,resp){
             var saveButton = this.getSaveButton();
             var editButton = this.getEditButton();
             saveButton.classList.add('disabled')
             editButton.classList.remove('disabled')
-            var criteriaTextArea = this.getCriteriaTextArea();
             var customVariablesTextArea = this.getCustomVariablesTextArea();
 
-            var updatedSuiteCriteria = criteriaTextArea.value;
-            criteriaTextArea.setAttribute('readonly', '');
+            var updatedSuiteCriteria = this.codemirroreditor.getValue();;
 
             var updatedSuiteCustomVariables = customVariablesTextArea.value;
             customVariablesTextArea.setAttribute('readonly', '');
+            this.codemirroreditor.options.readOnly=true;
 
             this.suite.displayedCriteria=updatedSuiteCriteria;
             this.suite.customVariables=updatedSuiteCustomVariables;
@@ -93,15 +114,9 @@
         getEditButton: function(){
             return this.$.editsuitebutton;
         },
-        getCriteriaTextArea: function(){
-            return this.$.criteriatextarea;
-        },
         getCustomVariablesTextArea: function(){
             return this.$.customvariablestextarea;
-        },
-        activeChanged: function(oldValue, newValue){
-           //console.info("suite-view activeChanged to ", newValue);
-      }
+        }
     });
     </script>
 </polymer-element>
