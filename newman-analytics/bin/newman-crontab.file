@@ -1,0 +1,1 @@
+0 7 * * SUN-FRI cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/report/daily/daily-report.properties > /home/xap/newman-analytics/logs/daily-report.log 2>&1
