@@ -1,4 +1,4 @@
-
+<link rel="import" href="shared-mixin.html">
 <link rel="import" href="routes.html">
 <link rel="import" href="job-progress.html">
 <link rel="import" href="job-state.html">
@@ -11,13 +11,13 @@
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <style>
             paper-toggle-button#pause::shadow [checked] .toggle-ink {
-            color: #4285f4;
+                color: #4285f4;
             }
             paper-toggle-button#pause::shadow [checked] .toggle {
-            background-color: #4285f4;
+                background-color: #4285f4;
             }
             section {
-            width: 100px;
+                width: 100px;
             }
         </style>
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
@@ -49,11 +49,11 @@
                 <dt class="newman-job-table-cell">Job Id</dt>
                 <dd class="newman-job-table-cell">{{data.id}}</dd>
                 <dt class="newman-job-table-cell">Submit Time</dt>
-                <dd class="newman-job-table-cell" title="{{data.submitTime | formatDate}}">{{data.submitTime | formatDateFromNow}}</dd>
+                <dd class="newman-job-table-cell" title="{{data.submitTime | formatDate}}">{{data.submitTime | formatDateFromNow}}, {{data.submitTime | formatDate}}</dd>
                 <dt class="newman-job-table-cell">Start Time</dt>
-                <dd class="newman-job-table-cell" title="{{data.startTime | formatDate}}">{{data.startTime | formatDateFromNow}}</dd>
+                <dd class="newman-job-table-cell" title="{{data.startTime | formatDate}}">{{data.startTime | formatDateFromNow}}, {{data.startTime | formatDate}}</dd>
                 <dt class="newman-job-table-cell">End Time</dt>
-                <dd class="newman-job-table-cell" title="{{data.endTime | formatDate}}">{{data.endTime | formatDateFromNow}}</dd>
+                <dd class="newman-job-table-cell" title="{{data.endTime | formatDate}}">{{data.endTime | formatDateFromNow}}, {{data.endTime | formatDate}}</dd>
 
                 <dt class="newman-job-table-cell">Test URI</dt>
                 <dd class="newman-job-table-cell">{{data.testURI}}</dd>
@@ -74,61 +74,38 @@
             </dl>
         </template>
     </template>
-    <script src="../components/moment/moment.js"></script>
-
     <script>
-    Polymer({
-      applyAuthorStyles: true,
-      ready: function() {
-          this.data = this.data|| {};
-          this.pause = false;
-      },
-      ajaxResponse: function(event,resp){
-           if(resp.response.id){
-               this.data = resp.response;
-               window.app.jobProgressPercent(this.data);
-               this.pause = this.data.state == "PAUSE";
-           }
-      },
-      formatDate: function(date){
-            if(!date){
-                return date;
-            }
-           return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
-      },
-        formatDateFromNow: function(date){
-            if(!date){
-                return date;
-            }
-            return moment(new Date(date)).fromNow();
-        },
-      formatTotalTime: function(item){
-            if(!item.endTime || !item.startTime){
-                return null;
-            }
-            return moment.duration(item.endTime - item.startTime).humanize();
-      },
-      onModifiedJob: function(ev, job){
-            if(job.id && this.data.id && job.id == this.data.id){
-                window.app.update(job, this.data);
-            }
-      },
-      onPauseToggle : function(){
-            this.pause = this.$.pause.checked;
-            console.info("pause", this.pause);
-      },
-      onSwitchClicked : function(event){
-            var job = this.data;
-            if(job){
-                if(job.state != "DONE"){
-                    this.$.jobToggler.url = "api/newman/job/" + this.data.id +"/toggle";
-                    this.$.jobToggler.go();
+        Polymer(Polymer.mixin({
+            applyAuthorStyles: true,
+            ready: function() {
+                this.data = this.data|| {};
+                this.pause = false;
+            },
+            ajaxResponse: function(event,resp){
+                if(resp.response.id){
+                    this.data = resp.response;
+                    window.app.jobProgressPercent(this.data);
+                    this.pause = this.data.state == "PAUSE";
+                }
+            },
+            onModifiedJob: function(ev, job){
+                if(job.id && this.data.id && job.id == this.data.id){
+                    window.app.update(job, this.data);
+                }
+            },
+            onPauseToggle : function(){
+                this.pause = this.$.pause.checked;
+                console.info("pause", this.pause);
+            },
+            onSwitchClicked : function(event){
+                var job = this.data;
+                if(job){
+                    if(job.state != "DONE"){
+                        this.$.jobToggler.url = "api/newman/job/" + this.data.id +"/toggle";
+                        this.$.jobToggler.go();
+                    }
                 }
             }
-      }
-
-
-
-    });
+        }, window.sharedMixin));
     </script>
 </polymer-element>

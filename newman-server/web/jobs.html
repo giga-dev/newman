@@ -1,4 +1,4 @@
-
+<link rel="import" href="shared-mixin.html">
 <link rel="import" href="routes.html">
 <link rel="import" href="job-progress.html">
 <link rel="import" href="job-state.html">
@@ -128,10 +128,8 @@
 
         </div>
     </template>
-    <script src="../components/moment/moment.js"></script>
-
     <script>
-        Polymer({
+        Polymer(Polymer.mixin({
             applyAuthorStyles: true,
             jobId : '',
 
@@ -161,26 +159,6 @@
                     res.push(current);
                 }
                 return res;
-            },
-
-            getDuration: function(item) {
-
-                if( item.startTime === null ){
-                    return '';
-                }
-
-                var endTime = item.endTime;
-                if (endTime == null) {
-                    endTime = new Date().getTime();
-                }
-                var diff = endTime - item.startTime;
-                return moment.utc(diff).format("HH [h,] mm [m]")
-            },
-            formatDate: function(date){
-                return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
-            },
-            formatDateFromNow: function(date){
-                return moment(new Date(date)).fromNow();
             },
             ajaxResponse: function(event,resp){
                 this.allValues = resp.response.values;
@@ -252,6 +230,6 @@
                     }
                 }
             }
-        });
+        }, window.sharedMixin));
     </script>
 </polymer-element>

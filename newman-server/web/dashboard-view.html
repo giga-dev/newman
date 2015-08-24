@@ -3,6 +3,7 @@
 <link rel="import" href="newman-switch.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 <link rel="import" href="newman-app.html">
+<link rel="import" href="shared-mixin.html">
 
 <polymer-element name="dashboard-view" attributes="url active" on-created-build="{{onCreatedBuild}}"
                                     on-modified-build="{{onModifiedBuild}}" on-modified-job="{{onModifiedJob}}">
@@ -187,10 +188,8 @@
         </div>
     </template>
 
-    <script src="../components/moment/moment.js"></script>
-
     <script>
-    Polymer({
+    Polymer(Polymer.mixin({
       applyAuthorStyles: true,
 
       created: function() {
@@ -381,28 +380,8 @@
                 }
                 return return suiteName.substring(0, maxLength);
               */
-            },
-        getDuration: function(item) {
-
-            if( item.startTime === null ){
-                return '';
-            }
-
-            var endTime = item.endTime;
-            if (endTime == null) {
-                endTime = new Date().getTime();
-            }
-            var diff = endTime - item.startTime;
-            return moment.utc(diff).format("HH [h,] mm [m]")
-        },
-        formatDate: function(date){
-            return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
-        },
-        formatDateFromNow: function(date){
-            return moment(new Date(date)).fromNow();
-        }
-    });
-
+      }
+    }, window.sharedMixin));
 
     </script>
 </polymer-element>

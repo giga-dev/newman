@@ -1,4 +1,4 @@
-
+<link rel="import" href="shared-mixin.html">
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 
@@ -58,11 +58,9 @@
             </dl>
         </template>
     </template>
-    <script src="../components/moment/moment.js"></script>
 
     <script>
-
-        Polymer({
+        Polymer(Polymer.mixin({
             applyAuthorStyles: true,
             ready: function() {
                 this.build = null;
@@ -78,12 +76,6 @@
                         this.shasKeys.push( key );
                     }
                 }
-            },
-            formatDate: function(date){
-                if(!date){
-                    return date;
-                }
-                return moment(new Date(date)).format('MMMM Do YYYY, h:mm:ss a');
             },
             onDetailsClick: function(event, detail, sender){
 
@@ -107,6 +99,6 @@
                     }
                 }
             }
-    });
+    }, window.sharedMixin));
     </script>
 </polymer-element>

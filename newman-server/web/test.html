@@ -1,6 +1,6 @@
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
-
+<link rel="import" href="shared-mixin.html">
 
 <polymer-element name="test-info" attributes="url data">
     <template>
@@ -58,10 +58,9 @@
         </dl>
 
     </template>
-    <script src="../components/moment/moment.js"></script>
 
     <script>
-    Polymer({
+        Polymer(Polymer.mixin({
       applyAuthorStyles: true,
       data: null,
       ajaxResponse: function(event,resp){
@@ -75,26 +74,7 @@
               }
           }
           return '';
-      },
-      formatDate: function(date){
-            if(!date){
-                return date;
-            }
-           return moment(new Date(date)).fromNow();
-      },
-      formatTotalTime: function(item){
-            if(!item.endTime || !item.startTime){
-                return null;
-            }
-            return moment.duration(item.endTime - item.startTime).humanize();
-      },
-      formatTimeout: function(timeout){
-            if(!timeout){
-                return null;
-            }
-            return moment.duration(timeout).asSeconds() + " seconds";
       }
-
-    });
+        }, window.sharedMixin));
     </script>
 </polymer-element>

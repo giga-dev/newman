@@ -1,0 +1,42 @@
+<script src="../components/moment/moment.js"></script>
+<script>
+    window.sharedMixin = {
+        getDuration: function(item) {
+
+            if( item.startTime === null ){
+                return '';
+            }
+
+            var endTime = item.endTime;
+            if (endTime == null) {
+                endTime = new Date().getTime();
+            }
+            var diff = endTime - item.startTime;
+            return moment.utc(diff).format("HH [h,] mm [m]")
+        },
+        formatDate: function(date){
+            if( !date ){
+                return '';
+            }
+            return moment(new Date(date)).format('MMMM Do YYYY, HH:mm:ss');
+        },
+        formatDateFromNow: function(date){
+            if( !date ){
+                return '';
+            }
+            return moment(new Date(date)).fromNow();
+        },
+        formatTotalTime: function(item){
+            if(!item.endTime || !item.startTime){
+                return null;
+            }
+            return moment.duration(item.endTime - item.startTime).humanize();
+        },
+        formatTimeout: function(timeout){
+            if(!timeout){
+                return null;
+            }
+            return moment.duration(timeout).asSeconds() + " seconds";
+        }
+    }
+</script>

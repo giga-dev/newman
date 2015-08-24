@@ -1,5 +1,4 @@
-<script src="../components/webcomponentsjs/webcomponents.js"></script>
-
+<link rel="import" href="shared-mixin.html">
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 <link rel="import" href="../components/paper-button/paper-button.html">
@@ -50,9 +49,9 @@
                                 <td></td>
                             </template>
                             <td>
-                            <template repeat="{{testId in item.currentTests}}">
-                                <a href="{{urlFor('test', {id: testId})}}">[{{testId}}]</a>
-                            </template>
+                                <template repeat="{{testId in item.currentTests}}">
+                                    <a href="{{urlFor('test', {id: testId})}}">[{{testId}}]</a>
+                                </template>
                             </td>
                             <td>{{item.lastTouchTime | formatDate}}</td>
                             <td>
@@ -77,85 +76,81 @@
         </div>
     </template>
 
-    <script src="../components/moment/moment.js"></script>
     <script>
-    Polymer({
-      applyAuthorStyles: true,
-      dropAgentId : '',
-      dropAgentName: '',
-      created: function() {
-          this.filter = null;
-          this.allValues = [];
-          this.byId = {};
-          this.data = [];
-          this.pages = [];
-          this.currentPage = 0;
-      },
-      runFilter: function(){
-          this.data  = this.applyFilter(this.filter, this.allValues);
-          this.pages = this.splitToPages();
-          this.currentPage = 0;
-      },
-        splitToPages: function(){
-            var res = [];
-            var current = [];
-            for(var i = 0; i < this.data.length; ++i){
-                current.push(this.data[i]);
-                if(current.length === 25){
+        Polymer(Polymer.mixin({
+            applyAuthorStyles: true,
+            dropAgentId : '',
+            dropAgentName: '',
+            created: function() {
+                this.filter = null;
+                this.allValues = [];
+                this.byId = {};
+                this.data = [];
+                this.pages = [];
+                this.currentPage = 0;
+            },
+            runFilter: function(){
+                this.data  = this.applyFilter(this.filter, this.allValues);
+                this.pages = this.splitToPages();
+                this.currentPage = 0;
+            },
+            splitToPages: function(){
+                var res = [];
+                var current = [];
+                for(var i = 0; i < this.data.length; ++i){
+                    current.push(this.data[i]);
+                    if(current.length === 25){
+                        res.push(current);
+                        current = [];
+                    }
+                }
+                if(0 < current.length){
                     res.push(current);
-                    current = [];
+                }
+                return res;
+            },
+            toggleDropAgentConfirmationDialog: function(event, detail,target) {
+                this.dropAgentId = target.attributes['data-agent-id'].textContent;
+                this.dropAgentName = target.attributes['data-agent-name'].textContent;
+                this.$.confirmdialogdeleteagent.toggle();
+            },
+            dropOne: function(event, detail,target){
+                this.$.del.url= 'api/newman/agent/' + this.dropAgentId;
+                this.$.del.go();
+            },
+            reload : function(){
+                this.$.reload.go();
+            },
+            ajaxResponse: function(event,resp){
+                this.allValues = resp.response.values;
+                var that = this;
+                this.allValues.forEach(function(agent){
+                    that.byId[agent.id] = agent;
+                });
+                this.runFilter();
+            },
+            applyFilter: function(filter, values){
+                if(values && filter != null && filter != undefined){
+                    return values.filter(function(value){
+                        return value.name != undefined && value.name != null && -1 < value.name.toLowerCase().indexOf(filter.toLowerCase());
+                    });
+                }else{
+                    return values;
+                }
+            },
+            onPageChange : function(event){
+                this.currentPage = event.detail.currentPage;
+            },
+            onModifiedAgent : function(ev, agent){
+                var found = this.byId[agent.id];
+                if(!found){
+                    this.allValues.push(agent);
+                    this.byId[agent.id] = agent;
+                    this.runFilter();
+                }else{
+                    window.app.update(agent, found);
                 }
             }
-            if(0 < current.length){
-                res.push(current);
-            }
-            return res;
-        },
-      formatDate: function(date){
-           return moment(new Date(date)).fromNow();
-      },
-      toggleDropAgentConfirmationDialog: function(event, detail,target) {
-            this.dropAgentId = target.attributes['data-agent-id'].textContent;
-            this.dropAgentName = target.attributes['data-agent-name'].textContent;
-            this.$.confirmdialogdeleteagent.toggle();
-      },
-      dropOne: function(event, detail,target){
-           this.$.del.url= 'api/newman/agent/' + this.dropAgentId;
-           this.$.del.go();
-      },
-      reload : function(){
-            this.$.reload.go();
-      },
-      ajaxResponse: function(event,resp){
-           this.allValues = resp.response.values;
-           var that = this;
-           this.allValues.forEach(function(agent){
-                that.byId[agent.id] = agent;
-           });
-           this.runFilter();
-      },
-      applyFilter: function(filter, values){
-            if(values && filter != null && filter != undefined){
-                return values.filter(function(value){
-                    return value.name != undefined && value.name != null && -1 < value.name.toLowerCase().indexOf(filter.toLowerCase());
-                    });
-            }else{
-                return values;
-            }
-      },
-      onPageChange : function(event){
-            this.currentPage = event.detail.currentPage;
-      },
-      onModifiedAgent : function(ev, agent){
-          var found = this.byId[agent.id];
-          if(!found){
-                this.allValues.push(agent);
-                this.byId[agent.id] = agent;
-                this.runFilter();
-          }else{
-               window.app.update(agent, found);
-          }
-      }
-    });
+        }, window.sharedMixin));
     </script>
 </polymer-element>

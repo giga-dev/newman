@@ -1,3 +1,4 @@
+<link rel="import" href="shared-mixin.html">
 <link rel="import" href="routes.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
 <link rel="import" href="table-pagination.html">
@@ -81,10 +82,9 @@
                               on-page-change="{{onPageChange}}"></table-pagination>
         </div>
     </template>
-    <script src="../components/moment/moment.js"></script>
 
     <script>
-        Polymer({
+        Polymer(Polymer.mixin({
             applyAuthorStyles: true,
             created: function() {
                 this.filter = null;
@@ -113,9 +113,6 @@
                 }
                 return res;
             },
-            formatDate: function(date){
-                return moment(new Date(date)).fromNow();
-            },
             ajaxResponse: function(event,resp){
                 this.allValues = resp.response.entity;
                 this.runFilter();
@@ -143,20 +140,7 @@
             },
             onPageChange : function(event){
                 this.currentPage = event.detail.currentPage;
-            },
-            formatTotalTime: function(item){
-                if(!item.endTime || !item.startTime){
-                    return null;
-                }
-                return moment.duration(item.endTime - item.startTime).humanize();
-            },
-            formatDateFromNow: function(date){
-                if(!date){
-                    return date;
-                }
-                return moment(new Date(date)).fromNow();
             }
-        });
-
+        }, window.sharedMixin));
     </script>
 </polymer-element>
