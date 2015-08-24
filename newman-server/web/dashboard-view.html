@@ -2,6 +2,7 @@
 <link rel="import" href="routes.html">
 <link rel="import" href="newman-switch.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
+<link rel="import" href="newman-app.html">
 
 <polymer-element name="dashboard-view" attributes="url active" on-created-build="{{onCreatedBuild}}"
                                     on-modified-build="{{onModifiedBuild}}" on-modified-job="{{onModifiedJob}}">
@@ -24,12 +25,12 @@
         <div class="content" flex>
             <div class="table-responsive">
                 <h1>Active Builds and Jobs</h1>
-                <table class="table table-bordered table-striped table-hover table-nowrap" style="margin-bottom: 0px">
+                <table class="table table-bordered table-striped table-hover word-wrap-table" style="margin-bottom: 0px">
                     <thead>
                     <tr>
-                        <th width="18%">Name</th>
+                        <th width="15%">Name</th>
                         <th width="7%">Branch</th>
-                        <th width="11%">Date</th>
+                        <th width="14%">Date</th>
                         <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
                         <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
                         <th width="26%"><span class="label label-header">Suite(s)</span></th>
@@ -52,7 +53,7 @@
                                     <span class="label label-success">{{activeBuild.buildStatus.doneJobs}}</span>
                                     <span class="label label-default">{{activeBuild.buildStatus.totalJobs}}</span>
                                 </td>
-                                <td>
+                                <td class="word-wrap-td">
                                     <template repeat="{{suiteId, index in activeBuild.buildStatus.suitesIds}}">
                                         <template if="{{index!== 'undefined' && activeBuild.buildStatus.suitesNames[index]}}">
                                             <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(activeBuild.buildStatus.suitesNames[index])}}</span> </a>
@@ -62,7 +63,7 @@
                             </tr>
                             <template repeat="{{activeJob in data.activeJobs[activeBuild.id]}}">
                                 <tr>
-                                    <td colspan="2" title="{{activeJob.id}}" style="padding-left: 45px">
+                                    <td colspan="2" title="{{activeJob.id}}" style="padding-left: 35px">
                                         &#8627;Job:<a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'ALL'})}}">{{activeJob.id}}</a>
                                     </td>
                                     <td title="{{activeJob.duration}}">
@@ -98,12 +99,12 @@
 
             <div class="table-responsive">
                 <h1>Pending Builds</h1>
-                <table class="table table-bordered table-striped table-hover table-nowrap">
+                <table class="table table-bordered table-striped table-hover word-wrap-table">
                     <thead>
                     <tr>
-                        <th width="18%">Name</th>
+                        <th width="15%">Name</th>
                         <th width="7%">Branch</th>
-                        <th width="11%">Date</th>
+                        <th width="14%">Date</th>
                         <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
                         <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
                         <th width="26%"><span class="label label-header">Suites</span></th>
@@ -126,7 +127,7 @@
                                     <span class="label label-success">{{pendingBuild.buildStatus.doneJobs}}</span>
                                     <span class="label label-default">{{pendingBuild.buildStatus.totalJobs}}</span>
                                 </td>
-                                <td>
+                                <td class="word-wrap-td">
                                     <template repeat="{{suiteId, index in pendingBuild.buildStatus.suitesIds}}">
                                         <template if="{{index!== 'undefined' && pendingBuild.buildStatus.suitesNames[index]}}">
                                             <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(pendingBuild.buildStatus.suitesNames[index])}}</span> </a>
@@ -144,12 +145,12 @@
             <h1>History</h1>
 
             <div class="table-responsive">
-                <table class="table table-bordered table-striped table-hover table-nowrap">
+                <table class="table table-bordered table-striped table-hover word-wrap-table">
                     <thead>
                     <tr>
-                        <th width="18%">Name</th>
+                        <th width="15%">Name</th>
                         <th width="7%">Branch</th>
-                        <th width="11%">Date</th>
+                        <th width="14%">Date</th>
                         <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
                         <th width="15%"><span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
                         <th width="26%"><span class="label label-header">Suites</span></th>
@@ -169,7 +170,7 @@
                                 </td>
 
                                 <td>{{historyBuild.buildStatus.totalJobs}}</td>
-                                <td>
+                                <td class="word-wrap-td">
                                     <template repeat="{{suiteId, index in historyBuild.buildStatus.suitesIds}}">
                                         <template if="{{index!== 'undefined' && historyBuild.buildStatus.suitesNames[index]}}">
                                             <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(historyBuild.buildStatus.suitesNames[index])}}</span></a>
@@ -185,9 +186,8 @@
             </div>
         </div>
     </template>
-    <script src="../components/moment/moment.js"></script>
 
-    <script>
+    <script> src="../components/moment/moment.js">
     Polymer({
       applyAuthorStyles: true,
 
@@ -198,9 +198,6 @@
           this.history = {};
           this.activeJobs = {};
           this.active = false;
-      },
-      formatDate: function(date){
-           return moment(new Date(date)).fromNow();
       },
         ajaxResponse: function(event,resp){
             this.data = resp.response;
@@ -373,6 +370,16 @@
         activeChanged: function(oldValue, newValue){
             //console.info("dashboard activeChanged to ", newValue);
         },
+
+      calculateShortSuiteName: function( suiteName ) {
+              return suiteName;
+              /*var maxLength = 7;
+                if (suiteName.length < maxLength) {
+                    return suiteName;
+                }
+                return return suiteName.substring(0, maxLength);
+              */
+            },
         getDuration: function(item) {
 
             if( item.startTime === null ){
@@ -391,16 +398,7 @@
         },
         formatDateFromNow: function(date){
             return moment(new Date(date)).fromNow();
-        },
-      calculateShortSuiteName: function( suiteName ) {
-              return suiteName;
-              /*var maxLength = 7;
-                if (suiteName.length < maxLength) {
-                    return suiteName;
-                }
-                return return suiteName.substring(0, maxLength);
-              */
-            }
+        }
     });
 
 
