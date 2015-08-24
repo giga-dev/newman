@@ -46,10 +46,7 @@ public class DailyReport implements Cronable {
 
             StringTemplate htmlTemplate = createHtmlTemplate(properties);
 
-            Build latestBuild = sendEmail(properties, newmanClient, htmlTemplate);
-
-            saveLatestBuildToFIle(properties, latestBuild);
-
+            sendEmail(properties, newmanClient, htmlTemplate);
 
         } catch (Exception e) {
             logger.warn("Failed to execute daily report", e);
@@ -76,22 +73,18 @@ public class DailyReport implements Cronable {
         return path;
     }
 
-    private Build sendEmail(Properties properties, NewmanClient newmanClient, StringTemplate htmlTemplate) throws Exception {
+    private void sendEmail(Properties properties, NewmanClient newmanClient, StringTemplate htmlTemplate) throws Exception {
 
         DashboardData dashboardData = newmanClient.getDashboard().toCompletableFuture().get(1, TimeUnit.MINUTES);
 
         List<Build> historyBuilds = dashboardData.getHistoryBuilds();
         if (historyBuilds.size() == 0) {
             logger.info("No history builds to generate report");
-            return null;
+            return;
         }
 
         Build latestBuild = getLatestBuild(properties, historyBuilds);
         Build previousBuild = getPreviousBuildFromFile(properties, latestBuild, newmanClient);
-
-        if (!latestBuild.getBranch().equals(previousBuild.getBranch())) {
-            throw new IllegalStateException("Latest build branch doesn't match previous build branch");
-        }
 
         Map<String, Job> latest_mapSuite2Job = getJobsByBuildId(newmanClient, latestBuild.getId());
         Map<String, Job> previous_mapSuite2Job = getJobsByBuildId(newmanClient, previousBuild.getId());
@@ -101,11 +94,15 @@ public class DailyReport implements Cronable {
         final String buildRestUrl = newmanClient.getBaseURI() + "/#!/build/";
         htmlTemplate.setAttribute("summary", summary);
         htmlTemplate.setAttribute("diffs", suiteDiffs);
+
+        htmlTemplate.setAttribute("latestBuildBranch", latestBuild.getBranch());
         htmlTemplate.setAttribute("latestUrl", buildRestUrl + latestBuild.getId());
         htmlTemplate.setAttribute("latestBuildName", latestBuild.getName());
+        htmlTemplate.setAttribute("latestBuildDate", latestBuild.getBuildTime());
+
+        htmlTemplate.setAttribute("previousBuildBranch", previousBuild.getBranch());
         htmlTemplate.setAttribute("previousUrl", buildRestUrl + previousBuild.getId());
         htmlTemplate.setAttribute("previousBuildName", previousBuild.getName());
-        htmlTemplate.setAttribute("latestBuildDate", latestBuild.getBuildTime());
         htmlTemplate.setAttribute("previousBuildDate", previousBuild.getBuildTime());
 
         String subject = prepareSubject(latestBuild);
@@ -120,8 +117,11 @@ public class DailyReport implements Cronable {
 
         mailman.compose(properties.getProperty(Mailman.MAIL_MESSAGE_RECIPIENTS), subject, body, Mailman.Format.HTML);
 
-        //save latestBuild for next time we wake up
-        return latestBuild;
+        //save latestBuild for next time we wake up (only if branches match)
+        //otherwise keep comparison fixed to whatever was placed in file
+        if (latestBuild.getBranch().equals(previousBuild.getBranch())) {
+            saveLatestBuildToFile(properties, latestBuild);
+        }
     }
 
     private Build getLatestBuild(Properties properties, List<Build> historyBuilds) {
@@ -150,7 +150,7 @@ public class DailyReport implements Cronable {
         return latestBuild;
     }
 
-    private void saveLatestBuildToFIle(Properties properties, Build latestBuild) {
+    private void saveLatestBuildToFile(Properties properties, Build latestBuild) {
         String path = getResourcesPath(properties);
         String buildIdFile = latestBuild.getBranch() + BID_FILE_SUFFIX; //e.g. master.bid (master last build id)
         File file = new File(path, buildIdFile);
