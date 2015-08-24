@@ -225,6 +225,28 @@ public class NewmanSuiteSubmitter {
         }
     }
 
+    public void manualSubmitSGTestEsmSecurity() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("elastic-service-manager-security");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(
+                            PatternCriteria.recursivePackageNameCriteria("test.gsm.security")),
+                    TestCriteria.createCriteriaByTestType("sgtest")
+
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
 
     public void manualSubmitServiceGrid() throws Exception {
         NewmanClient newmanClient = getNewmanClient();

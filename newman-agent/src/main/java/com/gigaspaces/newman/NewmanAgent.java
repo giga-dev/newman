@@ -57,18 +57,21 @@ public class NewmanAgent {
     private void initialize() {
         logger.info("Agent is initializing...");
         logger.info("Agent home dir is {}, please make sure no other agent is using this folder", config.getNewmanHome());
-        try {
-            this.client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
-                    config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
-            //try to connect to fail fast when server is down
-            client.getJobs().toCompletableFuture().get();
-        } catch (Exception e) {
-            deactivateAgent(e, "Rest client failed to initialize, exiting ...");
-        }
-        try {
-            FileUtils.createFolder(append(config.getNewmanHome(), "logs"));
-        } catch (IOException e) {
-            deactivateAgent(e, "Failed to create logs folder in " + append(config.getNewmanHome(), "logs"));
+        while (true) {
+            try {
+                this.client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
+                        config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
+                //try to connect to fail fast when server is down
+                client.getJobs().toCompletableFuture().get();
+                FileUtils.createFolder(append(config.getNewmanHome(), "logs"));
+                break;
+            } catch (Exception e) {
+                final int timeToWait = 20 * 1000;
+                logger.warn("Failed to initialize newman agent in ["+config.getHostName()+"] retrying in "+timeToWait/1000+" seconds", e);
+                try {
+                    Thread.sleep(timeToWait);
+                } catch (InterruptedException ignored) {}
+            }
         }
         setFinalAgentName();
 
