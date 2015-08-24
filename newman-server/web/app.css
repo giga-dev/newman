@@ -112,3 +112,6 @@ body{
 .word-wrap-td{
     word-wrap:break-word;
 }
+.suite-dashboard-button{
+    margin-top: 3px
+}

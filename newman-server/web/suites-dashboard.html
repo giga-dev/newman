@@ -13,7 +13,7 @@
         <div class="btn-group" style="margin-bottom: 10px">
             <template repeat="{{suite in allValues}}">
                 <span style="margin-right: 3px">
-                    <button type="button" class="{{{ 'btn btn-warning' : !isJobRunRecently( suite ), 'btn btn-success' : suite.jobs.length>0 && suite.jobs[0].passedTests==suite.jobs[0].totalTests,'btn btn-danger' : hasFailedTests( suite ), 'btn btn-default' : suite.jobs.length==0} | tokenList}}" on-click="{{filterBySuiteName}}">{{suite.name}}</button>
+                    <button type="button" class="suite-dashboard-button {{{ 'btn btn-warning' : !isJobRunRecently( suite ), 'btn btn-success' : suite.jobs.length>0 && suite.jobs[0].passedTests==suite.jobs[0].totalTests,'btn btn-danger' : hasFailedTests( suite ), 'btn btn-default' : suite.jobs.length==0} | tokenList}}" on-click="{{filterBySuiteName}}">{{suite.name}}</button>
                 </span>
             </template>
         </div>
