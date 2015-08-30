@@ -16,6 +16,7 @@ import org.glassfish.jersey.media.sse.SseFeature;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -58,6 +59,9 @@ public class NewmanClient {
         return restClient.target(uri).path("job").path(jobId).request().rx().get(Job.class);
     }
 
+    public CompletionStage<Response> deleteJobUntilDesiredSpace(String requiredFreeDiskSpace){
+        return restClient.target(uri).path("jobs").path(requiredFreeDiskSpace).request().rx().delete();
+    }
     public CompletionStage<Batch<Job>> getJobs() {
         return restClient.target(uri).path("job").queryParam("all", "true").request().rx().get(new GenericType<Batch<Job>>() {
         });

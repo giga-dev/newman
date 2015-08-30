@@ -30,6 +30,7 @@
         <module>newman-server</module>
         <module>newman-agent</module>
         <module>newman-submitter</module>
+        <module>newman-analytics</module>
     </modules>
 
     <dependencies>
