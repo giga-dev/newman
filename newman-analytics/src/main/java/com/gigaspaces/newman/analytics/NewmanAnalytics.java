@@ -7,6 +7,8 @@ import java.util.Properties;
  */
 public class NewmanAnalytics {
 
+    private static final String CRONJOB_CLASS = "cronjob-class";
+
     public static void main(String[] args) throws Exception {
 
         if (args.length == 0) {
@@ -15,12 +17,12 @@ public class NewmanAnalytics {
 
         Properties properties = new PropertiesConfigurer(args).getProperties();
 
-        String cronableClass = properties.getProperty("cronable-class");
+        String cronableClass = properties.getProperty(CRONJOB_CLASS);
         if (cronableClass == null) {
-            throw new IllegalArgumentException("No cronable-class class defined in " + args[0]);
+            throw new IllegalArgumentException("Missing " + CRONJOB_CLASS +" key defined in " + args[0]);
         }
 
-        Cronable cronable = Class.forName(cronableClass).asSubclass(Cronable.class).newInstance();
-        cronable.run(properties);
+        CronJob cronJob = Class.forName(cronableClass).asSubclass(CronJob.class).newInstance();
+        cronJob.run(properties);
     }
 }

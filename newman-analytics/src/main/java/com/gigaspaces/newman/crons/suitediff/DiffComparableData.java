@@ -1,11 +1,11 @@
-package com.gigaspaces.newman.report.daily;
+package com.gigaspaces.newman.crons.suitediff;
 
 import com.gigaspaces.newman.beans.Suite;
 
 /**
  * Created by moran on 8/19/15.
  */
-class SuiteDiff implements Comparable<SuiteDiff> {
+class DiffComparableData implements Comparable<DiffComparableData> {
     Suite suite;
     int failedTests;
     int diffFailedTests;
@@ -13,7 +13,7 @@ class SuiteDiff implements Comparable<SuiteDiff> {
     int diffTotalTests;
 
     @Override
-    public int compareTo(SuiteDiff o) {
+    public int compareTo(DiffComparableData o) {
 
         int compareToResult = 0;
 
@@ -43,7 +43,7 @@ class SuiteDiff implements Comparable<SuiteDiff> {
     }
 
     //
-    // reflection methods used by org.antlr.stringtemplate (see daily_report.st files)
+    // reflection methods used by org.antlr.stringtemplate (see body-template.st files)
     //
 
     public String getSuiteName() {

@@ -1,0 +1,1 @@
+($latestBuildBranch$) $latestBuildName$ with $latestBuildFailedTests$ failures

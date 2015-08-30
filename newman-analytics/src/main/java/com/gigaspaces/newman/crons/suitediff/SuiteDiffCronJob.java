@@ -1,7 +1,7 @@
-package com.gigaspaces.newman.report.daily;
+package com.gigaspaces.newman.crons.suitediff;
 
 import com.gigaspaces.newman.NewmanClient;
-import com.gigaspaces.newman.analytics.Cronable;
+import com.gigaspaces.newman.analytics.CronJob;
 import com.gigaspaces.newman.analytics.PropertiesConfigurer;
 import com.gigaspaces.newman.beans.Batch;
 import com.gigaspaces.newman.beans.Build;
@@ -23,15 +23,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Daily mail report comparing latest build with former build, saving the last compared build-id into a file.
+ * sends an email report comparing latest build with former build, saving the last compared build-id into a file.
  *
  * Created by moran on 8/13/15.
  */
-public class DailyReport implements Cronable {
+public class SuiteDiffCronJob implements CronJob {
 
-    private static final Logger logger = LoggerFactory.getLogger(DailyReport.class);
+    private static final Logger logger = LoggerFactory.getLogger(SuiteDiffCronJob.class);
 
-    private static final String DAILY_REPORT_BRANCH = "daily.report.branch";
+    private static final String CRONS_SUITE_DIFF_BRANCH = "crons.suitediff.branch";
     private static final String DEFAULT_BRANCH = "master";
     private static final String BID_FILE_SUFFIX = ".bid";
 
@@ -44,9 +44,7 @@ public class DailyReport implements Cronable {
             newmanClient = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                     config.getNewmanServerRestUser(), config.getNewmanServerRestPassword());
 
-            StringTemplate htmlTemplate = createHtmlTemplate(properties);
-
-            sendEmail(properties, newmanClient, htmlTemplate);
+            sendEmail(properties, newmanClient);
 
         } catch (Exception e) {
             logger.warn("Failed to execute daily report", e);
@@ -62,7 +60,15 @@ public class DailyReport implements Cronable {
                 getResourcesPath(properties),
                 DefaultTemplateLexer.class);
 
-        return group.getInstanceOf("html-template"); //ref. html-template.st
+        return group.getInstanceOf("body-template"); //ref. body-template.st
+    }
+
+    private StringTemplate createSubjectTemplate(Properties properties) {
+        StringTemplateGroup group = new StringTemplateGroup("group",
+                getResourcesPath(properties),
+                DefaultTemplateLexer.class);
+
+        return group.getInstanceOf("subject-template"); //ref. subject-template.st
     }
 
     private String getResourcesPath(Properties properties) {
@@ -73,7 +79,7 @@ public class DailyReport implements Cronable {
         return path;
     }
 
-    private void sendEmail(Properties properties, NewmanClient newmanClient, StringTemplate htmlTemplate) throws Exception {
+    private void sendEmail(Properties properties, NewmanClient newmanClient) throws Exception {
 
         DashboardData dashboardData = newmanClient.getDashboard().toCompletableFuture().get(1, TimeUnit.MINUTES);
 
@@ -86,12 +92,21 @@ public class DailyReport implements Cronable {
         Build latestBuild = getLatestBuild(properties, historyBuilds);
         Build previousBuild = getPreviousBuildFromFile(properties, latestBuild, newmanClient);
 
+        //calculate
         Map<String, Job> latest_mapSuite2Job = getJobsByBuildId(newmanClient, latestBuild.getId());
         Map<String, Job> previous_mapSuite2Job = getJobsByBuildId(newmanClient, previousBuild.getId());
-        Set<SuiteDiff> suiteDiffs = compare(latest_mapSuite2Job, previous_mapSuite2Job);
-        SuiteDiffSummary summary = getDiffSummary(suiteDiffs);
+        Set<DiffComparableData> suiteDiffs = compare(latest_mapSuite2Job, previous_mapSuite2Job);
+        DiffSummaryData summary = getDiffSummary(suiteDiffs);
 
-        final String buildRestUrl = newmanClient.getBaseURI() + "/#!/build/";
+        //create subject
+        StringTemplate subjectTemplate = createSubjectTemplate(properties);
+        subjectTemplate.setAttribute("latestBuildBranch", latestBuild.getBranch());
+        subjectTemplate.setAttribute("latestBuildName", latestBuild.getName());
+        subjectTemplate.setAttribute("latestBuildFailedTests", latestBuild.getBuildStatus().getFailedTests());
+
+        //create body
+        StringTemplate htmlTemplate = createHtmlTemplate(properties);
+        String buildRestUrl = newmanClient.getBaseURI() + "/#!/build/";
         htmlTemplate.setAttribute("summary", summary);
         htmlTemplate.setAttribute("diffs", suiteDiffs);
 
@@ -105,7 +120,8 @@ public class DailyReport implements Cronable {
         htmlTemplate.setAttribute("previousBuildName", previousBuild.getName());
         htmlTemplate.setAttribute("previousBuildDate", previousBuild.getBuildTime());
 
-        String subject = prepareSubject(latestBuild);
+        //send mail
+        String subject = subjectTemplate.toString();
         String body = htmlTemplate.toString();
 
         if (logger.isDebugEnabled()) {
@@ -125,7 +141,7 @@ public class DailyReport implements Cronable {
     }
 
     private Build getLatestBuild(Properties properties, List<Build> historyBuilds) {
-        String branch = properties.getProperty(DAILY_REPORT_BRANCH, DEFAULT_BRANCH);
+        String branch = properties.getProperty(CRONS_SUITE_DIFF_BRANCH, DEFAULT_BRANCH);
         for (Build history : historyBuilds) {
             if (history.getBranch().equals(branch)) {
                 return history;
@@ -161,9 +177,9 @@ public class DailyReport implements Cronable {
         }
     }
 
-    private SuiteDiffSummary getDiffSummary(Set<SuiteDiff> suiteDiffs) {
-        SuiteDiffSummary summary = new SuiteDiffSummary();
-        for (SuiteDiff diff : suiteDiffs) {
+    private DiffSummaryData getDiffSummary(Set<DiffComparableData> suiteDiffs) {
+        DiffSummaryData summary = new DiffSummaryData();
+        for (DiffComparableData diff : suiteDiffs) {
             if (diff.diffFailedTests > 0) {
                 summary.totalIncreasingDiff += diff.diffFailedTests;
             } else if (diff.diffFailedTests < 0) {
@@ -173,15 +189,8 @@ public class DailyReport implements Cronable {
         return summary;
     }
 
-    private String prepareSubject(Build latest_build) {
-        StringBuilder subject = new StringBuilder();
-        subject.append('(').append(latest_build.getBranch()).append(')').append(" build ").append(latest_build.getName())
-                .append(" with ").append(latest_build.getBuildStatus().getFailedTests()).append(" failures");
-        return subject.toString();
-    }
-
-    private Set<SuiteDiff> compare(Map<String, Job> latest_mapSuite2Job, Map<String, Job> previous_mapSuite2Job) {
-        Set<SuiteDiff> set = new TreeSet<SuiteDiff>();
+    private Set<DiffComparableData> compare(Map<String, Job> latest_mapSuite2Job, Map<String, Job> previous_mapSuite2Job) {
+        Set<DiffComparableData> set = new TreeSet<>();
         for (Map.Entry<String, Job> entry : latest_mapSuite2Job.entrySet()) {
             String suiteId = entry.getKey();
             Job latestJob = entry.getValue();
@@ -192,8 +201,8 @@ public class DailyReport implements Cronable {
         return set;
     }
 
-    private SuiteDiff createSuiteDiff(Job latestJob, Job previousJob) {
-        SuiteDiff suiteDiff = new SuiteDiff();
+    private DiffComparableData createSuiteDiff(Job latestJob, Job previousJob) {
+        DiffComparableData suiteDiff = new DiffComparableData();
         suiteDiff.suite = latestJob.getSuite();
         suiteDiff.failedTests = latestJob.getFailedTests();
         suiteDiff.totalTests = latestJob.getTotalTests();
@@ -211,7 +220,7 @@ public class DailyReport implements Cronable {
      */
 
     private Map<String, Job> getJobsByBuildId(NewmanClient newmanClient, String buildId) throws ExecutionException, InterruptedException {
-        Map<String, Job> map = new HashMap<String, Job>();
+        Map<String, Job> map = new HashMap<>();
         Batch<Job> jobBatch = newmanClient.getJobs(buildId).toCompletableFuture().get();
         for (Job job : jobBatch.getValues()) {
             map.put(job.getSuite().getId(), job);

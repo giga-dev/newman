@@ -1,14 +1,14 @@
-package com.gigaspaces.newman.report.daily;
+package com.gigaspaces.newman.crons.suitediff;
 
 /**
  * Created by moran on 8/19/15.
  */
-class SuiteDiffSummary {
+class DiffSummaryData {
     int totalIncreasingDiff;
     int totalDecreasingDiff;
 
     //
-    // reflection methods used by org.antlr.stringtemplate (see daily_report.st files)
+    // reflection methods used by org.antlr.stringtemplate (see body-template.st files)
     //
 
     public int getTotalIncreasingDiff() {
