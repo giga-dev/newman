@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by tamirt
@@ -14,7 +15,8 @@ import java.util.Properties;
  */
 public class CleanseCronJob implements CronJob {
     private static final Logger logger = LoggerFactory.getLogger(CleanseCronJob.class);
-    public static final String CONS_CLEANSE_SIZE = "cons.cleanse.size";
+    public static final String CONS_CLEANSE_SIZE_PERCENT = "crons.cleanse.sizePercent";
+    public static final String CONS_CLEANSE_NUMBER_OF_JOBS = "crons.cleanse.numberOfJobs";
 
     public void run(Properties properties) {
         NewmanServerConfig config = new NewmanServerConfig();
@@ -35,9 +37,13 @@ public class CleanseCronJob implements CronJob {
 
     private void cleanse(NewmanClient newmanClient, Properties properties) throws Exception {
 
-        final String requiredFreeDiskSpace = properties.getProperty(CONS_CLEANSE_SIZE);
-        newmanClient.deleteJobUntilDesiredSpace(requiredFreeDiskSpace).toCompletableFuture().get();
+        final String requiredFreeDiskSpacePercentage = properties.getProperty(CONS_CLEANSE_SIZE_PERCENT);
+        final String numberOfJobs = properties.getProperty(CONS_CLEANSE_NUMBER_OF_JOBS);
+        long start = System.currentTimeMillis();
+        Integer numOfJobsDeleted = newmanClient.deleteJobUntilDesiredSpace(requiredFreeDiskSpacePercentage, numberOfJobs).toCompletableFuture().get(10, TimeUnit.MINUTES);
+        long end = System.currentTimeMillis();
 
+        logger.info("Deleted " + numOfJobsDeleted + " jobs, took: " + (end-start) + " ms");
     }
 
 }

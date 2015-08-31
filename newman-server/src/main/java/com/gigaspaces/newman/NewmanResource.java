@@ -180,48 +180,37 @@ public class NewmanResource {
     }
 
 
-
     @DELETE
-    @Path("jobs/{requiredFreeDiskSpace}")
+    @Path("jobs/{requiredFreeDiskSpacePercentage}/{numberOfJobs}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response deleteJobUntilDesiredSpace(final @PathParam("requiredFreeDiskSpace") String requiredFreeDiskSpace) {
-        long requiredSpace;
-        long availableSpace;
-        try {
-            SizeParser requiredSpaceParser = new SizeParser(requiredFreeDiskSpace);
-            requiredSpace = requiredSpaceParser.parse();
-        } catch (IllegalFormatException error) {
-            throw new BadRequestException("error when parsing with SizeParser");
-        }
+    public int deleteJobUntilDesiredSpace(final @PathParam("requiredFreeDiskSpacePercentage") String requiredFreeDiskSpacePercentage, final @PathParam("numberOfJobs") String numberOfJobs) throws InterruptedException {
+        long totalSpace = new File("/").getTotalSpace();
+        long requiredSpace = Integer.parseInt(requiredFreeDiskSpacePercentage) * totalSpace / 100;
         Query<Job> query = jobDAO.createQuery();
         List<Job> jobs = jobDAO.find(query).asList();
+        int remainJobsToDelete = jobs.size() - Integer.parseInt(numberOfJobs);
+        int jobsDeleted = 0;
         for (Job job : jobs) {
-            try {
-                availableSpace = getAvailableSpace();
-            } catch (IOException e1) {
-                throw new BadRequestException("error in running df -h . or stdInput.readLine()");
-            }
-            if (availableSpace < requiredSpace) {
-                if (!job.getState().equals(State.DONE)){
+            long availableSpace = new File("/").getFreeSpace();
+            if (availableSpace < requiredSpace && remainJobsToDelete > 0) {
+                if (!job.getState().equals(State.DONE)) {
                     continue;
                 }
                 deleteJob(job.getId());
-                if (job.getId().equals(jobs.get(jobs.size()-1).getId())  ) {
-                    try {
-                        availableSpace = getAvailableSpace();
-                    } catch (IOException e1) {
-                        throw new BadRequestException("error in running command or stdInput.readLine()");
-                    }
-                    if (availableSpace < requiredSpace) {
-                        throw new BadRequestException("can't get to the required space " + requiredSpace);
-                    }
-                }
+                remainJobsToDelete--;
+                jobsDeleted++;
             } else {
                 break;
             }
         }
-        return Response.ok().build();
+
+        long freeSpace = new File("/").getFreeSpace();
+        if (freeSpace < requiredSpace) {
+            throw new BadRequestException("can't get to the required space: " + requiredSpace + " free space: " + freeSpace + " deleted: " + jobsDeleted);
+        }
+
+        return new Integer(jobsDeleted);
     }
 
 
@@ -1412,14 +1401,6 @@ public class NewmanResource {
         }
     }
 
-    private long getAvailableSpace() throws IOException {
-        Process proc = Runtime.getRuntime().exec("df -h .");
-        BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        stdInput.readLine();
-        SizeParser availableParser = new SizeParser(stdInput.readLine().split("\\s+")[3]);
-        proc.destroy();
-        return availableParser.parse();
-    }
 
 
 }
