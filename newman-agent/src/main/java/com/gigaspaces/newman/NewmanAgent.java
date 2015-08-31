@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -32,7 +31,6 @@ public class NewmanAgent {
     private NewmanClient client;
     private volatile boolean active = true;
     private final Timer timer = new Timer(true);
-    private final String agentNameFile = append(Paths.get("."), "newman_agent_name.txt").toAbsolutePath().normalize().toString();
 
     public static void main(String[] args) {
         NewmanAgent agent = new NewmanAgent();
@@ -101,27 +99,7 @@ public class NewmanAgent {
     }
 
     private void setFinalAgentName() {
-        if (!config.isPersistentName()) {
-            this.name = "newman-agent-" + UUID.randomUUID().toString();
-        }
-        // persist name in working directory
-        else {
-            logger.info("Agent name will be stored in {}, please make sure no other agent is running on the same working directory", agentNameFile);
-            try {
-                final File nameFile = new File(agentNameFile);
-                if (!nameFile.exists()) {
-                    this.name = "newman-agent-" + UUID.randomUUID().toString();
-                    FileUtils.writeLineToFile(agentNameFile, name);
-                }
-                // read from file if exists after recovery
-                else {
-                    this.name = FileUtils.readTextFile(nameFile.toPath());
-                    logger.info("read agent name {} from file {} after agent recovery", name, agentNameFile);
-                }
-            } catch (Exception e) {
-                deactivateAgent(e, "failed to persist agent name: " + name + " to a file: " + agentNameFile);
-            }
-        }
+        this.name = "newman-agent-" + UUID.randomUUID().toString();
     }
 
     private void start() {
