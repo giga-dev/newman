@@ -17,6 +17,7 @@ public class CleanseCronJob implements CronJob {
     private static final Logger logger = LoggerFactory.getLogger(CleanseCronJob.class);
     public static final String CONS_CLEANSE_SIZE_PERCENT = "crons.cleanse.sizePercent";
     public static final String CONS_CLEANSE_NUMBER_OF_JOBS = "crons.cleanse.numberOfJobs";
+    public static final String CONS_CLEANSE_DISK_PARTITION = "crons.cleanse.diskPartition";
 
     public void run(Properties properties) {
         NewmanServerConfig config = new NewmanServerConfig();
@@ -39,8 +40,9 @@ public class CleanseCronJob implements CronJob {
 
         final String requiredFreeDiskSpacePercentage = properties.getProperty(CONS_CLEANSE_SIZE_PERCENT);
         final String numberOfJobs = properties.getProperty(CONS_CLEANSE_NUMBER_OF_JOBS);
+        final String diskPartition=properties.getProperty(CONS_CLEANSE_DISK_PARTITION);
         long start = System.currentTimeMillis();
-        Integer numOfJobsDeleted = newmanClient.deleteJobUntilDesiredSpace(requiredFreeDiskSpacePercentage, numberOfJobs).toCompletableFuture().get(10, TimeUnit.MINUTES);
+        Integer numOfJobsDeleted = newmanClient.deleteJobUntilDesiredSpace(requiredFreeDiskSpacePercentage, numberOfJobs,diskPartition).toCompletableFuture().get(10, TimeUnit.MINUTES);
         long end = System.currentTimeMillis();
 
         logger.info("Deleted " + numOfJobsDeleted + " jobs, took: " + (end-start) + " ms");

@@ -181,18 +181,20 @@ public class NewmanResource {
 
 
     @DELETE
-    @Path("jobs/{requiredFreeDiskSpacePercentage}/{numberOfJobs}")
+    @Path("jobs/{requiredFreeDiskSpacePercentage}/{numberOfJobs}/{diskPartition}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
-    public int deleteJobUntilDesiredSpace(final @PathParam("requiredFreeDiskSpacePercentage") String requiredFreeDiskSpacePercentage, final @PathParam("numberOfJobs") String numberOfJobs) throws InterruptedException {
-        long totalSpace = new File("/home").getTotalSpace();
+    public int deleteJobUntilDesiredSpace(final @PathParam("requiredFreeDiskSpacePercentage") String requiredFreeDiskSpacePercentage,
+                                          final @PathParam("numberOfJobs") String numberOfJobs,
+                                          final @PathParam("diskPartition") String diskPartition) throws InterruptedException {
+        long totalSpace = new File(diskPartition).getTotalSpace();
         long requiredSpace = Integer.parseInt(requiredFreeDiskSpacePercentage) * totalSpace / 100;
         Query<Job> query = jobDAO.createQuery();
         List<Job> jobs = jobDAO.find(query).asList();
         int remainJobsToDelete = jobs.size() - Integer.parseInt(numberOfJobs);
         int jobsDeleted = 0;
         for (Job job : jobs) {
-            long availableSpace = new File("/home").getFreeSpace();
+            long availableSpace = new File(diskPartition).getFreeSpace();
             if (availableSpace < requiredSpace && remainJobsToDelete > 0) {
                 if (!job.getState().equals(State.DONE)) {
                     continue;
@@ -205,7 +207,7 @@ public class NewmanResource {
             }
         }
 
-        long freeSpace = new File("/").getFreeSpace();
+        long freeSpace = new File(diskPartition).getFreeSpace();
         if (freeSpace < requiredSpace) {
             throw new BadRequestException("can't get to the required space: " + requiredSpace + " free space: " + freeSpace + " deleted: " + jobsDeleted);
         }
