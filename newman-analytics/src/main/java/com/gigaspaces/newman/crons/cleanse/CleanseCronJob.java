@@ -42,10 +42,10 @@ public class CleanseCronJob implements CronJob {
         final String numberOfJobs = properties.getProperty(CONS_CLEANSE_NUMBER_OF_JOBS);
         final String diskPartition=properties.getProperty(CONS_CLEANSE_DISK_PARTITION);
         long start = System.currentTimeMillis();
-        Integer numOfJobsDeleted = newmanClient.deleteJobUntilDesiredSpace(requiredFreeDiskSpacePercentage, numberOfJobs,diskPartition).toCompletableFuture().get(10, TimeUnit.MINUTES);
+        String info = newmanClient.deleteJobUntilDesiredSpace(requiredFreeDiskSpacePercentage, numberOfJobs,diskPartition).toCompletableFuture().get(10, TimeUnit.MINUTES);
         long end = System.currentTimeMillis();
 
-        logger.info("Deleted " + numOfJobsDeleted + " jobs, took: " + (end-start) + " ms");
+        logger.info(info+". took: " + (end-start) + " ms");
     }
 
 }

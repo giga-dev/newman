@@ -184,7 +184,7 @@ public class NewmanResource {
     @Path("jobs/{requiredFreeDiskSpacePercentage}/{numberOfJobs}/{diskPartition}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
-    public int deleteJobUntilDesiredSpace(final @PathParam("requiredFreeDiskSpacePercentage") String requiredFreeDiskSpacePercentage,
+    public String deleteJobUntilDesiredSpace(final @PathParam("requiredFreeDiskSpacePercentage") String requiredFreeDiskSpacePercentage,
                                           final @PathParam("numberOfJobs") String numberOfJobs,
                                           final @PathParam("diskPartition") String diskPartition) throws InterruptedException {
         long totalSpace = new File("/"+diskPartition).getTotalSpace();
@@ -206,13 +206,17 @@ public class NewmanResource {
                 break;
             }
         }
-
+        String output;
         long freeSpace = new File("/"+diskPartition).getFreeSpace();
         if (freeSpace < requiredSpace) {
-            throw new BadRequestException("can't get to the required space: " + requiredSpace + " free space: " + freeSpace + " deleted: " + jobsDeleted);
+             output="can't get to the required space: " + requiredSpace + " free space: " + freeSpace + " deleted: " + jobsDeleted;
+            logger.warn(output);
+        }
+        else{
+             output="got to the required space: " + requiredSpace +" deleted: "+ jobsDeleted +" free space: " + freeSpace;
         }
 
-        return new Integer(jobsDeleted);
+        return output;
     }
 
 
