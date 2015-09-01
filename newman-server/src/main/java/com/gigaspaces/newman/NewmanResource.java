@@ -187,14 +187,14 @@ public class NewmanResource {
     public int deleteJobUntilDesiredSpace(final @PathParam("requiredFreeDiskSpacePercentage") String requiredFreeDiskSpacePercentage,
                                           final @PathParam("numberOfJobs") String numberOfJobs,
                                           final @PathParam("diskPartition") String diskPartition) throws InterruptedException {
-        long totalSpace = new File(diskPartition).getTotalSpace();
+        long totalSpace = new File("/"+diskPartition).getTotalSpace();
         long requiredSpace = Integer.parseInt(requiredFreeDiskSpacePercentage) * totalSpace / 100;
         Query<Job> query = jobDAO.createQuery();
         List<Job> jobs = jobDAO.find(query).asList();
         int remainJobsToDelete = jobs.size() - Integer.parseInt(numberOfJobs);
         int jobsDeleted = 0;
         for (Job job : jobs) {
-            long availableSpace = new File(diskPartition).getFreeSpace();
+            long availableSpace = new File("/"+diskPartition).getFreeSpace();
             if (availableSpace < requiredSpace && remainJobsToDelete > 0) {
                 if (!job.getState().equals(State.DONE)) {
                     continue;
@@ -207,7 +207,7 @@ public class NewmanResource {
             }
         }
 
-        long freeSpace = new File(diskPartition).getFreeSpace();
+        long freeSpace = new File("/"+diskPartition).getFreeSpace();
         if (freeSpace < requiredSpace) {
             throw new BadRequestException("can't get to the required space: " + requiredSpace + " free space: " + freeSpace + " deleted: " + jobsDeleted);
         }
