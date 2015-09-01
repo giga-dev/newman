@@ -12,33 +12,38 @@ while true; do
     DAILY_MODE=false
     export NEWMAN_SUITES="${NEWMAN_SUITES},${NEWMAN_NIGHTLY_SUITES}"
   fi
-  DIFF=`diff ${WEB_FOLDER}/running_build ${WEB_FOLDER}/pending_build`
-  if [[ -z "$DIFF" && "$DAILY_MODE" = "true" ]]
-  then 
-    echo "no new build was created, waiting for changes..."
-    sleep 30
-    continue
-  fi
   branch_list=`cat ${BRANCH_FILE_PATH}`
   IFS=',' read -a branch_array <<< "${branch_list}"
   for branch in "${branch_array[@]}"
   do
-    echo "Clearing running build folder"
-    rm -rf ${WEB_FOLDER}/running_build/*
-    echo "Copying pending build to running build"
-    cp -R ${WEB_FOLDER}/pending_build/* ${WEB_FOLDER}/running_build/
+    echo "checking if builder pushed a new build to pending builds under the branch: ${branch}"
+    DIFF=`diff ${WEB_FOLDER}/running_build/${branch} ${WEB_FOLDER}/pending_build/${branch}`
+    if [[ -z "$DIFF" && "$DAILY_MODE" = "true" ]]
+    then
+      echo "no new build was created, waiting for changes..."
+      sleep 30
+      continue
+    fi
+    echo "Clearing running build folder under branch: ${branch}"
+    #rm -rf ${WEB_FOLDER}/running_build/*
+    rm -rf ${WEB_FOLDER}/running_build/${branch}/*
+    echo "Copying pending build to running build under branch: ${branch}"
+    #cp -R ${WEB_FOLDER}/pending_build/* ${WEB_FOLDER}/running_build/
+    cp -R ${WEB_FOLDER}/pending_build/${branch}/* ${WEB_FOLDER}/running_build/${branch}/
     echo "Waiting for webserver to sync with changes"
     sleep 60
     LOCAL_BUILDS_DIR=/home/xap/testing-grid/local-builds
     CUR_BRANCH_DIR=${LOCAL_BUILDS_DIR}/${branch}
     BUILD=`./select_build.sh ${CUR_BRANCH_DIR}`
-    GS_BUILD_ZIP=$(find ${WEB_FOLDER}/running_build -name '*giga*.zip')
+    #GS_BUILD_ZIP=$(find ${WEB_FOLDER}/running_build -name '*giga*.zip')
+    GS_BUILD_ZIP=$(find ${WEB_FOLDER}/running_build/${branch} -name '*giga*.zip')
     GS_BUILD_ZIP=`basename ${GS_BUILD_ZIP}`
     export NEWMAN_BUILD_NUMBER=${BUILD}
     export NEWMAN_BUILD_BRANCH=${branch}
-    export NEWMAN_BUILD_TESTS_METADATA=${BASE_WEB_URI}/running_build/tgrid-tests-metadata.json,${BASE_WEB_URI}/running_build/sgtest-tests.json,${BASE_WEB_URI}/running_build/http-session-tests.json,${BASE_WEB_URI}/running_build/mongodb-tests.json
-    export NEWMAN_BUILD_SHAS_FILE=${BASE_WEB_URI}/running_build/metadata.txt
-    export NEWMAN_BUILD_RESOURCES=${BASE_WEB_URI}/running_build/testsuite-1.5.zip,${BASE_WEB_URI}/running_build/${GS_BUILD_ZIP},${BASE_WEB_URI}/running_build/newman-artifacts.zip
+    #added branch to each URI
+    export NEWMAN_BUILD_TESTS_METADATA=${BASE_WEB_URI}/running_build/${branch}/tgrid-tests-metadata.json,${BASE_WEB_URI}/running_build/${branch}/sgtest-tests.json,${BASE_WEB_URI}/running_build/${branch}/http-session-tests.json,${BASE_WEB_URI}/running_build/${branch}/mongodb-tests.json
+    export NEWMAN_BUILD_SHAS_FILE=${BASE_WEB_URI}/running_build/${branch}/metadata.txt
+    export NEWMAN_BUILD_RESOURCES=${BASE_WEB_URI}/running_build/${branch}/testsuite-1.5.zip,${BASE_WEB_URI}/running_build/${branch}/${GS_BUILD_ZIP},${BASE_WEB_URI}/running_build/${branch}/newman-artifacts.zip
     echo "NEWMAN_BUILD_NUMBER=${NEWMAN_BUILD_NUMBER}"
     echo "NEWMAN_BUILD_BRANCH=${NEWMAN_BUILD_BRANCH}"
     echo "NEWMAN_BUILD_TESTS_METADATA=${NEWMAN_BUILD_TESTS_METADATA}"
