@@ -185,14 +185,14 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
     public int deleteJobUntilDesiredSpace(final @PathParam("requiredFreeDiskSpacePercentage") String requiredFreeDiskSpacePercentage, final @PathParam("numberOfJobs") String numberOfJobs) throws InterruptedException {
-        long totalSpace = new File("/").getTotalSpace();
+        long totalSpace = new File("/home").getTotalSpace();
         long requiredSpace = Integer.parseInt(requiredFreeDiskSpacePercentage) * totalSpace / 100;
         Query<Job> query = jobDAO.createQuery();
         List<Job> jobs = jobDAO.find(query).asList();
         int remainJobsToDelete = jobs.size() - Integer.parseInt(numberOfJobs);
         int jobsDeleted = 0;
         for (Job job : jobs) {
-            long availableSpace = new File("/").getFreeSpace();
+            long availableSpace = new File("/home").getFreeSpace();
             if (availableSpace < requiredSpace && remainJobsToDelete > 0) {
                 if (!job.getState().equals(State.DONE)) {
                     continue;
