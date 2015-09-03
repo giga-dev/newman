@@ -58,7 +58,7 @@ public class NewmanClient {
         return restClient.target(uri).path("job").path(jobId).request().rx().get(Job.class);
     }
 
-    public CompletionStage<String> deleteJobUntilDesiredSpace(String requiredFreeDiskSpacePercentage, String numberOfJobs, String diskPartition){
+    public CompletionStage<String> deleteJobUntilDesiredSpace(String requiredFreeDiskSpacePercentage, String numberOfJobs, String diskPartition) {
         return restClient.target(uri).path("jobs").path(requiredFreeDiskSpacePercentage).path(numberOfJobs).path(diskPartition).request().rx().delete(String.class);
     }
     public CompletionStage<Batch<Job>> getJobs() {
@@ -90,10 +90,17 @@ public class NewmanClient {
                 });
     }
 
+//    public CompletionStage
+
     public CompletionStage<Test> getTest(String id) {
         return restClient.target(uri).path("test").path(id).request().rx().get(Test.class);
     }
 
+    public CompletionStage<Batch<TestHistoryItem>> getTestHistory(String testId) {
+        return restClient.target(uri).path("test-history").queryParam("id", testId).request()
+                .rx().get(new GenericType<Batch<TestHistoryItem>>() {
+                });
+    }
 
     public CompletionStage<Build> createBuild(Build build) {
         return restClient.target(uri).path("build").request().rx().put(Entity.json(build), Build.class);
@@ -116,6 +123,7 @@ public class NewmanClient {
     public CompletionStage<String> ping(String agentName, String jobId, String testId) {
         return restClient.target(uri).path("ping").path(agentName).path(jobId).path(testId).request().rx().get(String.class);
     }
+
     public CompletionStage<String> ping(String agentName, String jobId) {
         return restClient.target(uri).path("ping").path(agentName).path(jobId).request().rx().get(String.class);
     }
@@ -162,7 +170,7 @@ public class NewmanClient {
     }
 
 
-    public CompletionStage<Test> uploadLog( String jobId, String testId, File log) {
+    public CompletionStage<Test> uploadLog(String jobId, String testId, File log) {
         final FileDataBodyPart filePart = new FileDataBodyPart("file", log);
 
         final MultiPart multipart = new FormDataMultiPart()

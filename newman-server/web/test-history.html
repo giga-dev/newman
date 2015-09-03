@@ -114,7 +114,7 @@
                 return res;
             },
             ajaxResponse: function(event,resp){
-                this.allValues = resp.response.entity;
+                this.allValues = resp.response.values;
                 this.runFilter();
             },
             applyFilter: function(filter, values){

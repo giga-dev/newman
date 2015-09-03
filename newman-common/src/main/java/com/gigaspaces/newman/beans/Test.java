@@ -1,5 +1,6 @@
 package com.gigaspaces.newman.beans;
 
+import com.gigaspaces.newman.Sha;
 import com.gigaspaces.newman.utils.StringUtils;
 import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.*;
@@ -35,6 +36,9 @@ public class Test {
     private Date scheduledAt;
     @Transient
     private int progressPercent;
+
+    @Indexed(unique=false)
+    private String sha;
 
     @Embedded private Map<String,String> properties;
 
@@ -197,8 +201,24 @@ public class Test {
         }
     }
 
+    public String getSha() {
+        return sha;
+    }
+
+    private void computeSha() {
+        if(sha == null){
+            sha = Sha.compute(name, arguments);
+        }
+    }
+
+
     @PostLoad void postLoad(){
         computeProgressPercent();
+        computeSha();
+    }
+
+    @PreSave void preSave(){
+        computeSha();
     }
 
     @Override
@@ -217,6 +237,7 @@ public class Test {
                 .append("startTime", startTime)
                 .append("endTime", endTime)
                 .append("scheduledAt", scheduledAt)
+                .append("sha", sha)
                 .toString();
     }
 }

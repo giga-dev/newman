@@ -25,4 +25,14 @@ public class TestHistoryItem {
     public Job getJob() {
         return job;
     }
+
+    @SuppressWarnings("StringBufferReplaceableByString")
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("TestHistoryItem{");
+        sb.append("test=").append(test);
+        sb.append(", job=").append(job);
+        sb.append('}');
+        return sb.toString();
+    }
 }

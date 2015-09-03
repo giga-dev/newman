@@ -45,6 +45,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -80,8 +81,6 @@ public class NewmanResource {
     @SuppressWarnings("FieldCanBeLocal")
     private final Timer timer = new Timer(true);
 
-    private Morphia morphia;
-
     private final ConcurrentHashMap<String, Object> agentLocks = new ConcurrentHashMap<>();
 
     private static final int maxJobsPerSuite = 5;
@@ -105,7 +104,7 @@ public class NewmanResource {
             }
         };
         mongoClient = new MongoClient(config.getMongo().getHost());
-        morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
+        Morphia morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
         Datastore ds = morphia.createDatastore(mongoClient, config.getMongo().getDb());
         ds.ensureIndexes();
         ds.ensureCaps();
@@ -132,6 +131,28 @@ public class NewmanResource {
                 getZombieAgents(1000 * 60 * 20).forEach(NewmanResource.this::handleZombieAgent);
             }
         }, 1000 * 30, 1000 * 30);
+
+    }
+
+    private int updateAllTests() {
+        logger.info("updating all tests ...");
+        int records = 0;
+        Query<Test> query = testDAO.createQuery();
+        for (Test test : testDAO.find(query)) {
+            UpdateOperations<Test> ops = testDAO.createUpdateOperations().set("sha", test.getSha());
+            testDAO.updateFirst(testDAO.createIdQuery(test.getId()), ops);
+            ++records;
+        }
+        logger.info("updating done {} records were updated", records);
+        return records;
+
+    }
+
+    @GET
+    @Path("convert-tests")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String convertTests(){
+        return String.valueOf(updateAllTests());
     }
 
     @GET
@@ -169,6 +190,7 @@ public class NewmanResource {
             Bson jobIdFilter = Filters.eq("jobId", id);
             long filterTestsStart = System.currentTimeMillis();
             DistinctIterable assignedAgents = distinctTestsByAssignedAgentFilter.filter(jobIdFilter);
+            //noinspection unchecked
             Set<String> agents = (Set) assignedAgents.into(new HashSet<>());
             job.setAgents(agents);
             long filterTestsEnd = System.currentTimeMillis();
@@ -1042,7 +1064,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteCollections() {
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
-        List<String> deleted = new ArrayList<String>();
+        List<String> deleted = new ArrayList<>();
         for (String name : db.listCollectionNames()) {
             if (!"system.indexes".equals(name)) {
                 MongoCollection myCollection = db.getCollection(name);
@@ -1109,8 +1131,7 @@ public class NewmanResource {
     private Job performDeleteJob(String jobId) {
         Query<Job> idJobQuery = jobDAO.createIdQuery(jobId);
         Datastore datastore = jobDAO.getDatastore();
-        Job deletedJob = datastore.findAndDelete(idJobQuery);
-        return deletedJob;
+        return datastore.findAndDelete(idJobQuery);
     }
 
     private void performDeleteTests(String jobId) {
@@ -1189,8 +1210,7 @@ public class NewmanResource {
     @Path("suite/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Suite getSuite(final @PathParam("id") String id) {
-        Suite suite = suiteDAO.findOne(suiteDAO.createIdQuery(id));
-        return suite;
+        return suiteDAO.findOne(suiteDAO.createIdQuery(id));
     }
 
     @GET
@@ -1222,10 +1242,7 @@ public class NewmanResource {
         List<Suite> suites = suiteDAO.find(suitesQuery).asList();
         logger.info("--- getAllSuitesWithJobs(), suites count ---" + suites.size());
         List<SuiteWithJobs> suitesWithJobs = new ArrayList<>(suites.size());
-        for (Suite suite : suites) {
-
-            suitesWithJobs.add(createSuiteWithJobs(suite));
-        }
+        suitesWithJobs.addAll(suites.stream().map(this::createSuiteWithJobs).collect(Collectors.toList()));
 
         //reverse map in order to display first latest suites
         Collections.reverse(suitesWithJobs);
@@ -1237,13 +1254,15 @@ public class NewmanResource {
     @GET
     @Path("test-history")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getTests(@QueryParam("id") String id) {
+    public Batch<TestHistoryItem> getTests(@QueryParam("id") String id,
+                                           @DefaultValue("0") @QueryParam("offset") int offset,
+                                           @DefaultValue("50") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
 
         Test thisTest = getTest(id);
-        String testName = thisTest.getName();
-        List<String> testArguments = thisTest.getArguments();
+        final String sha = thisTest.getSha();
 
-        Query<Test> testsQuery = testDAO.createQuery().field("name").equal(testName).field("arguments").equal(testArguments);
+        Query<Test> testsQuery = testDAO.createQuery().field("sha").equal(sha).limit(limit);
+
         List<Test> tests = testDAO.find(testsQuery).asList();
         Collections.reverse(tests);
 
@@ -1252,7 +1271,7 @@ public class NewmanResource {
             TestHistoryItem testHistoryItem = createTestHistoryItem(test);
             testHistoryItemsList.add(testHistoryItem);
         }
-        return Response.ok(Entity.json(testHistoryItemsList)).build();
+        return new Batch<>(testHistoryItemsList, offset, limit, false, Collections.emptyList(), uriInfo);
     }
 
 
@@ -1274,16 +1293,6 @@ public class NewmanResource {
         return new SuiteWithJobs(suite, jobsList);
     }
 
-    private List<BuildWithJobs> createBuildsWithJobs(List<Build> builds) {
-        List<BuildWithJobs> resultList = new ArrayList<>();
-        for (Build build : builds) {
-            BuildWithJobs buildWithJobs = createBuildWithJobs(build);
-            resultList.add(buildWithJobs);
-        }
-
-        return resultList;
-    }
-
     private Map<String, List<Job>> createActiveJobsMap(List<Build> builds) {
         Map<String, List<Job>> resultsMap = new HashMap<>();
         for (Build build : builds) {
@@ -1291,12 +1300,6 @@ public class NewmanResource {
         }
 
         return resultsMap;
-    }
-
-    private BuildWithJobs createBuildWithJobs(Build build) {
-
-        List<Job> jobs = getActiveBuildJobs(build);
-        return new BuildWithJobs(build, jobs);
     }
 
     private List<Job> getActiveBuildJobs(Build build) {
