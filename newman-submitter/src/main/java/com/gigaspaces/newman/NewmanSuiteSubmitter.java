@@ -45,6 +45,7 @@ public class NewmanSuiteSubmitter {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
+
         NewmanSuiteSubmitter submitter = new NewmanSuiteSubmitter();
         submitter.manualSubmitTgrid();
     }
@@ -317,6 +318,41 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest")
                     ),
                     CriteriaBuilder.exclude(getTestCriteriasFromPermutationURI(mapdbExcludePermutationFile))
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitTgridRocksDB() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("rocksdb");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=true -Dblobstore.entriespercentage=0 -Dcom.gigaspaces.quality.tf.rocksdb-blobstore.enabled=true");
+            String testType = "tgrid";
+            String mapdbExcludePermutationFile = "file:///home/kobi/dev/github/xap/tests/sanity/full-blobstore.txt";
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                    CriteriaBuilder.exclude(
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.Performance"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.oneway_replication.OnewayMultithreaded"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.multicast"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.tg"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.async.AsyncExtensionTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.zetascale"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.disableoffheap"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.dcache.Extends"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest")
+                    ),
+                    CriteriaBuilder.include(getTestCriteriasFromPermutationURI(mapdbExcludePermutationFile))
             );
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
