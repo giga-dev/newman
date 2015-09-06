@@ -18,9 +18,9 @@ public class Test {
 
     @Id
     private String id;
-    @Indexed(value= IndexDirection.ASC, unique=false)
+    @Indexed(value = IndexDirection.ASC, unique = false)
     private String jobId;
-    @Indexed(value= IndexDirection.ASC, unique=false)
+    @Indexed(value = IndexDirection.ASC, unique = false)
     private String name;
     private List<String> arguments;
     private String testType;
@@ -37,10 +37,11 @@ public class Test {
     @Transient
     private int progressPercent;
 
-    @Indexed(unique=false)
+    @Indexed(unique = false)
     private String sha;
 
-    @Embedded private Map<String,String> properties;
+    @Embedded
+    private Map<String, String> properties;
 
     public Test() {
         logs = new HashMap<>();
@@ -183,8 +184,8 @@ public class Test {
     }
 
     private void computeProgressPercent() {
-        if(getStatus() != null){
-            switch (getStatus()){
+        if (getStatus() != null) {
+            switch (getStatus()) {
                 case PENDING:
                     progressPercent = 0;
                     break;
@@ -206,12 +207,18 @@ public class Test {
     }
 
     private void computeSha() {
-        if(sha == null && name != null && arguments != null){
+        if (sha == null && name != null && arguments != null) {
             sha = Sha.compute(name, arguments);
         }
     }
 
-    @PreSave void preSave(){
+    @PostLoad
+    void postLoad() {
+        computeProgressPercent();
+    }
+
+    @PreSave
+    void preSave() {
         computeSha();
     }
 
