@@ -47,7 +47,7 @@ public class NewmanSuiteSubmitter {
     public static void main(String[] args) throws Exception {
 
         NewmanSuiteSubmitter submitter = new NewmanSuiteSubmitter();
-        submitter.manualSubmitTgrid();
+        submitter.submit();
     }
 
     public void submit() throws Exception {
