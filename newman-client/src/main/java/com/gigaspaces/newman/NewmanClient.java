@@ -165,6 +165,10 @@ public class NewmanClient {
         return restClient.target(uri).path("dashboard").request().rx().get(DashboardData.class);
     }
 
+    public CompletionStage<String> updateSha() {
+        return restClient.target(uri).path("update-sha").request().rx().get(String.class);
+    }
+
     public void close() {
         restClient.close();
     }

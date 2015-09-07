@@ -134,25 +134,23 @@ public class NewmanResource {
 
     }
 
-    private int updateAllTests() {
-        logger.info("updating all tests ...");
+    @GET
+    @Path("update-sha")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String updateSha(){
+        logger.info("updating SHA for all tests ...");
         int records = 0;
         Query<Test> query = testDAO.createQuery();
         for (Test test : testDAO.find(query)) {
-            UpdateOperations<Test> ops = testDAO.createUpdateOperations().set("sha", test.getSha());
-            testDAO.updateFirst(testDAO.createIdQuery(test.getId()), ops);
-            ++records;
+            if (test.getSha() == null) {
+                UpdateOperations<Test> ops = testDAO.createUpdateOperations().set("sha", Sha.compute(test.getName(), test.getArguments()));
+                testDAO.updateFirst(testDAO.createIdQuery(test.getId()), ops);
+                ++records;
+            }
         }
         logger.info("updating done {} records were updated", records);
-        return records;
 
-    }
-
-    @GET
-    @Path("convert-tests")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String convertTests(){
-        return String.valueOf(updateAllTests());
+        return String.valueOf(records);
     }
 
     @GET
@@ -414,6 +412,7 @@ public class NewmanResource {
         if (job != null) {
             test.setStatus(Test.Status.PENDING);
             test.setScheduledAt(new Date());
+            test.setSha(Sha.compute(test.getName(), test.getArguments()));
             testDAO.save(test);
             Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), buildDAO.createUpdateOperations().inc("buildStatus.totalTests"));
             broadcastMessage(MODIFIED_BUILD, build);

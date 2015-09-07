@@ -206,20 +206,13 @@ public class Test {
         return sha;
     }
 
-    private void computeSha() {
-        if (sha == null && name != null && arguments != null) {
-            sha = Sha.compute(name, arguments);
-        }
+    public void setSha(String sha) {
+        this.sha = sha;
     }
 
     @PostLoad
     void postLoad() {
         computeProgressPercent();
-    }
-
-    @PreSave
-    void preSave() {
-        computeSha();
     }
 
     @Override
