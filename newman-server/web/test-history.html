@@ -45,7 +45,7 @@
                         <th width="14%" data-sortable="true">Job Id</th>
                         <th width="8%" data-sortable="true">Build</th>
                         <th width="8%" data-sortable="true">Branch</th>
-                        <th width="8%" data-sortable="true">Start Time</th>
+                        <th width="8%" data-sortable="true">End Time</th>
                         <th width="10%" data-sortable="true">Duration</th>
                         <th width="7%" data-sortable="true">Status</th>
                         <th data-sortable="true">Error Message</th>
@@ -67,7 +67,7 @@
                                 </template>
                             </td>
                             <td title="{{item.job.build.branch}}">{{item.job.build.branch}}</td>
-                            <td title="{{item.test.startTime | formatDate }}">{{item.job.startTime | formatDateFromNow }}</td>
+                            <td title="{{item.test.endTime | formatDate }}">{{item.test.endTime | formatDateFromNow }}</td>
                             <td>{{item.test | formatTotalTime}}</td>
                             <td>
                                 <test-status test="{{item.test}}"></test-status>

@@ -1260,11 +1260,13 @@ public class NewmanResource {
         Test thisTest = getTest(id);
         final String sha = thisTest.getSha();
 
-        Query<Test> testsQuery = testDAO.createQuery().field("sha").equal(sha).limit(limit);
+        Query<Test> testsQuery = testDAO.createQuery();
+        testsQuery.or(testsQuery.criteria("status").equal(Test.Status.FAIL), testsQuery.criteria("status").equal(Test.Status.SUCCESS)); // get only success or fail test
+        testsQuery.order("-endTime"); // order by end time
+        testsQuery.field("sha").equal(sha);
+        testsQuery.limit(limit);
 
         List<Test> tests = testDAO.find(testsQuery).asList();
-        Collections.reverse(tests);
-
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
             TestHistoryItem testHistoryItem = createTestHistoryItem(test);
