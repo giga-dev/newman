@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -105,6 +106,7 @@ public class SuiteDiffCronJob implements CronJob {
         subjectTemplate.setAttribute("latestBuildFailedTests", latestBuild.getBuildStatus().getFailedTests());
 
         //create body
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM, hh:mm aaa");
         StringTemplate htmlTemplate = createHtmlTemplate(properties);
         String buildRestUrl = newmanClient.getBaseURI() + "/#!/build/";
         htmlTemplate.setAttribute("summary", summary);
@@ -113,12 +115,15 @@ public class SuiteDiffCronJob implements CronJob {
         htmlTemplate.setAttribute("latestBuildBranch", latestBuild.getBranch());
         htmlTemplate.setAttribute("latestUrl", buildRestUrl + latestBuild.getId());
         htmlTemplate.setAttribute("latestBuildName", latestBuild.getName());
-        htmlTemplate.setAttribute("latestBuildDate", latestBuild.getBuildTime());
+        htmlTemplate.setAttribute("latestBuildDate", simpleDateFormat.format(latestBuild.getBuildTime()));
+        htmlTemplate.setAttribute("latestBuildDuration", toHumanReadableDuration(calculateBuildDurationInMillis(latest_mapSuite2Job)));
+        calculateBuildDurationInMillis(latest_mapSuite2Job);
 
         htmlTemplate.setAttribute("previousBuildBranch", previousBuild.getBranch());
         htmlTemplate.setAttribute("previousUrl", buildRestUrl + previousBuild.getId());
         htmlTemplate.setAttribute("previousBuildName", previousBuild.getName());
-        htmlTemplate.setAttribute("previousBuildDate", previousBuild.getBuildTime());
+        htmlTemplate.setAttribute("previousBuildDate", simpleDateFormat.format(previousBuild.getBuildTime()));
+        htmlTemplate.setAttribute("previousBuildDuration", toHumanReadableDuration(calculateBuildDurationInMillis(previous_mapSuite2Job)));
 
         //send mail
         String subject = subjectTemplate.toString();
@@ -138,6 +143,33 @@ public class SuiteDiffCronJob implements CronJob {
         if (latestBuild.getBranch().equals(previousBuild.getBranch())) {
             saveLatestBuildToFile(properties, latestBuild);
         }
+    }
+
+    private long calculateBuildDurationInMillis(Map<String, Job> mapSuite2Job) {
+        long totalTime = 0;
+        for (Job job : mapSuite2Job.values()) {
+            totalTime += (job.getEndTime().getTime() - job.getStartTime().getTime());
+        }
+        return totalTime;
+    }
+
+    private String toHumanReadableDuration(long durationInMillis) {
+
+        Map<TimeUnit,Long> result = new LinkedHashMap<TimeUnit,Long>();
+        TimeUnit[] units = new TimeUnit[]{TimeUnit.HOURS, TimeUnit.MINUTES};
+        long restOfDurationInMillis = durationInMillis;
+        for ( TimeUnit unit : units ) {
+            long diff = unit.convert(restOfDurationInMillis,TimeUnit.MILLISECONDS);
+            long diffInMillisForUnit = unit.toMillis(diff);
+            restOfDurationInMillis = restOfDurationInMillis - diffInMillisForUnit;
+            result.put(unit,diff);
+        }
+
+        StringBuilder output = new StringBuilder();
+        for (Map.Entry<TimeUnit, Long> timeUnitLongEntry : result.entrySet()) {
+            output.append(timeUnitLongEntry.getValue()).append(timeUnitLongEntry.getKey().toString().toLowerCase().charAt(0)).append(" ");
+        }
+        return output.toString();
     }
 
     private Build getLatestBuild(Properties properties, List<Build> historyBuilds) {
