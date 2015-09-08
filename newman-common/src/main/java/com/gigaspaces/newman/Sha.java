@@ -18,8 +18,10 @@ public class Sha {
             MessageDigest cript = MessageDigest.getInstance("SHA-1");
             cript.reset();
             cript.update(name.getBytes("utf-8"));
-            for (String argument : arguments) {
-                cript.update(argument.getBytes("utf-8"));
+            if (arguments != null) {
+                for (String argument : arguments) {
+                    cript.update(argument.getBytes("utf-8"));
+                }
             }
             return new String(Base64.getEncoder().encode(cript.digest()));
         } catch (Exception e) {
