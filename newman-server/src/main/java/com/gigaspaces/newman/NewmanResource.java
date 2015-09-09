@@ -400,29 +400,39 @@ public class NewmanResource {
     }
 
     @PUT
-    @Path("test")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Path("tests")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Test addTest(Test test) {
+    public void addTests(Batch<Test> tests) {
+        if(tests.getValues().isEmpty()){
+            return;
+        }
+        Job job = jobDAO.findOne(jobDAO.createIdQuery(tests.getValues().get(0).getJobId()));
+        if(job == null){
+            return;
+        }
+        List<Test> res = new ArrayList<>(tests.getValues().size());
+        res.addAll(tests.getValues().stream().map(this::addTest).collect(Collectors.toList()));
+        if(!res.isEmpty()){
+            Test test = res.get(0);
+            UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests", res.size());
+            job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(test.getJobId()), jobUpdateOps, false, false);
+            Build build = buildDAO.findOne(buildDAO.createIdQuery(job.getBuild().getId()));
+            tests.getValues().stream().forEach(test1 -> broadcastMessage(CREATED_TEST, test1));
+            broadcastMessage(MODIFIED_BUILD, build);
+            broadcastMessage(MODIFIED_JOB, job);
+        }
+//        return new Batch<>(res, tests.getOffset(), tests.getLimit(), false, Collections.emptyList(), null);
+    }
+
+    private Test addTest(Test test) {
         if (test.getJobId() == null) {
             throw new BadRequestException("can't add test with no jobId: " + test);
         }
-        UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests");
-        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(test.getJobId()), jobUpdateOps, false, false);
-        if (job != null) {
-            test.setStatus(Test.Status.PENDING);
-            test.setScheduledAt(new Date());
-            test.setSha(Sha.compute(test.getName(), test.getArguments()));
-            testDAO.save(test);
-            Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), buildDAO.createUpdateOperations().inc("buildStatus.totalTests"));
-            broadcastMessage(MODIFIED_BUILD, build);
-            broadcastMessage(CREATED_TEST, test);
-            broadcastMessage(MODIFIED_JOB, job);
-//            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( job.getSuite() ) );
-            return test;
-        } else {
-            throw new BadRequestException("Can't add test, job does not exists: " + test);
-        }
+        test.setStatus(Test.Status.PENDING);
+        test.setScheduledAt(new Date());
+        test.setSha(Sha.compute(test.getName(), test.getArguments()));
+        testDAO.save(test);
+        return test;
     }
 
 

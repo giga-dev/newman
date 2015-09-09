@@ -34,9 +34,9 @@ public class Job {
     private int failedTests;
     private int runningTests;
     @Embedded
-    private Set<String> preparingAgents = Collections.EMPTY_SET;
+    private Set<String> preparingAgents = Collections.emptySet();
     @Transient
-    private Set<String> agents = Collections.EMPTY_SET;
+    private Set<String> agents = Collections.emptySet();
 
     public Job() {
         state = State.READY;

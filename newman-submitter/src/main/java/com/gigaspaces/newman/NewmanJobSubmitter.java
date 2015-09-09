@@ -14,10 +14,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -75,11 +75,19 @@ public class NewmanJobSubmitter {
                 List<Test> listOfTests = parseMetadata(testMetadata.toURL().openStream());
                 Criteria criteria = suite.getCriteria();
                 CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(criteria);
+                List<Test> tests = new ArrayList<>();
                 for (Test test : listOfTests) {
                     if (criteriaEvaluator.evaluate(test)) {
                         test.setJobId(job.getId());
-                        addTest(test, newmanClient);
+                        tests.add(test);
+                        if (tests.size() == 500) {
+                            addTests(tests, newmanClient);
+                            tests = new ArrayList<>();
+                        }
                     }
+                }
+                if (!tests.isEmpty()){
+                    addTests(tests, newmanClient);
                 }
             }
             return job.getId();
@@ -98,8 +106,8 @@ public class NewmanJobSubmitter {
         return client.createJob(jobRequest).toCompletableFuture().get();
     }
 
-    private void addTest(Test test, NewmanClient client) throws ExecutionException, InterruptedException {
-        client.createTest(test).toCompletableFuture().get();
+    private void addTests(List<Test> tests, NewmanClient client) throws ExecutionException, InterruptedException {
+        client.createTests(tests).toCompletableFuture().get();
     }
 
     private List<Test> parseMetadata(InputStream is) throws IOException, ParseException {

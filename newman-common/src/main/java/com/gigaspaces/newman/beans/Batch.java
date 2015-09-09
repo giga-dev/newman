@@ -32,6 +32,9 @@ public class Batch<T> {
         this.values = values;
         this.offset = offset;
         this.limit = limit;
+        if (uriInfo == null){
+            return;
+        }
         UriBuilder selfBuilder = uriInfo.getAbsolutePathBuilder();
         UriBuilder backBuilder = uriInfo.getAbsolutePathBuilder();
         UriBuilder nextBuilder = uriInfo.getAbsolutePathBuilder();

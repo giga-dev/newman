@@ -16,9 +16,11 @@ import org.glassfish.jersey.media.sse.SseFeature;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -79,6 +81,10 @@ public class NewmanClient {
         return restClient.target(uri).path("test").request().rx().put(Entity.json(test), Test.class);
     }
 
+    public CompletionStage<Response> createTests(List<Test> tests) {
+        return restClient.target(uri).path("tests").request().rx().put(Entity.json(new Batch<>(tests, 0, tests.size(), false, null, null)));
+    }
+
     public CompletionStage<Test> finishTest(Test test) {
         return restClient.target(uri).path("test").request().rx().post(Entity.json(test), Test.class);
     }
@@ -88,12 +94,6 @@ public class NewmanClient {
                 .queryParam("jobId", jobId).request()
                 .rx().get(new GenericType<Batch<Test>>() {
                 });
-    }
-
-//    public CompletionStage
-
-    public CompletionStage<Test> getTest(String id) {
-        return restClient.target(uri).path("test").path(id).request().rx().get(Test.class);
     }
 
     public CompletionStage<Batch<TestHistoryItem>> getTestHistory(String testId) {
