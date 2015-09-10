@@ -11,6 +11,8 @@ Newman is a framework for distributing test load across multiple agents. It's na
 
 ## How to [build and run](building-and-running.html).
 
+## How to [Clone the server mongo db](howto-clone-mongodb.html).
+
 ## [Wishlist](wishlist.html).
 
 ## Newman High Level Diagram.
