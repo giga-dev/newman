@@ -71,7 +71,7 @@
                         <tr>
                             <td style="word-wrap: break-word"><a href="{{urlFor('test', {id: item.id})}}"><test-arguments test="{{item}}"></test-arguments></a></td>
                             <td><test-status test="{{item}}"></test-status></td>
-                            <td class="{{{'red-column' : item.testScore <= 3, 'blue-column' : item.testScore > 3} | tokenList}}">{{item.historyStats | shortHistoryDisplay}}</td>
+                            <td class="{{{'black-column' : item.status == 'SUCCESS', 'red-column' : item.testScore <= 3, 'blue-column' : item.testScore > 3} | tokenList}}">{{item.historyStats | shortHistoryDisplay}}</td>
                             <td>
                                 <!--
                                                                 <button type="button" class="btn btn-default" aria-label="Left Align" on-click="{{showTestHistory}}" data-collection="{{item.id}}">
