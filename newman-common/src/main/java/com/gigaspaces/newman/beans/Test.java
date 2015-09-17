@@ -1,6 +1,5 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.Sha;
 import com.gigaspaces.newman.utils.StringUtils;
 import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.*;
@@ -27,6 +26,9 @@ public class Test {
     private Long timeout;
     private Status status;
     private String errorMessage;
+    @Indexed(value = IndexDirection.DESC, unique = false)
+    private Double testScore;
+    private String historyStats;
     /* name, url mapping */
     @Embedded
     private Map<String, String> logs;
@@ -102,6 +104,7 @@ public class Test {
         return logs;
     }
 
+    @SuppressWarnings("unused")
     public void setLogs(Map<String, String> logs) {
         this.logs = logs;
     }
@@ -208,6 +211,22 @@ public class Test {
 
     public void setSha(String sha) {
         this.sha = sha;
+    }
+
+    public Double getTestScore() {
+        return testScore;
+    }
+
+    public void setTestScore(Double testScore) {
+        this.testScore = testScore;
+    }
+
+    public String getHistoryStats() {
+        return historyStats;
+    }
+
+    public void setHistoryStats(String historyStats) {
+        this.historyStats = historyStats;
     }
 
     @PostLoad

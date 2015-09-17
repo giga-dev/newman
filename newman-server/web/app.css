@@ -115,3 +115,9 @@ body{
 .suite-dashboard-button{
     margin-top: 3px
 }
+.red-column{
+  color:#D3212D;
+}
+.blue-column{
+  color:#0048BA;
+}

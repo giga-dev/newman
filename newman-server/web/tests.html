@@ -11,6 +11,7 @@
                  on-modified-test="{{onModifiedTest}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+        <link rel="stylesheet" href="app.css">
         <style>
             paper-checkbox {
                 padding: 20px 20px 20px 0;
@@ -58,10 +59,11 @@
                     <thead>
                     <tr>
                         <th width="62%">Name(&Arguments)</th>
-                        <th width="100px">Status</th>
+                        <th width="80px" >Status</th>
+                        <th width="120px">History-Stats</th>
                         <th width="80px">History</th>
                         <th width="250px">AssignedAgent</th>
-                        <th width="150px">Duration</th>
+                        <th width="100px">Duration</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -69,6 +71,7 @@
                         <tr>
                             <td style="word-wrap: break-word"><a href="{{urlFor('test', {id: item.id})}}"><test-arguments test="{{item}}"></test-arguments></a></td>
                             <td><test-status test="{{item}}"></test-status></td>
+                            <td class="{{{'red-column' : item.testScore <= 3, 'blue-column' : item.testScore > 3} | tokenList}}">{{item.historyStats | shortHistoryDisplay}}</td>
                             <td>
                                 <!--
                                                                 <button type="button" class="btn btn-default" aria-label="Left Align" on-click="{{showTestHistory}}" data-collection="{{item.id}}">

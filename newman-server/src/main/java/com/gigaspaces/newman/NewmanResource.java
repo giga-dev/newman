@@ -193,7 +193,9 @@ public class NewmanResource {
             job.setAgents(agents);
             long filterTestsEnd = System.currentTimeMillis();
 
-            logger.info("distinct filter by job id took {} msec.", (filterTestsEnd - filterTestsStart));
+            if (logger.isDebugEnabled()) {
+                logger.debug("distinct filter by job id took {} msec.", (filterTestsEnd - filterTestsStart));
+            }
         }
 
         return job;
@@ -468,6 +470,14 @@ public class NewmanResource {
         if (status == Test.Status.FAIL || status == Test.Status.SUCCESS) {
             testUpdateOps.set("endTime", new Date());
         }
+        int historyLength = 25;
+        List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
+        String historyStatsString = TestScoreUtils.decodeShortHistoryString(testHistory, test.getStatus()); // added current fail to history;
+        double reliabilityTestScore = TestScoreUtils.score(historyStatsString);
+
+        testUpdateOps.set("testScore", reliabilityTestScore);
+        testUpdateOps.set("historyStats", historyStatsString);
+
         Test result = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(test.getId()), testUpdateOps, false, false);
         Query<Test> query = testDAO.createQuery();
         query.and(query.criteria("jobId").equal(result.getJobId()),
@@ -484,15 +494,16 @@ public class NewmanResource {
             UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date())
                     .removeAll("currentTests", test.getId());
             Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent()), updateOps, false, false);
-            Agent idling = null;
-            if (agent.getCurrentTests().isEmpty()) {
-                idling = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent())
-                                .where("this.currentTests.length == 0"),
-                        agentDAO.createUpdateOperations().set("state", Agent.State.IDLING));
+            if (agent != null) {
+                Agent idling = null;
+                if (agent.getCurrentTests().isEmpty()) {
+                    idling = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent())
+                                    .where("this.currentTests.length == 0"),
+                            agentDAO.createUpdateOperations().set("state", Agent.State.IDLING));
+                }
+                broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
             }
-            broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
         }
-
         broadcastMessage(MODIFIED_BUILD, build);
         broadcastMessage(MODIFIED_TEST, result);
         broadcastMessage(MODIFIED_JOB, job);
@@ -508,12 +519,17 @@ public class NewmanResource {
                                    @DefaultValue("30") @QueryParam("limit") int limit,
                                    @DefaultValue("false") @QueryParam("all") boolean all,
                                    @QueryParam("orderBy") List<String> orderBy,
-                                   @QueryParam("jobId") String jobId, @Context UriInfo uriInfo) {
+                                   @QueryParam("jobId") String jobId,
+                                   @Context UriInfo uriInfo) {
+
         Query<Test> query = testDAO.createQuery();
         if (jobId != null) {
             query.field("jobId").equal(jobId);
         }
         if (orderBy != null) {
+            if(orderBy.isEmpty()){
+                orderBy.add("testScore");
+            }
             orderBy.forEach(query::order);
         }
         if (!all) {
@@ -584,7 +600,7 @@ public class NewmanResource {
             Test test = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(testId), updateOps);
             broadcastMessage(MODIFIED_TEST, test);
         } catch (IOException e) {
-            logger.error("Failed to save log at {} for test {} jobid {}", filePath, testId, jobId, e);
+            logger.error("Failed to save log at {} for test {} jobId {}", filePath, testId, jobId, e);
         }
     }
 

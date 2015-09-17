@@ -37,6 +37,15 @@
                 return null;
             }
             return moment.duration(timeout).asSeconds() + " seconds";
+        },
+        shortHistoryDisplay: function(history){
+            if(history == null) {
+                return '';
+            }
+            if(history.length < 19){
+                return history;
+            }
+            return history.substring(0,18);
         }
     }
 </script>
