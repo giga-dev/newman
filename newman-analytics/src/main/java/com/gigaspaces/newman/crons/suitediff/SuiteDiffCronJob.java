@@ -106,7 +106,7 @@ public class SuiteDiffCronJob implements CronJob {
         subjectTemplate.setAttribute("latestBuildFailedTests", latestBuild.getBuildStatus().getFailedTests());
 
         //create body
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM, hh:mm aaa");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM, HH:mm");
         StringTemplate htmlTemplate = createHtmlTemplate(properties);
         String buildRestUrl = newmanClient.getBaseURI() + "/#!/build/";
         htmlTemplate.setAttribute("summary", summary);
