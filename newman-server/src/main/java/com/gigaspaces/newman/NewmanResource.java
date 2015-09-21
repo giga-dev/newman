@@ -421,7 +421,7 @@ public class NewmanResource {
             Test test = res.get(0);
             UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests", res.size());
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(test.getJobId()), jobUpdateOps, false, false);
-            Build build = buildDAO.findOne(buildDAO.createIdQuery(job.getBuild().getId()));
+            Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), buildDAO.createUpdateOperations().inc("buildStatus.totalTests", res.size()));
             tests.getValues().stream().forEach(test1 -> broadcastMessage(CREATED_TEST, test1));
             broadcastMessage(MODIFIED_BUILD, build);
             broadcastMessage(MODIFIED_JOB, job);
