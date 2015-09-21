@@ -413,7 +413,10 @@ public class NewmanResource {
             return;
         }
         List<Test> res = new ArrayList<>(tests.getValues().size());
-        res.addAll(tests.getValues().stream().map(this::addTest).collect(Collectors.toList()));
+        for (Test test : tests.getValues()) {
+            res.add(addTest(test));
+        }
+        //res.addAll(tests.getValues().stream().map(this::addTest).collect(Collectors.toList()));
         if(!res.isEmpty()){
             Test test = res.get(0);
             UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests", res.size());
