@@ -43,7 +43,7 @@ while true; do
     #added branch to each URI
     export NEWMAN_BUILD_TESTS_METADATA=${BASE_WEB_URI}/running_build/${branch}/tgrid-tests-metadata.json,${BASE_WEB_URI}/running_build/${branch}/sgtest-tests.json,${BASE_WEB_URI}/running_build/${branch}/http-session-tests.json,${BASE_WEB_URI}/running_build/${branch}/mongodb-tests.json
     export NEWMAN_BUILD_SHAS_FILE=${BASE_WEB_URI}/running_build/${branch}/metadata.txt
-    export NEWMAN_BUILD_RESOURCES=${BASE_WEB_URI}/running_build/${branch}/testsuite-1.5.zip,${BASE_WEB_URI}/running_build/${branch}/${GS_BUILD_ZIP},${BASE_WEB_URI}/running_build/${branch}/newman-artifacts.zip
+    export NEWMAN_BUILD_RESOURCES=${BASE_WEB_URI}/running_build/${branch}/SGTest-sources.zip,${BASE_WEB_URI}/running_build/${branch}/testsuite-1.5.zip,${BASE_WEB_URI}/running_build/${branch}/${GS_BUILD_ZIP},${BASE_WEB_URI}/running_build/${branch}/newman-artifacts.zip
     echo "NEWMAN_BUILD_NUMBER=${NEWMAN_BUILD_NUMBER}"
     echo "NEWMAN_BUILD_BRANCH=${NEWMAN_BUILD_BRANCH}"
     echo "NEWMAN_BUILD_TESTS_METADATA=${NEWMAN_BUILD_TESTS_METADATA}"

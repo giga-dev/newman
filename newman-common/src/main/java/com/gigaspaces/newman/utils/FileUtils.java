@@ -2,6 +2,8 @@ package com.gigaspaces.newman.utils;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URL;
@@ -18,6 +20,7 @@ import java.util.zip.ZipOutputStream;
 
 
 public class FileUtils {
+    private static final Logger logger = LoggerFactory.getLogger(FileUtils.class);
 
     public static boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().startsWith("win");
@@ -33,19 +36,6 @@ public class FileUtils {
 
     public static Path append(String path, String subfolder) {
         return Paths.get(path, subfolder);
-    }
-
-    public static void writeLineToFile(String fileName, String line) throws FileNotFoundException, UnsupportedEncodingException {
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(fileName, "UTF-8");
-            writer.println(line);
-        }
-        finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
     }
 
     public static Path createFolder(Path folder) throws IOException {
@@ -86,6 +76,9 @@ public class FileUtils {
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             }
             return output;
+        }catch(Exception e){
+            logger.error(e.toString(), e);
+            return null;
         }
     }
 
@@ -108,8 +101,7 @@ public class FileUtils {
         }
     }
 
-    private static void addToZip(File file, ZipOutputStream zos) throws FileNotFoundException,
-            IOException {
+    private static void addToZip(File file, ZipOutputStream zos) throws IOException {
 
         FileInputStream fis = new FileInputStream(file);
 
@@ -129,15 +121,6 @@ public class FileUtils {
         fis.close();
     }
 
-
-    public static void unzipFileFromZip(String fileName,Path targetFolder, Path inputZipFile) throws IOException {
-        try {
-            ZipFile zipFile = new ZipFile(inputZipFile.toFile());
-            zipFile.extractFile(fileName, targetFolder.toString());
-        } catch (ZipException e) {
-            throw new IOException("Failed to unzip the file:" + fileName + "from the zip:" + inputZipFile + " into " + targetFolder, e);
-        }
-    }
 
     public static void copyFile(Path source, Path target) throws IOException {
         org.apache.commons.io.FileUtils.copyFile(source.toFile(), target.toFile());
