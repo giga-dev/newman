@@ -24,6 +24,7 @@
                     <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Capabilities</th>
                         <th>State</th>
                         <th>Host</th>
                         <th>IP Address</th>
@@ -38,6 +39,11 @@
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
                             <td>{{item.name}}</td>
+                            <td>
+                                <template repeat="{{capa in item.capabilities}}">
+                                    {{capa}}
+                                </template>
+                            </td>
                             <td>{{item.state}}</td>
                             <td>{{item.host}}</td>
                             <td>{{item.hostAddress}}</td>

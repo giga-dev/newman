@@ -41,6 +41,12 @@
                                 <textarea id="criteriatextarea" name="criteriatextarea"></textarea>
                             </td>
                         </tr>
+                        <tr>
+                        <td>Requirements</td>
+                            <td>
+                                <textarea id="requirementstextarea" style="height: 70px; width:100%; font-size: inherit; background-color: inherit" readonly>{{suite.requirements}}</textarea>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -83,6 +89,9 @@
             var customVariablesTextArea = this.getCustomVariablesTextArea();
             customVariablesTextArea.removeAttribute('readonly');
 
+            var requirementsTextArea = this.getRequirementsTextArea();
+            requirementsTextArea.removeAttribute('readonly');
+
             this.codemirroreditor.options.readOnly=false;
         },
         saveSuite: function(event,resp){
@@ -91,15 +100,22 @@
             saveButton.classList.add('disabled')
             editButton.classList.remove('disabled')
             var customVariablesTextArea = this.getCustomVariablesTextArea();
+            var requirementsTextArea = this.getRequirementsTextArea();
 
             var updatedSuiteCriteria = this.codemirroreditor.getValue();;
 
             var updatedSuiteCustomVariables = customVariablesTextArea.value;
             customVariablesTextArea.setAttribute('readonly', '');
+
+            var updatedSuiteRequirements = requirementsTextArea.value;
+            requirementsTextArea.setAttribute('readonly', '');
+
             this.codemirroreditor.options.readOnly=true;
 
             this.suite.displayedCriteria=updatedSuiteCriteria;
             this.suite.customVariables=updatedSuiteCustomVariables;
+            this.suite.requirements=updatedSuiteRequirements;
+
             this.$.update.url=this.url;
 
             this.$.update.body=JSON.stringify(this.suite);
@@ -116,6 +132,9 @@
         },
         getCustomVariablesTextArea: function(){
             return this.$.customvariablestextarea;
+        },
+        getRequirementsTextArea: function(){
+            return this.$.requirementstextarea;
         }
     });
     </script>

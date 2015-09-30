@@ -9,6 +9,7 @@ import org.mongodb.morphia.annotations.Indexed;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by Barak Bar Orion
@@ -28,9 +29,12 @@ public class Agent {
     private Agent.State state;
     private String hostAddress;
     private String pid;
+    @Embedded(concreteClass = java.util.TreeSet.class)
+    private Set<String> capabilities;
 
     public Agent() {
         currentTests = new HashSet<>();
+        capabilities = new TreeSet<>();
     }
 
     public String getId() {
@@ -120,6 +124,14 @@ public class Agent {
 
     public String getPid() {
         return pid;
+    }
+
+    public Set<String> getCapabilities() {
+        return capabilities;
+    }
+
+    public void setCapabilities(Set<String> capabilities) {
+        this.capabilities = capabilities;
     }
 
     public enum State{

@@ -7,6 +7,8 @@ import org.mongodb.morphia.utils.IndexDirection;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by moran
@@ -34,7 +36,10 @@ public class Suite {
     private String displayedCriteria;
 
     public Suite() {
+        requirements = new TreeSet<>();
     }
+    @Embedded(concreteClass = java.util.TreeSet.class)
+    private Set<String> requirements;
 
     public String getId() {
         return id;
@@ -92,7 +97,16 @@ public class Suite {
         return displayedCriteria;
     }
 
+    @SuppressWarnings("unused")
     public void setDisplayedCriteria(String displayedCriteria) {
         this.displayedCriteria = displayedCriteria;
+    }
+
+    public Set<String> getRequirements() {
+        return requirements;
+    }
+
+    public void setRequirements(Set<String> requirements) {
+        this.requirements = requirements;
     }
 }

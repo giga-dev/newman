@@ -27,6 +27,8 @@ public class NewmanAgentConfig {
     private static final String DEFAULT_NEWMAN_SERVER_REST_USER = "root";
     private static final String NEWMAN_SERVER_REST_PW = "newman.agent.server-rest-pw";
     private static final String DEFAULT_NEWMAN_SERVER_REST_PW = "root";
+    private static final String NEWMAN_AGENT_CAPABILITIES = "newman.agent.capabilities";
+    private static final String NEWMAN_AGENT_DEFAULT_CAPABILITIES = "";
 
     private static final int NUM_OF_WORKERS = Integer.getInteger("newman.agent.workers", 5);
     private static final int JOB_POLL_INTERVAL = Integer.getInteger("newman.agent.job-poll-interval", 1000 * 10);
@@ -43,6 +45,7 @@ public class NewmanAgentConfig {
         properties.putIfAbsent(NEWMAN_SERVER_PORT, getNonEmptySystemProperty(NEWMAN_SERVER_PORT, DEFAULT_NEWMAN_SERVER_PORT));
         properties.putIfAbsent(NEWMAN_SERVER_REST_USER, getNonEmptySystemProperty(NEWMAN_SERVER_REST_USER, DEFAULT_NEWMAN_SERVER_REST_USER));
         properties.putIfAbsent(NEWMAN_SERVER_REST_PW, getNonEmptySystemProperty(NEWMAN_SERVER_REST_PW, DEFAULT_NEWMAN_SERVER_REST_PW));
+        properties.putIfAbsent(NEWMAN_AGENT_CAPABILITIES, getNonEmptySystemProperty(NEWMAN_AGENT_CAPABILITIES, NEWMAN_AGENT_DEFAULT_CAPABILITIES));
     }
 
     private String loadHostName() {
@@ -132,4 +135,7 @@ public class NewmanAgentConfig {
         return properties;
     }
 
+    public String getCapabilities() {
+        return properties.getProperty(NEWMAN_AGENT_CAPABILITIES);
+    }
 }

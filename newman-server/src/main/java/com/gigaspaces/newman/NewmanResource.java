@@ -954,17 +954,20 @@ public class NewmanResource {
             }
         }
 
-        Query<Job> query = jobDAO.createQuery();
-        query.or(query.criteria("state").equal(State.READY), query.criteria("state").equal(State.RUNNING));
-        query.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
-        query.order("submitTime");
-        Job job = jobDAO.findOne(query);
+        Query<Job> basicQuery = jobDAO.createQuery();
+        basicQuery.or(basicQuery.criteria("state").equal(State.READY), basicQuery.criteria("state").equal(State.RUNNING));
+        basicQuery.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
+        basicQuery.order("submitTime");
+
+        Job job = findJob(agent.getCapabilities(), basicQuery);
+
         UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
                 .set("lastTouchTime", new Date());
         if (agent.getHost() != null) {
             updateOps.set("host", agent.getHost());
             updateOps.set("hostAddress", agent.getHostAddress());
             updateOps.set("pid", agent.getPid());
+            updateOps.set("capabilities", agent.getCapabilities());
         }
         updateOps.set("currentTests", new HashSet<String>());
         if (job != null) {
@@ -983,6 +986,41 @@ public class NewmanResource {
 
         broadcastMessage(MODIFIED_AGENT, readyAgent);
         return job;
+    }
+
+    private Job findJob(Set<String> capabilities, Query<Job> basicQuery) {
+        List<Job> jobs = null;
+        Job job = null;
+        if(!capabilities.isEmpty()){ // if agent has capabilities
+            Query<Job> requirementsQuery =  basicQuery.cloneQuery();
+            jobs = requirementsQuery.field("suite.requirements").in(capabilities).asList();
+        }
+        if(jobs != null && jobs.size() > 0){ // if found jobs with match requirements
+            List<Job> jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByCapabilities(jobs, capabilities); // filter jobs with not supported requirements
+            job = bestMatch(jobsFilterByCapabilities);
+        }
+        if(job == null){ // search for jobs without requirements
+            Query<Job> noRequirementsQuery =  basicQuery.cloneQuery();
+            noRequirementsQuery.field("suite.requirements").doesNotExist();
+            job = jobDAO.findOne(basicQuery);
+        }
+        return job;
+    }
+
+    private Job bestMatch(List<Job> jobsFilterByCapabilities) {
+        Job job = null;
+        List<Job> jobsGroupById = groupByBuild(jobsFilterByCapabilities);
+        if(jobsGroupById != null && !jobsGroupById.isEmpty()){ // if has jobs after filter
+            Collections.sort(jobsGroupById, CapabilitiesAndRequirements.requirementsSort);
+            job = jobsGroupById.get(0);
+        }
+        return job;
+    }
+
+    private List<Job> groupByBuild(List<Job> jobs){
+        if(jobs.isEmpty()) return null;
+        String BuildId = jobs.get(0).getBuild().getId();
+        return jobs.stream().filter(job -> BuildId.equals(job.getBuild().getId())).collect(Collectors.toList());
     }
 
 

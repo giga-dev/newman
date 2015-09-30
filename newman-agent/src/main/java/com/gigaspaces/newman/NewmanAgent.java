@@ -1,9 +1,6 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Agent;
-import com.gigaspaces.newman.beans.Job;
-import com.gigaspaces.newman.beans.Suite;
-import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.utils.FileUtils;
 import com.gigaspaces.newman.utils.ProcessUtils;
 import org.slf4j.Logger;
@@ -220,6 +217,9 @@ public class NewmanAgent {
         agent.setHost(config.getHostName());
         agent.setHostAddress(config.getHostAddress());
         agent.setPid(ProcessUtils.getProcessId("unknownPID"));
+        String capabilities = config.getCapabilities();
+        // TODO note - if set is empty, mongodb will NOT write that filed to DB
+        agent.setCapabilities(CapabilitiesAndRequirements.parse(capabilities));
         int logRepeats = 3;
         while (true) {
             try {
