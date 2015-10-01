@@ -56,7 +56,7 @@ public class ProcessUtils {
         // pass custom environment variables to scripts
         final Map<String, String> environment = processBuilder.environment();
         for (Map.Entry<String,String> variableKeyValue : customVariables.entrySet()){
-            environment.put(variableKeyValue.getKey(), variableKeyValue.getValue());
+            environment.put(variableKeyValue.getKey(), variableKeyValue.getValue().replace("\"", ""));
         }
         processBuilder.directory(workingFolder.toFile());
         processBuilder.redirectErrorStream(true);
