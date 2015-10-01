@@ -101,7 +101,7 @@ public class NewmanSuiteSubmitter {
         try {
             Suite suite = new Suite();
             suite.setName("xap-core");
-            suite.setCustomVariables("SUITE_TYPE=tgrid,JAVA_VERSION=8");
+            suite.setCustomVariables("SUITE_TYPE=tgrid");
             String testType = "tgrid";
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
