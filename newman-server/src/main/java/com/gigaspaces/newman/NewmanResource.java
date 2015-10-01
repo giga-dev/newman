@@ -1002,7 +1002,7 @@ public class NewmanResource {
         if(job == null){ // search for jobs without requirements
             Query<Job> noRequirementsQuery =  basicQuery.cloneQuery();
             noRequirementsQuery.field("suite.requirements").doesNotExist();
-            job = jobDAO.findOne(basicQuery);
+            job = jobDAO.findOne(noRequirementsQuery);
         }
         return job;
     }
