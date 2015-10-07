@@ -1,22 +1,25 @@
 package com.gigaspaces.newman;
 
+import com.gigaspaces.newman.beans.CapabilitiesAndRequirements;
 import com.gigaspaces.newman.beans.Suite;
-import com.gigaspaces.newman.beans.criteria.Criteria;
-import com.gigaspaces.newman.beans.criteria.CriteriaBuilder;
-import com.gigaspaces.newman.beans.criteria.PatternCriteria;
-import com.gigaspaces.newman.beans.criteria.TestCriteria;
+import com.gigaspaces.newman.beans.criteria.*;
 import com.gigaspaces.newman.utils.EnvUtils;
 import com.gigaspaces.newman.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
 
 import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.exclude;
 import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.include;
+import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
 import static com.gigaspaces.newman.utils.StringUtils.notEmpty;
 
 /**
@@ -38,7 +41,8 @@ public class NewmanSuiteSubmitter {
     public static final String NEWMAN_CRITERIA_INCLUDE_LIST = "NEWMAN_CRITERIA_INCLUDE_LIST";
     public static final String NEWMAN_CRITERIA_EXCLUDE_LIST = "NEWMAN_CRITERIA_EXCLUDE_LIST";
     public static final String NEWMAN_CRITERIA_PERMUTATION_URI = "NEWMAN_CRITERIA_PERMUTATION_URI";
-
+    private static final String NEWMAN_AGENT_DEFAULT_REQUIREMENTS = "";
+    public static final String NEWMAN_SUITE_REQUIREMENTS = "newman.suite.requirements";
     /**
      * All input is done using environment variables.
      * @param args none are expected
@@ -57,6 +61,8 @@ public class NewmanSuiteSubmitter {
             suite.setName(EnvUtils.getEnvironment(NEWMAN_SUITE_NAME, true /*required*/, logger));
             suite.setCustomVariables(EnvUtils.getEnvironment(NEWMAN_SUITE_CUSTOM_VARIABLES, false, logger));
             suite.setCriteria(getNewmanSuiteCriteria());
+            // TODO note - if set is empty, mongodb will NOT write that filed to DB
+            suite.setRequirements(CapabilitiesAndRequirements.parse(EnvUtils.getEnvironment(NEWMAN_SUITE_REQUIREMENTS, false /*required*/, logger)));
 
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
@@ -488,6 +494,66 @@ public class NewmanSuiteSubmitter {
         finally {
             newmanClient.close();
         }
+    }
+
+    /**
+     * example:
+     *   String fullBlobstorePath = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/full-blobstore.txt"
+     *   String excludeSSDTestsPath= "/home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_excluded_tests.txt";
+     */
+    public void manualSubmitSSD(String fullBlobstorePath, String excludeSSDTestsPath) throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("test-SSD");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=1,TGRID_CUSTOM_SYSTEM_PROPS=-Dcom.gigaspaces.quality.tf.blobstore.enabled=true " +
+                    "-Dblobstore.capacityGB=150 -Dblobstore.cache.capacityMB=50 -Dblobstore.devices=\"[/dev/sdb1,/dev/sdb2,/dev/sdc1,/dev/sdc2]\" " +
+                    "-Dblobstore.persistent=true -Dblobstore.writethru=true -Dblobstore.entriespercentage=0 -Dcom.gs.blobstore-devices=/tmp/blobstore " +
+                    "-Dcom.gs.blobstore.license.path=/export/tgrid/TestingGrid-latest/libfdf/fdf-license.txt -Dcom.gs.enabled-backward-space-lifecycle-admin=true");
+            String req = getNonEmptySystemProperty(NEWMAN_SUITE_REQUIREMENTS, NEWMAN_AGENT_DEFAULT_REQUIREMENTS);
+            Set<String> requirements = CapabilitiesAndRequirements.parse(req);
+            // TODO note - if set is empty, mongodb will NOT write that filed to DB
+            suite.setRequirements(requirements);
+            String testType = "tgrid";
+            Criteria criteria = CriteriaBuilder.join(
+
+                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                    CriteriaBuilder.include(getTestCriteriasFromPermutationURI(fullBlobstorePath)),
+
+                    CriteriaBuilder.exclude(getCriteriasFromExcludedFile(excludeSSDTestsPath)),
+                    CriteriaBuilder.exclude(
+                            ArgumentsCriteria.containsCriteria("schema=persistent_eds"),
+                            ArgumentsCriteria.containsCriteria("total_members=8"),
+                            ArgumentsCriteria.containsCriteria("total_members=2,2"),
+                            ArgumentsCriteria.containsAllCriteria("total_members=1,1", "embedded"),
+                            ArgumentsCriteria.containsAllCriteria("total_members=1,1", "hybrid")
+                    ));
+
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    private Criteria[] getCriteriasFromExcludedFile(String path){
+        ArrayList<Criteria> criteria = new ArrayList<>();
+        File file = new File(path);
+        try {
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()){
+                String line = scanner.nextLine();
+                criteria.add(PatternCriteria.containsCriteria(line));
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return criteria.toArray(new Criteria[criteria.size()]);
     }
 
     private static NewmanClient getNewmanClient() throws Exception {
