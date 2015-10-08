@@ -56,7 +56,7 @@
                         <th width="10%">Suite</th>
                         <th width="6%">Duration</th>
                         <th width="9%">Submitted At</th>
-                        <th width="8%">Tests URI</th>
+                        <th width="8%">Build</th>
                         <th width="8%">Submitted By</th>
                         <th width="10%">#Preparing Agents</th>
                         <th width="20%"><span class="label label-info"># Running</span> <span class="label label-success"># Passed</span> <span class="label label-danger">Failed</span> <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
@@ -86,7 +86,8 @@
                             </td>
                             <td title="{{item.duration}}">{{item | getDuration}}</td>
                             <td title="{{item.submitTime | formatDate}}">{{item.submitTime | formatDateFromNow}}</td>
-                            <td title="{{item.testURI}}">{{item.testURI}}</td>
+                            <!--<td title="{{item.testURI}}">{{item.testURI}}</td>-->
+                            <td><a href="{{urlFor('build', {id: item.build.id})}}">{{item.build.name}}</a></td>
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
                             <td>{{item.preparingAgents.length}}</td>
                             <td>
