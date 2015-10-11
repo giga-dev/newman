@@ -203,41 +203,31 @@ public class NewmanResource {
 
 
     @DELETE
-    @Path("jobs/{requiredFreeDiskSpacePercentage}/{numberOfJobs}/{diskPartition}")
+    @Path("jobs/{nubmerOfDaysToNotDelete}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
-    public String deleteJobUntilDesiredSpace(final @PathParam("requiredFreeDiskSpacePercentage") String requiredFreeDiskSpacePercentage,
-                                          final @PathParam("numberOfJobs") String numberOfJobs,
-                                          final @PathParam("diskPartition") String diskPartition) throws InterruptedException {
-        long totalSpace = new File("/"+diskPartition).getTotalSpace();
-        long requiredSpace = Integer.parseInt(requiredFreeDiskSpacePercentage) * totalSpace / 100;
-        Query<Job> query = jobDAO.createQuery();
-        List<Job> jobs = jobDAO.find(query).asList();
-        int remainJobsToDelete = jobs.size() - Integer.parseInt(numberOfJobs);
+    public String deleteJobUntilDesiredSpace(final @PathParam("nubmerOfDaysToNotDelete") String nubmerOfDaysToNotDelete) throws InterruptedException {
+        int numberOfDays = Integer.parseInt(nubmerOfDaysToNotDelete);
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -numberOfDays);
+        Date deleteUntilDate = cal.getTime();
+        Query<Build> filteredQuery = buildDAO.createQuery().field("buildTime").lessThan(deleteUntilDate);
+        List<Build> buildList = buildDAO.find(filteredQuery).asList();
         int jobsDeleted = 0;
-        for (Job job : jobs) {
-            long availableSpace = new File("/"+diskPartition).getFreeSpace();
-            if (availableSpace < requiredSpace && remainJobsToDelete > 0) {
+        for (Build build : buildList) {
+            Query<Job> query = jobDAO.createQuery();
+            query.field("build.id").equal(build.getId());
+            List<Job> jobs = jobDAO.find(query).asList();
+            for (Job job : jobs) {
                 if (!job.getState().equals(State.DONE)) {
                     continue;
                 }
                 deleteJob(job.getId());
-                remainJobsToDelete--;
+                logger.debug("deleted job: " + job.getId() + " with build time " + job.getBuild().getBuildTime());
                 jobsDeleted++;
-            } else {
-                break;
             }
         }
-        String output;
-        long freeSpace = new File("/"+diskPartition).getFreeSpace();
-        if (freeSpace < requiredSpace) {
-             output="can't get to the required space: " + requiredSpace + " free space: " + freeSpace + " deleted: " + jobsDeleted;
-            logger.warn(output);
-        }
-        else{
-             output="got to the required space: " + requiredSpace +" deleted: "+ jobsDeleted +" free space: " + freeSpace;
-        }
-
+        String output = "Deleted: " + jobsDeleted + " jobs from the last " + numberOfDays + " days.";
         return output;
     }
 

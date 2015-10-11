@@ -15,9 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class CleanseCronJob implements CronJob {
     private static final Logger logger = LoggerFactory.getLogger(CleanseCronJob.class);
-    public static final String CONS_CLEANSE_SIZE_PERCENT = "crons.cleanse.sizePercent";
-    public static final String CONS_CLEANSE_NUMBER_OF_JOBS = "crons.cleanse.numberOfJobs";
-    public static final String CONS_CLEANSE_DISK_PARTITION = "crons.cleanse.diskPartition";
+    public static final String CONS_CLEANSE_NUMBER_OF_DAYS_TO_NOT_DELETE = "crons.cleanse.numberOfDaysToNotDelete";
 
     public void run(Properties properties) {
         NewmanServerConfig config = new NewmanServerConfig();
@@ -38,11 +36,9 @@ public class CleanseCronJob implements CronJob {
 
     private void cleanse(NewmanClient newmanClient, Properties properties) throws Exception {
 
-        final String requiredFreeDiskSpacePercentage = properties.getProperty(CONS_CLEANSE_SIZE_PERCENT);
-        final String numberOfJobs = properties.getProperty(CONS_CLEANSE_NUMBER_OF_JOBS);
-        final String diskPartition=properties.getProperty(CONS_CLEANSE_DISK_PARTITION);
+        final String numberOfDaysToNotDelete = properties.getProperty(CONS_CLEANSE_NUMBER_OF_DAYS_TO_NOT_DELETE);
         long start = System.currentTimeMillis();
-        String info = newmanClient.deleteJobUntilDesiredSpace(requiredFreeDiskSpacePercentage, numberOfJobs,diskPartition).toCompletableFuture().get(10, TimeUnit.MINUTES);
+        String info = newmanClient.deleteJobUntilDesiredSpace(numberOfDaysToNotDelete).toCompletableFuture().get(10, TimeUnit.MINUTES);
         long end = System.currentTimeMillis();
 
         logger.info(info+". took: " + (end-start) + " ms");
