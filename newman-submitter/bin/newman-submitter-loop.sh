@@ -4,7 +4,7 @@ while true; do
   source submitter-env.sh
   DAILY_MODE=true
   H=$(date +%H)
-  if (( 3 <= 10#$H && 10#$H < 19 )); then 
+  if (( 3 <= 10#$H && 10#$H < 18 )); then
     echo "running in daily mode, will trigger new jobs only if changes in build were made"
     DAILY_MODE=true
   else
