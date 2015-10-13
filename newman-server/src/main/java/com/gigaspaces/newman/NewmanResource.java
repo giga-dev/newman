@@ -137,7 +137,7 @@ public class NewmanResource {
     @GET
     @Path("update-sha")
     @Produces(MediaType.TEXT_PLAIN)
-    public String updateSha(){
+    public String updateSha() {
         logger.info("updating SHA for all tests ...");
         int records = 0;
         Query<Test> query = testDAO.createQuery();
@@ -395,11 +395,11 @@ public class NewmanResource {
     @Path("tests")
     @Consumes(MediaType.APPLICATION_JSON)
     public void addTests(Batch<Test> tests) {
-        if(tests.getValues().isEmpty()){
+        if (tests.getValues().isEmpty()) {
             return;
         }
         Job job = jobDAO.findOne(jobDAO.createIdQuery(tests.getValues().get(0).getJobId()));
-        if(job == null){
+        if (job == null) {
             return;
         }
         List<Test> res = new ArrayList<>(tests.getValues().size());
@@ -407,7 +407,7 @@ public class NewmanResource {
             res.add(addTest(test));
         }
         //res.addAll(tests.getValues().stream().map(this::addTest).collect(Collectors.toList()));
-        if(!res.isEmpty()){
+        if (!res.isEmpty()) {
             Test test = res.get(0);
             UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests", res.size());
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(test.getJobId()), jobUpdateOps, false, false);
@@ -520,7 +520,7 @@ public class NewmanResource {
             query.field("jobId").equal(jobId);
         }
         if (orderBy != null) {
-            if(orderBy.isEmpty()){
+            if (orderBy.isEmpty()) {
                 orderBy.add("testScore");
             }
             orderBy.forEach(query::order);
@@ -981,16 +981,16 @@ public class NewmanResource {
     private Job findJob(Set<String> capabilities, Query<Job> basicQuery) {
         List<Job> jobs = null;
         Job job = null;
-        if(!capabilities.isEmpty()){ // if agent has capabilities
-            Query<Job> requirementsQuery =  basicQuery.cloneQuery();
+        if (!capabilities.isEmpty()) { // if agent has capabilities
+            Query<Job> requirementsQuery = basicQuery.cloneQuery();
             jobs = requirementsQuery.field("suite.requirements").in(capabilities).asList();
         }
-        if(jobs != null && jobs.size() > 0){ // if found jobs with match requirements
+        if (jobs != null && jobs.size() > 0) { // if found jobs with match requirements
             List<Job> jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByCapabilities(jobs, capabilities); // filter jobs with not supported requirements
             job = bestMatch(jobsFilterByCapabilities);
         }
-        if(job == null){ // search for jobs without requirements
-            Query<Job> noRequirementsQuery =  basicQuery.cloneQuery();
+        if (job == null) { // search for jobs without requirements
+            Query<Job> noRequirementsQuery = basicQuery.cloneQuery();
             noRequirementsQuery.field("suite.requirements").doesNotExist();
             job = jobDAO.findOne(noRequirementsQuery);
         }
@@ -1000,15 +1000,15 @@ public class NewmanResource {
     private Job bestMatch(List<Job> jobsFilterByCapabilities) {
         Job job = null;
         List<Job> jobsGroupById = groupByBuild(jobsFilterByCapabilities);
-        if(jobsGroupById != null && !jobsGroupById.isEmpty()){ // if has jobs after filter
+        if (jobsGroupById != null && !jobsGroupById.isEmpty()) { // if has jobs after filter
             Collections.sort(jobsGroupById, CapabilitiesAndRequirements.requirementsSort);
             job = jobsGroupById.get(0);
         }
         return job;
     }
 
-    private List<Job> groupByBuild(List<Job> jobs){
-        if(jobs.isEmpty()) return null;
+    private List<Job> groupByBuild(List<Job> jobs) {
+        if (jobs.isEmpty()) return null;
         String BuildId = jobs.get(0).getBuild().getId();
         return jobs.stream().filter(job -> BuildId.equals(job.getBuild().getId())).collect(Collectors.toList());
     }
@@ -1392,16 +1392,19 @@ public class NewmanResource {
     // events
 
     private void broadcastMessage(String type, Object value) {
-        try {
-            OutboundEvent.Builder eventBuilder = new OutboundEvent.Builder();
-            OutboundEvent event = eventBuilder.name(type)
-                    .mediaType(MediaType.APPLICATION_JSON_TYPE)
-                    .data(value.getClass(), value)
-                    .build();
+        if (value != null) {
+            try {
+                OutboundEvent.Builder eventBuilder = new OutboundEvent.Builder();
+                OutboundEvent event = eventBuilder.name(type)
+                        .mediaType(MediaType.APPLICATION_JSON_TYPE)
+                        .data(value.getClass(), value)
+                        .build();
 
-            broadcaster.broadcast(event);
-        } catch (Throwable ignored) {
-            logger.error("Invoking of broadcastMessage() failed due the [" + ignored.toString() + "], type=" + type + ", value:" + value, ignored);
+                broadcaster.broadcast(event);
+            } catch (Throwable ignored) {
+                logger.error("Invoking of broadcastMessage() failed due the [{}], type={}, value:{}", ignored.toString(), type, value, ignored);
+                ignored.printStackTrace();
+            }
         }
     }
 
@@ -1467,7 +1470,6 @@ public class NewmanResource {
             broadcastMessage(MODIFIED_AGENT, ag);
         }
     }
-
 
 
 }
