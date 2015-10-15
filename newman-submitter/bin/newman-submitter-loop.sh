@@ -5,10 +5,10 @@ while true; do
   DAILY_MODE=true
   H=$(date +%H)
   if (( 3 <= 10#$H && 10#$H < 18 )); then
-    echo "running in daily mode, will trigger new jobs only if changes in build were made"
+    echo "running in daily mode, will trigger new jobs only if changes in build were made, date is `date`"
     DAILY_MODE=true
   else
-    echo "running in nightly mode, will trigger new jobs even if no changes where made"
+    echo "running in nightly mode, will trigger new jobs even if no changes where made, date is `date`"
     DAILY_MODE=false
     export NEWMAN_SUITES="${NEWMAN_SUITES},${NEWMAN_NIGHTLY_SUITES}"
   fi
@@ -35,6 +35,7 @@ while true; do
     LOCAL_BUILDS_DIR=/home/xap/testing-grid/local-builds
     CUR_BRANCH_DIR=${LOCAL_BUILDS_DIR}/${branch}
     BUILD=`./select_build.sh ${CUR_BRANCH_DIR}`
+    echo "submitting build is $BUILD date is `date` daily mode is $DAILY_MODE"
     #GS_BUILD_ZIP=$(find ${WEB_FOLDER}/running_build -name '*giga*.zip')
     GS_BUILD_ZIP=$(find ${WEB_FOLDER}/running_build/${branch} -name '*giga*.zip')
     GS_BUILD_ZIP=`basename ${GS_BUILD_ZIP}`
