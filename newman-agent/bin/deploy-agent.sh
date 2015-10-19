@@ -6,10 +6,7 @@ echo "killing all old agents"
 for dest in $(<${HOSTS_TO_DEPLOY_FILE}); do
   sshpass -p 'password' ssh ${dest} '/home/xap/newman-agent/stop-newman-agent.sh'
   sshpass -p 'password' ssh ${dest} 'pkill -9 java'
-done
-echo "deploying new agent jar"
-for dest in $(<${HOSTS_TO_DEPLOY_FILE}); do
-  sshpass -p 'password' scp ../target/newman-agent-1.0.jar ${dest}:${AGENT_FOLDER}
+  sshpass -p 'password' ssh ${dest} 'docker rm -f $(docker ps -a -q)'
 done
 echo "starting new agents"
 for dest in $(<${HOSTS_TO_DEPLOY_FILE}); do

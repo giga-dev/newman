@@ -14,10 +14,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.gigaspaces.newman.utils.FileUtils.*;
 
@@ -107,7 +104,7 @@ public class JobExecutor {
             logger.info("Starting test script");
             Path testScript = append(jobFolder, "run-" + test.getTestType() + SCRIPT_SUFFIX);
             Path outputFile = append(outputFolder, "runner-output.log");
-            ProcessResult scriptResult = ProcessUtils.executeAndWait(testScript, test.getArguments(), testFolder,
+            ProcessResult scriptResult = ProcessUtils.executeAndWait(testScript, wrapUniqueArgsWithQuotes(test.getArguments()), testFolder,
                     outputFile, getCustomVariablesFromSuite(), test.getTimeout().longValue());
 
             // Generate result:
@@ -162,6 +159,21 @@ public class JobExecutor {
         return test; //return same reference
     }
 
+    private boolean shouldBeWrapped(String arg){
+        return arg.contains("&") || arg.contains("=") || arg.contains(",");
+    }
+
+    private Collection<String> wrapUniqueArgsWithQuotes(List<String> arguments) {
+        if (isWindows()){
+            for (int i=0; i<arguments.size(); i++) {
+                if (shouldBeWrapped(arguments.get(i))){
+                    arguments.set(i, "\"" + arguments.get(i) + "\"".replaceAll("\\s+",""));
+                }
+            }
+        }
+        return arguments;
+    }
+
     private void teardownTest(Test test) {
         Path testFolder = append(jobFolder, "test-" + test.getId());
         Path outputFile = append(append(testFolder, "output"), "end-" + test.getTestType() + ".log");
@@ -169,7 +181,7 @@ public class JobExecutor {
         if (exists(teardownScript)) {
             logger.info("Executing teardown for test {}", test);
             try {
-                ProcessUtils.executeAndWait(teardownScript, test.getArguments(),testFolder,
+                ProcessUtils.executeAndWait(teardownScript, wrapUniqueArgsWithQuotes(test.getArguments()),testFolder,
                          outputFile, getCustomVariablesFromSuite(), 10 * 60 * 1000);
                 // TODO: Inspect exit code and log warning if non-zero.
             } catch (Exception e) {
