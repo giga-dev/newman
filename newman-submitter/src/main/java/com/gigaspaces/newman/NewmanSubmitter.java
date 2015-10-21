@@ -63,6 +63,8 @@ public class NewmanSubmitter {
         // Submit a new build if no buildId was provided, pay attention to provide all the environment variables for the build in that case
         // (see NewmanBuildSubmitter.getBuildMetadata method).
         final String bId = buildIfNeeded(buildId);
+        // Use the below line with a specific tag to get the latest build which contains a tag
+        //final String bId = newmanClient.getLatestBuild("tag").toCompletableFuture().get();
         logger.info("Using build with id: {}", buildId);
         // Submit jobs for suites and wait for them
         try {

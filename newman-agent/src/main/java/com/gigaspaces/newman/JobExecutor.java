@@ -159,8 +159,8 @@ public class JobExecutor {
         return test; //return same reference
     }
 
-    private boolean shouldBeWrapped(String arg){
-        return arg.contains("&") || arg.contains("=") || arg.contains(",");
+    private boolean shouldBeWrapped(String arg) {
+        return !(arg.startsWith("\"") && (arg.endsWith("\""))) && (arg.contains("&") || arg.contains("=") || arg.contains(","));
     }
 
     private Collection<String> wrapUniqueArgsWithQuotes(List<String> arguments) {

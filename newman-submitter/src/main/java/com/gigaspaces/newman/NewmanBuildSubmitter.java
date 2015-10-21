@@ -11,10 +11,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -57,6 +54,14 @@ public class NewmanBuildSubmitter {
         String buildBranch = EnvUtils.getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_BRANCH, logger);
         buildMetadata.setBuildBranch(buildBranch);
 
+        // e.g QB,DOTNET
+        String newmanBuildTags = EnvUtils.getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_TAGS, false, logger);
+        if (newmanBuildTags != null) {
+            Set<String> tags = new HashSet<>();
+            Collections.addAll(tags, newmanBuildTags.split(","));
+            buildMetadata.setTags(tags);
+        }
+
         //e.g "http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13507-106/xap-premium/1.5/metadata.txt";
         String newmanBuildShasFile = EnvUtils.getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_SHAS_FILE, logger);
         buildMetadata.setBuildShasFile(newmanBuildShasFile);
@@ -66,17 +71,13 @@ public class NewmanBuildSubmitter {
         //      https://s3-eu-west-1.amazonaws.com/gigaspaces-repository-eu/com/gigaspaces/xap-core/newman/10.2.0-13507-106-SNAPSHOT/newman-artifacts.zip"
         String newmanBuildResources = EnvUtils.getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_RESOURCES, logger);
         Collection<String> resources = new ArrayList<>();
-        for (String resource : newmanBuildResources.split(",")) {
-            resources.add(resource);
-        }
+        Collections.addAll(resources, newmanBuildResources.split(","));
         buildMetadata.setResources(resources);
 
         //e.g "jar:http://tarzan/builds/GigaSpacesBuilds/10.2.0/build_13507-106/testsuite-1.5.zip!/QA/metadata/tgrid-tests-metadata.json"
         String newmanBuildTestsMetadata = EnvUtils.getEnvironment(NewmanBuildMetadata.NEWMAN_BUILD_TESTS_METADATA, logger);
         Collection<String> testsMetadata = new ArrayList<>();
-        for (String testMetadata : newmanBuildTestsMetadata.split(",")) {
-            testsMetadata.add(testMetadata);
-        }
+        Collections.addAll(testsMetadata, newmanBuildTestsMetadata.split(","));
         buildMetadata.setTestsMetadata(testsMetadata);
 
         return buildMetadata;
@@ -97,6 +98,8 @@ public class NewmanBuildSubmitter {
             // set tests metadata
             Collection<URI> testsMetadata = buildMetadata.getTestsMetadata().stream().map(URI::create).collect(Collectors.toList());
             b.setTestsMetadata(testsMetadata);
+            // set tags
+            b.setTags(buildMetadata.getTags());
             Build build = newmanClient.createBuild(b).toCompletableFuture().get();
             logger.info("Build {} was created successfully", build);
             return build.getId();

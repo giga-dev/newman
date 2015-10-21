@@ -24,6 +24,7 @@ public class Build {
     private String branch;
     private Collection<URI> resources;
     private Collection<URI> testsMetadata; //JSON metadata of the tests
+    private Set<String> tags;
     private Date buildTime;
     private BuildStatus buildStatus;
 
@@ -31,6 +32,7 @@ public class Build {
         this.shas = new HashMap<>();
         this.resources = new ArrayList<>();
         this.testsMetadata = new ArrayList<>();
+        this.tags = new HashSet<>();
     }
 
     public String getId() {
@@ -97,6 +99,14 @@ public class Build {
         this.buildStatus = buildStatus;
     }
 
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
@@ -106,6 +116,7 @@ public class Build {
                 .append("branch", branch)
                 .append("resources", resources)
                 .append("testsMetadata", testsMetadata)
+                .append("tags", tags)
                 .append("buildTime", buildTime)
                 .append("buildStatus", buildStatus)
                 .toString();

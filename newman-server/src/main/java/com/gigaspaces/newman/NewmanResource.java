@@ -1013,6 +1013,24 @@ public class NewmanResource {
         return jobs.stream().filter(job -> BuildId.equals(job.getBuild().getId())).collect(Collectors.toList());
     }
 
+    public Build getLatestBuild() {
+        return buildDAO.findOne(buildDAO.createQuery().order("-buildTime"));
+    }
+
+    @GET
+    @Path("build/latest/{tags}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Build getLatestBuildWithTags(final @PathParam("tags") String tags) {
+        if (tags == null || tags.isEmpty()) {
+            return getLatestBuild();
+        }
+        Set<String> tagsSet = new HashSet<>(Arrays.asList(tags.split(",")));
+        Build build = buildDAO.findOne(buildDAO.createQuery().field("tags").hasAllOf(tagsSet).order("-buildTime"));
+        if (build == null){
+            return getLatestBuild();
+        }
+        return build;
+    }
 
     @GET
     @Path("build")

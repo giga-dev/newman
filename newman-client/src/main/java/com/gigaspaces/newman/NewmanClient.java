@@ -110,6 +110,13 @@ public class NewmanClient {
         return restClient.target(uri).path("build").path(id).request().rx().get(Build.class);
     }
 
+    public CompletionStage<Build> getLatestBuild(String tags) {
+        if (tags == null){
+            tags = "";
+        }
+        return restClient.target(uri).path("build").path("latest").path(tags).request().rx().get(Build.class);
+    }
+
     public CompletionStage<Job> subscribe(Agent agent) {
         return restClient.target(uri).path("subscribe").request().rx().post(Entity.json(agent), Job.class);
     }

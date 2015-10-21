@@ -1,6 +1,7 @@
 package com.gigaspaces.newman;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Boris
@@ -13,12 +14,14 @@ public class NewmanBuildMetadata {
     public static final String NEWMAN_BUILD_RESOURCES = "NEWMAN_BUILD_RESOURCES";
     public static final String NEWMAN_BUILD_NUMBER = "NEWMAN_BUILD_NUMBER";
     public static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
+    public static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
 
     private String buildBranch;
     private String buildNumber;
     private String buildShasFile;
     private Collection<String> resources;
     private Collection<String> testsMetadata;
+    private Set<String> tags;
 
     public NewmanBuildMetadata(){}
 
@@ -62,6 +65,14 @@ public class NewmanBuildMetadata {
         this.testsMetadata = testsMetadata;
     }
 
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
+    }
+
     @Override
     public String toString() {
         return "NewmanBuildMetadata{" +
@@ -70,6 +81,7 @@ public class NewmanBuildMetadata {
                 ", buildShasFile='" + buildShasFile + '\'' +
                 ", resources=" + resources +
                 ", testsMetadata=" + testsMetadata +
+                ", tags=" + tags +
                 '}';
     }
 }
