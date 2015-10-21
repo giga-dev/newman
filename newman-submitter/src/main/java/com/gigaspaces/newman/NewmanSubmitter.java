@@ -28,6 +28,7 @@ public class NewmanSubmitter {
     private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
     private static final String NEWMAN_SUITES = "NEWMAN_SUITES";
     private static final String NEWMAN_BUILD_ID = "NEWMAN_BUILD_ID";
+    private static final int MAX_THREADS = 20;
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanSubmitter.class);
 
@@ -46,7 +47,7 @@ public class NewmanSubmitter {
         this.port = port;
         this.username = username;
         this.password = password;
-        this.workers = new ThreadPoolExecutor(suites.size(), suites.size(),
+        this.workers = new ThreadPoolExecutor(MAX_THREADS, MAX_THREADS,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>());
 
@@ -69,32 +70,23 @@ public class NewmanSubmitter {
         // Submit jobs for suites and wait for them
         try {
             List<Future<?>> jobs = new ArrayList<>();
-            for (String suiteId : suites) {
-                Future<?> worker = workers.submit(() -> {
-                    Suite suite = null;
-                    try {
-                        suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
-                        if (suite == null) {
-                            throw new IllegalArgumentException("suite with id: " + suites + " does not exists");
-                        }
-                        final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, bId, host, port, username, password);
-
-                        String jobId = jobSubmitter.submitJob();
-
-                        while (!isJobFinished(jobId)) {
-                            logger.info("waiting for job {} to end", jobId);
-                            Thread.sleep(60 * 1000);
-                        }
-                    } catch (InterruptedException | ExecutionException | ParseException | IOException e) {
-                        throw new RuntimeException("terminating submission due to exception", e);
-                    }
-                });
-                jobs.add(worker);
+            if(!futureJobsSubmitLoop(jobs)){ // if there are no future jobs
+                // regular cycle
+                for (String suiteId : suites) {
+                    Future<?> worker = submitThreadsToJobs(suiteId, bId);
+                    jobs.add(worker);
+                }
             }
             for (Future<?> job : jobs) {
                 job.get();
             }
 
+            // before finish to run, check if there are future job and run them.
+            jobs.clear();
+            futureJobsSubmitLoop(jobs);
+            for (Future<?> job : jobs) {
+                job.get();
+            }
         }
         finally {
             if (newmanClient != null)
@@ -115,6 +107,53 @@ public class NewmanSubmitter {
         }
     }
 
+    // return true if there are future jobs, else false
+    private boolean futureJobsSubmitLoop(List<Future<?>> jobs){
+        boolean hasFutureJobs = false;
+        FutureJob futureJob = getAndDeleteFutureJob();
+        while(futureJob != null){
+            hasFutureJobs = true;
+            Future<?> futureJobWorker = submitThreadsToJobs(futureJob.getSuiteID(), futureJob.getBuildID());
+            jobs.add(futureJobWorker);
+            futureJob = getAndDeleteFutureJob();
+        }
+        return hasFutureJobs;
+    }
+
+    private Future<?> submitThreadsToJobs(String suiteId, String buildId){
+        Future<?> worker = workers.submit(() -> {
+            Suite suite = null;
+            try {
+                suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
+                if (suite == null) {
+                    throw new IllegalArgumentException("future job suite with id: " + suiteId + " does not exists");
+                }
+                final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
+
+                String jobId = jobSubmitter.submitJob();
+
+                while (!isJobFinished(jobId)) {
+                    logger.info("waiting for job {} to end", jobId);
+                    Thread.sleep(60 * 1000);
+                }
+            } catch (InterruptedException | ExecutionException | ParseException | IOException e) {
+                throw new RuntimeException("future job terminating submission due to exception", e);
+            }
+        });
+        return worker;
+    }
+
+
+    private FutureJob getAndDeleteFutureJob(){
+        FutureJob futureJob = null;
+        try {
+            futureJob = newmanClient.getAndDeleteOldestFutureJob().toCompletableFuture().get();
+        } catch (Exception e) {
+            logger.error("failed to submit future job and delete it");
+        }
+        return futureJob;
+    }
+
     private String buildIfNeeded(String buildId) throws IOException, ExecutionException, InterruptedException {
         if (buildId == null) {
             NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(host, port, username, password);
@@ -127,7 +166,9 @@ public class NewmanSubmitter {
         try {
             final Job job = newmanClient.getJob(jobId).toCompletableFuture().get();
             if (job == null){
-                throw new IllegalArgumentException("No such job with id: " + jobId);
+//                throw new IllegalArgumentException("No such job with id: " + jobId);
+                logger.error("No such job with id: " + jobId);
+                return true;
             }
             return job.getState() == State.DONE;
 

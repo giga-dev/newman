@@ -52,6 +52,9 @@ public class NewmanSuiteSubmitter {
 
         NewmanSuiteSubmitter submitter = new NewmanSuiteSubmitter();
         submitter.submit();
+//        String ssd_tests = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests";
+//        submitter.manualSubmitSSD(ssd_tests);
+//        submitter.manualSubmitTgridRocksDB();
     }
 
     public void submit() throws Exception {
@@ -372,7 +375,7 @@ public class NewmanSuiteSubmitter {
             String Requirements = "";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "tgrid";
-            String allTestsPermutation = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_all_permutation_tests.txt";
+            String allTestsPermutation = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests";
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
                     CriteriaBuilder.include(getTestCriteriasFromPermutationURI(allTestsPermutation))
@@ -524,7 +527,7 @@ public class NewmanSuiteSubmitter {
 
     /**
      * param example:
-     *   String allTestsPermutation = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_all_permutation_tests.txt"
+     *   String allTestsPermutation = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests"
      */
     public void manualSubmitSSD(String allTestsPermutation) throws Exception {
         NewmanClient newmanClient = getNewmanClient();

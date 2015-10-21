@@ -68,6 +68,7 @@ public class NewmanResource {
     public static final String CREATED_BUILD = "created-build";
     public static final String CREATED_SUITE = "created-suite";
     public static final String MODIFIED_SUITE = "modified-suite";
+    public static final String CREATE_FUTURE_JOB = "create-future-job";
 
     private final SseBroadcaster broadcaster;
     private final MongoClient mongoClient;
@@ -76,6 +77,7 @@ public class NewmanResource {
     private final BuildDAO buildDAO;
     private final AgentDAO agentDAO;
     private final SuiteDAO suiteDAO;
+    private final FutureJobDAO futureJobDAO;
     private final Config config;
     private static final String SERVER_UPLOAD_LOCATION_FOLDER = "tests-logs";
     @SuppressWarnings("FieldCanBeLocal")
@@ -113,6 +115,7 @@ public class NewmanResource {
         buildDAO = new BuildDAO(morphia, mongoClient, config.getMongo().getDb());
         agentDAO = new AgentDAO(morphia, mongoClient, config.getMongo().getDb());
         suiteDAO = new SuiteDAO(morphia, mongoClient, config.getMongo().getDb());
+        futureJobDAO = new FutureJobDAO(morphia, mongoClient, config.getMongo().getDb());
 
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         MongoCollection testCollection = db.getCollection("Test");
@@ -176,6 +179,27 @@ public class NewmanResource {
 
         List<Job> jobs = jobDAO.find(query).asList();
         return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
+    }
+
+    @GET
+    @Path("futureJob")
+    @Produces(MediaType.APPLICATION_JSON)
+    public FutureJob getAndDeleteFutureJob(
+            @DefaultValue("0") @QueryParam("offset") int offset,
+            @DefaultValue("30") @QueryParam("limit") int limit,
+            @QueryParam("all") boolean all,
+            @Context UriInfo uriInfo) {
+
+        Query<FutureJob> query = futureJobDAO.createQuery();
+        query.order("submitTime");
+        if (!all) {
+            query.offset(offset).limit(limit);
+        }
+        FutureJob futureJob = futureJobDAO.findOne(query);
+        if(futureJob != null){
+            futureJobDAO.delete(futureJob);
+        }
+        return futureJob;
     }
 
     @GET
@@ -266,6 +290,37 @@ public class NewmanResource {
         } else {
             return null;
         }
+    }
+
+    @PUT
+    @Path("futureJob")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public FutureJob createFutureJob(JobRequest jobRequest,
+                                     @QueryParam("author") String author,
+                                     @Context SecurityContext sc){
+        Build build = null;
+        Suite suite = null;
+
+        if(jobRequest.getBuildId() != null){
+            build =  buildDAO.findOne(buildDAO.createIdQuery(jobRequest.getBuildId()));
+            if(build == null) throw new BadRequestException("invalid build id in create FutureJob, for Job request: " + jobRequest);
+        }
+        if(jobRequest.getSuiteId() != null){
+            suite = suiteDAO.findOne(suiteDAO.createIdQuery(jobRequest.getSuiteId()));
+            if(suite == null) throw new BadRequestException("invalid suite id in create FutureJob, for Job request: " + jobRequest);
+        }
+
+        FutureJob futureJob = new FutureJob();
+        futureJob.setId(UUID.randomUUID().toString());
+        futureJob.setBuildID(build.getId());
+        futureJob.setSuiteID(suite.getId());
+        futureJob.setSubmitTime(new Date());
+        futureJob.setAuthor(author);
+
+        futureJobDAO.save(futureJob);
+        broadcastMessage(CREATE_FUTURE_JOB,futureJob);
+        return futureJob;
     }
 
     @POST

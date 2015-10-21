@@ -63,6 +63,7 @@ public class NewmanClient {
     public CompletionStage<String> deleteJobUntilDesiredSpace(String requiredFreeDiskSpacePercentage) {
         return restClient.target(uri).path("jobs").path(requiredFreeDiskSpacePercentage).request().rx().delete(String.class);
     }
+
     public CompletionStage<Batch<Job>> getJobs() {
         return restClient.target(uri).path("job").queryParam("all", "true").request().rx().get(new GenericType<Batch<Job>>() {
         });
@@ -75,6 +76,9 @@ public class NewmanClient {
 
     public CompletionStage<Job> createJob(JobRequest jobRequest) {
         return restClient.target(uri).path("job").request().rx().put(Entity.json(jobRequest), Job.class);
+    }
+    public CompletionStage<FutureJob> createFutureJob(JobRequest jobRequest, String author){
+        return restClient.target(uri).path("futureJob").queryParam("author", author).request().rx().put(Entity.json(jobRequest), FutureJob.class);
     }
 
     public CompletionStage<Test> createTest(Test test) {
@@ -108,6 +112,10 @@ public class NewmanClient {
 
     public CompletionStage<Build> getBuild(String id) {
         return restClient.target(uri).path("build").path(id).request().rx().get(Build.class);
+    }
+
+    public CompletionStage<FutureJob> getAndDeleteOldestFutureJob() {
+        return restClient.target(uri).path("futureJob").request().rx().get(FutureJob.class);
     }
 
     public CompletionStage<Build> getLatestBuild(String tags) {
