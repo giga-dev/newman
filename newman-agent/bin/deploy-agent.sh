@@ -8,6 +8,10 @@ for dest in $(<${HOSTS_TO_DEPLOY_FILE}); do
   sshpass -p 'password' ssh ${dest} 'pkill -9 java'
   sshpass -p 'password' ssh ${dest} 'docker rm -f $(docker ps -a -q)'
 done
+echo "deploying new agent jar"
+for dest in $(<${HOSTS_TO_DEPLOY_FILE}); do
+  sshpass -p 'password' scp ../target/newman-agent-1.0.jar ${dest}:${AGENT_FOLDER}
+done
 echo "starting new agents"
 for dest in $(<${HOSTS_TO_DEPLOY_FILE}); do
   sshpass -p 'password' ssh ${dest} 'cd /home/xap/newman-agent && ./newman-agent.sh'
