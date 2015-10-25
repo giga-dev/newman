@@ -185,19 +185,14 @@ public class NewmanResource {
     @Path("futureJob")
     @Produces(MediaType.APPLICATION_JSON)
     public FutureJob getAndDeleteFutureJob(
-            @DefaultValue("0") @QueryParam("offset") int offset,
-            @DefaultValue("30") @QueryParam("limit") int limit,
-            @QueryParam("all") boolean all,
             @Context UriInfo uriInfo) {
 
         Query<FutureJob> query = futureJobDAO.createQuery();
         query.order("submitTime");
-        if (!all) {
-            query.offset(offset).limit(limit);
-        }
         FutureJob futureJob = futureJobDAO.findOne(query);
         if(futureJob != null){
-            futureJobDAO.delete(futureJob);
+            Datastore datastore = futureJobDAO.getDatastore();
+            datastore.findAndDelete(query);
         }
         return futureJob;
     }
@@ -312,9 +307,12 @@ public class NewmanResource {
         }
 
         FutureJob futureJob = new FutureJob();
-        futureJob.setId(UUID.randomUUID().toString());
-        futureJob.setBuildID(build.getId());
-        futureJob.setSuiteID(suite.getId());
+        if (build != null) {
+            futureJob.setBuildID(build.getId());
+        }
+        if (suite != null) {
+            futureJob.setSuiteID(suite.getId());
+        }
         futureJob.setSubmitTime(new Date());
         futureJob.setAuthor(author);
 

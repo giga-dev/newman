@@ -73,14 +73,17 @@ public class NewmanSubmitter {
             if(!futureJobsSubmitLoop(jobs)){ // if there are no future jobs
                 // regular cycle
                 for (String suiteId : suites) {
-                    Future<?> worker = submitThreadsToJobs(suiteId, bId);
+                    Future<?> worker = submitJobsByThreads(suiteId, bId);
                     jobs.add(worker);
                 }
             }
             for (Future<?> job : jobs) {
-                job.get();
+                try {
+                    job.get();
+                }catch (Exception e){
+                    logger.warn("main thread catch exception of worker: ", e);
+                }
             }
-
             // before finish to run, check if there are future job and run them.
             jobs.clear();
             futureJobsSubmitLoop(jobs);
@@ -113,14 +116,14 @@ public class NewmanSubmitter {
         FutureJob futureJob = getAndDeleteFutureJob();
         while(futureJob != null){
             hasFutureJobs = true;
-            Future<?> futureJobWorker = submitThreadsToJobs(futureJob.getSuiteID(), futureJob.getBuildID());
+            Future<?> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID());
             jobs.add(futureJobWorker);
             futureJob = getAndDeleteFutureJob();
         }
         return hasFutureJobs;
     }
 
-    private Future<?> submitThreadsToJobs(String suiteId, String buildId){
+    private Future<?> submitJobsByThreads(String suiteId, String buildId){
         Future<?> worker = workers.submit(() -> {
             Suite suite = null;
             try {
@@ -166,9 +169,7 @@ public class NewmanSubmitter {
         try {
             final Job job = newmanClient.getJob(jobId).toCompletableFuture().get();
             if (job == null){
-//                throw new IllegalArgumentException("No such job with id: " + jobId);
-                logger.error("No such job with id: " + jobId);
-                return true;
+                throw new IllegalArgumentException("No such job with id: " + jobId);
             }
             return job.getState() == State.DONE;
 
