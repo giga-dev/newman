@@ -42,10 +42,7 @@ public class NewmanFutureJobSubmitter {
         name = EnvUtils.getEnvironment(MY_NAME, true /*required*/, logger);
 
         valid(newmanClient, build_id, suite_id, name);
-        JobRequest jobRequest = new JobRequest();
-        jobRequest.setBuildId(build_id);
-        jobRequest.setSuiteId(suite_id);
-        FutureJob futureJob = newmanClient.createFutureJob(jobRequest, name).toCompletableFuture().get();
+        FutureJob futureJob = newmanClient.createFutureJob(build_id, suite_id, name).toCompletableFuture().get();
         logger.info("{} creates futureJob with id: {}, build id: {}, and suite id: {}.",futureJob.getAuthor(), futureJob.getId(), futureJob.getBuildID(), futureJob.getSuiteID());
     }
 

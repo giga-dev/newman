@@ -77,8 +77,12 @@ public class NewmanClient {
     public CompletionStage<Job> createJob(JobRequest jobRequest) {
         return restClient.target(uri).path("job").request().rx().put(Entity.json(jobRequest), Job.class);
     }
-    public CompletionStage<FutureJob> createFutureJob(JobRequest jobRequest, String author){
-        return restClient.target(uri).path("futureJob").queryParam("author", author).request().rx().put(Entity.json(jobRequest), FutureJob.class);
+    public CompletionStage<FutureJob> createFutureJob(String buildId, String suiteId, String author){
+        return restClient.target(uri).path("futureJob").
+                queryParam("buildId", buildId).
+                queryParam("suiteId", suiteId).
+                queryParam("author", author).
+                request().rx().get(FutureJob.class);
     }
 
     public CompletionStage<Test> createTest(Test test) {
@@ -87,6 +91,14 @@ public class NewmanClient {
 
     public CompletionStage<Response> createTests(List<Test> tests) {
         return restClient.target(uri).path("tests").request().rx().put(Entity.json(new Batch<>(tests, 0, tests.size(), false, null, null)));
+    }
+
+    public CompletionStage<Batch<Build>> getPenndingBuildsToSubmit(String branches, String tags) {
+        return restClient.target(uri).path("build").
+                queryParam("branches", branches).
+                queryParam("tags", tags).
+                request().rx().get(new GenericType<Batch<Build>>() {
+        });
     }
 
     public CompletionStage<Test> finishTest(Test test) {

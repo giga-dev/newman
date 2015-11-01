@@ -27,22 +27,23 @@ public class NewmanSubmitter {
     private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
     private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
     private static final String NEWMAN_SUITES = "NEWMAN_SUITES";
-    private static final String NEWMAN_BUILD_ID = "NEWMAN_BUILD_ID";
     private static final int MAX_THREADS = 20;
+    private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
+    private static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
+    // modes = FORCE, REGULAR
+    private static final String NEWMAN_MODE = "NEWMAN_MODE";
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanSubmitter.class);
 
     private NewmanClient newmanClient;
-    private List<String> suites;
     private String host;
     private String port;
     private String username;
     private String password;
     private ThreadPoolExecutor workers;
 
-    public NewmanSubmitter(String suitesId, String host, String port, String username, String password){
+    public NewmanSubmitter(String host, String port, String username, String password){
 
-        this.suites = Arrays.asList(suitesId.split(","));
         this.host = host;
         this.port = port;
         this.username = username;
@@ -60,35 +61,29 @@ public class NewmanSubmitter {
         }
     }
 
-    public void submitAndWait(String buildId) throws InterruptedException, ExecutionException, IOException {
-        // Submit a new build if no buildId was provided, pay attention to provide all the environment variables for the build in that case
-        // (see NewmanBuildSubmitter.getBuildMetadata method).
-        final String bId = buildIfNeeded(buildId);
-        // Use the below line with a specific tag to get the latest build which contains a tag
-        //final String bId = newmanClient.getLatestBuild("tag").toCompletableFuture().get();
-        logger.info("Using build with id: {}", buildId);
+    public boolean submitAndWait(String buildId, String suitesIDStr) throws InterruptedException, ExecutionException, IOException {
+        boolean hasFutureJobs = false;
         // Submit jobs for suites and wait for them
         try {
-            List<Future<?>> jobs = new ArrayList<>();
-            if(!futureJobsSubmitLoop(jobs)){ // if there are no future jobs
+            List<Future<String>> jobs = submitFutureJobs();
+            if(jobs.isEmpty()){ // if there are no future jobs
                 // regular cycle
+                logger.info("Using build with id: {}", buildId);
+                List<String> suites = Arrays.asList(suitesIDStr.split(","));
                 for (String suiteId : suites) {
-                    Future<?> worker = submitJobsByThreads(suiteId, bId);
+                    Future<String> worker = submitJobsByThreads(suiteId, buildId);
                     jobs.add(worker);
                 }
+            }else{
+                hasFutureJobs = true;
             }
-            for (Future<?> job : jobs) {
+            // wait for every running job to finish.
+            for (Future<String> job : jobs) {
                 try {
                     job.get();
                 }catch (Exception e){
                     logger.warn("main thread catch exception of worker: ", e);
                 }
-            }
-            // before finish to run, check if there are future job and run them.
-            jobs.clear();
-            futureJobsSubmitLoop(jobs);
-            for (Future<?> job : jobs) {
-                job.get();
             }
         }
         finally {
@@ -108,23 +103,25 @@ public class NewmanSubmitter {
                 logger.warn("workers executor was abruptly shut down. {} tasks will not be executed.", droppedTasks.size());
             }
         }
-    }
-
-    // return true if there are future jobs, else false
-    private boolean futureJobsSubmitLoop(List<Future<?>> jobs){
-        boolean hasFutureJobs = false;
-        FutureJob futureJob = getAndDeleteFutureJob();
-        while(futureJob != null){
-            hasFutureJobs = true;
-            Future<?> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID());
-            jobs.add(futureJobWorker);
-            futureJob = getAndDeleteFutureJob();
-        }
         return hasFutureJobs;
     }
 
-    private Future<?> submitJobsByThreads(String suiteId, String buildId){
-        Future<?> worker = workers.submit(() -> {
+    /**
+     * @return List of Future jobs ids.
+     */
+    private List<Future<String>> submitFutureJobs(){
+        List<Future<String>> futureJobIds = new ArrayList<>();
+        FutureJob futureJob = getAndDeleteFutureJob();
+        while(futureJob != null){
+            Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID());
+            futureJobIds.add(futureJobWorker);
+            futureJob = getAndDeleteFutureJob();
+        }
+        return futureJobIds;
+    }
+
+    private Future<String> submitJobsByThreads(String suiteId, String buildId){
+        return workers.submit(() -> {
             Suite suite = null;
             try {
                 suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
@@ -139,11 +136,11 @@ public class NewmanSubmitter {
                     logger.info("waiting for job {} to end", jobId);
                     Thread.sleep(60 * 1000);
                 }
+                return jobId;
             } catch (InterruptedException | ExecutionException | ParseException | IOException e) {
                 throw new RuntimeException("future job terminating submission due to exception", e);
             }
         });
-        return worker;
     }
 
 
@@ -155,14 +152,6 @@ public class NewmanSubmitter {
             logger.error("failed to submit future job and delete it");
         }
         return futureJob;
-    }
-
-    private String buildIfNeeded(String buildId) throws IOException, ExecutionException, InterruptedException {
-        if (buildId == null) {
-            NewmanBuildSubmitter buildSubmitter = new NewmanBuildSubmitter(host, port, username, password);
-            buildId = buildSubmitter.submitBuild();
-        }
-        return buildId;
     }
 
     private boolean isJobFinished(String jobId) {
@@ -188,9 +177,52 @@ public class NewmanSubmitter {
         String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, logger);
         // suites to run separated by comma
         String suitesId = EnvUtils.getEnvironment(NEWMAN_SUITES, logger);
-        String buildId = EnvUtils.getEnvironment(NEWMAN_BUILD_ID, false, logger);
 
-        NewmanSubmitter newmanSubmitter = new NewmanSubmitter(suitesId, host, port, username, password);
-        newmanSubmitter.submitAndWait(buildId);
+        NewmanSubmitter newmanSubmitter = new NewmanSubmitter(host, port, username, password);
+        String branch = EnvUtils.getEnvironment(NEWMAN_BUILD_BRANCH, false, logger);
+        String tags = EnvUtils.getEnvironment(NEWMAN_BUILD_TAGS, false, logger);
+        String mode = EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
+
+        String buildToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
+
+        System.out.println("branch: " + branch);
+        System.out.println("buildIdNotRunYet: " + buildToRun + "\n");
+
+        if(buildToRun != null){
+            boolean hasFutureJobs = newmanSubmitter.submitAndWait(buildToRun, suitesId);
+            System.exit(hasFutureJobs ? 1 : 0);
+        }
+        System.exit(0);
     }
+
+    public String getBuildToRun(String branches, String tags, String mode){
+        if(mode.equals("DAILY")){
+            try {
+                // branches and tags should be separated by comma (,)
+                List<Build> buildsNotRunYet = newmanClient.getPenndingBuildsToSubmit(branches, tags).toCompletableFuture().get().getValues();
+                if(buildsNotRunYet != null && !buildsNotRunYet.isEmpty()) { //found build to run
+                    Build build =  buildsNotRunYet.get(0);
+                    return build.getId();
+                }
+                logger.warn("failed to find build on mode: DAILY");
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        else if(mode.equals("NIGHTLY")){// mode = NIGHTLY
+            try {
+                Build build = newmanClient.getLatestBuild(tags).toCompletableFuture().get();
+                if(build != null){
+                    return build.getId();
+                }
+                logger.warn("failed to find build on mode: NIGHTLY");
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        throw new IllegalArgumentException("illegal mode argument: " + mode);
+    }
+
 }
