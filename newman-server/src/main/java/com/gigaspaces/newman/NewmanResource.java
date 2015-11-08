@@ -479,18 +479,21 @@ public class NewmanResource {
     @Path("build")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Batch<Build> getPenndingBuildsToSubmit(
+    public Batch<Build> getPendingBuildsToSubmit(
             @QueryParam("branches") String branchesStr,
             @QueryParam("tags") String tagsStr) {
 
+        Set<String> tagsSet = null;
         List<String> branches = Arrays.asList(branchesStr.split("\\s*,\\s*"));
-        Set<String> tagsSet = new HashSet<>(Arrays.asList(tagsStr.split("\\s*,\\s*")));
+        if(tagsStr != null){
+            tagsSet = new HashSet<>(Arrays.asList(tagsStr.split("\\s*,\\s*")));
+        }
         List<Build> buildsRes = new ArrayList<>();
 
         for (String branch : branches) {
             Query<Build> query = buildDAO.createQuery().order("-buildTime").field("branch").equal(branch);
 
-            if(!tagsSet.isEmpty()){ // build should be with specifics tags
+            if(tagsSet != null && !tagsSet.isEmpty()){ // build should be with specifics tags
                 query.field("tags").hasAllOf(tagsSet);
             }
 

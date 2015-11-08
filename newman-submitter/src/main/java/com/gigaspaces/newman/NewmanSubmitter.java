@@ -185,11 +185,11 @@ public class NewmanSubmitter {
 
         String buildToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
 
-        System.out.println("branch: " + branch);
-        System.out.println("buildIdNotRunYet: " + buildToRun + "\n");
+        logger.info("submitter branch: {}, found buildToRun: {}", branch, buildToRun);
 
         if(buildToRun != null){
             boolean hasFutureJobs = newmanSubmitter.submitAndWait(buildToRun, suitesId);
+            logger.info("hasFutureJobs: {}", hasFutureJobs);
             System.exit(hasFutureJobs ? 1 : 0);
         }
         System.exit(0);
@@ -199,12 +199,13 @@ public class NewmanSubmitter {
         if(mode.equals("DAILY")){
             try {
                 // branches and tags should be separated by comma (,)
-                List<Build> buildsNotRunYet = newmanClient.getPenndingBuildsToSubmit(branches, tags).toCompletableFuture().get().getValues();
+                List<Build> buildsNotRunYet = newmanClient.getPendingBuildsToSubmit(branches, tags).toCompletableFuture().get().getValues();
                 if(buildsNotRunYet != null && !buildsNotRunYet.isEmpty()) { //found build to run
                     Build build =  buildsNotRunYet.get(0);
                     return build.getId();
                 }
-                logger.warn("failed to find build on mode: DAILY");
+                logger.warn("failed to find build on branch: {}, tags: {}, mode: {}", branches, tags, mode);
+                return null;
             } catch (Exception e) {
                 e.printStackTrace();
                 return null;
@@ -216,7 +217,8 @@ public class NewmanSubmitter {
                 if(build != null){
                     return build.getId();
                 }
-                logger.warn("failed to find build on mode: NIGHTLY");
+                logger.warn("failed to find build on branch: {}, tags: {}, mode: {}", branches, tags, mode);
+                return null;
             } catch (Exception e) {
                 e.printStackTrace();
                 return null;
