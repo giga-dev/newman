@@ -63,24 +63,19 @@ public class NewmanSubmitter {
 
     public boolean submitFutureJobsIfAny(){
         // Submit future jobs if exists
-        try {
-            List<Future<String>> jobs = submitFutureJobs();
-            if(jobs.isEmpty()){ // if there are no future jobs
-                return false;
-            }else{
-                // wait for every running future job to finish.
-                for (Future<String> job : jobs) {
-                    try {
-                        job.get();
-                    }catch (Exception e){
-                        logger.warn("main thread catch exception of worker: ", e);
-                    }
+        List<Future<String>> jobs = submitFutureJobs();
+        if(jobs.isEmpty()){ // if there are no future jobs
+            return false;
+        }else{
+            // wait for every running future job to finish.
+            for (Future<String> job : jobs) {
+                try {
+                    job.get();
+                }catch (Exception e){
+                    logger.warn("main thread catch exception of worker: ", e);
                 }
-                return true;
             }
-        }
-        finally {
-            tearDown();
+            return true;
         }
     }
 
@@ -207,6 +202,7 @@ public class NewmanSubmitter {
         boolean hasFutureJobs = newmanSubmitter.submitFutureJobsIfAny();
         logger.info("hasFutureJobs: {}", hasFutureJobs);
         if (hasFutureJobs) {
+            newmanSubmitter.tearDown();
             System.exit(1);
         }
 
