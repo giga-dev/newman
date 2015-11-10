@@ -15,11 +15,9 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 
 import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.exclude;
 import static com.gigaspaces.newman.beans.criteria.CriteriaBuilder.include;
-import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
 import static com.gigaspaces.newman.utils.StringUtils.notEmpty;
 
 /**
@@ -545,6 +543,29 @@ public class NewmanSuiteSubmitter {
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
                     CriteriaBuilder.include(getTestCriteriasFromPermutationURI(allTestsPermutation))
+            );
+
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitDotNet() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("xap-dotnet");
+            suite.setCustomVariables("SUITE_TYPE=dotnet,DOTNET_VERSION=3.5");
+            String Requirements = "DOTNET,WINDOWS";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            String testType = "dotnet";
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType))
             );
 
             suite.setCriteria(criteria);

@@ -61,49 +61,69 @@ public class NewmanSubmitter {
         }
     }
 
-    public boolean submitAndWait(String buildId, String suitesIDStr) throws InterruptedException, ExecutionException, IOException {
-        boolean hasFutureJobs = false;
-        // Submit jobs for suites and wait for them
+    public boolean submitFutureJobsIfAny(){
+        // Submit future jobs if exists
         try {
             List<Future<String>> jobs = submitFutureJobs();
             if(jobs.isEmpty()){ // if there are no future jobs
-                // regular cycle
-                logger.info("Using build with id: {}", buildId);
-                List<String> suites = Arrays.asList(suitesIDStr.split(","));
-                for (String suiteId : suites) {
-                    Future<String> worker = submitJobsByThreads(suiteId, buildId);
-                    jobs.add(worker);
-                }
+                return false;
             }else{
-                hasFutureJobs = true;
+                // wait for every running future job to finish.
+                for (Future<String> job : jobs) {
+                    try {
+                        job.get();
+                    }catch (Exception e){
+                        logger.warn("main thread catch exception of worker: ", e);
+                    }
+                }
+                return true;
+            }
+        }
+        finally {
+            tearDown();
+        }
+    }
+
+    private void tearDown() {
+        if (newmanClient != null)
+            newmanClient.close();
+        // shut down job submitters workers
+        workers.shutdown();
+        try {
+            if (!workers.awaitTermination(30, TimeUnit.SECONDS)) {
+                logger.warn("workers executor did not terminate in the specified time.");
+                List<Runnable> droppedTasks = workers.shutdownNow();
+                logger.warn("workers executor was abruptly shut down. {} tasks will not be executed.", droppedTasks.size());
+            }
+        } catch (InterruptedException e) {
+            logger.warn("workers executor did not terminate in the specified time.");
+            List<Runnable> droppedTasks = workers.shutdownNow();
+            logger.warn("workers executor was abruptly shut down. {} tasks will not be executed.", droppedTasks.size());
+        }
+    }
+
+    public void submitAndWait(String buildId, String suitesIDStr) throws InterruptedException, ExecutionException, IOException {
+        List<Future<String>> jobs = new ArrayList<>();
+        // Submit jobs for suites and wait for them
+        logger.info("Using build with id: {}", buildId);
+        List<String> suites = Arrays.asList(suitesIDStr.split(","));
+        try {
+            for (String suiteId : suites) {
+                Future<String> worker = submitJobsByThreads(suiteId, buildId);
+                jobs.add(worker);
             }
             // wait for every running job to finish.
             for (Future<String> job : jobs) {
                 try {
                     job.get();
-                }catch (Exception e){
+                } catch (Exception e) {
                     logger.warn("main thread catch exception of worker: ", e);
                 }
             }
         }
         finally {
-            if (newmanClient != null)
-                newmanClient.close();
-            // shut down job submitters workers
-            workers.shutdown();
-            try {
-                if (!workers.awaitTermination(30, TimeUnit.SECONDS)) {
-                    logger.warn("workers executor did not terminate in the specified time.");
-                    List<Runnable> droppedTasks = workers.shutdownNow();
-                    logger.warn("workers executor was abruptly shut down. {} tasks will not be executed.", droppedTasks.size());
-                }
-            } catch (InterruptedException e) {
-                logger.warn("workers executor did not terminate in the specified time.");
-                List<Runnable> droppedTasks = workers.shutdownNow();
-                logger.warn("workers executor was abruptly shut down. {} tasks will not be executed.", droppedTasks.size());
-            }
+            tearDown();
         }
-        return hasFutureJobs;
     }
 
     /**
@@ -183,14 +203,17 @@ public class NewmanSubmitter {
         String tags = EnvUtils.getEnvironment(NEWMAN_BUILD_TAGS, false, logger);
         String mode = EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
 
+        logger.info("submitting future jobs if there are any");
+        boolean hasFutureJobs = newmanSubmitter.submitFutureJobsIfAny();
+        logger.info("hasFutureJobs: {}", hasFutureJobs);
+        if (hasFutureJobs) {
+            System.exit(1);
+        }
+
         String buildToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
-
         logger.info("submitter branch: {}, found buildToRun: {}", branch, buildToRun);
-
         if(buildToRun != null){
-            boolean hasFutureJobs = newmanSubmitter.submitAndWait(buildToRun, suitesId);
-            logger.info("hasFutureJobs: {}", hasFutureJobs);
-            System.exit(hasFutureJobs ? 1 : 0);
+            newmanSubmitter.submitAndWait(buildToRun, suitesId);
         }
         System.exit(0);
     }

@@ -484,8 +484,11 @@ public class NewmanResource {
             @QueryParam("tags") String tagsStr) {
 
         Set<String> tagsSet = null;
+        if (branchesStr == null || branchesStr.isEmpty()){
+            throw new IllegalArgumentException("branches can not be null or empty when asking for pending builds to submit");
+        }
         List<String> branches = Arrays.asList(branchesStr.split("\\s*,\\s*"));
-        if(tagsStr != null){
+        if(tagsStr != null && !tagsStr.isEmpty()){
             tagsSet = new HashSet<>(Arrays.asList(tagsStr.split("\\s*,\\s*")));
         }
         List<Build> buildsRes = new ArrayList<>();
