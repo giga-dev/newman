@@ -1,0 +1,48 @@
+<link rel="import" href="routes.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+<link rel="import" href="../components/paper-button/paper-button.html">
+<link rel="import" href="../components/paper-dialog/paper-action-dialog.html">
+
+<polymer-element name="future-job" attributes="url">
+    <template>
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+
+        <core-ajax id="postFutureJob" method="POST" handleAs="json" on-core-response="{{ajaxResponse}}"
+                   withCredentials="true"></core-ajax>
+
+        <div class="content" flex>
+            <form>
+                <div class="form-group">
+                    <label for="buildId">buildId</label>
+                    <input type="text" class="form-control" id="buildId">
+                </div>
+                <div class="form-group">
+                    <label for="suiteId">suiteId</label>
+                    <input type="text" class="form-control" id="suiteId">
+                </div>
+                <button type="button" class="btn btn-default" on-click="{{submitFutureJob}}">Submit</button>
+            </form>
+        </div>
+        <label id="status" class="success"></label>
+    </template>
+
+    <script>
+    Polymer({
+      applyAuthorStyles: true,
+      ajaxResponse: function(event,resp){
+          console.info("got future job response", event, resp);
+          this.$.status.innerHTML = JSON.stringify(resp.response);
+      },
+
+      submitFutureJob : function(){
+        console.info("submitFutureJob", this.$.buildId.value, this.$.suiteId.value);
+        var buildId = this.$.buildId.value;
+        var suiteId = this.$.suiteId.value;
+        if(suiteId && buildId){
+            this.$.postFutureJob.url = this.url +"/" + buildId + "/" + suiteId;
+            this.$.postFutureJob.go();
+        }
+      },
+    });
+    </script>
+</polymer-element>

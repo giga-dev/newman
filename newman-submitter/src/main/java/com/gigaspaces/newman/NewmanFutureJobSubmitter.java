@@ -1,7 +1,6 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.FutureJob;
-import com.gigaspaces.newman.beans.JobRequest;
 import com.gigaspaces.newman.utils.EnvUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,7 @@ public class NewmanFutureJobSubmitter {
         name = EnvUtils.getEnvironment(MY_NAME, true /*required*/, logger);
 
         valid(newmanClient, build_id, suite_id, name);
-        FutureJob futureJob = newmanClient.createFutureJob(build_id, suite_id, name).toCompletableFuture().get();
+        FutureJob futureJob = newmanClient.createFutureJob(build_id, suite_id).toCompletableFuture().get();
         logger.info("{} creates futureJob with id: {}, build id: {}, and suite id: {}.",futureJob.getAuthor(), futureJob.getId(), futureJob.getBuildID(), futureJob.getSuiteID());
     }
 

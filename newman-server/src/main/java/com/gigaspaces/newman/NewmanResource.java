@@ -287,13 +287,14 @@ public class NewmanResource {
         }
     }
 
-    @GET
-    @Path("futureJob/{buildId}/{suiteId}/{author}")
+    @POST
+    @Path("futureJob/{buildId}/{suiteId}")
     @Produces(MediaType.APPLICATION_JSON)
     public FutureJob createFutureJob(
             @PathParam("buildId") String buildId,
             @PathParam("suiteId") String suiteId,
-            @PathParam("author") String author){
+            @Context SecurityContext sc){
+        String author = sc.getUserPrincipal().getName();
         Build build = null;
         Suite suite = null;
 
@@ -1056,8 +1057,7 @@ public class NewmanResource {
                                   @DefaultValue("30") @QueryParam("limit") int limit,
                                   @DefaultValue("false") @QueryParam("all") boolean all
             , @QueryParam("orderBy") List<String> orderBy
-            , @Context UriInfo uriInfo) {
-        Query<Build> query = buildDAO.createQuery();
+            , @Context UriInfo uriInfo) {Query<Build> query = buildDAO.createQuery();
         if (!all) {
             query.offset(offset).limit(limit);
         }

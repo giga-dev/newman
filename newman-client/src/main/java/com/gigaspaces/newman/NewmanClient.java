@@ -77,12 +77,11 @@ public class NewmanClient {
     public CompletionStage<Job> createJob(JobRequest jobRequest) {
         return restClient.target(uri).path("job").request().rx().put(Entity.json(jobRequest), Job.class);
     }
-    public CompletionStage<FutureJob> createFutureJob(String buildId, String suiteId, String author){
+    public CompletionStage<FutureJob> createFutureJob(String buildId, String suiteId){
         return restClient.target(uri).path("futureJob").
-                queryParam("buildId", buildId).
-                queryParam("suiteId", suiteId).
-                queryParam("author", author).
-                request().rx().get(FutureJob.class);
+                path(buildId).
+                path(suiteId).
+                request().rx().post(Entity.text(""), FutureJob.class);
     }
 
     public CompletionStage<Test> createTest(Test test) {

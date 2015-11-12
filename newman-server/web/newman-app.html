@@ -25,6 +25,7 @@
 <link rel="import" href="suites-view.html">
 <link rel="import" href="suite-view.html">
 <link rel="import" href="suites-dashboard.html">
+<link rel="import" href="future-job.html">
 
 <polymer-element name="newman-app">
     <template>
@@ -61,6 +62,9 @@
                             <!--</core-item>-->
                             <core-item label="Suites" route="suites">
                                 <a href="{{urlFor('suites')}}" core-drawer-toggle></a>
+                            </core-item>
+                            <core-item label="Future Jobs" route="future-job">
+                                <a href="{{urlFor('future-job')}}" core-drawer-toggle></a>
                             </core-item>
                             <core-item label="Mongo Admin" route="mongo-admin">
                                 <a href="{{urlFor('mongo-admin')}}" core-drawer-toggle></a>
@@ -128,6 +132,10 @@
             <suite-view url="api/newman/suite/{{route('suite').params.id}}"
                     ></suite-view>
         </template>
+    </section>
+    <section route="future-job">
+        <h1>submitting future job</h1>
+        <future-job url="api/newman/futureJob"></future-job>
     </section>
     <section route="mongo-admin">
         <h1>A very simple Mongo admin {{route('mongo-admin').params.id}}</h1>
