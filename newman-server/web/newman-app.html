@@ -63,7 +63,7 @@
                             <core-item label="Suites" route="suites">
                                 <a href="{{urlFor('suites')}}" core-drawer-toggle></a>
                             </core-item>
-                            <core-item label="Future Jobs" route="future-job">
+                            <core-item label="Submit New Job" route="future-job">
                                 <a href="{{urlFor('future-job')}}" core-drawer-toggle></a>
                             </core-item>
                             <core-item label="Mongo Admin" route="mongo-admin">
@@ -134,7 +134,7 @@
         </template>
     </section>
     <section route="future-job">
-        <h1>submitting future job</h1>
+        <h1>Submit New Job</h1>
         <future-job url="api/newman/futureJob"></future-job>
     </section>
     <section route="mongo-admin">
