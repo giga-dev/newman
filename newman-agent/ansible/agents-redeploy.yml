@@ -1,0 +1,38 @@
+---
+# This playbook re-deploys newman agent
+# run it using: ansible-playbook agents-redeploy.yml -i hosts -u xap or you can add custom variables like that:
+# ansible-playbook --extra-vars '{"newman_dir":"<local_newman_sources_root>","maven_repo":"<local_m2_repo>","mvn_cmd":"<local_mvn_cmd>"}' agents-redeploy.yml -i hosts -u xap
+- name: "local actions on ansible client machine"
+  hosts: 127.0.0.1
+  connection: local
+  vars:
+    newman_local_dir: '{{ newman_dir|default("../../") }}'
+    local_maven_repo: '{{ maven_repo|default("~/.m2/repository") }}'
+    maven_cmd: '{{ mvn_cmd|default("/usr/bin/mvn") }}'
+  tasks:
+  - name: mvn install newman project
+    command: "{{maven_cmd}} clean install -Dmaven.repo.local={{local_maven_repo}}"
+    args:
+      chdir: "{{newman_local_dir}}"
+
+- name: "remote actions on newman agents machine"
+  hosts: newmanDockerAgents
+  remote_user: xap
+  vars:
+    newman_local_dir: '{{ newman_dir|default("../../") }}'
+    agent_home_dir: '/home/xap/newman-agent'
+  tasks:
+      - name: "create newman folder if not exists"
+        shell: mkdir -p {{agent_home_dir}}
+      - name: "remove old agents log if exists"
+        shell: rm -f {{agent_home_dir}}/nohup*
+      - name: "undeploy old agents"
+        script: "{{newman_local_dir}}/newman-agent/ansible/files/stop-newman-agent.sh"
+        ignore_errors: yes
+      - name: "deploy new agent jar"
+        copy: src={{newman_local_dir}}/newman-agent/target/newman-agent-1.0.jar dest={{agent_home_dir}} owner=xap mode=0777
+      - name: "copy running script"
+        copy: src={{newman_local_dir}}/newman-agent/ansible/files/newman-agent.sh dest={{agent_home_dir}} owner=xap mode=0777
+      - name: "start agents"
+        shell: ./newman-agent.sh chdir="{{agent_home_dir}}"
+        ignore_errors: yes
