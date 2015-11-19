@@ -90,7 +90,7 @@ public class SuiteDiffCronJob implements CronJob {
             return;
         }
 
-        Build latestBuild = getLatestBuild(properties, historyBuilds);
+        Build latestBuild = getLatestBuild(properties, historyBuilds, newmanClient);
         Build previousBuild = getPreviousBuildFromFile(properties, latestBuild, newmanClient);
 
         //calculate
@@ -172,14 +172,38 @@ public class SuiteDiffCronJob implements CronJob {
         return output.toString();
     }
 
-    private Build getLatestBuild(Properties properties, List<Build> historyBuilds) {
+    private Build getLatestBuild(Properties properties, List<Build> historyBuilds, NewmanClient newmanClient) {
         String branch = properties.getProperty(CRONS_SUITE_DIFF_BRANCH, DEFAULT_BRANCH);
+        Build latestMatch = null;
         for (Build history : historyBuilds) {
             if (history.getBranch().equals(branch)) {
-                return history;
+                if (latestMatch == null) {
+                    latestMatch = history;
+                }
+                if (history.getTags().contains("DOTNET") && countSuites(newmanClient, history) > 5) {
+                    return history;
+                }
             }
         }
+        if (latestMatch != null) {
+            return latestMatch;
+        }
         throw new IllegalStateException("No build matching branch: " + branch);
+    }
+
+    /**
+     * Temporary workaround to count number of suites of running builds
+     * @return the number of suites run on this build
+     */
+    private int countSuites(NewmanClient newmanClient, Build build) {
+        int suiteCount = 0;
+        try {
+            Batch<Job> jobBatch = newmanClient.getJobs(build.getId()).toCompletableFuture().get();
+            suiteCount = jobBatch.getValues().size();
+        } catch (Exception e) {
+            logger.warn("Failed to get jobs for buildId: " + build.getId());
+        }
+        return suiteCount;
     }
 
     private Build getPreviousBuildFromFile(Properties properties, Build latestBuild, NewmanClient newmanClient) {
