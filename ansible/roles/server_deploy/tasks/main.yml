@@ -1,5 +1,5 @@
 ---
-# deploys/re-deploys newman server
+# deploys/re-deploys newman server, mongodb should be installed on server host
 - name: "create server folder if not exists"
   shell: mkdir -p {{server_home_dir}}
 - name: "create server config folder if not exists"
