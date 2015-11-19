@@ -24,10 +24,7 @@ import org.glassfish.jersey.media.sse.SseFeature;
 import org.glassfish.jersey.server.ChunkedOutput;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.MorphiaIterator;
-import org.mongodb.morphia.query.Query;
-import org.mongodb.morphia.query.UpdateOperations;
-import org.mongodb.morphia.query.UpdateResults;
+import org.mongodb.morphia.query.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1409,6 +1406,32 @@ public class NewmanResource {
         final EventOutput eventOutput = new EventOutput();
         this.broadcaster.add(eventOutput);
         return eventOutput;
+    }
+
+    @POST
+    @Path("suspend")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response suspend() throws InterruptedException {
+            UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations();
+        jobUpdateOps.set("state", State.PAUSED);
+        try {
+            Query<Job> query = jobDAO.createQuery();
+            query.or(query.criteria("state").equal(State.RUNNING), query.criteria("state").equal(State.READY));
+            jobDAO.getDatastore().update(query, jobUpdateOps);
+            final Query<Job> stillRunningJobsQuery = jobDAO.createQuery().filter("runningTests >", 0);
+            QueryResults<Job> runningJobs = jobDAO.find(stillRunningJobsQuery);
+            while (runningJobs.asList().size() != 0) {
+                logger.info("waiting for all agents to finish running tests, {} jobs are still running:", runningJobs.asList().size());
+                logger.info(Arrays.toString(runningJobs.asList().toArray()));
+                Thread.sleep(5000);
+                runningJobs = jobDAO.find(stillRunningJobsQuery);
+            }
+        }
+        catch (Exception e){
+            logger.warn("failed to suspend server", e);
+            return Response.serverError().build();
+        }
+        return Response.ok().build();
     }
 
 
