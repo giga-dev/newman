@@ -1,0 +1,3 @@
+---
+# agent_crontabs vars
+ansible_scripts_dir: "/home/xap/ansible/scripts"

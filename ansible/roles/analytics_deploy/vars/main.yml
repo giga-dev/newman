@@ -1,0 +1,4 @@
+---
+# server_deploy vars
+newman_local_dir: "../"
+analytics_home_dir: "/home/xap/newman-analytics"

@@ -1,0 +1,5 @@
+---
+# ansible_connection=paramiko due to ssh shared connections issue with ubuntu14.04 (when using openssh)
+ansible_connection: paramiko
+ansible_user: tgrid
+ansible_ssh_pass: <ENTER PASSWORD>

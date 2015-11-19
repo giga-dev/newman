@@ -1,0 +1,3 @@
+---
+# server_crontabs vars
+server_home_dir: "/home/xap/newman-server"

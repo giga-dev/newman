@@ -1,0 +1,4 @@
+---
+ansible_connection: ssh
+ansible_user: xap
+ansible_ssh_pass: <ENTER PASSWORD>

@@ -1,0 +1,15 @@
+---
+# This playbook deploys/re-deploys newman analytics
+- name: "Install newman locally"
+  hosts: 127.0.0.1
+  connection: local
+
+  roles:
+    - newman_install
+
+- name: "deploy/redeploy newman analytics"
+  hosts: newmanAnalytics
+  remote_user: xap
+
+  roles:
+    - analytics_deploy

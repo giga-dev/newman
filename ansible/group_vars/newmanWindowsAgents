@@ -1,0 +1,4 @@
+---
+ansible_connection: winrm
+ansible_user: ca
+ansible_password: <ENTER PASSWORD>

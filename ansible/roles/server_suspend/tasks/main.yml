@@ -1,0 +1,11 @@
+---
+# suspend newman server and wait for all agents to finish their jobs
+- uri:
+    url: "{{server_url}}"
+    user: "{{user}}"
+    password: "{{password}}"
+    status_code: 200
+    method: POST
+    return_content: yes
+    validate_certs: no
+    timeout: 600

@@ -1,0 +1,20 @@
+---
+# deploys/re-deploys newman server
+- name: "create server folder if not exists"
+  shell: mkdir -p {{server_home_dir}}
+- name: "create server config folder if not exists"
+  shell: mkdir -p {{server_home_dir}}/config
+- name: "remove old server log if exists"
+  shell: rm -f {{server_home_dir}}/nohup*
+  ignore_errors: yes
+- name: "undeploy old server"
+  command: pkill -f newman-server
+  ignore_errors: yes
+- name: "deploy new server jar"
+  copy: src={{newman_local_dir}}/newman-server/target/newman-server-1.0.jar dest={{server_home_dir}} owner=xap mode=0777
+- name: "copy running script"
+  copy: src={{newman_local_dir}}/ansible/roles/server_deploy/files/run.sh dest={{server_home_dir}} owner=xap mode=0777
+- name: "copy realm properties file"
+  copy: src={{newman_local_dir}}/newman-server/src/test/resources/realm.properties dest={{server_home_dir}}/config owner=xap mode=0777
+- name: "start server"
+  shell: ./run.sh chdir="{{server_home_dir}}"

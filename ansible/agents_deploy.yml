@@ -1,0 +1,17 @@
+---
+# This playbook re-deploys newman agent
+- name: "Install newman locally"
+  hosts: 127.0.0.1
+  connection: local
+
+  roles:
+    - newman_install
+
+- name: "deploy newman docker agents"
+  hosts: newmanDockerAgents
+  remote_user: xap
+
+  roles:
+    - agent_deploy
+    - agent_crontabs
+# add tarzan agents deploy here

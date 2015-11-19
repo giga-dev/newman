@@ -1,0 +1,6 @@
+---
+# This role installs newman locally
+- name: mvn install newman project
+  command: "{{maven_cmd}} clean install -Dmaven.repo.local={{local_maven_repo}}"
+  args:
+    chdir: "../"

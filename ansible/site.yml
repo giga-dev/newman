@@ -1,0 +1,6 @@
+---
+# top level playbook to redeploy whole newman system - server,agents and submitter
+- include: server_deploy.yml
+- include: agents_deploy.yml
+- include: submitter_deploy.yml
+- include: analytics_deploy.yml

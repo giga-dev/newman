@@ -1,0 +1,23 @@
+---
+# This playbook re-deploys newman server
+- name: "Install newman locally"
+  hosts: 127.0.0.1
+  connection: local
+
+  roles:
+    - newman_install
+
+- name: "deploy/redeploy newman server"
+  hosts: newmanServer
+  remote_user: xap
+
+  #vars_propmt:
+  #  - name: "redeploy"
+  #    prompt: "Is the server already deployed? (Y/N)"
+  #    default: "Y"
+  #remove server_suspend if willing to initial deploy (not redeploy)
+  roles:
+    #- { role: server_suspend, when: "redeploy == 'Y'" }
+    - server_suspend
+    - server_deploy
+    - server_crontabs
