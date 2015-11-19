@@ -4,3 +4,5 @@
   become: yes
   become_method: sudo
   cron: name="cronRunServer" special_time=reboot user=xap job={{server_home_dir}}/run.sh
+  tags:
+    - cron

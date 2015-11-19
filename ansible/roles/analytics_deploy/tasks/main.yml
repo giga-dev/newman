@@ -7,16 +7,24 @@
 - name: "create analytics logs folder"
   shell: mkdir -p {{analytics_home_dir}}/logs
 - name: "deploy new analytics jar"
-  copy: src={{newman_local_dir}}/newman-analytics/target/newman-analytics-1.0.jar dest={{analytics_home_dir}}/bin owner=xap mode=0777
+  copy: src={{newman_local_dir}}/newman-analytics/target/newman-analytics-1.0.jar dest={{analytics_home_dir}} owner=xap mode=0777
 - name: "copy running script"
-  copy: src={{newman_local_dir}}/ansible/roles/analytics_deploy/files/newman-analytics.sh dest={{analytics_home_dir}} owner=xap mode=0777
+  copy: src={{newman_local_dir}}/ansible/roles/analytics_deploy/files/newman-analytics.sh dest={{analytics_home_dir}}/bin owner=xap mode=0777
+  tags:
+    - cron
 - name: "copy resources"
   copy: src={{newman_local_dir}}/newman-analytics/src/main/resources/crons force=yes dest={{analytics_home_dir}} owner=xap mode=0777
+  tags:
+    - cron
 - name: "add cron task to send newman report"
   become: yes
   become_method: sudo
   cron: name="run master each day at 7am from sunday-friday" minute=0 hour=7 weekday=0-5 user=xap job="cd {{analytics_home_dir}}/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties > {{analytics_home_dir}}/logs/daily-suite-diff.log 2>&1"
+  tags:
+    - cron
 - name: "add cron task to clear newman old data"
   become: yes
   become_method: sudo
   cron: name="run clean jobs every Tuesday at 12 am" minute=0 hour=0 weekday=2 user=xap job="cd {{analytics_home_dir}}/bin && ./newman-analytics.sh ../resources/crons/cleanse/cleanse.properties > {{analytics_home_dir}}/logs/cleanse.log 2>&1"
+  tags:
+    - cron

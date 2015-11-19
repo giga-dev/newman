@@ -4,7 +4,11 @@
   become: yes
   become_method: sudo
   cron: name="cronRunSubmitter" special_time=reboot user=xap job={{submitter_home_dir}}/nohup-newman-submitter-loop.sh
+  tags:
+    - cron
 - name: "start web server after reboot"
   become: yes
   become_method: sudo
   cron: name="cronRunSubmitter" special_time=reboot user=xap job={{web_server_home_dir}}/web_8091.sh
+  tags:
+    - cron

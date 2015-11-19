@@ -4,3 +4,5 @@
   command: "{{maven_cmd}} clean install -Dmaven.repo.local={{local_maven_repo}}"
   args:
     chdir: "../"
+  tags:
+    - local

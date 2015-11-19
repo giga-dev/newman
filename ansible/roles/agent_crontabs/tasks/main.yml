@@ -2,13 +2,21 @@
 # This playbook installs newman agent crontabs to monitor disk space and start agent after reboot
 - name: create a dir for ansible scripts
   shell: mkdir -p {{ansible_scripts_dir}}
+  tags:
+    - cron
 - name: copy disk cleanup script to remote machines
   copy: src=../ansible/roles/agent_crontabs/files/diskSpace.sh dest={{ansible_scripts_dir}} owner=xap mode=0777
+  tags:
+    - cron
 - name: "add cron task to monitor disk space"
   become: yes
   become_method: sudo
   cron: name="cronCleanDisk" minute=0 hour=6 user=xap job={{ansible_scripts_dir}}/diskSpace.sh
+  tags:
+    - cron
 - name: "start agent after reboot"
   become: yes
   become_method: sudo
   cron: name="cronStartAgent" special_time=reboot user=xap job=/home/xap/newman-agent/newman-agent.sh
+  tags:
+    - cron
