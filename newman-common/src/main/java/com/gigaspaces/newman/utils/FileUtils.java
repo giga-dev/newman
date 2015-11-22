@@ -78,7 +78,7 @@ public class FileUtils {
             return output;
         }catch(Exception e){
             logger.error(e.toString(), e);
-            return null;
+            throw e;
         }
     }
 
