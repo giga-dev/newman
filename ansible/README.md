@@ -7,7 +7,10 @@
 
 ## Usage and Examples
 
+* Test the whole deployment flow without changing the hosts by running `ansible-playbook site.yml -i hosts -u xap --check`
 * Deploy/redeploy Newman by running `ansible-playbook site.yml -i hosts -u xap`
 * Deploy/redeploy Newman without installing cron tabs by running `ansible-playbook site.yml --skip-tags "cron" -i hosts -u xap`
 * Deploy/redeploy a single module (e.g only agents) by running: `ansible-playbook agents_deploy.yml -i hosts -u xap`
-* Send remote commands to all agents (or some of them) e.g: `ansible newmanDockerAgents -a "/bin/echo hello" -i hosts -u xap`
+* Send remote commands to all agents (or some of them) e.g:
+1. `ansible newmanDockerAgents -a "/bin/echo hello" -i hosts -u xap`
+2. `ansible newmanDockerAgents -s -m shell -a "rm -rf /home/xap/xap-newman-agent/job-*" -i hosts -u xap`

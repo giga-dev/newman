@@ -2,4 +2,4 @@
 # This playbook installs newman agent crontabs to monitor disk space and start agent after reboot
 ansible_scripts_dir: "/home/xap/ansible/scripts"
 submitter_home_dir: "/home/xap/testing-grid/bin"
-web_server_home_dir: "home/xap/publish_builds_newman"
+web_server_home_dir: "/home/xap/publish_builds_newman"

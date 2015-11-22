@@ -1,3 +1,4 @@
 ---
 # agent_crontabs vars
 ansible_scripts_dir: "/home/xap/ansible/scripts"
+agent_home_dir: "/home/xap/newman-agent"

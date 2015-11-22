@@ -17,6 +17,6 @@
 - name: "start agent after reboot"
   become: yes
   become_method: sudo
-  cron: name="cronStartAgent" special_time=reboot user=xap job=/home/xap/newman-agent/newman-agent.sh
+  cron: name="cronStartAgent" special_time=reboot user=xap job=". /etc/bashrc; {{agent_home_dir}}/newman-agent.sh"
   tags:
     - cron
