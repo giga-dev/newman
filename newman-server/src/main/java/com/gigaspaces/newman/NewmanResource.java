@@ -1187,33 +1187,35 @@ public class NewmanResource {
     private void updateBuildWithDeletedJob(Job deletedJob) {
         Query<Build> query = buildDAO.createIdQuery(deletedJob.getBuild().getId());
         Build associatedBuild = buildDAO.findOne(query);
-        BuildStatus associatedBuildStatus = associatedBuild.getBuildStatus();
-        State state = deletedJob.getState();
+        if (associatedBuild != null) {
+            BuildStatus associatedBuildStatus = associatedBuild.getBuildStatus();
+            State state = deletedJob.getState();
 
-        UpdateOperations<Build> updateOps = buildDAO.createUpdateOperations();
+            UpdateOperations<Build> updateOps = buildDAO.createUpdateOperations();
 
-        if (state == State.DONE) {
-            int curDoneJobs = associatedBuildStatus.getDoneJobs();
-            if (curDoneJobs > 0) {
-                updateOps.set("buildStatus.doneJobs", curDoneJobs - 1);
+            if (state == State.DONE) {
+                int curDoneJobs = associatedBuildStatus.getDoneJobs();
+                if (curDoneJobs > 0) {
+                    updateOps.set("buildStatus.doneJobs", curDoneJobs - 1);
+                }
+            } else if (state == State.PAUSED) {
+                int curPendingJobs = associatedBuildStatus.getPendingJobs();
+                if (curPendingJobs > 0) {
+                    updateOps.set("buildStatus.pendingJobs", curPendingJobs - 1);
+                }
             }
-        } else if (state == State.PAUSED) {
-            int curPendingJobs = associatedBuildStatus.getPendingJobs();
-            if (curPendingJobs > 0) {
-                updateOps.set("buildStatus.pendingJobs", curPendingJobs - 1);
+
+            updateOps.set("buildStatus.totalJobs", associatedBuildStatus.getTotalJobs() - 1);
+
+            Suite suite = deletedJob.getSuite();
+            if (suite != null) {
+                updateOps.removeAll("buildStatus.suitesNames", suite.getName());
+                updateOps.removeAll("buildStatus.suitesIds", suite.getId());
             }
+
+            Build modifiedBuild = buildDAO.getDatastore().findAndModify(query, updateOps);
+            broadcastMessage(MODIFIED_BUILD, modifiedBuild);
         }
-
-        updateOps.set("buildStatus.totalJobs", associatedBuildStatus.getTotalJobs() - 1);
-
-        Suite suite = deletedJob.getSuite();
-        if (suite != null) {
-            updateOps.removeAll("buildStatus.suitesNames", suite.getName());
-            updateOps.removeAll("buildStatus.suitesIds", suite.getId());
-        }
-
-        Build modifiedBuild = buildDAO.getDatastore().findAndModify(query, updateOps);
-        broadcastMessage(MODIFIED_BUILD, modifiedBuild);
     }
 
     private Job performDeleteJob(String jobId) {
@@ -1406,6 +1408,24 @@ public class NewmanResource {
         final EventOutput eventOutput = new EventOutput();
         this.broadcaster.add(eventOutput);
         return eventOutput;
+    }
+
+    @POST
+    @Path("clearPaused")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response clearPausedJobs() throws InterruptedException {
+        Query<Job> query = jobDAO.createQuery();
+        query.criteria("state").equal(State.PAUSED);
+        try {
+            for (Job j : jobDAO.find(query).asList()) {
+                deleteJob(j.getId());
+            }
+        }
+        catch (Exception e){
+            logger.warn("caught exception during clear paused jobs operation", e);
+            return Response.serverError().build();
+        }
+        return Response.ok().build();
     }
 
     @POST
