@@ -104,14 +104,19 @@ public class NewmanJobSubmitter {
     private void validUris(Build build) throws IOException {
         Collection<URI> uris = build.getTestsMetadata();
         for (URI uri : uris) {
+            InputStream inputStream = null;
             try{
-                InputStream inputStream = uri.toURL().openStream();
+                inputStream = uri.toURL().openStream();
                 logger.info("able to connect to URI: " + uri);
-                inputStream.close();
             }
             catch (IOException e){
                 logger.error("can't connect URI: " + uri, e);
                 throw e;
+            }
+            finally {
+                if(inputStream != null){
+                    inputStream.close();
+                }
             }
         }
     }
