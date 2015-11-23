@@ -141,7 +141,7 @@ public class NewmanSubmitter {
             try {
                 suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
                 if (suite == null) {
-                    throw new IllegalArgumentException("future job suite with id: " + suiteId + " does not exists");
+                    throw new IllegalArgumentException("job suite with id: " + suiteId + " does not exists");
                 }
                 final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
 
@@ -153,7 +153,7 @@ public class NewmanSubmitter {
                 }
                 return jobId;
             } catch (InterruptedException | ExecutionException | ParseException | IOException e) {
-                throw new RuntimeException("future job terminating submission due to exception", e);
+                throw new RuntimeException("job terminating submission due to exception", e);
             }
         });
     }

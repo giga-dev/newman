@@ -61,6 +61,8 @@ public class NewmanJobSubmitter {
                 throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
             }
 
+            validUris(build); // throws exception if URI not exists
+
             Job job = addJob(newmanClient, suiteId, buildId);
             logger.info("added a new job {}", job);
             Collection<URI> testsMetadata = build.getTestsMetadata();
@@ -95,6 +97,21 @@ public class NewmanJobSubmitter {
         finally {
             if (newmanClient != null){
                 newmanClient.close();
+            }
+        }
+    }
+
+    private void validUris(Build build) throws IOException {
+        Collection<URI> uris = build.getTestsMetadata();
+        for (URI uri : uris) {
+            try{
+                InputStream inputStream = uri.toURL().openStream();
+                logger.info("able to connect to URI: " + uri);
+                inputStream.close();
+            }
+            catch (IOException e){
+                logger.error("can't connect URI: " + uri, e);
+                throw e;
             }
         }
     }
