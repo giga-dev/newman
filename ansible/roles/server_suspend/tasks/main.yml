@@ -9,3 +9,5 @@
     return_content: yes
     validate_certs: no
     timeout: 600
+    tags:
+      - suspend

@@ -14,4 +14,10 @@
   roles:
     - agent_deploy
     - agent_crontabs
-# add tarzan agents deploy here
+
+#- name: "deploy newman tarzan ssd agents"
+#  hosts: newmanTarzanServers
+#  remote_user: tgrid
+
+#  roles:
+#    - tarzan_agent_deploy

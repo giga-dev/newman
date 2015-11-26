@@ -12,6 +12,8 @@
   ignore_errors: yes
 - name: "deploy new server jar"
   copy: src={{newman_local_dir}}/newman-server/target/newman-server-1.0.jar dest={{server_home_dir}} owner=xap mode=0777
+  tags:
+    - deploy
 - name: "copy running script"
   copy: src={{newman_local_dir}}/ansible/roles/server_deploy/files/run.sh dest={{server_home_dir}} owner=xap mode=0777
 - name: "copy realm properties file"

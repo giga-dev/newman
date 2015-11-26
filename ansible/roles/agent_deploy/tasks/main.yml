@@ -10,6 +10,8 @@
   ignore_errors: yes
 - name: "deploy new agent jar"
   copy: src={{newman_local_dir}}/newman-agent/target/newman-agent-1.0.jar dest={{agent_home_dir}} owner=xap mode=0777
+  tags:
+    - deploy
 - name: "copy running script"
   copy: src={{newman_local_dir}}/ansible/roles/agent_deploy/files/newman-agent.sh dest={{agent_home_dir}} owner=xap mode=0777
 - name: "start agents"
