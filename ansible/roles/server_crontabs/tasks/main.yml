@@ -3,6 +3,6 @@
 - name: "start server after reboot"
   become: yes
   become_method: sudo
-  cron: name="cronRunServer" special_time=reboot user=xap job=". /etc/environment; {{server_home_dir}}/run.sh"
+  cron: name="cronRunServer" special_time=reboot user=xap job=". /etc/environment; cd {{server_home_dir}}; ./run.sh"
   tags:
     - cron
