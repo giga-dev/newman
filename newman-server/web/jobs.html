@@ -79,15 +79,15 @@
                                 </template>
                             </td>
                             <td title="{{item.id}}"><a href="{{urlFor('job', {id: item.id, filterByStatus: 'ALL'})}}">{{item.id}}</a></td>
-                            <td title="{{item.suite.name}}">
-                                <template if="{{item.suite.id != null}}">
-                                    <a href="{{urlFor('suite', {id: item.suite.id})}}">{{item.suite.name}}</a>
+                            <td title="{{item.suiteName}}">
+                                <template if="{{item.suiteId != null}}">
+                                    <a href="{{urlFor('suite', {id: item.suiteId})}}">{{item.suiteName}}</a>
                                 </template>
                             </td>
                             <td title="{{item.duration}}">{{item | getDuration}}</td>
                             <td title="{{item.submitTime | formatDate}}">{{item.submitTime | formatDateFromNow}}</td>
                             <!--<td title="{{item.testURI}}">{{item.testURI}}</td>-->
-                            <td><a href="{{urlFor('build', {id: item.build.id})}}">{{item.build.name}}</a></td>
+                            <td><a href="{{urlFor('build', {id: item.buildId})}}">{{item.buildName}}</a></td>
                             <td title="{{item.submittedBy}}">{{item.submittedBy}}</td>
                             <td>{{item.preparingAgents.length}}</td>
                             <td>
@@ -172,7 +172,7 @@
                         return Object.getOwnPropertyNames(obj).find(function(key){
                             var val = obj[key];
                             return ( val &&  typeof val === "string" && -1 < val.toLowerCase().indexOf(filter.toLowerCase()) ) ||
-                                    ( obj.suite != null &&  -1 < obj.suite.name.toLowerCase().indexOf( filter.toLowerCase() ) );
+                                    ( obj.suiteName != null &&  -1 < obj.suiteName.toLowerCase().indexOf( filter.toLowerCase() ) );
                         });
                         return false
                     });

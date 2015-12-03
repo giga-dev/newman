@@ -8,7 +8,9 @@ import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.annotations.Transient;
 
 import java.net.URI;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Set;
 
 /**
  * Created by Barak Bar Orion
@@ -20,8 +22,16 @@ public class Job {
     private String id;
     @Embedded(concreteClass = Build.class)
     private Build build;
+
+    private String buildId;
+    private String buildName;
+    private String buildBranch;
+
     @Embedded(concreteClass = Suite.class) //Why isn't this @Reference?, it should be reference!
     private Suite suite;
+
+    private String suiteId;
+    private String suiteName;
     @Indexed
     private Date submitTime;
     private Date startTime;
@@ -56,6 +66,11 @@ public class Job {
 
     public void setBuild(Build build) {
         this.build = build;
+        if( build != null ) {
+            setBuildId(build.getId());
+            setBuildBranch(build.getBranch());
+            setBuildName(build.getName());
+        }
     }
 
     public Date getSubmitTime() {
@@ -144,6 +159,10 @@ public class Job {
 
     public void setSuite(Suite suite) {
         this.suite = suite;
+        if( suite != null ) {
+            setSuiteId(suite.getId());
+            setSuiteName(suite.getName());
+        }
     }
 
     public Set<String> getPreparingAgents() {
@@ -153,6 +172,47 @@ public class Job {
     public void setPreparingAgents(Set<String> preparingAgents) {
         this.preparingAgents = preparingAgents;
     }
+
+    public String getBuildId() {
+        return buildId;
+    }
+
+    public String getBuildName() {
+        return buildName;
+    }
+
+    public String getBuildBranch() {
+        return buildBranch;
+    }
+
+    public String getSuiteId() {
+        return suiteId;
+    }
+
+    public String getSuiteName() {
+        return suiteName;
+    }
+
+    public void setBuildId(String buildId) {
+        this.buildId = buildId;
+    }
+
+    public void setBuildName(String buildName) {
+        this.buildName = buildName;
+    }
+
+    public void setBuildBranch(String buildBranch) {
+        this.buildBranch = buildBranch;
+    }
+
+    public void setSuiteId(String suiteId) {
+        this.suiteId = suiteId;
+    }
+
+    public void setSuiteName(String suiteName) {
+        this.suiteName = suiteName;
+    }
+
 
     @Override
     public String toString() {

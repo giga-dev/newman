@@ -176,6 +176,17 @@ public class NewmanResource {
         }
 
         List<Job> jobs = jobDAO.find(query).asList();
+        for( Job job : jobs ){
+            Build build = job.getBuild();
+            //cause to initialize all required Build properties
+            job.setBuild(build);
+            job.setBuild(null);
+
+            Suite suite = job.getSuite();
+            //cause to initialize all required Suite properties
+            job.setSuite(suite);
+            job.setSuite(null);
+        }
         return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
     }
 
