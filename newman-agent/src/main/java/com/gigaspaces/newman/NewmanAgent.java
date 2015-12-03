@@ -25,7 +25,7 @@ public class NewmanAgent {
     private final NewmanAgentConfig config;
     private final ThreadPoolExecutor workers;
     private String name;
-    private NewmanClient client;
+    private volatile NewmanClient client;
     private volatile boolean active = true;
     private final Timer timer = new Timer(true);
 
@@ -100,6 +100,7 @@ public class NewmanAgent {
     }
 
     private void start() {
+        NewmanClient c = getClient();
         while (isActive()) {
             Job job = waitForJob();
             // ping server during job setup and execution
@@ -112,9 +113,13 @@ public class NewmanAgent {
                 //inform the server that agent is not working on this job
                 Agent agent;
                 try {
-                    agent = client.getAgent(name).toCompletableFuture().get();
-                    client.unsubscribe(agent).toCompletableFuture().get();
-                } catch (Exception e) {
+                    agent = c.getAgent(name).toCompletableFuture().get();
+                    c.unsubscribe(agent).toCompletableFuture().get();
+                }
+                catch (IllegalStateException e){
+                    c = getClient();
+                }
+                catch (Exception e) {
                     logger.warn("Failed to unsubscribe agent {} due to failure in job setup of job {}", name, job.getId());
                 }
                 try {
@@ -221,9 +226,10 @@ public class NewmanAgent {
         // TODO note - if set is empty, mongodb will NOT write that filed to DB
         agent.setCapabilities(CapabilitiesAndRequirements.parse(capabilities));
         int logRepeats = 3;
+        NewmanClient c = getClient();
         while (true) {
             try {
-                Job job = client.subscribe(agent).toCompletableFuture().get();
+                Job job = c.subscribe(agent).toCompletableFuture().get();
                 if (job != null)
                     return job;
 
@@ -234,10 +240,14 @@ public class NewmanAgent {
                         logger.info("Agent[{}] did not find a job to run, will try again in {} ms", agent, config.getJobPollInterval());
                     }
                 }
-            } catch (ExecutionException e) {
+            }
+            catch (IllegalStateException e) {
                 logger.warn("Agent failed while polling newman-server at {} for a job (retry in {} ms): " + e, config.getNewmanServerHost(), config.getJobPollInterval());
-            } catch (InterruptedException e) {
-                logger.warn("Agent got InterruptedException while polling for a job (retry in {} ms): " + e, config.getJobPollInterval());
+                c = getClient();
+            }
+            catch (Exception e) {
+                logger.warn("Agent failed while polling newman-server at {} for a job (retry in {} ms): " + e, config.getNewmanServerHost(), config.getJobPollInterval());
+                c = onClientFailure(c);
             }
             try {
                 Thread.sleep(config.getJobPollInterval());
@@ -246,9 +256,35 @@ public class NewmanAgent {
         }
     }
 
+    private synchronized NewmanClient getClient() {
+        return client;
+    }
+
+    private synchronized NewmanClient onClientFailure(NewmanClient localClient) {
+
+        if (localClient != getClient()) { // in case other thread already restarted the client
+            return getClient();
+        }
+
+        if (client != null) {
+            client.close();
+        }
+        while (true) {
+            try {
+                logger.info("handling client failure, reconnecting to newman server ip: {}, port: {}", config.getNewmanServerHost(), config.getNewmanServerPort());
+                client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
+                        config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
+                break;
+            } catch (Exception e) {
+                logger.warn("failure while recreation of newman client, will retry...", e);
+            }
+        }
+        return getClient();
+    }
+
     private Test findTest(Job job) {
         try {
-            return client.getReadyTest(name, job.getId()).toCompletableFuture().get();
+            return getClient().getReadyTest(name, job.getId()).toCompletableFuture().get();
         } catch (InterruptedException e) {
             logger.info("Worker was interrupted while waiting for test");
             return null;
@@ -259,18 +295,24 @@ public class NewmanAgent {
     }
 
     private void reportTest(Test testResult) {
+        NewmanClient c = getClient();
         logger.info("Reporting Test #{} JobId #{} Status: {}", testResult.getId(), testResult.getJobId(), testResult.getStatus());
-
-        try {
-            //update test removes Agent assignment
-            client.finishTest(testResult).toCompletableFuture().get();
-            Path logs = append(config.getNewmanHome(), "logs");
-            Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
-            client.uploadLog( testResult.getJobId(), testResult.getId(), testLogsFile.toFile());
-        } catch (InterruptedException e) {
-            logger.info("Worker was interrupted while updating test result: {}", testResult);
-        } catch (ExecutionException e) {
-            logger.warn("Worker failed to update test result: {} caught: {}", testResult, e);
+        while (true) {
+            try {
+                //update test removes Agent assignment
+                c.finishTest(testResult).toCompletableFuture().get();
+                Path logs = append(config.getNewmanHome(), "logs");
+                Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
+                c.uploadLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile());
+                break;
+            }
+            catch (IllegalStateException e){ // client was closed
+                c = getClient();
+            }
+            catch (Exception e) {
+                logger.warn("Worker failed to update test result: {} caught: {}", testResult, e);
+                c = onClientFailure(c);
+            }
         }
     }
 
@@ -286,10 +328,12 @@ public class NewmanAgent {
         @Override
         public void run() {
             if (isActive()) {
+                NewmanClient c = getClient();
                 try {
                     //logger.info("sending ping to server, jobid= {}", jobId);
-                    client.ping(name, jobId).toCompletableFuture().get(10, TimeUnit.SECONDS);
-                } catch (Exception ignored) {
+                    c.ping(name, jobId).toCompletableFuture().get(10, TimeUnit.SECONDS);
+                }
+                catch (Exception ignored) {
                 }
             }
         }
