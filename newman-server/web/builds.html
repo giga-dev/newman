@@ -39,6 +39,7 @@
                     <tr>
                         <th>Build Name</th>
                         <th>Branch</th>
+                        <th>Build Date</th>
                         <th>Build Time</th>
                         <th>URI</th>
                     </tr>
@@ -48,6 +49,7 @@
                         <tr>
                             <td><a href="{{urlFor('build', {id: item.id})}}">{{item.name}}</a></td>
                             <td>{{item.branch}}</td>
+                            <td>{{item.buildTime | formatDate}}</td>
                             <td title="{{item.buildTime | formatDate}}">{{item.buildTime | formatDateFromNow}}</td>
                             <td><a href="{{item.uri}}">{{item.uri}}</a></td>
                         </tr>
