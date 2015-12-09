@@ -101,10 +101,11 @@ public class NewmanAgent {
 
     private void start() {
         NewmanClient c = getClient();
+        KeepAliveTask keepAliveTask = null;
         while (isActive()) {
             Job job = waitForJob();
             // ping server during job setup and execution
-            final KeepAliveTask keepAliveTask = startKeepAliveTask(job.getId());
+            keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
             boolean setupFinished = jobExecutor.setup();
             if (!setupFinished) {
@@ -165,7 +166,11 @@ public class NewmanAgent {
     }
 
 
-    private KeepAliveTask startKeepAliveTask(String jobId) {
+    private KeepAliveTask startKeepAliveTask(String jobId, final KeepAliveTask prevKeepAliveTask) {
+        if(prevKeepAliveTask != null){
+            prevKeepAliveTask.cancel();
+        }
+
         final KeepAliveTask task = new KeepAliveTask(jobId);
         timer.scheduleAtFixedRate(task, 10, config.getPingInterval());
         return task;
