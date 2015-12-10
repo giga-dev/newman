@@ -28,7 +28,6 @@ public class Test {
     @JsonIgnore
     private Long timeout;
     private Status status;
-    @JsonIgnore
     private String errorMessage;
     @Indexed(value = IndexDirection.DESC, unique = false)
     private Double testScore;

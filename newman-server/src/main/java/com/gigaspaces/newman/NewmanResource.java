@@ -1382,6 +1382,11 @@ public class NewmanResource {
     private TestHistoryItem createTestHistoryItem(Test test) {
 
         Job job = getJob(test.getJobId());
+        //in order to decrease passed json size
+        job.setBuild( job.getBuild() );
+        job.setBuild( null );
+        job.setSuite( null );
+        ///////
         return new TestHistoryItem(test, job);
     }
 

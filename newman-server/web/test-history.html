@@ -56,17 +56,17 @@
                         <tr>
                             <td title="{{item.test.id}}"><a href="{{urlFor('test', {id: item.test.id})}}">{{item.test.id}}</a></td>
                             <td title="{{item.test.jobId}}"><a href="{{urlFor('job', {id: item.test.jobId, filterByStatus: 'ALL'})}}">{{item.test.jobId}}</a></td>
-                            <td title="{{item.job.build.name}}">
-                                <template if="{{item.job.build.id != null}}">
-                                    <a href="{{urlFor('build', {id: item.job.build.id})}}">
-                                        {{item.job.build.name}}
+                            <td title="{{item.job.buildName}}">
+                                <template if="{{item.job.buildId != null}}">
+                                    <a href="{{urlFor('build', {id: item.job.buildId})}}">
+                                        {{item.job.buildName}}
                                     </a>
                                 </template>
-                                <template if="{{item.job.build.id == null}}">
+                                <template if="{{item.job.buildId == null}}">
                                     N/A
                                 </template>
                             </td>
-                            <td title="{{item.job.build.branch}}">{{item.job.build.branch}}</td>
+                            <td title="{{item.job.buildBranch}}">{{item.job.buildBranch}}</td>
                             <td title="{{item.test.endTime | formatDate }}">{{item.test.endTime | formatDateFromNow }}</td>
                             <td>{{item.test | formatTotalTime}}</td>
                             <td>
@@ -128,8 +128,8 @@
                                     ( -1 < test.id.toLowerCase().indexOf( filter.toLowerCase() ) ||
                                       -1 < test.jobId.toLowerCase().indexOf( filter.toLowerCase() ) ||
                                       -1 < test.status.toLowerCase().indexOf( filter.toLowerCase() ) ||
-                                      -1 < job.build.name.toLowerCase().indexOf( filter.toLowerCase() ) ||
-                                      -1 < job.build.branch.toLowerCase().indexOf( filter.toLowerCase() ) ||
+                                      -1 < job.buildName.toLowerCase().indexOf( filter.toLowerCase() ) ||
+                                      -1 < job.buildBranch.toLowerCase().indexOf( filter.toLowerCase() ) ||
                                       ( !!test.errorMessage && -1 < test.errorMessage.toLowerCase().indexOf( filter.toLowerCase() ) ) );
                         });
                         return false
