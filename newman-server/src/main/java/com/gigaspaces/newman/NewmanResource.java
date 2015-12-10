@@ -632,8 +632,9 @@ public class NewmanResource {
     @GET
     @Path("test/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Test getTest(@PathParam("id") String id) {
-        return testDAO.findOne(testDAO.createQuery().field("_id").equal(new ObjectId(id)));
+    public TestDetails getTest(@PathParam("id") String id) {
+        Test test = testDAO.findOne(testDAO.createQuery().field("_id").equal(new ObjectId(id)));
+        return test == null ? null : new TestDetails( test );
     }
 
     @POST
@@ -871,7 +872,7 @@ public class NewmanResource {
     @POST
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
+    public TestDetails getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
         Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
         if (agent == null) {
             logger.error("bad request unknown agent {}", name);
@@ -943,7 +944,7 @@ public class NewmanResource {
         }
         agent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, true);
         broadcastMessage(MODIFIED_AGENT, agent);
-        return result;
+        return result == null ? null : new TestDetails( result );
     }
 
     private Object getAgentLock(Agent agent) {
@@ -1359,7 +1360,7 @@ public class NewmanResource {
                                            @DefaultValue("0") @QueryParam("offset") int offset,
                                            @DefaultValue("50") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
 
-        Test thisTest = getTest(id);
+        TestDetails thisTest = getTest(id);
         final String sha = thisTest.getSha();
 
         Query<Test> testsQuery = testDAO.createQuery();

@@ -1,85 +1,69 @@
 package com.gigaspaces.newman.beans;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gigaspaces.newman.utils.StringUtils;
 import com.gigaspaces.newman.utils.ToStringBuilder;
-import org.mongodb.morphia.annotations.*;
-import org.mongodb.morphia.utils.IndexDirection;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Created by Barak Bar Orion
- * 4/16/15.
+*  @author evgenyf
  */
-@Entity
-public class Test {
-    public enum Status {PENDING, SUCCESS, FAIL, RUNNING}
+public class TestDetails {
 
-    @Id
     private String id;
-    @Indexed(value = IndexDirection.ASC, unique = false)
     private String jobId;
-    @Indexed(value = IndexDirection.ASC, unique = false)
     private String name;
     private List<String> arguments;
-    @JsonIgnore
     private String testType;
-    @JsonIgnore
     private Long timeout;
-    private Status status;
-    @JsonIgnore
+    private Test.Status status;
     private String errorMessage;
-    @Indexed(value = IndexDirection.DESC, unique = false)
     private Double testScore;
     private String historyStats;
-    /* name, url mapping */
-    @Embedded
-    @JsonIgnore
     private Map<String, String> logs;
     private String assignedAgent;
     private Date startTime;
     private Date endTime;
-    @JsonIgnore
     private Date scheduledAt;
     private int progressPercent;
-
-    @JsonIgnore
-    @Indexed(unique = false)
     private String sha;
-
-    @Embedded
-    @JsonIgnore
     private Map<String, String> properties;
 
-    public Test() {
-        logs = new HashMap<>();
-        properties = new HashMap<>();
-        arguments = new ArrayList<>();
+    public TestDetails( Test test ) {
+        this.id = test.getId();
+        this.jobId = test.getJobId();
+        this.name = test.getName();
+        this.arguments = test.getArguments();
+        this.testType = test.getTestType();
+        this.timeout = test.getTimeout();
+        this.status = test.getStatus();
+        this.errorMessage = test.getErrorMessage();
+        this.testScore = test.getTestScore();
+        this.historyStats = test.getHistoryStats();
+        this.logs = test.getLogs();
+        this.assignedAgent = test.getAssignedAgent();
+        this.startTime = test.getStartTime();
+        this.endTime = test.getEndTime();
+        this.scheduledAt = test.getScheduledAt();
+        computeProgressPercent(test.getStatus());
+        this.sha = test.getSha();
+        this.properties = test.getProperties();
     }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public List<String> getArguments() {
         return arguments;
-    }
-
-    public void setArguments(List<String> arguments) {
-        this.arguments = arguments;
     }
 
     public String getJobId() {
@@ -90,13 +74,8 @@ public class Test {
         this.jobId = jobId;
     }
 
-    public Status getStatus() {
+    public Test.Status getStatus() {
         return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-        computeProgressPercent();
     }
 
     public String getErrorMessage() {
@@ -193,9 +172,9 @@ public class Test {
         this.progressPercent = progressPercent;
     }
 
-    private void computeProgressPercent() {
-        if (getStatus() != null) {
-            switch (getStatus()) {
+    private void computeProgressPercent( Test.Status status ) {
+        if (status != null) {
+            switch (status) {
                 case PENDING:
                     progressPercent = 0;
                     break;
@@ -216,29 +195,13 @@ public class Test {
         return sha;
     }
 
-    public void setSha(String sha) {
-        this.sha = sha;
-    }
 
     public Double getTestScore() {
         return testScore;
     }
 
-    public void setTestScore(Double testScore) {
-        this.testScore = testScore;
-    }
-
     public String getHistoryStats() {
         return historyStats;
-    }
-
-    public void setHistoryStats(String historyStats) {
-        this.historyStats = historyStats;
-    }
-
-    @PostLoad
-    void postLoad() {
-        computeProgressPercent();
     }
 
     @Override
