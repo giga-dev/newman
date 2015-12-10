@@ -25,12 +25,24 @@ public class SuiteWithJobs {
     }
 
     public SuiteWithJobs( Suite suite ) {
-        this( suite, Collections.emptyList() );
+        this(suite, Collections.emptyList());
     }
 
     public SuiteWithJobs(Suite suite, List<Job> jobsList) {
         this.suite = suite;
         this.jobs = jobsList;
+        for( Job job : this.jobs ){
+            job.setBuild( job.getBuild() );
+            job.setBuild( null );
+//            job.setSuite( job.getSuite() );
+            job.setSuite( null );
+        }
+        //we don't have to display following properties them we set null values in order to decrease passed json size
+        suite.setCriteria(null);
+        suite.setCustomVariables(null);
+        suite.setRequirements(null);
+        suite.setDisplayedCriteria(null);
+
         setId( suite.getId() );
         setName( suite.getName() );
     }

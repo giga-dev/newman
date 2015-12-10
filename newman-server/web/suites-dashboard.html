@@ -48,8 +48,8 @@
                                 <tr class="{{{'succeed-row' : job.passedTests == job.totalTests, 'default-row' : job.passedTests != job.totalTests} | tokenList}}">
                                     <td></td>
                                     <td><a href="{{urlFor('job', {id: job.id, filterByStatus: 'ALL'})}}">{{job.id}}</a></td>
-                                    <td><a href="{{urlFor('build', {id: job.build.id})}}">{{job.build.name}}</a></td>
-                                    <td>{{job.build.branch}}</td>
+                                    <td><a href="{{urlFor('build', {id: job.buildId})}}">{{job.buildName}}</a></td>
+                                    <td>{{job.buildBranch}}</td>
                                     <td>
                                         <template bind if="{{job.failedTests>0}}">
                                             <span class="label label-danger">
