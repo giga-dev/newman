@@ -176,6 +176,7 @@ public class NewmanResource {
         }
 
         List<Job> jobs = jobDAO.find(query).asList();
+/*temp in order to prevent NPE
         for( Job job : jobs ){
             Build build = job.getBuild();
             //cause to initialize all required Build properties
@@ -186,7 +187,7 @@ public class NewmanResource {
             //cause to initialize all required Suite properties
             job.setSuite(suite);
             job.setSuite(null);
-        }
+        }*/
         return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
     }
 
@@ -1116,10 +1117,10 @@ public class NewmanResource {
     }
 
     @POST
-    @Path("suite/{id}")
+    @Path("update-suite")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Suite updateSuite(final @PathParam("id") String id, final Suite suite) {
+    public Suite updateSuite(Suite suite) {
 
         logger.info("---updateSuite()");
 
@@ -1139,6 +1140,7 @@ public class NewmanResource {
         if (suite.getCustomVariables() != null) {
             updateOps.set("customVariables", suite.getCustomVariables());
         }
+        String id = suite.getId();
         Query<Suite> query = suiteDAO.createIdQuery(id);
         Suite result = suiteDAO.getDatastore().findAndModify(query, updateOps);
         if (result != null) {
