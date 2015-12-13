@@ -19,7 +19,7 @@ public class SuiteWithJobs {
 
     private String name;
 
-    private List<Job> jobs = new ArrayList<Job>();
+    private List<JobView> jobs = new ArrayList<JobView>();
 
     public SuiteWithJobs() {
     }
@@ -30,12 +30,9 @@ public class SuiteWithJobs {
 
     public SuiteWithJobs(Suite suite, List<Job> jobsList) {
         this.suite = suite;
-        this.jobs = jobsList;
-        for( Job job : this.jobs ){
-            job.setBuild( job.getBuild() );
-            job.setBuild( null );
-//            job.setSuite( job.getSuite() );
-            job.setSuite( null );
+        this.jobs = new ArrayList<>( jobsList.size() );
+        for( Job job : jobsList ){
+            jobs.add( new JobView( job ) );
         }
         //we don't have to display following properties them we set null values in order to decrease passed json size
         suite.setCriteria(null);
@@ -63,11 +60,11 @@ public class SuiteWithJobs {
         this.name = name;
     }
 
-    public List<Job> getJobs() {
+    public List<JobView> getJobs() {
         return jobs;
     }
 
-    public void setJobs(List<Job> jobs) {
+    public void setJobs(List<JobView> jobs) {
         this.jobs = jobs;
     }
 
