@@ -129,8 +129,7 @@
     <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
     <section route="suite">
         <template if="{{route('suite').params.id}}">
-            <suite-view url="api/newman/suite/{{route('suite').params.id}}"
-                    ></suite-view>
+            <suite-view url="api/newman/suite/{{route('suite').params.id}}"></suite-view>
         </template>
     </section>
     <section route="future-job">

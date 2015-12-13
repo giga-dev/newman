@@ -116,8 +116,7 @@
             this.suite.customVariables=updatedSuiteCustomVariables;
             this.suite.requirements=updatedSuiteRequirements;
 
-            this.$.update.url=this.url;
-
+            this.$.update.url="api/newman/update-suite";
             this.$.update.body=JSON.stringify(this.suite);
             this.$.update.go();
         },

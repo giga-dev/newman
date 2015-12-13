@@ -6,23 +6,23 @@ package com.gigaspaces.newman.beans;
  */
 public class TestHistoryItem {
 
-    private Test test;
-    private Job job;
+    private TestView test;
+    private JobView job;
 
     public TestHistoryItem(){
 
     }
 
-    public TestHistoryItem( Test test, Job job ){
+    public TestHistoryItem( TestView test, JobView job ){
         this.test = test;
         this.job = job;
     }
 
-    public Test getTest() {
+    public TestView getTest() {
         return test;
     }
 
-    public Job getJob() {
+    public JobView getJob() {
         return job;
     }
 

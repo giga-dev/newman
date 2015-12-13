@@ -157,7 +157,7 @@ public class NewmanResource {
     @GET
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
-    public Batch<Job> jobs(@DefaultValue("0") @QueryParam("offset") int offset,
+    public Batch<JobView> jobs(@DefaultValue("0") @QueryParam("offset") int offset,
                            @DefaultValue("30") @QueryParam("limit") int limit
             , @QueryParam("buildId") String buildId
             , @QueryParam("all") boolean all
@@ -176,19 +176,12 @@ public class NewmanResource {
         }
 
         List<Job> jobs = jobDAO.find(query).asList();
-/*temp in order to prevent NPE
-        for( Job job : jobs ){
-            Build build = job.getBuild();
-            //cause to initialize all required Build properties
-            job.setBuild(build);
-            job.setBuild(null);
+        List<JobView> jobViews = new ArrayList<>( jobs.size() );
 
-            Suite suite = job.getSuite();
-            //cause to initialize all required Suite properties
-            job.setSuite(suite);
-            job.setSuite(null);
-        }*/
-        return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
+        for( Job job : jobs ){
+            jobViews.add( new JobView( job ) );
+        }
+        return new Batch<>(jobViews, offset, limit, all, orderBy, uriInfo);
     }
 
     @GET
@@ -607,7 +600,7 @@ public class NewmanResource {
     @GET
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
-    public Batch<Test> getJobTests(@DefaultValue("0") @QueryParam("offset") int offset,
+    public Batch<TestView> getJobTests(@DefaultValue("0") @QueryParam("offset") int offset,
                                    @DefaultValue("30") @QueryParam("limit") int limit,
                                    @DefaultValue("false") @QueryParam("all") boolean all,
                                    @QueryParam("orderBy") List<String> orderBy,
@@ -627,15 +620,22 @@ public class NewmanResource {
         if (!all) {
             query.offset(offset).limit(limit);
         }
-        return new Batch<>(testDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
+
+        List<Test> tests = testDAO.find(query).asList();
+        List<TestView> testsView = new ArrayList<>( tests.size() );
+        for( Test test : tests ){
+            testsView.add( new TestView( test ) );
+        }
+
+        return new Batch<>(testsView, offset, limit, all, orderBy, uriInfo);
     }
 
     @GET
     @Path("test/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public TestDetails getTest(@PathParam("id") String id) {
+    public Test getTest(@PathParam("id") String id) {
         Test test = testDAO.findOne(testDAO.createQuery().field("_id").equal(new ObjectId(id)));
-        return test == null ? null : new TestDetails( test );
+        return test;
     }
 
     @POST
@@ -873,7 +873,7 @@ public class NewmanResource {
     @POST
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public TestDetails getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
+    public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
         Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
         if (agent == null) {
             logger.error("bad request unknown agent {}", name);
@@ -945,7 +945,7 @@ public class NewmanResource {
         }
         agent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, true);
         broadcastMessage(MODIFIED_AGENT, agent);
-        return result == null ? null : new TestDetails( result );
+        return result;
     }
 
     private Object getAgentLock(Agent agent) {
@@ -1362,7 +1362,7 @@ public class NewmanResource {
                                            @DefaultValue("0") @QueryParam("offset") int offset,
                                            @DefaultValue("50") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
 
-        TestDetails thisTest = getTest(id);
+        Test thisTest = getTest(id);
         final String sha = thisTest.getSha();
 
         Query<Test> testsQuery = testDAO.createQuery();
@@ -1384,12 +1384,7 @@ public class NewmanResource {
     private TestHistoryItem createTestHistoryItem(Test test) {
 
         Job job = getJob(test.getJobId());
-        //in order to decrease passed json size
-        job.setBuild( job.getBuild() );
-        job.setBuild( null );
-        job.setSuite( null );
-        ///////
-        return new TestHistoryItem(test, job);
+        return new TestHistoryItem( new TestView( test ), new JobView( job ) );
     }
 
     private SuiteWithJobs createSuiteWithJobs(Suite suite) {

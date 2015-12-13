@@ -1,11 +1,6 @@
 package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.utils.ToStringBuilder;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Indexed;
-import org.mongodb.morphia.annotations.Transient;
 
 import java.net.URI;
 import java.util.Collections;
@@ -13,20 +8,19 @@ import java.util.Date;
 import java.util.Set;
 
 /**
- * Created by Barak Bar Orion
- * 4/13/15.
+ * @author evgenyf
+ * 13.12.15.
  */
-@Entity
-public class Job {
-    @Id
+
+public class JobView {
+
     private String id;
-    @Embedded(concreteClass = Build.class)
-    private Build build;
+    private String buildId;
+    private String buildName;
+    private String buildBranch;
+    private String suiteId;
+    private String suiteName;
 
-    @Embedded(concreteClass = Suite.class) //Why isn't this @Reference?, it should be reference!
-    private Suite suite;
-
-    @Indexed
     private Date submitTime;
     private Date startTime;
     private Date endTime;
@@ -37,13 +31,34 @@ public class Job {
     private int passedTests;
     private int failedTests;
     private int runningTests;
-    @Embedded
     private Set<String> preparingAgents = Collections.emptySet();
-    @Transient
-    private Set<String> agents = Collections.emptySet();
 
-    public Job() {
-        state = State.READY;
+    public JobView( Job job ) {
+
+        id = job.getId();
+        Build build = job.getBuild();
+        Suite suite = job.getSuite();
+        if( build != null ) {
+            buildId = build.getId();
+            buildName = build.getName();
+            buildBranch = build.getBranch();
+        }
+        if( suite != null ) {
+            suiteId = suite.getId();
+            suiteName = suite.getName();
+        }
+
+        submitTime = job.getSubmitTime();
+        startTime = job.getStartTime();
+        endTime = job.getEndTime();
+        testURI = job.getTestURI();
+        submittedBy = job.getSubmittedBy();
+        state = job.getState();
+        totalTests = job.getTotalTests();
+        passedTests = job.getPassedTests();
+        failedTests = job.getFailedTests();
+        runningTests = job.getRunningTests();
+        preparingAgents = job.getPreparingAgents();
     }
 
     public String getId() {
@@ -52,14 +67,6 @@ public class Job {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public Build getBuild() {
-        return build;
-    }
-
-    public void setBuild(Build build) {
-        this.build = build;
     }
 
     public Date getSubmitTime() {
@@ -142,14 +149,6 @@ public class Job {
         this.runningTests = runningTests;
     }
 
-    public Suite getSuite() {
-        return suite;
-    }
-
-    public void setSuite(Suite suite) {
-        this.suite = suite;
-    }
-
     public Set<String> getPreparingAgents() {
         return preparingAgents;
     }
@@ -158,12 +157,51 @@ public class Job {
         this.preparingAgents = preparingAgents;
     }
 
+    public String getBuildId() {
+        return buildId;
+    }
+
+    public String getBuildName() {
+        return buildName;
+    }
+
+    public String getBuildBranch() {
+        return buildBranch;
+    }
+
+    public String getSuiteId() {
+        return suiteId;
+    }
+
+    public String getSuiteName() {
+        return suiteName;
+    }
+
+    public void setBuildId(String buildId) {
+        this.buildId = buildId;
+    }
+
+    public void setBuildName(String buildName) {
+        this.buildName = buildName;
+    }
+
+    public void setBuildBranch(String buildBranch) {
+        this.buildBranch = buildBranch;
+    }
+
+    public void setSuiteId(String suiteId) {
+        this.suiteId = suiteId;
+    }
+
+    public void setSuiteName(String suiteName) {
+        this.suiteName = suiteName;
+    }
+
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
                 .append("id", id)
-                .append("build", build)
-                .append("suite", suite)
                 .append("submitTime", submitTime)
                 .append("startTime", startTime)
                 .append("endTime", endTime)
@@ -176,13 +214,5 @@ public class Job {
                 .append("runningTests", runningTests)
                 .append("preparingAgents", preparingAgents)
                 .toString();
-    }
-
-    public Set<String> getAgents() {
-        return agents;
-    }
-
-    public void setAgents(Set<String> agents) {
-        this.agents = agents;
     }
 }
