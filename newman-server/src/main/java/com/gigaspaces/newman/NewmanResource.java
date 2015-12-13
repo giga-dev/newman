@@ -1320,7 +1320,7 @@ public class NewmanResource {
     @GET
     @Path("suite")
     @Produces(MediaType.APPLICATION_JSON)
-    public Batch<Suite> getAllSuites(@DefaultValue("0") @QueryParam("offset") int offset,
+    public Batch<SuiteView> getAllSuites(@DefaultValue("0") @QueryParam("offset") int offset,
                                      @DefaultValue("30") @QueryParam("limit") int limit
             , @QueryParam("all") boolean all
             , @QueryParam("orderBy") List<String> orderBy
@@ -1333,7 +1333,13 @@ public class NewmanResource {
             orderBy.forEach(query::order);
         }
 
-        return new Batch<>(suiteDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
+        List<Suite> suites = suiteDAO.find(query).asList();
+        List<SuiteView> suiteViews = new ArrayList<>( suites.size() );
+        for( Suite suite : suites ){
+            suiteViews.add( new SuiteView( suite ) );
+        }
+
+        return new Batch<>(suiteViews, offset, limit, all, orderBy, uriInfo);
     }
 
     @GET

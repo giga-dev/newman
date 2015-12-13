@@ -21,11 +21,11 @@
                 <table class="table table-hover table-striped table-bordered table-condensed word-wrap-table">
                     <thead>
                     <tr>
-                        <th width="15%">Name</th>
-                        <th width="20%">Id</th>
-                        <th width="21%">Custom variables</th>
-                        <th width="39%">Criteria</th>
-                        <th width="5%">Actions</th>
+                        <th width="14%">Name</th>
+                        <th width="19%">Id</th>
+                        <th width="62%">Custom variables</th>
+                        <!--<th width="39%">Criteria</th>-->
+                        <th width="4%">Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -34,7 +34,7 @@
                             <td><a href="{{urlFor('suite', {id: item.id})}}">{{item.name}}</a></td>
                             <td><a href="{{urlFor('suite', {id: item.id})}}">{{item.id}}</a></td>
                             <td class="word-wrap-td">{{item.customVariables}}</td>
-                            <td><pre><code>{{item.criteria | removeNulls | json}}</code></pre></td>
+                            <!--<td><pre><code>{{item.criteria | removeNulls | json}}</code></pre></td>-->
                             <td>
                                 <button data-toggle="tooltip" data-placement="left" title="Copy {{item.name}}" class="btn btn-success" on-click="{{toggleDropAgentConfirmationDialog}}" suite-id="{{item.id}}" suite-name="{{item.name}}">
                                     <span class="glyphicon glyphicon-copy"></span>
