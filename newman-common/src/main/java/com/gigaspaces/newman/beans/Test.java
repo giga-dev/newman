@@ -1,12 +1,19 @@
 package com.gigaspaces.newman.beans;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gigaspaces.newman.utils.StringUtils;
 import com.gigaspaces.newman.utils.ToStringBuilder;
-import org.mongodb.morphia.annotations.*;
+import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.PostLoad;
 import org.mongodb.morphia.utils.IndexDirection;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Barak Bar Orion
@@ -23,9 +30,7 @@ public class Test {
     @Indexed(value = IndexDirection.ASC, unique = false)
     private String name;
     private List<String> arguments;
-    @JsonIgnore
     private String testType;
-    @JsonIgnore
     private Long timeout;
     private Status status;
     private String errorMessage;
@@ -34,21 +39,17 @@ public class Test {
     private String historyStats;
     /* name, url mapping */
     @Embedded
-    @JsonIgnore
     private Map<String, String> logs;
     private String assignedAgent;
     private Date startTime;
     private Date endTime;
-    @JsonIgnore
     private Date scheduledAt;
     private int progressPercent;
 
-    @JsonIgnore
     @Indexed(unique = false)
     private String sha;
 
     @Embedded
-    @JsonIgnore
     private Map<String, String> properties;
 
     public Test() {
