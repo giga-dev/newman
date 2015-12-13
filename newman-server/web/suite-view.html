@@ -114,7 +114,8 @@
 
             this.suite.displayedCriteria=updatedSuiteCriteria;
             this.suite.customVariables=updatedSuiteCustomVariables;
-            this.suite.requirements=updatedSuiteRequirements;
+            var requirementsArray = updatedSuiteRequirements.split(',');
+            this.suite.requirements=requirementsArray;
 
             this.$.update.url="api/newman/update-suite";
             this.$.update.body=JSON.stringify(this.suite);
