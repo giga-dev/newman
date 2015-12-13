@@ -3,10 +3,7 @@ package com.gigaspaces.newman.crons.suitediff;
 import com.gigaspaces.newman.NewmanClient;
 import com.gigaspaces.newman.analytics.CronJob;
 import com.gigaspaces.newman.analytics.PropertiesConfigurer;
-import com.gigaspaces.newman.beans.Batch;
-import com.gigaspaces.newman.beans.Build;
-import com.gigaspaces.newman.beans.DashboardData;
-import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.server.NewmanServerConfig;
 import com.gigaspaces.newman.smtp.Mailman;
 import org.antlr.stringtemplate.StringTemplate;
@@ -35,6 +32,9 @@ public class SuiteDiffCronJob implements CronJob {
     private static final String CRONS_SUITE_DIFF_BRANCH = "crons.suitediff.branch";
     private static final String DEFAULT_BRANCH = "master";
     private static final String BID_FILE_SUFFIX = ".bid";
+    public static final String CRONS_SUITEDIFF_LATEST_BUILD_ID = "crons.suitediff.latestBuildId";
+    public static final String CRONS_SUITEDIFF_PREVIOUS_BUILD_ID = "crons.suitediff.previousBuildId";
+    public static final String CRONS_SUITEDIFF_TRACK_LATEST = "crons.suitediff.trackLatest";
 
     @Override
     public void run(Properties properties) {
@@ -138,10 +138,13 @@ public class SuiteDiffCronJob implements CronJob {
 
         mailman.compose(properties.getProperty(Mailman.MAIL_MESSAGE_RECIPIENTS), subject, body, Mailman.Format.HTML);
 
-        //save latestBuild for next time we wake up (only if branches match)
-        //otherwise keep comparison fixed to whatever was placed in file
-        if (latestBuild.getBranch().equals(previousBuild.getBranch())) {
-            saveLatestBuildToFile(properties, latestBuild);
+        //save latestBuild for next time we wake up
+        if (Boolean.parseBoolean(properties.getProperty(CRONS_SUITEDIFF_TRACK_LATEST, "true"))) {
+            // save only if branches match otherwise keep comparison fixed to whatever was placed in file
+            if (latestBuild.getBranch().equals(previousBuild.getBranch())) {
+                logger.info("Saving latest buildId to file");
+                saveLatestBuildToFile(properties, latestBuild);
+            }
         }
     }
 
@@ -172,7 +175,16 @@ public class SuiteDiffCronJob implements CronJob {
         return output.toString();
     }
 
-    private Build getLatestBuild(Properties properties, List<Build> historyBuilds, NewmanClient newmanClient) {
+    private Build getLatestBuild(Properties properties, List<Build> historyBuilds, NewmanClient newmanClient) throws Exception {
+        String latestBuildIdOverride = properties.getProperty(CRONS_SUITEDIFF_LATEST_BUILD_ID);
+        if (latestBuildIdOverride != null) {
+            logger.info("Fetching latest build-id: {}", latestBuildIdOverride);
+            Build build = newmanClient.getBuild(latestBuildIdOverride).toCompletableFuture().get();
+            if (build == null) {
+                throw new IllegalStateException("latest build (id="+latestBuildIdOverride+") was not found");
+            }
+            return build;
+        }
         String branch = properties.getProperty(CRONS_SUITE_DIFF_BRANCH, DEFAULT_BRANCH);
         Build latestMatch = null;
         for (Build history : historyBuilds) {
@@ -186,6 +198,7 @@ public class SuiteDiffCronJob implements CronJob {
             }
         }
         if (latestMatch != null) {
+            logger.info("Latest build-id: {}", latestMatch.getId());
             return latestMatch;
         }
         throw new IllegalStateException("No build matching branch: " + branch);
@@ -206,7 +219,17 @@ public class SuiteDiffCronJob implements CronJob {
         return suiteCount;
     }
 
-    private Build getPreviousBuildFromFile(Properties properties, Build latestBuild, NewmanClient newmanClient) {
+    private Build getPreviousBuildFromFile(Properties properties, Build latestBuild, NewmanClient newmanClient) throws Exception {
+        String previousBuildIdOverride = properties.getProperty(CRONS_SUITEDIFF_PREVIOUS_BUILD_ID);
+        if (previousBuildIdOverride != null) {
+            logger.info("Fetching previous build-id: {}", previousBuildIdOverride);
+            Build build = newmanClient.getBuild(previousBuildIdOverride).toCompletableFuture().get();
+            if (build == null) {
+                throw new IllegalStateException("previous build (id="+previousBuildIdOverride+") was not found");
+            }
+            return build;
+        }
+
         String path = getResourcesPath(properties);
         String buildIdFile = latestBuild.getBranch() + BID_FILE_SUFFIX; //e.g. master.bid (master previous build id)
         File file = new File(path, buildIdFile);
