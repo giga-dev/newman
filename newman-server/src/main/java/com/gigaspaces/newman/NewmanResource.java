@@ -155,14 +155,39 @@ public class NewmanResource {
     }
 
     @GET
-    @Path("job")
+    @Path("jobs-view")
     @Produces(MediaType.APPLICATION_JSON)
-    public Batch<JobView> jobs(@DefaultValue("0") @QueryParam("offset") int offset,
+    public Batch<JobView> jobsView(@DefaultValue("0") @QueryParam("offset") int offset,
                            @DefaultValue("30") @QueryParam("limit") int limit
             , @QueryParam("buildId") String buildId
             , @QueryParam("all") boolean all
             , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
+
+        List<Job> jobs = retrieveJobs( buildId, orderBy, all, offset, limit );
+        List<JobView> jobViews = new ArrayList<>( jobs.size() );
+
+        for( Job job : jobs ){
+            jobViews.add( new JobView( job ) );
+        }
+        return new Batch<>(jobViews, offset, limit, all, orderBy, uriInfo);
+    }
+
+    @GET
+    @Path("job")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<Job> jobs(@DefaultValue("0") @QueryParam("offset") int offset,
+                           @DefaultValue("30") @QueryParam("limit") int limit
+            , @QueryParam("buildId") String buildId
+            , @QueryParam("all") boolean all
+            , @QueryParam("orderBy") List<String> orderBy
+            , @Context UriInfo uriInfo) {
+
+        List<Job> jobs = retrieveJobs( buildId, orderBy, all, offset, limit );
+        return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
+    }
+
+    private List<Job> retrieveJobs( String buildId, List<String> orderBy, boolean all, int offset, int limit ) {
 
         Query<Job> query = jobDAO.createQuery();
         if (buildId != null) {
@@ -175,14 +200,9 @@ public class NewmanResource {
             query.offset(offset).limit(limit);
         }
 
-        List<Job> jobs = jobDAO.find(query).asList();
-        List<JobView> jobViews = new ArrayList<>( jobs.size() );
-
-        for( Job job : jobs ){
-            jobViews.add( new JobView( job ) );
-        }
-        return new Batch<>(jobViews, offset, limit, all, orderBy, uriInfo);
+        return jobDAO.find(query).asList();
     }
+
 
     @GET
     @Path("futureJob")
@@ -598,14 +618,39 @@ public class NewmanResource {
 
 
     @GET
-    @Path("test")
+    @Path("job-tests-view")
     @Produces(MediaType.APPLICATION_JSON)
-    public Batch<TestView> getJobTests(@DefaultValue("0") @QueryParam("offset") int offset,
+    public Batch<TestView> getJobTestsView(@DefaultValue("0") @QueryParam("offset") int offset,
                                    @DefaultValue("30") @QueryParam("limit") int limit,
                                    @DefaultValue("false") @QueryParam("all") boolean all,
                                    @QueryParam("orderBy") List<String> orderBy,
                                    @QueryParam("jobId") String jobId,
                                    @Context UriInfo uriInfo) {
+
+        List<Test> tests = retrieveJobTests(jobId, orderBy, all, offset, limit);
+        List<TestView> testsView = new ArrayList<>( tests.size() );
+        for( Test test : tests ){
+            testsView.add( new TestView( test ) );
+        }
+
+        return new Batch<>(testsView, offset, limit, all, orderBy, uriInfo);
+    }
+
+    @GET
+    @Path("test")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<Test> getJobTests(@DefaultValue("0") @QueryParam("offset") int offset,
+                                   @DefaultValue("30") @QueryParam("limit") int limit,
+                                   @DefaultValue("false") @QueryParam("all") boolean all,
+                                   @QueryParam("orderBy") List<String> orderBy,
+                                   @QueryParam("jobId") String jobId,
+                                   @Context UriInfo uriInfo) {
+
+        List<Test> tests = retrieveJobTests(jobId, orderBy, all, offset, limit);
+        return new Batch<>(tests, offset, limit, all, orderBy, uriInfo);
+    }
+
+    private List<Test> retrieveJobTests( String jobId, List<String> orderBy, boolean all, int offset, int limit ){
 
         Query<Test> query = testDAO.createQuery();
         if (jobId != null) {
@@ -621,13 +666,7 @@ public class NewmanResource {
             query.offset(offset).limit(limit);
         }
 
-        List<Test> tests = testDAO.find(query).asList();
-        List<TestView> testsView = new ArrayList<>( tests.size() );
-        for( Test test : tests ){
-            testsView.add( new TestView( test ) );
-        }
-
-        return new Batch<>(testsView, offset, limit, all, orderBy, uriInfo);
+        return testDAO.find(query).asList();
     }
 
     @GET

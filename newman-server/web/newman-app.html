@@ -93,7 +93,7 @@
 
                                 <section route="jobs">
                                     <h1>Jobs</h1>
-                                    <jobs-table url="api/newman/job?all=true&orderBy=-submitTime"></jobs-table>
+                                    <jobs-table url="api/newman/jobs-view?all=true&orderBy=-submitTime"></jobs-table>
                                 </section>
                                 <section route="suites-dashboard">
                                     <h1>Suites Dashboard of completed jobs</h1>
@@ -110,7 +110,7 @@
                                     <template if="{{route('job').params.id}}">
                                         <job-info url="api/newman/job/{{route('job').params.id}}"></job-info>
                                         <h1>Job Tests</h1>
-                                        <tests-table url="api/newman/test?jobId={{route('job').params.id}}&all=true&filterByStatus={{route('job').params.filterByStatus}}" jobId="{{route('job').params.id}}">
+                                        <tests-table url="api/newman/job-tests-view?jobId={{route('job').params.id}}&all=true&filterByStatus={{route('job').params.filterByStatus}}" jobId="{{route('job').params.id}}">
                                         </tests-table>
     </template>
     </section>
