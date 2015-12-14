@@ -1,6 +1,9 @@
 package com.gigaspaces.newman;
 
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.gigaspaces.newman.beans.Batch;
 import com.gigaspaces.newman.beans.Job;
 import com.gigaspaces.newman.beans.JobRequest;
@@ -46,7 +49,15 @@ public class RestClient {
             SslConfigurator sslConfig = SslConfigurator.newInstance();
 
             SSLContext sslContext = sslConfig.createSSLContext();
+
+
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            JacksonJaxbJsonProvider jacksonProvider = new JacksonJaxbJsonProvider();
+            jacksonProvider.setMapper(mapper);
+
             JerseyClientBuilder jerseyClientBuilder = new JerseyClientBuilder()
+                    .register(jacksonProvider)
                     .sslContext(sslContext)
                     .hostnameVerifier((s, sslSession) -> true)
                     .register(MultiPartFeature.class).register(SseFeature.class)
@@ -58,7 +69,8 @@ public class RestClient {
             String jobId = target.request().put(Entity.json(new JobRequest()), String.class);
             logger.info("added job {} ", jobId);
 
-            Batch<Job> jobs = target.request().get(new GenericType<Batch<Job>>() {});
+            Batch<Job> jobs = target.request().get(new GenericType<Batch<Job>>() {
+            });
             logger.info("query jobs returns: {}", jobs);
 
 //            query jobs async

@@ -18,7 +18,7 @@ import java.util.Set;
  * 4/13/15.
  */
 @Entity
-@JsonIgnoreProperties
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {
     @Id
     private String id;
