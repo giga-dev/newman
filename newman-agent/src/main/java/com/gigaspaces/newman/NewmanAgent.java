@@ -159,10 +159,14 @@ public class NewmanAgent {
     }
 
     private int calculateNumberOfWorkers(Job job) {
-        if (job.getSuite() == null || job.getSuite().getCustomVariables() == null)
+        if (job.getSuite() == null || job.getSuite().getCustomVariables() == null) {
+            logger.info("Configured number of workers: " + config.getNumOfWorkers());
             return config.getNumOfWorkers();
+        }
         String limit = Suite.parseCustomVariables(job.getSuite().getCustomVariables()).getOrDefault(Suite.THREADS_LIMIT, Integer.toString(config.getNumOfWorkers()));
-        return Math.min(config.getNumOfWorkers(), Integer.parseInt(limit));
+        int min = Math.min(config.getNumOfWorkers(), Integer.parseInt(limit));
+        logger.info("Calculated number of workers: " + min + " (config: " + config.getNumOfWorkers() + ", limit: " + limit+")s");
+        return min;
     }
 
 
