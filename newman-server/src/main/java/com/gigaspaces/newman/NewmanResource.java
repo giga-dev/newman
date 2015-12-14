@@ -1385,17 +1385,14 @@ public class NewmanResource {
     @Path("suites-dashboard")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllSuitesWithJobs() {
-        logger.info("--- getAllSuitesWithJobs() START ---");
         Query<Suite> suitesQuery = suiteDAO.createQuery();
 
         List<Suite> suites = suiteDAO.find(suitesQuery).asList();
-        logger.info("--- getAllSuitesWithJobs(), suites count ---" + suites.size());
         List<SuiteWithJobs> suitesWithJobs = new ArrayList<>(suites.size());
         suitesWithJobs.addAll(suites.stream().map(this::createSuiteWithJobs).collect(Collectors.toList()));
 
         //reverse map in order to display first latest suites
         Collections.reverse(suitesWithJobs);
-        logger.info("--- getAllSuitesWithJobs() END ---");
 
         return Response.ok(Entity.json(suitesWithJobs)).build();
     }
