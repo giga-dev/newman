@@ -1,5 +1,6 @@
 package com.gigaspaces.newman.beans;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
@@ -17,6 +18,7 @@ import java.util.Set;
  * 4/13/15.
  */
 @Entity
+@JsonIgnoreProperties
 public class Job {
     @Id
     private String id;
