@@ -111,7 +111,7 @@ public class NewmanSuiteSubmitter {
         try {
             Suite suite = new Suite();
             suite.setName("xap-core");
-            suite.setCustomVariables("SUITE_TYPE=tgrid");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=3");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
             String Requirements = "";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
@@ -507,7 +507,7 @@ public class NewmanSuiteSubmitter {
         try {
             Suite suite = new Suite();
             suite.setName("mongo-db");
-            suite.setCustomVariables("SUITE_TYPE=mongodb");
+            suite.setCustomVariables("SUITE_TYPE=mongodb,THREADS_LIMIT=1");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
             String Requirements = "DOCKER";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
