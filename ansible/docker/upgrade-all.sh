@@ -13,5 +13,7 @@ cd /newman/ansible/docker
 ./subs-password.sh $pass2 /newman/ansible/group_vars/newmanTarzanServers
 
 cd /newman/ansible
+export PYTHONPATH=${PYTHONPATH}:/usr/lib/python2.7/dist-packages
+sed -i "s/#host_key_checking = False/host_key_checking = False/g" /etc/ansible/ansible.cfg
 ansible-playbook site.yml --skip-tags "cron" -i hosts -u xap
 
