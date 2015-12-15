@@ -44,5 +44,11 @@ RUN git clone https://github.com/giga-dev/newman.git /newman
 
 RUN cd /newman; mvn install
 
+RUN sed -i "s/#host_key_checking = False/host_key_checking = False/g" /etc/ansible/ansible.cfg
+
+
+RUN apt-get -y install python-httplib2
+RUN apt-get -y install python-pip
+RUN pip install --upgrade  httplib2
 
 

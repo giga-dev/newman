@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-#cd /newman
-#mvn install
-cd /newman
-mvn clean install
 
 cd /newman/ansible/docker
 #echo "upgrade-all $pass1 $pass2"
