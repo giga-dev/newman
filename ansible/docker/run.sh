@@ -6,4 +6,4 @@ if [ $# -ne 2 ]; then
 fi
 
 #docker run -v `pwd`/../..:/newman --env pass1=$1 --env pass2=$2  -it newman/anisble
-docker run--env pass1=$1 --env pass2=$2  -it newman/anisble
+docker run --env pass1=$1 --env pass2=$2  -it newman/anisble
