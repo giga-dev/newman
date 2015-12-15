@@ -3,7 +3,7 @@
 #cd /newman
 #mvn install
 cd /newman
-mvn install
+mvn clean install
 
 cd /newman/ansible/docker
 #echo "upgrade-all $pass1 $pass2"
@@ -16,5 +16,6 @@ cd /newman/ansible/docker
 
 ./subs-password.sh $pass2 /newman/ansible/group_vars/newmanTarzanServers
 
-# todo
-# run ansible
+cd /newman/ansible
+ansible-playbook site.yml --skip-tags "cron" -i hosts -u xap
+
