@@ -3,7 +3,6 @@
 #cd /newman
 #mvn install
 cd /newman
-git pull
 mvn install
 
 cd /newman/ansible/docker

@@ -43,6 +43,5 @@ RUN git clone https://github.com/giga-dev/newman.git /newman
 
 RUN cd /newman; mvn install
 
-CMD ["/newman/ansible/docker/upgrade-all.sh"]
 
 
