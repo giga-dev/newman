@@ -124,7 +124,7 @@
     <section route="build" attributes="url active" active>
         <build-info url="api/newman/build/{{route('build').params.id}}"></build-info>
         <h2>Participate in the following jobs:</h2>
-        <jobs-table url="api/newman/job?buildId={{route('build').params.id}}&all=true"></jobs-table>
+        <jobs-table url="api/newman/jobs-view?buildId={{route('build').params.id}}&all=true"></jobs-table>
     </section>
     <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
     <section route="suite">
