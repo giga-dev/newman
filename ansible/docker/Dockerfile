@@ -34,6 +34,7 @@ RUN tar xzf /tmp/apache-maven-3.0.5.tar.gz --strip-components=1 \
     -C /opt/maven
 
 RUN ln -s /opt/maven/bin/mvn /usr/local/bin
+RUN ln -s /opt/maven/bin/mvn /usr/bin
 RUN rm -f /tmp/apache-maven-3.0.5.tar.gz
 
 
