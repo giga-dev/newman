@@ -48,7 +48,7 @@ RUN cd /newman; mvn install
 
 RUN apt-get -y install python-httplib2
 #RUN apt-get -y install python3-httplib2
-RUN apt-get -y install python-pip
-RUN pip install --upgrade  httplib2
+#RUN apt-get -y install python-pip
+#RUN pip install --upgrade  httplib2
 
 
