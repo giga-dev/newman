@@ -9,11 +9,19 @@ cd /newman/ansible/docker
 ./subs-password.sh $pass1 /newman/ansible/group_vars/newmanServer
 ./subs-password.sh $pass1 /newman/ansible/group_vars/newmanSubmitter
 ./subs-password.sh $pass1 /newman/ansible/group_vars/newmanWindowsAgents
-
 ./subs-password.sh $pass2 /newman/ansible/group_vars/newmanTarzanServers
 
+#Generating ssh keys.
+(cd /newman/newman-server/bin; ./keysgen.sh)
+
+#Install UI dependencies.
+(cd /newman/newman-server/web; export CI=true; bower --allow-root install)
+
+#Compile newman
+(cd /newman; mvn install)
+
+#Run ansible
 cd /newman/ansible
-export PYTHONPATH=/usr/lib/python2.7/dist-packages
-sed -i "s/#host_key_checking = False/host_key_checking = False/g" /etc/ansible/ansible.cfg
-ansible-playbook site.yml --skip-tags "cron" -i hosts -u xap
+#sed -i "s/#host_key_checking = False/host_key_checking = False/g" /etc/ansible/ansible.cfg
+#ansible-playbook site.yml --skip-tags "cron" -i hosts -u xap
 

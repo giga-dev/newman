@@ -47,8 +47,9 @@ RUN cd /newman; mvn install
 
 
 RUN apt-get -y install python-httplib2
-#RUN apt-get -y install python3-httplib2
-#RUN apt-get -y install python-pip
-#RUN pip install --upgrade  httplib2
+RUN apt-get -y install aptitude
+RUN apt-get -y install nodejs npm
+RUN ln -s /usr/bin/nodejs /usr/bin/node
+RUN npm install -g bower
 
 
