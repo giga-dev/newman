@@ -28,8 +28,11 @@ public class NewmanAgent {
     private volatile NewmanClient client;
     private volatile boolean active = true;
     private final Timer timer = new Timer(true);
+//    private static long lastTimeFailedToConnectToServer;
+//    private final long minutesToPassBeforeExit = 15;
 
     public static void main(String[] args) {
+//        updateCurrentTime();
         NewmanAgent agent = new NewmanAgent();
         agent.initialize();
         try {
@@ -269,8 +272,14 @@ public class NewmanAgent {
         return client;
     }
 
-    private synchronized NewmanClient onClientFailure(NewmanClient localClient) {
+//    private static void updateCurrentTime(){
+//        lastTimeFailedToConnectToServer = System.currentTimeMillis();
+//    }
 
+    private synchronized NewmanClient onClientFailure(NewmanClient localClient) {
+//        if(lastTimeFailedToConnectToServer == -1){
+//            updateCurrentTime();
+//        }
         if (localClient != getClient()) { // in case other thread already restarted the client
             return getClient();
         }
@@ -279,10 +288,18 @@ public class NewmanAgent {
             client.close();
         }
         while (true) {
+//            long currentTime =  System.currentTimeMillis();
+//            long timePassedSineStartToFail = currentTime - lastTimeFailedToConnectToServer;
+//            long timePassedSineStartToFailMinutes = TimeUnit.MILLISECONDS.toMinutes(timePassedSineStartToFail);
+//            if(timePassedSineStartToFailMinutes > minutesToPassBeforeExit){
+//                throw new IllegalArgumentException("agent did not connect for the last " + timePassedSineStartToFailMinutes + ", resting agent...");
+//            }
             try {
                 logger.info("handling client failure, reconnecting to newman server ip: {}, port: {}", config.getNewmanServerHost(), config.getNewmanServerPort());
                 client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                         config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
+                //try to connect to fail fast when server is down
+                client.ping(name, "");
                 break;
             } catch (Exception e) {
                 logger.warn("failure while recreation of newman client, will retry...", e);
