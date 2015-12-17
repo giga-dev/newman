@@ -15,7 +15,9 @@ cd /newman/ansible/docker
 (cd /newman/newman-server/bin; ./keysgen.sh)
 
 #Install UI dependencies.
-(cd /newman/newman-server/web; export CI=true; bower --allow-root install)
+echo "Installing UI dependencies."
+#(cd /newman/newman-server/web; export CI=true; bower --allow-root install)
+(cd /newman/newman-server/web;bower --allow-root install)
 
 #Compile newman
 (cd /newman; mvn install)

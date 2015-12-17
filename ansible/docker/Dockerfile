@@ -51,5 +51,6 @@ RUN apt-get -y install aptitude
 RUN apt-get -y install nodejs npm
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 RUN npm install -g bower
+RUN apt-get -y install emacs24
 
 
