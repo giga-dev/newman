@@ -24,6 +24,6 @@ echo "Installing UI dependencies."
 
 #Run ansible
 cd /newman/ansible
-#sed -i "s/#host_key_checking = False/host_key_checking = False/g" /etc/ansible/ansible.cfg
-#ansible-playbook site.yml --skip-tags "cron" -i hosts -u xap
+sed -i "s/#host_key_checking = False/host_key_checking = False/g" /etc/ansible/ansible.cfg
+ansible-playbook site.yml --skip-tags "cron" -i hosts -u xap
 
