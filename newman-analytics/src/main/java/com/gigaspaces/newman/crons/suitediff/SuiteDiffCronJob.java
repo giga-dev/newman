@@ -6,6 +6,7 @@ import com.gigaspaces.newman.analytics.PropertiesConfigurer;
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.server.NewmanServerConfig;
 import com.gigaspaces.newman.smtp.Mailman;
+import com.gigaspaces.newman.utils.StringUtils;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
@@ -29,9 +30,10 @@ public class SuiteDiffCronJob implements CronJob {
 
     private static final Logger logger = LoggerFactory.getLogger(SuiteDiffCronJob.class);
 
-    private static final String CRONS_SUITE_DIFF_BRANCH = "crons.suitediff.branch";
     private static final String DEFAULT_BRANCH = "master";
     private static final String BID_FILE_SUFFIX = ".bid";
+    private static final String CRONS_SUITEDIFF_BRANCH = "crons.suitediff.branch";
+    public static final String CRONS_SUITEDIFF_TAG = "crons.suitediff.tag";
     public static final String CRONS_SUITEDIFF_LATEST_BUILD_ID = "crons.suitediff.latestBuildId";
     public static final String CRONS_SUITEDIFF_PREVIOUS_BUILD_ID = "crons.suitediff.previousBuildId";
     public static final String CRONS_SUITEDIFF_TRACK_LATEST = "crons.suitediff.trackLatest";
@@ -185,15 +187,23 @@ public class SuiteDiffCronJob implements CronJob {
             }
             return build;
         }
-        String branch = properties.getProperty(CRONS_SUITE_DIFF_BRANCH, DEFAULT_BRANCH);
+        String branch = properties.getProperty(CRONS_SUITEDIFF_BRANCH, DEFAULT_BRANCH);
+        String tag = properties.getProperty(CRONS_SUITEDIFF_TAG);
         Build latestMatch = null;
         for (Build history : historyBuilds) {
             if (history.getBranch().equals(branch)) {
                 if (latestMatch == null) {
                     latestMatch = history;
                 }
-                if (history.getTags().contains("DOTNET") && countSuites(newmanClient, history) > 5) {
-                    return history;
+                if (StringUtils.notEmpty(tag) && history.getTags().contains(tag)) {
+                    //temporary workaround - to identify nightly suite
+                    if (tag.equals("DOTNET")) {
+                        if (countSuites(newmanClient, history) > 5) {
+                            return history;
+                        }
+                    } else {
+                        return history;
+                    }
                 }
             }
         }
