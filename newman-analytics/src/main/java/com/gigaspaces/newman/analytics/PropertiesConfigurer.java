@@ -76,7 +76,7 @@ public class PropertiesConfigurer {
         for (int i=1; i<args.length; i++) {
             String[] keyValuePair = args[i].split("=");
             if (keyValuePair.length != 2) {
-                throw new IllegalArgumentException("expected argument as key=value pair");
+                throw new IllegalArgumentException("expected argument as key=value pair for " + args[i]);
             }
             String key = keyValuePair[0];
             String value = keyValuePair[1];
