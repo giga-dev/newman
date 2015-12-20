@@ -1,3 +1,24 @@
-0 7 * * SUN-FRI cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties > /home/xap/newman-analytics/logs/daily-suite-diff.log 2>&1
+# -------------------------------------------------
+# run master each day at 7am from sunday-friday
+# -------------------------------------------------
+0 7 * * SUN-FRI cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=DOTNET > /home/xap/newman-analytics/logs/daily-suite-diff.log 2>&1
+
+# ----------------------------------------------------------
+# run branch from 7am-21pm, every 7 hours, sunday-thursday
+# ----------------------------------------------------------
+#0 7-21/7 * * SUN-THU cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=DOTNET crons.suitediff.branch=10.2.1-build  > /home/xap/newman-analytics/logs/daily-suite-diff-branch.log 2>&1
+
+
+# ----------------------------------------------------------
+# interday cronjob - every 3 hours on master
+# ----------------------------------------------------------
+0 10-19/3 * * SUN-THU cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.trackLatest=false crons.suitediff.branch=master > /home/xap/newman-analytics/logs/interday-suite-diff.log 2>&1
+
+
+# ---------------------------------------------------------
+# run clean jobs every Tuesday at 12 am
+# ---------------------------------------------------------
 0 0 * * 2 cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/cleanse/cleanse.properties > /home/xap/newman-analytics/logs/cleanse.log 2>&1
 
+#Ansible: cronRunServer
+@reboot . /etc/environment; cd /home/xap/newman-server; ./run.sh
