@@ -595,6 +595,7 @@ public class NewmanResource {
         }
         Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
         Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
+        logger.info("DEBUG(finishTest) ---> update job: [{}]", job);
 
         if (result.getAssignedAgent() != null) {
             UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date())
@@ -950,6 +951,7 @@ public class NewmanResource {
                 if (job.getStartTime() == null) {
                     updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
                     job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
+                    logger.info("DEBUG (getTest) ---> update job: [{}]", job);
                     buildUpdateOperations.inc("buildStatus.runningJobs").dec("buildStatus.pendingJobs");
                 }
                 agentUpdateOps.add("currentTests", result.getId());
@@ -1591,6 +1593,7 @@ public class NewmanResource {
             } else if (agent.getState() == Agent.State.RUNNING && !tests.isEmpty()) {
                 jobUpdateOps.inc("runningTests", 0 - tests.size());
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);
+                logger.info("DEBUG (returnTests) ---> update job: [{}]", job);
             }
         }
         Agent ag = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()),

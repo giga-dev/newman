@@ -296,6 +296,11 @@ public class NewmanAgent {
                 break;
             } catch (Exception e) {
                 logger.warn("failure while recreation of newman client, will retry...", e);
+                try {
+                    Thread.sleep(10 * 1000);
+                } catch (InterruptedException e1) {
+                    logger.error("Thread got exception while trying to sleep. ", e1);
+                }
             }
         }
         return getClient();
@@ -319,10 +324,12 @@ public class NewmanAgent {
         while (true) {
             try {
                 //update test removes Agent assignment
-                c.finishTest(testResult).toCompletableFuture().get();
+                Test finishedTest = c.finishTest(testResult).toCompletableFuture().get();
+                logger.info("finished test {}", finishedTest);
                 Path logs = append(config.getNewmanHome(), "logs");
                 Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
-                c.uploadLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile());
+                Test testLog = c.uploadLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get();
+                logger.info("update log test {}", testLog);
                 break;
             }
             catch (IllegalStateException e){ // client was closed
