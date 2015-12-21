@@ -271,7 +271,7 @@ public class NewmanAgent {
 
     private synchronized NewmanClient onClientFailure(NewmanClient localClient) {
         long lastTimeFailedToConnectToServer = System.currentTimeMillis();
-        long minutesToPassBeforeExit = 5;
+        long minutesToPassBeforeExit = 1;
         if (localClient != getClient()) { // in case other thread already restarted the client
             return getClient();
         }
@@ -283,7 +283,8 @@ public class NewmanAgent {
             long currentTime =  System.currentTimeMillis();
             long timePassedSinceStartToFail = currentTime - lastTimeFailedToConnectToServer;
             long timePassedSinceStartToFailMinutes = TimeUnit.MILLISECONDS.toMinutes(timePassedSinceStartToFail);
-            if(timePassedSinceStartToFailMinutes > minutesToPassBeforeExit){
+            if(timePassedSinceStartToFailMinutes >= minutesToPassBeforeExit){
+                logger.error("agent {} can't connect to server host: {}, port: {}. Existing agent...", name, config.getNewmanServerHost(), config.getNewmanServerPort());
                 throw new IllegalArgumentException("agent did not connect for the last " + timePassedSinceStartToFailMinutes + ", resting agent...");
             }
             try {

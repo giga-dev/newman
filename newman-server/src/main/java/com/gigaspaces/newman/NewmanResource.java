@@ -548,6 +548,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public synchronized Test finishTest(final Test test) {
+        logger.info("trying to finish test {}.", test);
         if (test.getId() == null) {
             throw new BadRequestException("can't finish test without testId: " + test);
         }
@@ -613,6 +614,7 @@ public class NewmanResource {
         broadcastMessage(MODIFIED_TEST, result);
         broadcastMessage(MODIFIED_JOB, job);
         broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(job.getSuite()));
+        logger.info("succeed finish test {}." ,result);
         return result;
     }
 
@@ -1565,7 +1567,7 @@ public class NewmanResource {
     }
 
     /**
-     * Return this agent job and test to the pool, update agent data.
+     * Return this agent job and test to the ool, update agent data.
      *
      * @param agent the agent in hand.
      */

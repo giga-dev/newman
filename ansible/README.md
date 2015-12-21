@@ -14,3 +14,9 @@
 * Send remote commands to all agents (or some of them) e.g:
 1. `ansible newmanDockerAgents -a "/bin/echo hello" -i hosts -u xap`
 2. `ansible newmanDockerAgents -s -m shell -a "rm -rf /home/xap/xap-newman-agent/job-*" -i hosts -u xap`
+
+
+## supervisord commends
+* To connect to supervisor use 'supervisorctl -c /home/xap/newman-agent/supervisord.conf' (it is important to use specific .conf file)
+* Logs of supervisor use - 'vi /tmp/supervisord.log' (*** /home/xap/newman-agent/supervisord_logs is directory for newman_agent logs ***)
+* The .conf file of newman_agent appended to the end of /home/xap/newman-agent/supervisord.conf
