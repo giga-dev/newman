@@ -127,6 +127,8 @@ public class SuiteDiffCronJob implements CronJob {
         htmlTemplate.setAttribute("previousBuildDate", simpleDateFormat.format(previousBuild.getBuildTime()));
         htmlTemplate.setAttribute("previousBuildDuration", toHumanReadableDuration(calculateBuildDurationInMillis(previous_mapSuite2Job)));
 
+        htmlTemplate.setAttribute("changeset", getChangeset(previousBuild, latestBuild));
+
         //send mail
         String subject = subjectTemplate.toString();
         String body = htmlTemplate.toString();
@@ -148,6 +150,19 @@ public class SuiteDiffCronJob implements CronJob {
                 saveLatestBuildToFile(properties, latestBuild);
             }
         }
+    }
+
+    private String getChangeset(Build previousBuild, Build latestBuild) {
+        String changeset = null;
+        if (previousBuild.getId().equals(latestBuild.getId())) {
+            String xapSha = latestBuild.getShas().get("xap");
+            changeset = "https://github.com/Gigaspaces/xap/commit/" + xapSha;
+        } else {
+            String fromSha = previousBuild.getShas().get("xap");
+            String toSha = latestBuild.getShas().get("xap");
+            changeset = "https://github.com/Gigaspaces/xap/compare/" + fromSha + "..." + toSha;
+        }
+        return changeset;
     }
 
     private long calculateBuildDurationInMillis(Map<String, Job> mapSuite2Job) {
