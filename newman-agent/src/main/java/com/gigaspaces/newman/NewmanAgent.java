@@ -321,11 +321,11 @@ public class NewmanAgent {
             try {
                 //update test removes Agent assignment
                 Test finishedTest = c.finishTest(testResult).toCompletableFuture().get();
-                logger.info("finished test {}", finishedTest);
+                logger.info("finished test [{}].", finishedTest);
                 Path logs = append(config.getNewmanHome(), "logs");
                 Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
                 Test testLog = c.uploadLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get();
-                logger.info("update log test {}", testLog);
+                logger.info("update log testLog [{}].", testLog);
                 break;
             }
             catch (IllegalStateException e){ // client was closed

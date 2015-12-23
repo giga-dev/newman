@@ -553,6 +553,10 @@ public class NewmanResource {
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
+            if(getJob(test.getJobId()) == null){
+                logger.warn("finishTest - the job of the test is not on database. test: [{}].", test);
+                return null;
+            }
             Test.Status status = test.getStatus();
             if (status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)) {
                 throw new BadRequestException("can't finish test without state set to success or fail state" + test);
@@ -706,6 +710,10 @@ public class NewmanResource {
                           @PathParam("jobId") String jobId,
                           @PathParam("id") String id,
                           @Context UriInfo uriInfo) {
+        if(getJob(jobId) == null){
+            logger.warn("uploadLog - the job of the test is not on database. testId:[{}], jobId:[{}].", id, jobId);
+            return null;
+        }
         FormDataBodyPart filePart = form.getField("file");
         ContentDisposition contentDispositionHeader = filePart.getContentDisposition();
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
