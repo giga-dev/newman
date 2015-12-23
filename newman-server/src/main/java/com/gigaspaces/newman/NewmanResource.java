@@ -1437,9 +1437,13 @@ public class NewmanResource {
         testsQuery.limit(limit);
 
         List<Test> tests = testDAO.find(testsQuery).asList();
+        logger.info("DEBUG (getTests) get test history of test: [{}], (thisTest: [{}])");
+        logger.info("DEBUG (getTests) history of test ---> tests: [{}]", tests);
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
+            logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
             TestHistoryItem testHistoryItem = createTestHistoryItem(test);
+            logger.info("DEBUG (getTests) ---- > testHistoryItem is: [{}]", testHistoryItem);
             testHistoryItemsList.add(testHistoryItem);
         }
         return new Batch<>(testHistoryItemsList, offset, limit, false, Collections.emptyList(), uriInfo);
@@ -1449,6 +1453,7 @@ public class NewmanResource {
     private TestHistoryItem createTestHistoryItem(Test test) {
 
         Job job = getJob(test.getJobId());
+        logger.info("DEBUG (createTestHistoryItem) get job of test ---- > test: [{}], job: [{}])", test, job);
         return new TestHistoryItem( new TestView( test ), new JobView( job ) );
     }
 
