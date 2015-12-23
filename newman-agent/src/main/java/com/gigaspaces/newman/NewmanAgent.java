@@ -35,9 +35,10 @@ public class NewmanAgent {
         try {
             agent.start();
         } catch (Exception e) {
-            agent.deactivateAgent(e, "Agent was stopped unexpectedly");
+            logger.error("Agent was stopped unexpectedly", e);
         } finally {
             agent.close();
+            System.exit(1);
         }
     }
 
@@ -184,11 +185,6 @@ public class NewmanAgent {
         return active;
     }
 
-    private void deactivateAgent(Exception e, String s) {
-        logger.error(s, e);
-        active = false;
-    }
-
     private void close() {
         if (isActive()) {
             active = false;
@@ -285,7 +281,7 @@ public class NewmanAgent {
             long timePassedSinceStartToFailMinutes = TimeUnit.MILLISECONDS.toMinutes(timePassedSinceStartToFail);
             if(timePassedSinceStartToFailMinutes >= minutesToPassBeforeExit){
                 logger.error("agent {} can't connect to server host: {}, port: {}. Existing agent...", name, config.getNewmanServerHost(), config.getNewmanServerPort());
-                throw new IllegalArgumentException("agent did not connect for the last " + timePassedSinceStartToFailMinutes + ", resting agent...");
+                throw new IllegalArgumentException("agent did not connect for the last " + timePassedSinceStartToFailMinutes + " minutes, restarting agent...");
             }
             try {
                 logger.info("handling client failure, reconnecting to newman server ip: {}, port: {}", config.getNewmanServerHost(), config.getNewmanServerPort());
