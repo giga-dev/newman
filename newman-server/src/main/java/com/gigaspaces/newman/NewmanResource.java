@@ -548,75 +548,93 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public synchronized Test finishTest(final Test test) {
-        logger.info("trying to finish test {}.", test);
-        if (test.getId() == null) {
-            throw new BadRequestException("can't finish test without testId: " + test);
-        }
-        Test.Status status = test.getStatus();
-        if (status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)) {
-            throw new BadRequestException("can't finish test without state set to success or fail state" + test);
-        }
-        UpdateOperations<Test> testUpdateOps = testDAO.createUpdateOperations();
-        UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations();
-        UpdateOperations<Build> updateBuild = buildDAO.createUpdateOperations();
-        testUpdateOps.set("status", status);
-        if (status == Test.Status.FAIL) {
-            updateJobStatus.inc("failedTests");
-            updateBuild.inc("buildStatus.failedTests");
-        } else {
-            updateJobStatus.inc("passedTests");
-            updateBuild.inc("buildStatus.passedTests");
-        }
-        updateJobStatus.dec("runningTests");
-        updateBuild.dec("buildStatus.runningTests");
-
-        if (test.getErrorMessage() != null) {
-            testUpdateOps.set("errorMessage", test.getErrorMessage());
-        }
-        if (status == Test.Status.FAIL || status == Test.Status.SUCCESS) {
-            testUpdateOps.set("endTime", new Date());
-        }
-        int historyLength = 25;
-        List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
-        String historyStatsString = TestScoreUtils.decodeShortHistoryString(testHistory, test.getStatus()); // added current fail to history;
-        double reliabilityTestScore = TestScoreUtils.score(historyStatsString);
-
-        testUpdateOps.set("testScore", reliabilityTestScore);
-        testUpdateOps.set("historyStats", historyStatsString);
-
-        Test result = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(test.getId()), testUpdateOps, false, false);
-        Query<Test> query = testDAO.createQuery();
-        query.and(query.criteria("jobId").equal(result.getJobId()),
-                query.or(query.criteria("status").equal(Test.Status.PENDING),
-                        query.criteria("status").equal(Test.Status.RUNNING)));
-        if (!testDAO.exists(query)) {
-            updateJobStatus.set("state", State.DONE).set("endTime", new Date());
-            updateBuild.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
-        }
-        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
-        Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
-        logger.info("DEBUG(finishTest) ---> update job: [{}]", job);
-
-        if (result.getAssignedAgent() != null) {
-            UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date())
-                    .removeAll("currentTests", test.getId());
-            Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent()), updateOps, false, false);
-            if (agent != null) {
-                Agent idling = null;
-                if (agent.getCurrentTests().isEmpty()) {
-                    idling = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent())
-                                    .where("this.currentTests.length == 0"),
-                            agentDAO.createUpdateOperations().set("state", Agent.State.IDLING));
-                }
-                broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
+        try{
+            logger.info("trying to finish test {}.", test);
+            if (test.getId() == null) {
+                throw new BadRequestException("can't finish test without testId: " + test);
             }
+            Test.Status status = test.getStatus();
+            if (status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)) {
+                throw new BadRequestException("can't finish test without state set to success or fail state" + test);
+            }
+            UpdateOperations<Test> testUpdateOps = testDAO.createUpdateOperations();
+            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations();
+            UpdateOperations<Build> updateBuild = buildDAO.createUpdateOperations();
+            testUpdateOps.set("status", status);
+            if (status == Test.Status.FAIL) {
+                logger.info("prepare update to **fail** test: test: id:[{}], name:[{}], jobId:[{}]", test.getId(), test.getName(), test.getJobId());
+                updateJobStatus.inc("failedTests");
+                updateBuild.inc("buildStatus.failedTests");
+            } else {
+                logger.info("prepare update to **success** test: test: id:[{}], name:[{}], jobId:[{}]", test.getId(), test.getName(), test.getJobId());
+                updateJobStatus.inc("passedTests");
+                updateBuild.inc("buildStatus.passedTests");
+            }
+            updateJobStatus.dec("runningTests");
+            updateBuild.dec("buildStatus.runningTests");
+            logger.info("DEBUG(finishTest) ---> prepare job update because test: id:[{}], name:[{}], jobId:[{}]", test.getId(), test.getName(), test.getJobId());
+
+            if (test.getErrorMessage() != null) {
+                testUpdateOps.set("errorMessage", test.getErrorMessage());
+            }
+            if (status == Test.Status.FAIL || status == Test.Status.SUCCESS) {
+                testUpdateOps.set("endTime", new Date());
+            }
+            int historyLength = 25;
+            List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
+            String historyStatsString = TestScoreUtils.decodeShortHistoryString(testHistory, test.getStatus()); // added current fail to history;
+            double reliabilityTestScore = TestScoreUtils.score(historyStatsString);
+
+            testUpdateOps.set("testScore", reliabilityTestScore);
+            testUpdateOps.set("historyStats", historyStatsString);
+            logger.info("got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}]", historyStatsString, test.getId(), test.getName(), test.getJobId());
+
+            Test result = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(test.getId()), testUpdateOps, false, false);
+            logger.info("find test and modift it- result: [{}]");
+            Query<Test> query = testDAO.createQuery();
+            query.and(query.criteria("jobId").equal(result.getJobId()),
+                    query.or(query.criteria("status").equal(Test.Status.PENDING),
+                            query.criteria("status").equal(Test.Status.RUNNING)));
+            if (!testDAO.exists(query)) {
+                updateJobStatus.set("state", State.DONE).set("endTime", new Date());
+                updateBuild.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
+            }
+            Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
+            logger.info("DEBUG(finishTest) ---> modify job: [{}]", job);
+            logger.info("DEBUG(finishTest) ---> Test cause job update: [{}].", result);
+            Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
+            logger.info("DEBUG(finishTest) update build ---> test: [{}].", result);
+
+            if (result.getAssignedAgent() != null) {
+                UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date())
+                        .removeAll("currentTests", test.getId());
+                Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent()), updateOps, false, false);
+                logger.info("DEBUG(finishTest) find and update agent ---> agent: [{}]", agent);
+                if (agent != null) {
+                    Agent idling = null;
+                    if (agent.getCurrentTests().isEmpty()) {
+                        idling = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent())
+                                        .where("this.currentTests.length == 0"),
+                                agentDAO.createUpdateOperations().set("state", Agent.State.IDLING));
+                    }
+                    broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
+                }
+            }
+            logger.info("succeed finish test {}.", result);
+            broadcastMessage(MODIFIED_BUILD, build);
+            logger.info("DEBUG(finishTest) ---> succeed broadcast ##Build##");
+            broadcastMessage(MODIFIED_TEST, result);
+            logger.info("DEBUG(finishTest) ---> succeed broadcast ##Test##");
+            broadcastMessage(MODIFIED_JOB, job);
+            logger.info("DEBUG(finishTest) ---> succeed broadcast ##Job##");
+            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(job.getSuite()));
+            logger.info("DEBUG(finishTest) ---> succeed broadcast ##Suite##");
+            return result;
         }
-        broadcastMessage(MODIFIED_BUILD, build);
-        broadcastMessage(MODIFIED_TEST, result);
-        broadcastMessage(MODIFIED_JOB, job);
-        broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(job.getSuite()));
-        logger.info("succeed finish test {}." ,result);
-        return result;
+        catch (Exception e){
+            logger.error("DEBUG(finishTest) ---> failed to end finish test because: ", e);
+            throw e;
+        }
     }
 
 
@@ -952,6 +970,7 @@ public class NewmanResource {
                     updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
                     job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
                     logger.info("DEBUG (getTest) ---> update job: [{}]", job);
+                    logger.info("DEBUG (getTest) ---> Test cause job update: [{}].", result);
                     buildUpdateOperations.inc("buildStatus.runningJobs").dec("buildStatus.pendingJobs");
                 }
                 agentUpdateOps.add("currentTests", result.getId());
@@ -1590,10 +1609,12 @@ public class NewmanResource {
             if (agent.getState() == Agent.State.PREPARING) {
                 jobUpdateOps.removeAll("preparingAgents", agent.getName());
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);
+                logger.info("DEBUG (returnTests) agent is PREPARING ---> update job: [{}]", job);
             } else if (agent.getState() == Agent.State.RUNNING && !tests.isEmpty()) {
                 jobUpdateOps.inc("runningTests", 0 - tests.size());
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);
-                logger.info("DEBUG (returnTests) ---> update job: [{}]", job);
+                logger.info("DEBUG (returnTests) agent is running ---> update job: [{}]", job);
+                logger.info("DEBUG (returnTests) ---> 0 - tests.size(): [{}]", 0 - tests.size());
             }
         }
         Agent ag = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()),
