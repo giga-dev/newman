@@ -2,21 +2,25 @@
 
 ## Prerequisites
 
-* Install Ansible on the control machine [Docs](http://docs.ansible.com/ansible/intro_installation.html#installing-the-control-machine)
-* Modify <NewmanSources>/ansible/group_vars/* with the correct credentials (will use pem files later on)
+* Linux machine
+* (Docker)[https://www.docker.com] installed
+* Newman source code cloned locally
 
-## Usage and Examples
+## Building the docker image
 
-* Test the whole deployment flow without changing the hosts by running `ansible-playbook site.yml -i hosts -u xap --check`
-* Deploy/redeploy Newman by running `ansible-playbook site.yml -i hosts -u xap`
-* Deploy/redeploy Newman without installing cron tabs by running `ansible-playbook site.yml --skip-tags "cron" -i hosts -u xap`
-* Deploy/redeploy a single module (e.g only agents) by running: `ansible-playbook agents_deploy.yml -i hosts -u xap`
-* Send remote commands to all agents (or some of them) e.g:
-1. `ansible newmanDockerAgents -a "/bin/echo hello" -i hosts -u xap`
-2. `ansible newmanDockerAgents -s -m shell -a "rm -rf /home/xap/xap-newman-agent/job-*" -i hosts -u xap`
+1. CD to `<Newman>/ansible/docker folder`
+2. Execute `build.sh` script to build the docker container image
 
+## Upgrading the system
 
-## supervisord commends
-* To connect to supervisor use 'supervisorctl -c /home/xap/newman-agent/supervisord.conf' (it is important to use specific .conf file)
-* Logs of supervisor use - 'vi /tmp/supervisord.log' (*** /home/xap/newman-agent/supervisord_logs is directory for newman_agent logs ***)
-* The .conf file of newman_agent appended to the end of /home/xap/newman-agent/supervisord.conf
+* Execute `run.sh <pw1> <pw2>` script to upgrade the whole system (pw1 and pw2 are passwords for accessing the agents hosts)
+* To skip some unwanted roles, run `export skipTags=...` before running `run.sh` script (when not specifying any skipTags the default skipped tags are `cron` and `local`)
+* To upgrade a single module, run `export module=...` before running `run.sh` script, the available modules are: `all/agents/server/submitter/analytics` (when not specifying any module `all` is used)
+* If a DNS resolution is needed to access the hosts from the `hosts` file, provide the ip of the DNS server that will be used by the docker container by running `export dns=...` before running `run.sh` script
+
+## Examples of interaction with all newman agents
+
+* CD to `<Newman>/ansible` folder
+* Execute command to all agents: `ansible newmanDockerAgents -a "/bin/echo hello" -i hosts -u xap`
+* Execute ansible `shell` module execution on all agents: `ansible newmanDockerAgents -s -m shell -a "rm -rf /home/xap/xap-newman-agent/job-*" -i hosts -u xap`
+* Check the (ansible modules)[http://docs.ansible.com/ansible/list_of_all_modules.html] list for for info
