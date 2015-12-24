@@ -3,7 +3,7 @@
 ## Prerequisites
 
 * Linux machine
-* (Docker)[https://www.docker.com] installed
+* [Docker](https://www.docker.com) installed
 * Newman source code cloned locally
 
 ## Building the docker image
@@ -23,4 +23,4 @@
 * CD to `<Newman>/ansible` folder
 * Execute command to all agents: `ansible newmanDockerAgents -a "/bin/echo hello" -i hosts -u xap`
 * Execute ansible `shell` module execution on all agents: `ansible newmanDockerAgents -s -m shell -a "rm -rf /home/xap/xap-newman-agent/job-*" -i hosts -u xap`
-* Check the (ansible modules)[http://docs.ansible.com/ansible/list_of_all_modules.html] list for for info
+* Check the [ansible modules](http://docs.ansible.com/ansible/list_of_all_modules.html) list for for more information.
