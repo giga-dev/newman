@@ -6,6 +6,7 @@
 
   roles:
     - newman_install
+    - server_suspend
 
 - name: "deploy newman docker agents"
   hosts: newmanDockerAgents
