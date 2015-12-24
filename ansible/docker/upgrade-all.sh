@@ -25,5 +25,31 @@ echo "Installing UI dependencies."
 #Run ansible
 cd /newman/ansible
 sed -i "s/#host_key_checking = False/host_key_checking = False/g" /etc/ansible/ansible.cfg
-ansible-playbook site.yml --skip-tags "cron,local" -i hosts -u xap
+
+if [ "$module" == "all" ]
+then
+  echo "deploying whole environment"
+  ansible-playbook site.yml --skip-tags "${skipTags}" -i hosts -u xap
+elif [ "$module" == "agents" ]
+then
+  echo "deploying only agents"
+  ansible-playbook agents_deploy.yml --skip-tags "${skipTags}" -i hosts -u xap
+elif [ "$module" == "server" ]
+then
+  echo "deploying only server"
+  ansible-playbook server_deploy.yml --skip-tags "${skipTags}" -i hosts -u xap
+elif [ "$module" == "submitter" ]
+then
+  echo "deploying only submitter"
+  ansible-playbook submitter_deploy.yml --skip-tags "${skipTags}" -i hosts -u xap
+elif [ "$module" == "analytics" ]
+then
+  echo "deploying only analytics"
+  ansible-playbook analytics_deploy.yml --skip-tags "${skipTags}" -i hosts -u xap
+else
+  echo "invalid module option, please choose module from the following set: {all/agents/server/submitter/analytics}"
+  exit 1
+fi
+
+
 
