@@ -97,7 +97,7 @@ public class NewmanAgent {
     }
 
     private void setFinalAgentName() {
-        this.name = "newman-agent-" + UUID.randomUUID().toString();
+        this.name = config.getHostAddress()+ "-" + UUID.randomUUID().toString();
     }
 
     private void start() {

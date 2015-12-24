@@ -57,7 +57,7 @@ public class NewmanAgentConfig {
     }
 
     public String loadHostAddress() {
-            String res = null;
+            String res = "unknownHostAddress";
             try {
                 Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
                 while (e.hasMoreElements()) {
