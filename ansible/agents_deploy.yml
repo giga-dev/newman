@@ -7,14 +7,6 @@
   roles:
     - newman_install
 
-- name: "deploy new newman docker agents"
-  hosts: newNewmanDockerAgents
-  remote_user: xap
-
-  roles:
-    - agent_deploy
-    - agent_crontabs
-
 - name: "deploy newman docker agents"
   hosts: newmanDockerAgents
   remote_user: xap
