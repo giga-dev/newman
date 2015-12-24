@@ -15,7 +15,9 @@ NEWMAN_AGENT_CAPABILITIES="DOCKER,LINUX"
 if [ -z "${NEWMAN_AGENT_WORKERS}" ]; then
    NEWMAN_AGENT_WORKERS=3
 fi
+echo "date is ${date}"
 echo "JAVA_HOME=${JAVA_HOME}"
 echo "env: "
 env
 java -Dnewman.agent.workers=${NEWMAN_AGENT_WORKERS} -Dnewman.agent.home=${NEMAN_AGENT_HOME} -Dnewman.agent.hostname=`hostname`  -Dnewman.agent.server-host=${NEWMAN_SERVER_HOST} -Dnewman.agent.server-port=${NEWMAN_SERVER_PORT} -Dnewman.agent.server-rest-user=${NEWMAN_USERNAME} -Dnewman.agent.server-rest-pw=${NEWMAN_PASSWORD} -Dnewman.agent.capabilities=${NEWMAN_AGENT_CAPABILITIES} -jar newman-agent-1.0.jar > "nohup_agent1.out"
+echo ""
