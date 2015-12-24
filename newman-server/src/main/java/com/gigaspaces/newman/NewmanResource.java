@@ -554,8 +554,7 @@ public class NewmanResource {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
             if(getJob(test.getJobId()) == null){
-                logger.warn("finishTest - the job of the test is not on database. test: [{}].", test);
-                return null;
+                throw new BadRequestException("finishTest - the job of the test is not on database. test: ["+test+"].");
             }
             Test.Status status = test.getStatus();
             if (status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)) {
@@ -566,11 +565,9 @@ public class NewmanResource {
             UpdateOperations<Build> updateBuild = buildDAO.createUpdateOperations();
             testUpdateOps.set("status", status);
             if (status == Test.Status.FAIL) {
-                logger.info("prepare update to **fail** test: test: id:[{}], name:[{}], jobId:[{}]", test.getId(), test.getName(), test.getJobId());
                 updateJobStatus.inc("failedTests");
                 updateBuild.inc("buildStatus.failedTests");
             } else {
-                logger.info("prepare update to **success** test: test: id:[{}], name:[{}], jobId:[{}]", test.getId(), test.getName(), test.getJobId());
                 updateJobStatus.inc("passedTests");
                 updateBuild.inc("buildStatus.passedTests");
             }
@@ -594,7 +591,6 @@ public class NewmanResource {
             logger.info("got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}]", historyStatsString, test.getId(), test.getName(), test.getJobId());
 
             Test result = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(test.getId()), testUpdateOps, false, false);
-            logger.info("find test and modift it- result: [{}]");
             Query<Test> query = testDAO.createQuery();
             query.and(query.criteria("jobId").equal(result.getJobId()),
                     query.or(query.criteria("status").equal(Test.Status.PENDING),
@@ -604,17 +600,15 @@ public class NewmanResource {
                 updateBuild.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
             }
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
-            logger.info("DEBUG(finishTest) ---> modify job: [{}]", job);
-            logger.info("DEBUG(finishTest) ---> Test cause job update: [{}].", result);
+            logger.info("DEBUG(finishTest) ---> modify job: [{}], testResult: [{}]", job, result);
             Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
-            logger.info("DEBUG(finishTest) update build ---> test: [{}].", result);
 
             if (result.getAssignedAgent() != null) {
                 UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date())
                         .removeAll("currentTests", test.getId());
                 Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent()), updateOps, false, false);
-                logger.info("DEBUG(finishTest) find and update agent ---> agent: [{}]", agent);
                 if (agent != null) {
+                    logger.info("DEBUG(finishTest) find and update agent ---> agent: [{}]", agent.getName());
                     Agent idling = null;
                     if (agent.getCurrentTests().isEmpty()) {
                         idling = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent())
@@ -624,19 +618,16 @@ public class NewmanResource {
                     broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
                 }
             }
-            logger.info("succeed finish test {}.", result);
             broadcastMessage(MODIFIED_BUILD, build);
-            logger.info("DEBUG(finishTest) ---> succeed broadcast ##Build##");
             broadcastMessage(MODIFIED_TEST, result);
-            logger.info("DEBUG(finishTest) ---> succeed broadcast ##Test##");
             broadcastMessage(MODIFIED_JOB, job);
-            logger.info("DEBUG(finishTest) ---> succeed broadcast ##Job##");
             broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(job.getSuite()));
-            logger.info("DEBUG(finishTest) ---> succeed broadcast ##Suite##");
+            logger.info("succeed finish test {}.", result);
             return result;
         }
         catch (Exception e){
-            logger.error("DEBUG(finishTest) ---> failed to end finish test because: ", e);
+            logger.error("failed to finish test because: ", e);
+            e.printStackTrace();
             throw e;
         }
     }
@@ -1445,12 +1436,14 @@ public class NewmanResource {
         testsQuery.limit(limit);
 
         List<Test> tests = testDAO.find(testsQuery).asList();
-        logger.info("DEBUG (getTests) get test history of test: [{}], (thisTest: [{}])");
-        logger.info("DEBUG (getTests) history of test ---> tests: [{}]", tests);
+        logger.info("DEBUG (getTests) get test history of testId: [{}], (thisTest: [{}])", id, thisTest);
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
             logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
             TestHistoryItem testHistoryItem = createTestHistoryItem(test);
+            if (testHistoryItem == null) {
+                continue;
+            }
             logger.info("DEBUG (getTests) ---- > testHistoryItem is: [{}]", testHistoryItem);
             testHistoryItemsList.add(testHistoryItem);
         }
@@ -1461,6 +1454,9 @@ public class NewmanResource {
     private TestHistoryItem createTestHistoryItem(Test test) {
 
         Job job = getJob(test.getJobId());
+        if (job == null) {
+            return null;
+        }
         logger.info("DEBUG (createTestHistoryItem) get job of test ---- > test: [{}], job: [{}])", test, job);
         return new TestHistoryItem( new TestView( test ), new JobView( job ) );
     }
