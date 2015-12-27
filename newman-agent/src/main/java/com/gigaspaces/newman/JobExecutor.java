@@ -48,6 +48,7 @@ public class JobExecutor {
                 return false;
             }
             logger.info("Downloading {} resources into {}...", job.getBuild().getResources().size(), resourcesFolder);
+            validateUris(job.getBuild().getResources());
             for (URI resource : job.getBuild().getResources()) {
                 logger.info("Downloading {}...", resource);
                 download(resource.toURL(), resourcesFolder);
@@ -78,9 +79,11 @@ public class JobExecutor {
             return true;
         } catch (IOException e) {
             logger.error("Setup for job {} has failed: {}", job.getId(), e);
+            e.printStackTrace();
             return false;
         } catch (InterruptedException e) {
             logger.error("Setup for job {} was interrupted", job.getId());
+            e.printStackTrace();
             return false;
         }
     }

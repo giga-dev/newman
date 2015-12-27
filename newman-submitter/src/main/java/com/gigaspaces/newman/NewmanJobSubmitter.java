@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static com.gigaspaces.newman.utils.FileUtils.validateUris;
+
 /**
  @author Boris
  @since 1.0
@@ -61,7 +63,7 @@ public class NewmanJobSubmitter {
                 throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
             }
 
-            validUris(build); // throws exception if URI not exists
+            validateUris(build.getTestsMetadata()); // throws exception if URI not exists
 
             Job job = addJob(newmanClient, suiteId, buildId);
             logger.info("added a new job {}", job);
@@ -101,25 +103,6 @@ public class NewmanJobSubmitter {
         }
     }
 
-    private void validUris(Build build) throws IOException {
-        Collection<URI> uris = build.getTestsMetadata();
-        for (URI uri : uris) {
-            InputStream inputStream = null;
-            try{
-                inputStream = uri.toURL().openStream();
-                logger.info("able to connect to URI: " + uri);
-            }
-            catch (IOException e){
-                logger.error("can't connect URI: " + uri, e);
-                throw e;
-            }
-            finally {
-                if(inputStream != null){
-                    inputStream.close();
-                }
-            }
-        }
-    }
 
     private Job addJob(NewmanClient client, String suiteId, String buildId) throws ExecutionException, InterruptedException {
         JobRequest jobRequest = new JobRequest();

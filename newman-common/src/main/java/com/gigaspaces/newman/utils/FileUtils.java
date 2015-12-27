@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -132,6 +133,25 @@ public class FileUtils {
 
     public static Collection listFilesInFolder(final File folder, String[] extensions) {
         return org.apache.commons.io.FileUtils.listFiles(folder, extensions, true);
+    }
+
+    public static void validateUris(Collection<URI> resources) throws IOException {
+        for (URI uri : resources) {
+            InputStream inputStream = null;
+            try{
+                inputStream = uri.toURL().openStream();
+                logger.info("able to connect to URI: " + uri);
+            }
+            catch (IOException e){
+                logger.error("can't connect URI: " + uri, e);
+                throw e;
+            }
+            finally {
+                if(inputStream != null){
+                    inputStream.close();
+                }
+            }
+        }
     }
 
 }
