@@ -10,9 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -101,9 +99,9 @@ public class NewmanSubmitter {
         List<Future<String>> jobs = new ArrayList<>();
         // Submit jobs for suites and wait for them
         logger.info("Using build with id: {}", buildId);
-        List<String> suites = Arrays.asList(suitesIDStr.split(","));
+        List<String> suitesId = Arrays.asList(suitesIDStr.split(","));
         try {
-            for (String suiteId : suites) {
+            for (String suiteId : filterSuites(suitesId, buildId)) {
                 Future<String> worker = submitJobsByThreads(suiteId, buildId);
                 jobs.add(worker);
             }
@@ -118,6 +116,32 @@ public class NewmanSubmitter {
         }
         finally {
             tearDown();
+        }
+    }
+
+    private List<String> filterSuites(List<String> suitesId, String buildId) throws ExecutionException, InterruptedException {
+        try {
+            List<Suite> staticMiniSuites = newmanClient.getAllSuites().toCompletableFuture().get().getValues();
+            Build build = newmanClient.getBuild(buildId).toCompletableFuture().get();
+
+            List<String> filteredSuites = new ArrayList<>();
+            for (Suite staticSuite : staticMiniSuites) {
+                if (suitesId.contains(staticSuite.getId())){
+                    Map<String, String> CustomVariablesMap = Suite.parseCustomVariables(staticSuite.getCustomVariables());
+                    String requireBuildStr = CustomVariablesMap.get("REQUIRE_BUILD_TAG");
+                    Set<String> requireTags = new HashSet<>();
+                    if(requireBuildStr != null){
+                        requireTags = new HashSet<>(Arrays.asList(requireBuildStr.split(",")));
+                    }
+                    if(build.getTags().containsAll(requireTags)){
+                        filteredSuites.add(staticSuite.getId());
+                    }
+                }
+            }
+            return filteredSuites;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  e;
         }
     }
 
