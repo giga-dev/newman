@@ -3,11 +3,9 @@
 - name: "Install newman locally"
   hosts: 127.0.0.1
   connection: local
-
   roles:
     - newman_install
     - server_suspend
-
 - name: "deploy/redeploy newman server"
   hosts: newmanServer
   remote_user: xap
