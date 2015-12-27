@@ -92,12 +92,12 @@ public class NewmanClient {
         return restClient.target(uri).path("tests").request().rx().put(Entity.json(new Batch<>(tests, 0, tests.size(), false, null, null)));
     }
 
-    public CompletionStage<Batch<Build>> getPendingBuildsToSubmit(String branches, String tags) {
+    public CompletionStage<Build> getBuildToSubmit(String branch, String tags, String mode) {
         return restClient.target(uri).path("build").
-                queryParam("branches", branches).
+                queryParam("branch", branch).
                 queryParam("tags", tags).
-                request().rx().get(new GenericType<Batch<Build>>() {
-        });
+                queryParam("mode", mode).
+                request().rx().get(Build.class);
     }
 
     public CompletionStage<Test> finishTest(Test test) {

@@ -498,37 +498,46 @@ public class NewmanResource {
 
 
     // return all builds that need to be submit, e.g there are NO jobs that run with them
+    // each cell on array represent different branch
     @GET
     @Path("build")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Batch<Build> getPendingBuildsToSubmit(
-            @QueryParam("branches") String branchesStr,
-            @QueryParam("tags") String tagsStr) {
+    public Build getPendingBuildsToSubmit(
+            @QueryParam("branch") String branchStr,
+            @QueryParam("tags") String tagsStr,
+            @QueryParam("mode") String modeStr){
+
+        if(modeStr == null || modeStr.isEmpty()){
+            modeStr = "DAILY";
+        }
 
         Set<String> tagsSet = null;
-        if (branchesStr == null || branchesStr.isEmpty()){
-            throw new IllegalArgumentException("branches can not be null or empty when asking for pending builds to submit");
+        if (branchStr == null || branchStr.isEmpty()){
+            throw new IllegalArgumentException("branch can not be null or empty when asking for pending build to submit");
         }
-        List<String> branches = Arrays.asList(branchesStr.split("\\s*,\\s*"));
+
         if(tagsStr != null && !tagsStr.isEmpty()){
             tagsSet = new HashSet<>(Arrays.asList(tagsStr.split("\\s*,\\s*")));
         }
-        List<Build> buildsRes = new ArrayList<>();
+        Build buildsRes = null;
 
-        for (String branch : branches) {
-            Query<Build> query = buildDAO.createQuery().order("-buildTime").field("branch").equal(branch);
+        Query<Build> query = buildDAO.createQuery().order("-buildTime").field("branch").equal(branchStr);
 
-            if(tagsSet != null && !tagsSet.isEmpty()){ // build should be with specifics tags
-                query.field("tags").hasAllOf(tagsSet);
-            }
-
-            Build build = buildDAO.findOne(query);
-            if (build != null && build.getBuildStatus().getTotalJobs() == 0) {
-                buildsRes.add(build);
-            }
+        if(tagsSet != null && !tagsSet.isEmpty()){ // build should be with specifics tags
+            query.field("tags").hasAllOf(tagsSet);
         }
-        return new Batch<>(buildsRes, 0, buildsRes.size(), true, null, null);
+
+        Build build = buildDAO.findOne(query);
+        if (build != null && build.getBuildStatus().getTotalJobs() == 0) {
+            buildsRes = build;
+        }
+        else if(modeStr.equalsIgnoreCase("NIGHTLY")){
+        // insure if nightly mode and there aren't new builds - take last build anyway
+            buildsRes = getLatestBuild(branchStr);
+        }
+
+        return buildsRes;
     }
 
     private Test addTest(Test test) {
@@ -1105,20 +1114,10 @@ public class NewmanResource {
         return jobs.stream().filter(job -> BuildId.equals(job.getBuild().getId())).collect(Collectors.toList());
     }
 
-    public Build getLatestBuild() {
-        return buildDAO.findOne(buildDAO.createQuery().order("-buildTime"));
+    private Build getLatestBuild(String branch) {
+        return buildDAO.findOne(buildDAO.createQuery().order("-buildTime").field("branch").equal(branch));
     }
 
-    @GET
-    @Path("build/latest/{tags}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Build getLatestBuildWithTags(final @PathParam("tags") String tags) {
-        if (tags == null || tags.isEmpty()) {
-            return getLatestBuild();
-        }
-        Set<String> tagsSet = new HashSet<>(Arrays.asList(tags.split("\\s*,\\s*")));
-        return buildDAO.findOne(buildDAO.createQuery().field("tags").hasAllOf(tagsSet).order("-buildTime"));
-    }
 
     @GET
     @Path("build")

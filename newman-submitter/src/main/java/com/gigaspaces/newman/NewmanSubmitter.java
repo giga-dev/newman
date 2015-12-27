@@ -206,44 +206,32 @@ public class NewmanSubmitter {
             System.exit(1);
         }
 
-        String buildToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
-        logger.info("submitter branch: {}, found buildToRun: {}", branch, buildToRun);
-        if(buildToRun != null){
-            newmanSubmitter.submitAndWait(buildToRun, suitesId);
+        String buildIdToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
+        logger.info("build to run - id:[{}], branch:[{}], tags:[{}], mode:[{}].",buildIdToRun, branch, tags, buildIdToRun);
+        if(buildIdToRun != null){
+            newmanSubmitter.submitAndWait(buildIdToRun, suitesId);
         }
         System.exit(0);
     }
 
-    public String getBuildToRun(String branches, String tags, String mode){
-        if(mode.equals("DAILY")){
-            try {
-                // branches and tags should be separated by comma (,)
-                List<Build> buildsNotRunYet = newmanClient.getPendingBuildsToSubmit(branches, tags).toCompletableFuture().get().getValues();
-                if(buildsNotRunYet != null && !buildsNotRunYet.isEmpty()) { //found build to run
-                    Build build =  buildsNotRunYet.get(0);
-                    return build.getId();
-                }
-                logger.warn("failed to find build on branch: {}, tags: {}, mode: {}", branches, tags, mode);
-                return null;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
+    public String getBuildToRun(String branch, String tags, String mode){
+        try {
+            if(mode == null || mode.isEmpty()){
+                mode = "DAILY";
             }
-        }
-        else if(mode.equals("NIGHTLY")){// mode = NIGHTLY
-            try {
-                Build build = newmanClient.getLatestBuild(tags).toCompletableFuture().get();
-                if(build != null){
-                    return build.getId();
-                }
-                logger.warn("failed to find build on branch: {}, tags: {}, mode: {}", branches, tags, mode);
-                return null;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
+            // tags should be separated by comma (,)
+            Build build = newmanClient.getBuildToSubmit(branch, tags, mode).toCompletableFuture().get();
+            if(build != null) {
+                return build.getId();
             }
+            logger.warn("failed to find build on branch: {}, tags: {}, mode: {}", branch, tags, mode);
+            return null;
+
+        } catch (Exception e) {
+            logger.error("failed to get build to run: {}, tags: {}, mode: {}", branch, tags, mode);
+            e.printStackTrace();
+            return null;
         }
-        throw new IllegalArgumentException("illegal mode argument: " + mode);
     }
 
 }
