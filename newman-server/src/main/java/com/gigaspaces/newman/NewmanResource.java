@@ -37,6 +37,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.*;
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -77,6 +78,9 @@ public class NewmanResource {
     private final FutureJobDAO futureJobDAO;
     private final Config config;
     private static final String SERVER_UPLOAD_LOCATION_FOLDER = "tests-logs";
+//    private static final String SERVER_CACHE_BUILDS_PREFIX = "/home/xap/newman-server/";
+private static final String SERVER_CACHE_BUILDS_PREFIX = "/home/tamirs-pcu/tmp_files/cache/";
+
     @SuppressWarnings("FieldCanBeLocal")
     private final Timer timer = new Timer(true);
 
@@ -795,6 +799,119 @@ public class NewmanResource {
 
         return Response.ok(new File(filePath), mediaType).build();
     }
+
+    @GET
+    @Path("resource/{branch}/{BuildName}/{resourceName}")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response downloadResource(@PathParam("branch") String branch,
+                                     @PathParam("BuildName") String BuildName,
+                                     @PathParam("resourceName") String resourceName)
+    {
+        MediaType mediaType;
+        mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+
+        String filePath = calcCacheResourceToDownload(branch, BuildName, resourceName);
+
+        return Response.ok(new File(filePath), mediaType).build();
+    }
+
+    private String calcCacheResourceToDownload(String branch, String BuildName, String resourceName) {
+        return SERVER_CACHE_BUILDS_PREFIX + branch + "/" + BuildName + "/" + resourceName;
+    }
+
+
+    @GET
+    @Path("cacheBuild")
+    public Build cacheBuildInServer(
+            @QueryParam("buildIdToCache") String buildIdToCache) throws IOException, URISyntaxException {
+        try{
+            Build build = getBuild(buildIdToCache);
+
+
+
+            String PathToCache = calcCachePath(build);
+            FileUtils.createFolder(Paths.get(PathToCache));
+            downloadResourceAndMetadata(build, PathToCache);
+            setResourceAndMetadata(build);
+            logger.info("create cached build: [{}]", build);
+            return build;
+        }
+        catch (Exception e){
+            logger.error("could not cache build", e);
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    private void setResourceAndMetadata(Build build) throws URISyntaxException {
+        String branch = build.getBranch();
+        String BuildName = build.getName();
+        String partialNewUrl = "https://192.168.50.66:8443/api/newman/resource/"+branch+"/"+BuildName+"/";
+
+        Collection<URI> newResources = createUriList(build.getResources(), partialNewUrl);
+        Collection<URI> newMetadata = createUriList(build.getTestsMetadata(), partialNewUrl);
+
+        build.setResources(newResources);
+        build.setTestsMetadata(newMetadata);
+    }
+
+    private Collection<URI> createUriList(Collection<URI> resources, String partialNewUrl) throws URISyntaxException {
+        Collection<URI> newResources = new ArrayList<>();
+        for (URI uri : resources) {
+            URI changedResource = changeResourceUrl(uri, partialNewUrl);
+            newResources.add(changedResource);
+        }
+        return newResources;
+    }
+
+//    private void createUriList(String partialNewUrl, Collection<URI> newResources) throws URISyntaxException {
+//        for (URI uri : build.getResources()) {
+//            URI changedResource = changeResourceUrl(uri, partialNewUrl);
+//            newResources.add(changedResource);
+//        }
+//    }
+
+    private URI changeResourceUrl(URI oldUri, String partialNewUrl) throws URISyntaxException {
+        String newRes = oldUri.toString();
+        if(newRes.contains("http://")){
+            int start = newRes.indexOf("http://");
+            int end = newRes.indexOf("/", start);
+            newRes =  newRes.substring(0, start) + partialNewUrl + newRes.substring(end + 1);
+        }
+        return new URI(newRes);
+    }
+
+
+
+
+
+
+    private void downloadResourceAndMetadata(Build build, String pathToCache) throws IOException {
+        for (URI uri : build.getResources()) {
+            try {
+                FileUtils.download(uri.toURL(), Paths.get(pathToCache));
+            } catch (IOException e) {
+                logger.error("can't download url[" + uri + "] to server", e);
+                e.printStackTrace();
+                throw e;
+            }
+        }
+
+        for (URI uri : build.getTestsMetadata()) {
+            try {
+                FileUtils.download(uri.toURL(), Paths.get(pathToCache));
+            } catch (IOException e) {
+                logger.error("can't test metadata url[" + uri + "] to server", e);
+                e.printStackTrace();
+                throw e;
+            }
+        }
+    }
+
+    private String calcCachePath(Build build) {
+        return SERVER_CACHE_BUILDS_PREFIX + build.getBranch() + "/" + build.getName() + "/";
+    }
+
 
     @GET
     @Path("log/size")

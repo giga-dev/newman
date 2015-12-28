@@ -100,6 +100,13 @@ public class NewmanClient {
                 request().rx().get(Build.class);
     }
 
+    public CompletionStage<Build> cacheBuildInServer(String buildIdToRun){
+        return restClient.target(uri).
+                path("cacheBuild").
+                queryParam("buildIdToCache", buildIdToRun).
+                request().rx().get(Build.class);
+    }
+
     public CompletionStage<Test> finishTest(Test test) {
         return restClient.target(uri).path("test").request().rx().post(Entity.json(test), Test.class);
     }
