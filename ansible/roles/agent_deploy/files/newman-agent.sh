@@ -15,7 +15,7 @@ NEWMAN_AGENT_CAPABILITIES="DOCKER,LINUX"
 if [ -z "${NEWMAN_AGENT_WORKERS}" ]; then
    NEWMAN_AGENT_WORKERS=3
 fi
-echo "date is ${date}"
+echo "starting agent, date is `date`"
 echo "JAVA_HOME=${JAVA_HOME}"
 echo "env: "
 env
