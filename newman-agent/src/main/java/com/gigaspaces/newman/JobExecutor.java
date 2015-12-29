@@ -48,7 +48,7 @@ public class JobExecutor {
                 return false;
             }
             logger.info("Downloading {} resources into {}...", job.getBuild().getResources().size(), resourcesFolder);
-            validateUris(job.getBuild().getResources());
+            //validateUris(job.getBuild().getResources());
             for (URI resource : job.getBuild().getResources()) {
                 logger.info("Downloading {}...", resource);
                 download(resource.toURL(), resourcesFolder);

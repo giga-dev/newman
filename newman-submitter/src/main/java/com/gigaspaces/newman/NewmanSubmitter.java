@@ -233,8 +233,8 @@ public class NewmanSubmitter {
         String buildIdToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
         logger.info("build to run - id:[{}], branch:[{}], tags:[{}], mode:[{}].",buildIdToRun, branch, tags, buildIdToRun);
         if(buildIdToRun != null){
-            //Build cachedBuild = newmanSubmitter.newmanClient.cacheBuildInServer(buildIdToRun).toCompletableFuture().get();
-            newmanSubmitter.submitAndWait(buildIdToRun, suitesId);
+            Build cachedBuild = newmanSubmitter.newmanClient.cacheBuildInServer(buildIdToRun).toCompletableFuture().get();
+            newmanSubmitter.submitAndWait(cachedBuild.getId(), suitesId);
         }
         System.exit(0);
     }

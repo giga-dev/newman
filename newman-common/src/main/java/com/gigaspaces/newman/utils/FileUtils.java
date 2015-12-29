@@ -5,7 +5,9 @@ import net.lingala.zip4j.exception.ZipException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.*;
 import java.io.*;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -14,6 +16,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -44,11 +48,6 @@ public class FileUtils {
     }
 
     public static void delete(Path path) throws IOException {
-        /*if (Files.isDirectory(path)) {
-            for (Path f : Files.newDirectoryStream(path))
-                delete(f);
-        }
-        Files.delete(path);*/
         org.apache.commons.io.FileUtils.deleteDirectory(path.toFile());
     }
 
@@ -68,7 +67,16 @@ public class FileUtils {
         return org.apache.commons.io.IOUtils.readLines(is);
     }
 
-    public static Path download(URL source, Path target) throws IOException {
+    public static void download(URL source, Path target) throws IOException {
+        if (source.getProtocol().equalsIgnoreCase("https")) {
+            try {
+                downloadSSL(source, target);
+            }
+            catch (Exception e) {
+                throw new IOException(e);
+            }
+            return;
+        }
         try (ReadableByteChannel rbc = Channels.newChannel(source.openStream())) {
             String sourcePath = source.getPath();
             String filename = sourcePath.substring(sourcePath.lastIndexOf('/') + 1);
@@ -76,11 +84,77 @@ public class FileUtils {
             try (FileOutputStream fos = new FileOutputStream(output.toFile())) {
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             }
-            return output;
         }catch(Exception e){
             logger.error(e.toString(), e);
             throw e;
         }
+    }
+
+    private static void downloadSSL(URL url, Path target) throws IOException, KeyManagementException, NoSuchAlgorithmException {
+        TrustManager[] trustAllCerts = getMockTrustManagers();
+        try {
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setDoOutput(true);
+            connection.setSSLSocketFactory(sc.getSocketFactory());
+            String sourcePath = url.getPath();
+            String filename = sourcePath.substring(sourcePath.lastIndexOf('/') + 1);
+            Path output = append(target, filename);
+            try (InputStream in = connection.getInputStream();
+                 OutputStream out = new FileOutputStream(output.toFile())) {
+                byte[] buff = new byte[1024];
+                int read;
+                while ((read = in.read(buff)) != -1) {
+                    out.write(buff, 0, read);
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString(), e);
+            throw e;
+        }
+    }
+
+    private static TrustManager[] getMockTrustManagers() {
+        return new TrustManager[] { new X509ExtendedTrustManager() {
+
+                @Override
+                public void checkClientTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws java.security.cert.CertificateException {
+
+                }
+
+                @Override
+                public void checkServerTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws java.security.cert.CertificateException {
+
+                }
+
+                @Override
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                @Override
+                public void checkClientTrusted(java.security.cert.X509Certificate[] x509Certificates, String s, Socket socket) throws java.security.cert.CertificateException {
+
+                }
+
+                @Override
+                public void checkServerTrusted(java.security.cert.X509Certificate[] x509Certificates, String s, Socket socket) throws java.security.cert.CertificateException {
+
+                }
+
+                @Override
+                public void checkClientTrusted(java.security.cert.X509Certificate[] x509Certificates, String s, SSLEngine sslEngine) throws java.security.cert.CertificateException {
+
+                }
+
+                @Override
+                public void checkServerTrusted(java.security.cert.X509Certificate[] x509Certificates, String s, SSLEngine sslEngine) throws java.security.cert.CertificateException {
+
+                }
+            } };
     }
 
     public static void unzip(Path source, Path targetFolder) throws IOException {
@@ -152,6 +226,13 @@ public class FileUtils {
                 }
             }
         }
+    }
+
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException {
+        final Path target = Paths.get("testResource");
+        createFolder(target);
+        download(URI.create("https://192.168.11.141:8443/api/newman/resource/master/14708-405/gigaspaces-xap-premium-11.0.0-m8-b14708-405.zip").toURL(), target);
+        download(URI.create("https://192.168.11.141:8443/api/newman/metadata/master/14708-405/gigaspaces-xap-premium-11.0.0-m8-b14708-405.zip").toURL(), target);
     }
 
 }

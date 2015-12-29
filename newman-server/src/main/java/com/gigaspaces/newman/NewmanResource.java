@@ -33,14 +33,15 @@ import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
+import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.*;
 import java.io.*;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.net.UnknownHostException;
+import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -76,10 +77,10 @@ public class NewmanResource {
     private final AgentDAO agentDAO;
     private final SuiteDAO suiteDAO;
     private final FutureJobDAO futureJobDAO;
+    private final BuildsCacheDAO buildsCacheDAO;
     private final Config config;
     private static final String SERVER_UPLOAD_LOCATION_FOLDER = "tests-logs";
-//    private static final String SERVER_CACHE_BUILDS_PREFIX = "/home/xap/newman-server/";
-private static final String SERVER_CACHE_BUILDS_PREFIX = "/home/tamirs-pcu/tmp_files/cache/";
+    private static final String SERVER_CACHE_BUILDS_FOLDER = "builds";
 
     @SuppressWarnings("FieldCanBeLocal")
     private final Timer timer = new Timer(true);
@@ -90,6 +91,9 @@ private static final String SERVER_CACHE_BUILDS_PREFIX = "/home/tamirs-pcu/tmp_f
     private final DistinctIterable distinctTestsByAssignedAgentFilter;
 
     private final static String CRITERIA_PROP_NAME = "criteria";
+
+    private final static boolean buildCacheEnabled = Boolean.getBoolean("newman.server.enabledBuildCache");
+    private static String WEB_ROOT_PATH;
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
@@ -108,7 +112,7 @@ private static final String SERVER_CACHE_BUILDS_PREFIX = "/home/tamirs-pcu/tmp_f
             }
         };
         mongoClient = new MongoClient(config.getMongo().getHost());
-        Morphia morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
+        Morphia morphia = initMorphia();
         Datastore ds = morphia.createDatastore(mongoClient, config.getMongo().getDb());
         ds.ensureIndexes();
         ds.ensureCaps();
@@ -118,6 +122,7 @@ private static final String SERVER_CACHE_BUILDS_PREFIX = "/home/tamirs-pcu/tmp_f
         agentDAO = new AgentDAO(morphia, mongoClient, config.getMongo().getDb());
         suiteDAO = new SuiteDAO(morphia, mongoClient, config.getMongo().getDb());
         futureJobDAO = new FutureJobDAO(morphia, mongoClient, config.getMongo().getDb());
+        buildsCacheDAO = new BuildsCacheDAO(morphia, mongoClient, config.getMongo().getDb());
 
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         MongoCollection testCollection = db.getCollection("Test");
@@ -137,6 +142,36 @@ private static final String SERVER_CACHE_BUILDS_PREFIX = "/home/tamirs-pcu/tmp_f
             }
         }, 1000 * 30, 1000 * 30);
 
+        initBuildsCache();
+
+        initWebRootPath();
+    }
+
+    private Morphia initMorphia() {
+        Morphia morphia;
+        try {
+            morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
+        }
+        catch (Exception e){
+            logger.error("failed to init morphia", e);
+            throw e;
+        }
+        return morphia;
+    }
+
+    private void initWebRootPath() {
+        String address = "localhost";
+        try {
+            address = System.getProperty("newman.server.address", InetAddress.getLocalHost().getHostAddress());
+        } catch (UnknownHostException ignored) {}
+        WEB_ROOT_PATH = "https://" + address  + ":8443/api/newman";
+        logger.info("initialized web root path: {}", WEB_ROOT_PATH);
+    }
+
+    private synchronized void initBuildsCache() {
+        BuildsCache found = buildsCacheDAO.findOne(buildsCacheDAO.createQuery());
+        if (found == null)
+            buildsCacheDAO.save(new BuildsCache());
     }
 
     @GET
@@ -801,115 +836,197 @@ private static final String SERVER_CACHE_BUILDS_PREFIX = "/home/tamirs-pcu/tmp_f
     }
 
     @GET
-    @Path("resource/{branch}/{BuildName}/{resourceName}")
+    @Path("resource/{branch}/{buildName}/{resourceName}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response downloadResource(@PathParam("branch") String branch,
-                                     @PathParam("BuildName") String BuildName,
-                                     @PathParam("resourceName") String resourceName)
-    {
+    public Response getBuildResource(@PathParam("branch") String branch,
+                                     @PathParam("buildName") String buildName,
+                                     @PathParam("resourceName") String resourceName) throws IOException {
         MediaType mediaType;
         mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
-        String filePath = calcCacheResourceToDownload(branch, BuildName, resourceName);
-
-        return Response.ok(new File(filePath), mediaType).build();
+        String filePath = calcCacheResourceToDownload(branch, buildName, resourceName, true);
+        InputStream is = org.apache.commons.io.FileUtils.openInputStream(new File(filePath));
+        return Response.ok(is, mediaType).build();
     }
 
-    private String calcCacheResourceToDownload(String branch, String BuildName, String resourceName) {
-        return SERVER_CACHE_BUILDS_PREFIX + branch + "/" + BuildName + "/" + resourceName;
+    @GET
+    @Path("metadata/{branch}/{buildName}/{resourceName}")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response getBuildMetadata(@PathParam("branch") String branch,
+                                     @PathParam("buildName") String buildName,
+                                     @PathParam("resourceName") String resourceName) throws IOException {
+        MediaType mediaType;
+        mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+
+        String filePath = calcCacheResourceToDownload(branch, buildName, resourceName, false);
+        InputStream is = org.apache.commons.io.FileUtils.openInputStream(new File(filePath));
+        return Response.ok(is, mediaType).build();
+    }
+
+    private String calcCacheResourceToDownload(String branch, String BuildName, String resourceName, boolean resource) {
+        String resourcesOrMetadata = resource ? "resources" : "metadata";
+        return SERVER_CACHE_BUILDS_FOLDER + "/" + branch + "/" + BuildName + "/" +resourcesOrMetadata + "/" + resourceName;
     }
 
 
     @GET
     @Path("cacheBuild")
-    public Build cacheBuildInServer(
-            @QueryParam("buildIdToCache") String buildIdToCache) throws IOException, URISyntaxException {
+    @Produces(MediaType.APPLICATION_JSON)
+    public synchronized Build cacheBuild(@QueryParam("buildIdToCache") String buildIdToCache) throws IOException, URISyntaxException {
         try{
             Build build = getBuild(buildIdToCache);
 
+            if (build == null) {
+                throw new IllegalArgumentException("cant cache the build with id "+ buildIdToCache +" because it does not exists");
+            }
 
+            if (!buildCacheEnabled) {
+                logger.info("build caching is disabled");
+                return build;
+            }
 
-            String PathToCache = calcCachePath(build);
-            FileUtils.createFolder(Paths.get(PathToCache));
-            downloadResourceAndMetadata(build, PathToCache);
-            setResourceAndMetadata(build);
+            if (isBuildInCache(build)) {
+                logger.info("the build {} is already in cache", build);
+                return build;
+            }
+            try {
+
+                storeBuildInCache(build);
+
+                downloadResourceAndMetadata(build);
+
+                updateResourceAndMetadataURIs(build);
+            }
+            catch (Exception e) {
+                // restore cache
+                try {
+                    removeFromCache(build);
+                }
+                finally {
+                    FileUtils.delete(new File(calcCachePath(build)).toPath());
+                }
+                throw e;
+            }
+
             logger.info("create cached build: [{}]", build);
             return build;
         }
         catch (Exception e){
             logger.error("could not cache build", e);
-            e.printStackTrace();
             throw e;
         }
     }
 
-    private void setResourceAndMetadata(Build build) throws URISyntaxException {
+    private boolean isBuildInCache(Build build) {
+        return getCache().isInCache(build);
+    }
+
+    private void removeFromCache(Build build) {
+        BuildsCache cache = getCache();
+        cache.remove(build);
+        updateBuildCache(cache);
+    }
+
+    private void updateBuildCache(BuildsCache cache) {
+        UpdateOperations<BuildsCache> updateOps = buildsCacheDAO.createUpdateOperations();
+        updateOps.set("cache", cache.getCache());
+        updateOps.set("index", cache.getIndex());
+        updateOps.set("size", cache.getSize());
+        Query<BuildsCache> query = buildsCacheDAO.createIdQuery(cache.getId());
+        buildDAO.getDatastore().findAndModify(query, updateOps);
+    }
+
+    private void storeBuildInCache(Build build) throws IOException {
+        BuildsCache cache = getCache();
+        Build toRemove = cache.put(build);
+        updateBuildCache(cache);
+        // evict if no room is left in the cache - revert resources links and delete artifacts from disk
+        if (toRemove != null) {
+            revertBuild(toRemove);
+        }
+    }
+
+    private void revertBuild(Build toRemove) throws IOException {
+        try {
+            updateBuild(toRemove.getId(), toRemove);
+        }
+        finally {
+            FileUtils.delete(new File(calcCachePath(toRemove)).toPath());
+        }
+    }
+
+    private BuildsCache getCache() {
+        BuildsCache cache = buildsCacheDAO.findOne(buildsCacheDAO.createQuery());
+        if (cache == null) {
+            throw new IllegalStateException("builds cache is null");
+        }
+        return cache;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void updateResourceAndMetadataURIs(Build build) throws URISyntaxException {
+        String rootCacheFolder = calcCachePath(build);
+        java.nio.file.Path pathToResources = FileUtils.append(rootCacheFolder, "resources");
+        java.nio.file.Path pathToMetadata = FileUtils.append(rootCacheFolder, "metadata");
+        final Collection resources = FileUtils.listFilesInFolder(pathToResources.toFile());
+        final Collection metadata = FileUtils.listFilesInFolder(pathToMetadata.toFile());
+        injectURIs(resources, true, build);
+        injectURIs(metadata, false, build);
+        updateBuild(build.getId(), build);
+    }
+
+    private void injectURIs(Collection<File> files, boolean isResource, Build build) {
         String branch = build.getBranch();
-        String BuildName = build.getName();
-        String partialNewUrl = "https://192.168.50.66:8443/api/newman/resource/"+branch+"/"+BuildName+"/";
-
-        Collection<URI> newResources = createUriList(build.getResources(), partialNewUrl);
-        Collection<URI> newMetadata = createUriList(build.getTestsMetadata(), partialNewUrl);
-
-        build.setResources(newResources);
-        build.setTestsMetadata(newMetadata);
-    }
-
-    private Collection<URI> createUriList(Collection<URI> resources, String partialNewUrl) throws URISyntaxException {
+        String buildName = build.getName();
+        String resourcesOrMetadata = isResource ? "resource" : "metadata";
+        String uriPrefix = WEB_ROOT_PATH + "/" + resourcesOrMetadata + "/" + branch + "/" + buildName + "/";
         Collection<URI> newResources = new ArrayList<>();
-        for (URI uri : resources) {
-            URI changedResource = changeResourceUrl(uri, partialNewUrl);
-            newResources.add(changedResource);
+        for (File file : files) {
+            newResources.add(URI.create(uriPrefix + file.getName()));
         }
-        return newResources;
+        if (isResource) {
+            build.setResources(newResources);
+        }
+        else {
+            build.setTestsMetadata(newResources);
+        }
     }
 
-//    private void createUriList(String partialNewUrl, Collection<URI> newResources) throws URISyntaxException {
-//        for (URI uri : build.getResources()) {
-//            URI changedResource = changeResourceUrl(uri, partialNewUrl);
-//            newResources.add(changedResource);
-//        }
-//    }
+    private void downloadResourceAndMetadata(Build build) throws IOException {
 
-    private URI changeResourceUrl(URI oldUri, String partialNewUrl) throws URISyntaxException {
-        String newRes = oldUri.toString();
-        if(newRes.contains("http://")){
-            int start = newRes.indexOf("http://");
-            int end = newRes.indexOf("/", start);
-            newRes =  newRes.substring(0, start) + partialNewUrl + newRes.substring(end + 1);
-        }
-        return new URI(newRes);
-    }
+        String pathToCache = calcCachePath(build);
+        // create folders to store resources and metadata
+        java.nio.file.Path rootCacheFolder = Paths.get(pathToCache);
+        FileUtils.createFolder(rootCacheFolder);
+        java.nio.file.Path pathToResources = FileUtils.append(rootCacheFolder, "resources");
+        FileUtils.createFolder(pathToResources);
+        java.nio.file.Path pathToMetadata = FileUtils.append(rootCacheFolder, "metadata");
+        FileUtils.createFolder(pathToMetadata);
 
-
-
-
-
-
-    private void downloadResourceAndMetadata(Build build, String pathToCache) throws IOException {
+        logger.info("Downloading {} resources into {}...", build.getResources().size(), pathToResources);
         for (URI uri : build.getResources()) {
+            logger.info("Downloading {}...", uri);
             try {
-                FileUtils.download(uri.toURL(), Paths.get(pathToCache));
+                FileUtils.download(uri.toURL(), pathToResources);
             } catch (IOException e) {
-                logger.error("can't download url[" + uri + "] to server", e);
-                e.printStackTrace();
+                logger.error("failed to download url[" + uri + "] to server", e);
                 throw e;
             }
         }
-
+        logger.info("Downloading {} metadata into {}...", build.getResources().size(), pathToMetadata);
         for (URI uri : build.getTestsMetadata()) {
+            logger.info("Downloading {}...", uri);
             try {
-                FileUtils.download(uri.toURL(), Paths.get(pathToCache));
+                FileUtils.download(uri.toURL(), pathToMetadata);
             } catch (IOException e) {
-                logger.error("can't test metadata url[" + uri + "] to server", e);
-                e.printStackTrace();
+                logger.error("failed to download test metadata url[" + uri + "] to server", e);
                 throw e;
             }
         }
     }
 
     private String calcCachePath(Build build) {
-        return SERVER_CACHE_BUILDS_PREFIX + build.getBranch() + "/" + build.getName() + "/";
+        return SERVER_CACHE_BUILDS_FOLDER + "/" + build.getBranch() + "/" + build.getName() + "/";
     }
 
 
@@ -1332,9 +1449,7 @@ private static final String SERVER_CACHE_BUILDS_PREFIX = "/home/tamirs-pcu/tmp_f
     @Path("build/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Build getBuild(final @PathParam("id") String id) {
-        Build build = buildDAO.findOne(buildDAO.createIdQuery(id));
-        logger.info("build=" + build);
-        return build;
+        return buildDAO.findOne(buildDAO.createIdQuery(id));
     }
 
 

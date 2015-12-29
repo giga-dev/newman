@@ -121,4 +121,25 @@ public class Build {
                 .append("buildStatus", buildStatus)
                 .toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Build build = (Build) o;
+
+        if (id != null ? !id.equals(build.id) : build.id != null) return false;
+        if (name != null ? !name.equals(build.name) : build.name != null) return false;
+        return !(branch != null ? !branch.equals(build.branch) : build.branch != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (branch != null ? branch.hashCode() : 0);
+        return result;
+    }
 }

@@ -24,7 +24,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.Collections;
+import java.util.Arrays;
 
 import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
 
@@ -53,17 +53,14 @@ public class NewmanServer {
         ConstraintSecurityHandler security = new ConstraintSecurityHandler();
         server.setHandler(security);
 
-        Constraint constraint = new Constraint();
-        constraint.setName("auth");
-        constraint.setAuthenticate(true);
-        constraint.setRoles(new String[]{"user", "admin"});
-//        constraint.setRoles(new String[]{"admin"});
+        ConstraintMapping mapping = createConstraintMapping("auth", true, "/*", "user", "admin");
+        ConstraintMapping allowResourcesMapping = createConstraintMapping("auth2", false, "/api/newman/resource/*");
+        ConstraintMapping allowMetadataMapping = createConstraintMapping("auth3", false, "/api/newman/metadata/*");
 
-        ConstraintMapping mapping = new ConstraintMapping();
-        mapping.setPathSpec("/*");
-        mapping.setConstraint(constraint);
+        security.setConstraintMappings(Arrays.asList(new ConstraintMapping[] {
+            mapping, allowMetadataMapping, allowResourcesMapping
+        }));
 
-        security.setConstraintMappings(Collections.singletonList(mapping));
         security.setAuthenticator(new BasicAuthenticator());
         security.setLoginService(loginService);
         /* security */
@@ -138,6 +135,19 @@ public class NewmanServer {
         } finally {
             server.destroy();
         }
+    }
+
+    private static ConstraintMapping createConstraintMapping(String name, boolean authenticate, String pathSpec, String... roles) {
+        Constraint constraint = new Constraint();
+        constraint.setName(name);
+        constraint.setAuthenticate(authenticate);
+        ConstraintMapping mapping = new ConstraintMapping();
+        mapping.setPathSpec(pathSpec);
+        mapping.setConstraint(constraint);
+        if (roles != null) {
+            constraint.setRoles(roles);
+        }
+        return mapping;
     }
 
     private static Resource createKeystoreResource() throws MalformedURLException {
