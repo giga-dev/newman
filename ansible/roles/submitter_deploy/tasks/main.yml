@@ -18,4 +18,5 @@
   copy: src={{newman_local_dir}}/ansible/roles/submitter_deploy/files/submitter-env.sh dest={{submitter_home_dir}} owner=xap mode=0777
 - name: "start submitter"
   shell: ./nohup-newman-submitter-loop.sh chdir="{{submitter_home_dir}}"
-  ignore_errors: yes
+- name: "wait for submitter to start"
+  wait_for: path={{submitter_home_dir}}/submitter-loop.log search_regex="starting loop over branches"
