@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by tamirs
@@ -26,7 +28,7 @@ public class NewmanFutureJobSubmitter {
     private static final String MY_NAME = "MY_NAME"; // for example: tamirs
 
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException {
+    public static void main(String[] args) throws NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException, TimeoutException {
 
         // NOTE - need to pass system argument!
 
@@ -41,7 +43,13 @@ public class NewmanFutureJobSubmitter {
         name = EnvUtils.getEnvironment(MY_NAME, true /*required*/, logger);
 
         valid(newmanClient, build_id, suite_id, name);
-        FutureJob futureJob = newmanClient.createFutureJob(build_id, suite_id).toCompletableFuture().get();
+        FutureJob futureJob = null;
+        try {
+            futureJob = newmanClient.createFutureJob(build_id, suite_id).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            logger.error("can't create future job. execption: {}", e);
+            throw e;
+        }
         logger.info("{} creates futureJob with id: {}, build id: {}, and suite id: {}.",futureJob.getAuthor(), futureJob.getId(), futureJob.getBuildID(), futureJob.getSuiteID());
     }
 
@@ -54,12 +62,12 @@ public class NewmanFutureJobSubmitter {
             throw new RuntimeException("suite id is empty string or null");
         }
         try{
-            newmanClient.getBuild(build_id).toCompletableFuture().get();
+            newmanClient.getBuild(build_id).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }catch (Exception e){
             throw new RuntimeException("build id : "+ build_id +" does not exist");
         }
         try{
-            newmanClient.getSuite(suite_id).toCompletableFuture().get();
+            newmanClient.getSuite(suite_id).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }catch (Exception e){
             throw new RuntimeException("suite id: "+ suite_id +" does not exist");
         }
@@ -79,7 +87,7 @@ public class NewmanFutureJobSubmitter {
         try {
             nc = NewmanClient.create(host, port, username, password);
             //try to connect to fail fast when server is down
-            nc.getJobs().toCompletableFuture().get();
+            nc.getJobs().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (Exception e) {
             throw new RuntimeException("newmanClient did not connect, check if server up and arguments");
         }

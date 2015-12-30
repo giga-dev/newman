@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static com.gigaspaces.newman.utils.FileUtils.validateUris;
 
@@ -51,14 +53,26 @@ public class NewmanJobSubmitter {
         }
     }
 
-    public String submitJob() throws ExecutionException, InterruptedException, IOException, ParseException {
+    public String submitJob() throws ExecutionException, InterruptedException, IOException, ParseException, TimeoutException {
         try {
-            Suite suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
+            Suite suite = null;
+            try {
+                suite = newmanClient.getSuite(suiteId).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                logger.error("can't get suite to submit. exception: {}" , e);
+                throw  e;
+            }
             if (suite == null) {
                 throw new IllegalArgumentException("suite with id: " + suiteId + " does not exists");
             }
-
-            Build build = newmanClient.getBuild(buildId).toCompletableFuture().get();
+            Build build = null;
+            try{
+                build = newmanClient.getBuild(buildId).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            }
+            catch (TimeoutException e){
+                logger.error("can't get build to submit. exception: {}" , e);
+                throw  e;
+            }
             if (build == null) {
                 throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
             }
@@ -104,15 +118,25 @@ public class NewmanJobSubmitter {
     }
 
 
-    private Job addJob(NewmanClient client, String suiteId, String buildId) throws ExecutionException, InterruptedException {
+    private Job addJob(NewmanClient client, String suiteId, String buildId) throws ExecutionException, InterruptedException, TimeoutException {
         JobRequest jobRequest = new JobRequest();
         jobRequest.setBuildId(buildId);
         jobRequest.setSuiteId(suiteId);
-        return client.createJob(jobRequest).toCompletableFuture().get();
+        try {
+            return client.createJob(jobRequest).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            logger.error("can't create job: suiteId: [{}], buildId:[{}]. exception: {}", suiteId, buildId, e);
+            throw e;
+        }
     }
 
-    private void addTests(List<Test> tests, NewmanClient client) throws ExecutionException, InterruptedException {
-        client.createTests(tests).toCompletableFuture().get();
+    private void addTests(List<Test> tests, NewmanClient client) throws ExecutionException, InterruptedException, TimeoutException {
+        try {
+            client.createTests(tests).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            logger.error("can't create tests. exception: {}", e);
+            throw e;
+        }
     }
 
     private List<Test> parseMetadata(InputStream is) throws IOException, ParseException {
@@ -135,7 +159,7 @@ public class NewmanJobSubmitter {
     }
 
     //0- suiteId, 1-buildId, 2-host, 3- port, 4- user, 5- password
-    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException {
+    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException, TimeoutException {
 
         if (args.length != 6){
             logger.error("Usage: java -cp newman-submitter-1.0.jar com.gigaspaces.newman.NewmanJobSubmitter <suiteid> <buildId>" +

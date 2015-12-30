@@ -28,6 +28,7 @@ public class NewmanSubmitter {
     private static final int MAX_THREADS = 20;
     private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
     private static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
+    public static final int DEFAULT_TIMEOUT_SECONDS = 60;
     // modes = FORCE, REGULAR
     private static final String NEWMAN_MODE = "NEWMAN_MODE";
 
@@ -59,7 +60,7 @@ public class NewmanSubmitter {
         }
     }
 
-    public boolean submitFutureJobsIfAny(){
+    public boolean submitFutureJobsIfAny() throws InterruptedException, ExecutionException, TimeoutException {
         // Submit future jobs if exists
         List<Future<String>> jobs = submitFutureJobs();
         if(jobs.isEmpty()){ // if there are no future jobs
@@ -95,7 +96,7 @@ public class NewmanSubmitter {
         }
     }
 
-    public void submitAndWait(String buildId, String suitesIDStr) throws InterruptedException, ExecutionException, IOException {
+    public void submitAndWait(String buildId, String suitesIDStr) throws InterruptedException, ExecutionException, IOException, TimeoutException {
         List<Future<String>> jobs = new ArrayList<>();
         // Submit jobs for suites and wait for them
         logger.info("Using build with id: {}", buildId);
@@ -119,10 +120,10 @@ public class NewmanSubmitter {
         }
     }
 
-    private List<String> filterSuites(List<String> suitesId, String buildId) throws ExecutionException, InterruptedException {
+    private List<String> filterSuites(List<String> suitesId, String buildId) throws ExecutionException, InterruptedException, TimeoutException {
         try {
-            List<Suite> staticMiniSuites = newmanClient.getAllSuites().toCompletableFuture().get().getValues();
-            Build build = newmanClient.getBuild(buildId).toCompletableFuture().get();
+            List<Suite> staticMiniSuites = newmanClient.getAllSuites().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS).getValues();
+            Build build = newmanClient.getBuild(buildId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             List<String> filteredSuites = new ArrayList<>();
             for (Suite staticSuite : staticMiniSuites) {
@@ -140,7 +141,7 @@ public class NewmanSubmitter {
             }
             return filteredSuites;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("can't filter suites. exception: {}", e);
             throw  e;
         }
     }
@@ -148,7 +149,7 @@ public class NewmanSubmitter {
     /**
      * @return List of Future jobs ids.
      */
-    private List<Future<String>> submitFutureJobs(){
+    private List<Future<String>> submitFutureJobs() throws InterruptedException, ExecutionException, TimeoutException {
         List<Future<String>> futureJobIds = new ArrayList<>();
         FutureJob futureJob = getAndDeleteFutureJob();
         while(futureJob != null){
@@ -163,7 +164,7 @@ public class NewmanSubmitter {
         return workers.submit(() -> {
             Suite suite = null;
             try {
-                suite = newmanClient.getSuite(suiteId).toCompletableFuture().get();
+                suite = newmanClient.getSuite(suiteId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 if (suite == null) {
                     throw new IllegalArgumentException("job suite with id: " + suiteId + " does not exists");
                 }
@@ -183,32 +184,33 @@ public class NewmanSubmitter {
     }
 
 
-    private FutureJob getAndDeleteFutureJob(){
+    private FutureJob getAndDeleteFutureJob() throws InterruptedException, ExecutionException, TimeoutException {
         FutureJob futureJob = null;
         try {
-            futureJob = newmanClient.getAndDeleteOldestFutureJob().toCompletableFuture().get();
+            futureJob = newmanClient.getAndDeleteOldestFutureJob().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (Exception e) {
-            logger.error("failed to submit future job and delete it");
+            logger.error("failed to submit future job and delete it", e);
+            throw e;
         }
         return futureJob;
     }
 
     private boolean isJobFinished(String jobId) {
         try {
-            final Job job = newmanClient.getJob(jobId).toCompletableFuture().get();
+            final Job job = newmanClient.getJob(jobId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if (job == null){
                 throw new IllegalArgumentException("No such job with id: " + jobId);
             }
             return job.getState() == State.DONE;
 
         }
-        catch (InterruptedException | ExecutionException e) {
-            logger.error("failed to check if job is finished", e);
+        catch (InterruptedException | ExecutionException | TimeoutException e) {
+            logger.error("failed to check if job is finished. exception: {}", e);
             return false;
         }
     }
 
-    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException {
+    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException, TimeoutException {
         // connection arguments
         String host = EnvUtils.getEnvironment(NEWMAN_HOST, logger);
         String port = EnvUtils.getEnvironment(NEWMAN_PORT, logger);
@@ -231,7 +233,7 @@ public class NewmanSubmitter {
         }
 
         String buildIdToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
-        logger.info("build to run - id:[{}], branch:[{}], tags:[{}], mode:[{}].",buildIdToRun, branch, tags, buildIdToRun);
+        logger.info("build to run - id:[{}], branch:[{}], tags:[{}], mode:[{}].",buildIdToRun, branch, tags, mode);
         if(buildIdToRun != null){
             Build cachedBuild = newmanSubmitter.newmanClient.cacheBuildInServer(buildIdToRun).toCompletableFuture().get();
             newmanSubmitter.submitAndWait(cachedBuild.getId(), suitesId);
@@ -245,7 +247,7 @@ public class NewmanSubmitter {
                 mode = "DAILY";
             }
             // tags should be separated by comma (,)
-            Build build = newmanClient.getBuildToSubmit(branch, tags, mode).toCompletableFuture().get();
+            Build build = newmanClient.getBuildToSubmit(branch, tags, mode).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if(build != null) {
                 return build.getId();
             }
@@ -253,8 +255,7 @@ public class NewmanSubmitter {
             return null;
 
         } catch (Exception e) {
-            logger.error("failed to get build to run: {}, tags: {}, mode: {}", branch, tags, mode);
-            e.printStackTrace();
+            logger.error("failed to get build to run: {}, tags: {}, mode: {}, exception: {}", branch, tags, mode, e);
             return null;
         }
     }

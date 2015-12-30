@@ -28,6 +28,7 @@ public class NewmanAgent {
     private volatile NewmanClient client;
     private volatile boolean active = true;
     private final Timer timer = new Timer(true);
+    private static final int DEFAULT_TIMEOUT_SECONDS = 60;
 
     public static void main(String[] args) {
         NewmanAgent agent = new NewmanAgent();
@@ -58,7 +59,7 @@ public class NewmanAgent {
                 this.client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                         config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
                 //try to connect to fail fast when server is down
-                client.getJobs().toCompletableFuture().get();
+                client.getJobs().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 FileUtils.createFolder(append(config.getNewmanHome(), "logs"));
                 break;
             } catch (Exception e) {
@@ -115,8 +116,8 @@ public class NewmanAgent {
                 //inform the server that agent is not working on this job
                 Agent agent;
                 try {
-                    agent = c.getAgent(name).toCompletableFuture().get();
-                    c.unsubscribe(agent).toCompletableFuture().get();
+                    agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    c.unsubscribe(agent).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 }
                 catch (IllegalStateException e){
                     c = getClient();
@@ -192,7 +193,7 @@ public class NewmanAgent {
             shutDownWorkers();
             if (client != null) {
                 try {
-                    client.freeAgent(name).toCompletableFuture().get();
+                    client.freeAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 } catch (Exception e) {
                     logger.error("failed to free the agent" + name, e);
                 }
@@ -234,7 +235,7 @@ public class NewmanAgent {
         NewmanClient c = getClient();
         while (true) {
             try {
-                Job job = c.subscribe(agent).toCompletableFuture().get();
+                Job job = c.subscribe(agent).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 2, TimeUnit.SECONDS);
                 if (job != null)
                     return job;
 
@@ -288,7 +289,7 @@ public class NewmanAgent {
                 client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                         config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
                 //try to connect to fail fast when server is down
-                client.ping(name, "").toCompletableFuture().get();
+                client.ping(name, "").toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 break;
             } catch (Exception e) {
                 logger.warn("failure while recreation of newman client, will retry...", e);
@@ -320,11 +321,11 @@ public class NewmanAgent {
         while (true) {
             try {
                 //update test removes Agent assignment
-                Test finishedTest = c.finishTest(testResult).toCompletableFuture().get();
+                Test finishedTest = c.finishTest(testResult).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 logger.info("finished test [{}].", finishedTest);
                 Path logs = append(config.getNewmanHome(), "logs");
                 Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
-                Test testLog = c.uploadLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get();
+                Test testLog = c.uploadLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS*4, TimeUnit.SECONDS);
                 logger.info("update log testLog [{}].", testLog);
                 break;
             }

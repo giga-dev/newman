@@ -13,6 +13,8 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -83,7 +85,7 @@ public class NewmanBuildSubmitter {
         return buildMetadata;
     }
 
-    public String submitBuild() throws IOException, ExecutionException, InterruptedException {
+    public String submitBuild() throws IOException, ExecutionException, InterruptedException, TimeoutException {
 
         logger.info("Initialized newman build submitter with the following build metadata: " + buildMetadata);
         try {
@@ -100,11 +102,15 @@ public class NewmanBuildSubmitter {
             b.setTestsMetadata(testsMetadata);
             // set tags
             b.setTags(buildMetadata.getTags());
-            Build build = newmanClient.createBuild(b).toCompletableFuture().get();
+            Build build = newmanClient.createBuild(b).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             logger.info("Build {} was created successfully", build);
             return build.getId();
 
-        } finally {
+        }catch (Exception e){
+            logger.error("can't submit build. exception: {}", e);
+            throw e;
+        }
+        finally {
             newmanClient.close();
         }
     }
@@ -132,7 +138,7 @@ public class NewmanBuildSubmitter {
         return shas;
     }
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException {
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException, TimeoutException {
         // connection arguments
         String host = EnvUtils.getEnvironment(NEWMAN_HOST, logger);
         String port = EnvUtils.getEnvironment(NEWMAN_PORT, logger);
