@@ -174,7 +174,7 @@ public class NewmanResource {
         }
     }
 
-    private synchronized void initBuildsCache() {
+    private void initBuildsCache() {
         BuildsCache found = buildsCacheDAO.findOne(buildsCacheDAO.createQuery());
         if (found == null) {
             buildsCacheDAO.save(new BuildsCache());
