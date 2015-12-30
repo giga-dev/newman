@@ -93,7 +93,8 @@ public class NewmanResource {
     private final static String CRITERIA_PROP_NAME = "criteria";
 
     private final static boolean buildCacheEnabled = Boolean.getBoolean("newman.server.enabledBuildCache");
-    private static String WEB_ROOT_PATH;
+    private static String HTTP_WEB_ROOT_PATH;
+    private static String HTTPS_WEB_ROOT_PATH;
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
@@ -144,7 +145,7 @@ public class NewmanResource {
 
         initBuildsCache();
 
-        initWebRootPath();
+        initWebRootsPath();
     }
 
     private Morphia initMorphia() {
@@ -159,13 +160,18 @@ public class NewmanResource {
         return morphia;
     }
 
-    private void initWebRootPath() {
-        String address = "localhost";
-        try {
-            address = System.getProperty("newman.server.address", InetAddress.getLocalHost().getHostAddress());
-        } catch (UnknownHostException ignored) {}
-        WEB_ROOT_PATH = "https://" + address  + ":8443/api/newman";
-        logger.info("initialized web root path: {}", WEB_ROOT_PATH);
+    private void initWebRootsPath() {
+        if (HTTP_WEB_ROOT_PATH == null && HTTPS_WEB_ROOT_PATH == null) {
+            String address = "localhost";
+            try {
+                address = System.getProperty("newman.server.address", InetAddress.getLocalHost().getHostAddress());
+            } catch (UnknownHostException ignored) {
+            }
+            HTTP_WEB_ROOT_PATH = "http://" + address + ":8080/api/newman";
+            HTTPS_WEB_ROOT_PATH = "https://" + address + ":8443/api/newman";
+            logger.info("initialized http web root path: {}", HTTP_WEB_ROOT_PATH);
+            logger.info("initialized https web root path: {}", HTTPS_WEB_ROOT_PATH);
+        }
     }
 
     private synchronized void initBuildsCache() {
@@ -621,7 +627,7 @@ public class NewmanResource {
             }
             updateJobStatus.dec("runningTests");
             updateBuild.dec("buildStatus.runningTests");
-            logger.info("DEBUG(finishTest) ---> prepare job update because test: id:[{}], name:[{}], jobId:[{}]", test.getId(), test.getName(), test.getJobId());
+            //logger.info("DEBUG(finishTest) ---> prepare job update because test: id:[{}], name:[{}], jobId:[{}]", test.getId(), test.getName(), test.getJobId());
 
             if (test.getErrorMessage() != null) {
                 testUpdateOps.set("errorMessage", test.getErrorMessage());
@@ -648,7 +654,7 @@ public class NewmanResource {
                 updateBuild.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
             }
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
-            logger.info("DEBUG(finishTest) ---> modify job: [{}], testResult: [{}]", job, result);
+            //logger.info("DEBUG(finishTest) ---> modify job: [{}], testResult: [{}]", job, result);
             Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
 
             if (result.getAssignedAgent() != null) {
@@ -656,7 +662,7 @@ public class NewmanResource {
                         .removeAll("currentTests", test.getId());
                 Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent()), updateOps, false, false);
                 if (agent != null) {
-                    logger.info("DEBUG(finishTest) find and update agent ---> agent: [{}]", agent.getName());
+                    //logger.info("DEBUG(finishTest) find and update agent ---> agent: [{}]", agent.getName());
                     Agent idling = null;
                     if (agent.getCurrentTests().isEmpty()) {
                         idling = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent())
@@ -979,7 +985,7 @@ public class NewmanResource {
         String branch = build.getBranch();
         String buildName = build.getName();
         String resourcesOrMetadata = isResource ? "resource" : "metadata";
-        String uriPrefix = WEB_ROOT_PATH + "/" + resourcesOrMetadata + "/" + branch + "/" + buildName + "/";
+        String uriPrefix = HTTP_WEB_ROOT_PATH + "/" + resourcesOrMetadata + "/" + branch + "/" + buildName + "/";
         Collection<URI> newResources = new ArrayList<>();
         for (File file : files) {
             newResources.add(URI.create(uriPrefix + file.getName()));
@@ -1002,7 +1008,10 @@ public class NewmanResource {
         FileUtils.createFolder(pathToResources);
         java.nio.file.Path pathToMetadata = FileUtils.append(rootCacheFolder, "metadata");
         FileUtils.createFolder(pathToMetadata);
-
+        // validate links to resources and metadata before downloading
+        FileUtils.validateUris(build.getResources());
+        FileUtils.validateUris(build.getTestsMetadata());
+        // download resources and metadata to server cache
         logger.info("Downloading {} resources into {}...", build.getResources().size(), pathToResources);
         for (URI uri : build.getResources()) {
             logger.info("Downloading {}...", uri);
@@ -1211,8 +1220,8 @@ public class NewmanResource {
                 if (job.getStartTime() == null) {
                     updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
                     job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
-                    logger.info("DEBUG (getTest) ---> update job: [{}]", job);
-                    logger.info("DEBUG (getTest) ---> Test cause job update: [{}].", result);
+                    //logger.info("DEBUG (getTest) ---> update job: [{}]", job);
+                    //logger.info("DEBUG (getTest) ---> Test cause job update: [{}].", result);
                     buildUpdateOperations.inc("buildStatus.runningJobs").dec("buildStatus.pendingJobs");
                 }
                 agentUpdateOps.add("currentTests", result.getId());
@@ -1401,6 +1410,9 @@ public class NewmanResource {
         }
         if (build.getResources() != null) {
             updateOps.set("resources", build.getResources());
+        }
+        if (build.getTestsMetadata() != null) {
+            updateOps.set("testsMetadata", build.getTestsMetadata());
         }
         Query<Build> query = buildDAO.createIdQuery(id);
         Build result = buildDAO.getDatastore().findAndModify(query, updateOps);
@@ -1667,15 +1679,15 @@ public class NewmanResource {
         testsQuery.limit(limit);
 
         List<Test> tests = testDAO.find(testsQuery).asList();
-        logger.info("DEBUG (getTests) get test history of testId: [{}], (thisTest: [{}])", id, thisTest);
+        //logger.info("DEBUG (getTests) get test history of testId: [{}], (thisTest: [{}])", id, thisTest);
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
-            logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
+            //logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
             TestHistoryItem testHistoryItem = createTestHistoryItem(test);
             if (testHistoryItem == null) {
                 continue;
             }
-            logger.info("DEBUG (getTests) ---- > testHistoryItem is: [{}]", testHistoryItem);
+            //logger.info("DEBUG (getTests) ---- > testHistoryItem is: [{}]", testHistoryItem);
             testHistoryItemsList.add(testHistoryItem);
         }
         return new Batch<>(testHistoryItemsList, offset, limit, false, Collections.emptyList(), uriInfo);
@@ -1688,7 +1700,7 @@ public class NewmanResource {
         if (job == null) {
             return null;
         }
-        logger.info("DEBUG (createTestHistoryItem) get job of test ---- > test: [{}], job: [{}])", test, job);
+        //logger.info("DEBUG (createTestHistoryItem) get job of test ---- > test: [{}], job: [{}])", test, job);
         return new TestHistoryItem( new TestView( test ), new JobView( job ) );
     }
 
@@ -1849,12 +1861,12 @@ public class NewmanResource {
             if (agent.getState() == Agent.State.PREPARING) {
                 jobUpdateOps.removeAll("preparingAgents", agent.getName());
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);
-                logger.info("DEBUG (returnTests) agent is PREPARING ---> update job: [{}]", job);
+                //logger.info("DEBUG (returnTests) agent is PREPARING ---> update job: [{}]", job);
             } else if (agent.getState() == Agent.State.RUNNING && !tests.isEmpty()) {
                 jobUpdateOps.inc("runningTests", 0 - tests.size());
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);
-                logger.info("DEBUG (returnTests) agent is running ---> update job: [{}]", job);
-                logger.info("DEBUG (returnTests) ---> 0 - tests.size(): [{}]", 0 - tests.size());
+                //logger.info("DEBUG (returnTests) agent is running ---> update job: [{}]", job);
+                //logger.info("DEBUG (returnTests) ---> 0 - tests.size(): [{}]", 0 - tests.size());
             }
         }
         Agent ag = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()),

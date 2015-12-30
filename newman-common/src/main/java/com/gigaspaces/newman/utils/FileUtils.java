@@ -90,12 +90,25 @@ public class FileUtils {
         }
     }
 
-    private static void downloadSSL(URL url, Path target) throws IOException, KeyManagementException, NoSuchAlgorithmException {
+    private static HttpsURLConnection getHttpsConnection(URL url, SSLContext sc) throws NoSuchAlgorithmException, KeyManagementException, IOException {
         TrustManager[] trustAllCerts = getMockTrustManagers();
+        HttpsURLConnection connection;
+        try {
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            connection = (HttpsURLConnection) url.openConnection();
+        }
+        catch (Exception e){
+            logger.error("failed to connect to url");
+            throw e;
+        }
+        return connection;
+    }
+
+    private static void downloadSSL(URL url, Path target) throws IOException, KeyManagementException, NoSuchAlgorithmException {
+        HttpsURLConnection connection = null;
         try {
             SSLContext sc = SSLContext.getInstance("TLS");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+            connection = getHttpsConnection(url, sc);
             connection.setRequestMethod("GET");
             connection.setDoOutput(true);
             connection.setSSLSocketFactory(sc.getSocketFactory());
@@ -114,6 +127,11 @@ public class FileUtils {
         catch (Exception e) {
             logger.error(e.toString(), e);
             throw e;
+        }
+        finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 
@@ -212,17 +230,26 @@ public class FileUtils {
     public static void validateUris(Collection<URI> resources) throws IOException {
         for (URI uri : resources) {
             InputStream inputStream = null;
-            try{
+            HttpsURLConnection connection = null;
+            try {
+                if (uri.toURL().getProtocol().equalsIgnoreCase("https")){
+                    connection = getHttpsConnection(uri.toURL(), SSLContext.getInstance("TLS"));
+                    inputStream = connection.getInputStream();
+                    return;
+                }
                 inputStream = uri.toURL().openStream();
                 logger.info("able to connect to URI: " + uri);
             }
-            catch (IOException e){
+            catch (Exception e){
                 logger.error("can't connect URI: " + uri, e);
-                throw e;
+                throw new IOException(e);
             }
             finally {
                 if(inputStream != null){
                     inputStream.close();
+                }
+                if (connection != null) {
+                    connection.disconnect();
                 }
             }
         }
