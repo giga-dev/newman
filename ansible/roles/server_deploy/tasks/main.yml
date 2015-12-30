@@ -5,7 +5,7 @@
 - name: "create server config folder if not exists"
   shell: mkdir -p {{server_home_dir}}/config
 - name: "remove old server log if exists"
-  shell: rm -f {{server_home_dir}}/nohup*
+  shell: rm -f {{server_home_dir}}/*nohup*.log
   ignore_errors: yes
 - name: "undeploy old server"
   command: pkill -f newman-server
@@ -20,3 +20,5 @@
   copy: src={{newman_local_dir}}/newman-server/src/test/resources/realm.properties dest={{server_home_dir}}/config owner=xap mode=0777
 - name: "start server"
   shell: ./run.sh chdir="{{server_home_dir}}"
+- name: "wait for server to start"
+  wait_for: port=8443 delay=5

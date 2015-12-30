@@ -162,10 +162,13 @@ public class NewmanResource {
 
     private void initWebRootsPath() {
         if (HTTP_WEB_ROOT_PATH == null && HTTPS_WEB_ROOT_PATH == null) {
-            String address = "localhost";
-            try {
-                address = System.getProperty("newman.server.address", InetAddress.getLocalHost().getHostAddress());
-            } catch (UnknownHostException ignored) {
+            String address = System.getProperty("newman.server.address");
+            if (address == null) {
+                try {
+                    address = InetAddress.getLocalHost().getHostAddress();
+                } catch (UnknownHostException ignored) {
+                    address = "localhost";
+                }
             }
             HTTP_WEB_ROOT_PATH = "http://" + address + ":8080/api/newman";
             HTTPS_WEB_ROOT_PATH = "https://" + address + ":8443/api/newman";
