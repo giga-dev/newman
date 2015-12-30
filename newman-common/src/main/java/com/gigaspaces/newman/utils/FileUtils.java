@@ -117,7 +117,7 @@ public class FileUtils {
             Path output = append(target, filename);
             try (InputStream in = connection.getInputStream();
                  OutputStream out = new FileOutputStream(output.toFile())) {
-                byte[] buff = new byte[1024];
+                byte[] buff = new byte[1024 * 5];
                 int read;
                 while ((read = in.read(buff)) != -1) {
                     out.write(buff, 0, read);

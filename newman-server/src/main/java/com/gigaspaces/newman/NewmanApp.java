@@ -13,12 +13,14 @@ import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Singleton;
 import javax.ws.rs.ApplicationPath;
 
 /**
  * Created by Barak Bar Orion
  * 4/11/15.
  */
+@Singleton
 @ApplicationPath("/")
 public class NewmanApp extends ResourceConfig {
     @SuppressWarnings("unused")

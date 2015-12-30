@@ -176,8 +176,9 @@ public class NewmanResource {
 
     private synchronized void initBuildsCache() {
         BuildsCache found = buildsCacheDAO.findOne(buildsCacheDAO.createQuery());
-        if (found == null)
+        if (found == null) {
             buildsCacheDAO.save(new BuildsCache());
+        }
     }
 
     @GET
@@ -851,7 +852,7 @@ public class NewmanResource {
         mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
         String filePath = calcCacheResourceToDownload(branch, buildName, resourceName, true);
-        InputStream is = org.apache.commons.io.FileUtils.openInputStream(new File(filePath));
+        InputStream is = getBufferedInputStream(filePath);
         return Response.ok(is, mediaType).build();
     }
 
@@ -865,8 +866,12 @@ public class NewmanResource {
         mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
         String filePath = calcCacheResourceToDownload(branch, buildName, resourceName, false);
-        InputStream is = org.apache.commons.io.FileUtils.openInputStream(new File(filePath));
+        InputStream is = getBufferedInputStream(filePath);
         return Response.ok(is, mediaType).build();
+    }
+
+    private BufferedInputStream getBufferedInputStream(String filePath) throws IOException {
+        return new BufferedInputStream(org.apache.commons.io.FileUtils.openInputStream(new File(filePath)), 5 * 1024);
     }
 
     private String calcCacheResourceToDownload(String branch, String BuildName, String resourceName, boolean resource) {
@@ -1399,7 +1404,6 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Build updateBuild(final @PathParam("id") String id, final Build build) {
-        logger.info("---updateBuild()");
         UpdateOperations<Build> updateOps = buildDAO.createUpdateOperations();
         if (build.getShas() != null) {
             //noinspection SpellCheckingInspection
