@@ -5,9 +5,6 @@
 - name: "remove old agents log if exists"
   shell: rm -f {{agent_home_dir}}/nohup*
   ignore_errors: yes
-- name: "undeploy old agents"
-  script: "{{newman_local_dir}}/ansible/roles/agent_deploy/files/stop-newman-agent.sh"
-  ignore_errors: yes
 
 - name: "copy  newman agent script"
   copy: src={{newman_local_dir}}/ansible/roles/agent_deploy/files/newman-agent.sh dest={{agent_home_dir}} owner=xap mode=0777
@@ -49,15 +46,16 @@
 - name: "create supervisord out file"
   shell: touch {{agent_home_dir}}/supervisord_logs/out.log
 
-- name: "stop supervisord"
-  shell: supervisorctl shutdown -c {{agent_home_dir}}/supervisord.conf
-  ignore_errors: yes
-
-- name: "start supervisord"
+- name: "start supervisord if not exists"
   shell: supervisord -c {{agent_home_dir}}/supervisord.conf
+  ignore_errors: yes
 
 - name: "stop newman agent"
   supervisorctl: name=newman_agent state=stopped config={{agent_home_dir}}/supervisord.conf
+
+- name: "undeploy old agents"
+  script: "{{newman_local_dir}}/ansible/roles/agent_deploy/files/stop-newman-agent.sh"
+  ignore_errors: yes
 
 - name: "deploy new agent jar"
   copy: src={{newman_local_dir}}/newman-agent/target/newman-agent-1.0.jar dest={{agent_home_dir}} owner=xap mode=0777
