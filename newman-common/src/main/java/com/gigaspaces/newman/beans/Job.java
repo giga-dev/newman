@@ -39,6 +39,10 @@ public class Job {
     private int passedTests;
     private int failedTests;
     private int runningTests;
+    // first agent start prepare on job
+    private Date startPrepareTime;
+    // last time job seen as zombie
+    private Date lastTimeZombie;
     @Embedded
     private Set<String> preparingAgents = Collections.emptySet();
     @Transient
@@ -158,6 +162,22 @@ public class Job {
 
     public void setPreparingAgents(Set<String> preparingAgents) {
         this.preparingAgents = preparingAgents;
+    }
+
+    public Date getStartPrepareTime() {
+        return startPrepareTime;
+    }
+
+    public void setStartPrepareTime(Date startPrepareTime) {
+        this.startPrepareTime = startPrepareTime;
+    }
+
+    public Date getLastTimeZombie() {
+        return lastTimeZombie;
+    }
+
+    public void setLastTimeZombie(Date lastTimeZombie) {
+        this.lastTimeZombie = lastTimeZombie;
     }
 
     @Override

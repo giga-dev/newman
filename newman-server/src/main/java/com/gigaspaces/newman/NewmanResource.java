@@ -33,7 +33,6 @@ import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
-import javax.ws.rs.Path;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.*;
 import java.io.*;
@@ -41,9 +40,12 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -143,9 +145,130 @@ public class NewmanResource {
             }
         }, 1000 * 30, 1000 * 30);
 
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                handleHangingJob();
+            }
+        }, 1000 * 30, 1000 * 30);
+
         initBuildsCache();
 
         initWebRootsPath();
+    }
+
+    private void handleHangingJob() {
+        Job potentialJob = getPotentialJob();
+        if(potentialJob == null){
+            // might happand when there are no Jobs that should run (Ready/Running)
+            return;
+        }
+        if(!handleSetupProblem(potentialJob)){
+            handleZombie(potentialJob);
+        }
+    }
+
+    private boolean handleSetupProblem(Job potentialJob) {
+        if(tooLongPrepareTime(potentialJob) && potentialJob.getState().equals(State.READY)){
+            logger.info("Deleting job because it had setup problem. job [{}].", potentialJob);
+            // deleteJob(potentialJob.getId()); // TODO testing
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleZombie(Job potentialJob) {
+        if(potentialJob.getLastTimeZombie() == null){
+            if(isZombie(potentialJob)){ // job not running and zombie
+                UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations();
+                updateJobStatus.set("lastTimeZombie", new Date());
+                jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(potentialJob.getId()), updateJobStatus);
+                return true;
+            }
+        }
+        else{ // already seen as zombie
+            int hoursToWaitBeforeDelete = 1;
+            if(isTimeExpired(potentialJob.getLastTimeZombie().getTime(), hoursToWaitBeforeDelete, TimeUnit.HOURS)){
+                logger.info("Deleting job because it became zombie (no match agents) for to long. job:[{}].", potentialJob);
+                //deleteJob(potentialJob.getId()); // TODO testing
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isTimeExpired(long startTimeMilliseconds, int timeToPass, TimeUnit timeUnit){
+        long divideByTineUnit = 1;
+        if(timeUnit.equals(TimeUnit.SECONDS)){
+            divideByTineUnit = 1000;
+        }
+        else if(timeUnit.equals(TimeUnit.MINUTES)){
+            divideByTineUnit = 1000*60;
+        }
+        else if(timeUnit.equals(TimeUnit.HOURS)){
+            divideByTineUnit = 1000*60*60;
+        }
+        long currentTime  = System.currentTimeMillis();
+        long timePassSinceStart = currentTime - startTimeMilliseconds;
+        int timePassed = (int)(timePassSinceStart / divideByTineUnit);
+
+        return timePassed >= timeToPass;
+    }
+
+    private Job getPotentialJob() {
+        Set<String> allCapabilities = allNecessaryCapabilities();
+        Query<Job> basicDummyQuery = basicJobQuery();
+        return findJob(allCapabilities, basicDummyQuery);
+    }
+
+    private Query<Job> basicJobQuery() {
+        Query<Job> basicDummyQuery = jobDAO.createQuery();
+        basicDummyQuery.or(basicDummyQuery.criteria("state").equal(State.READY), basicDummyQuery.criteria("state").equal(State.RUNNING));
+        basicDummyQuery.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
+        basicDummyQuery.order("submitTime");
+        return basicDummyQuery;
+    }
+
+    private Set<String> allNecessaryCapabilities() {
+        // create capabilities from requirements, because might be requirements without suitable agents
+        QueryResults<Suite> suites = suiteDAO.find(suiteDAO.createQuery());
+        Set<String> allCapabilities = new HashSet<>();
+        for (Suite suite : suites) {
+            allCapabilities.addAll(suite.getRequirements());
+        }
+        return allCapabilities;
+    }
+
+    private boolean tooLongPrepareTime(Job potentialJob) {
+        if(potentialJob.getStartPrepareTime() != null){
+            int maxPrepareTimeHours = 2;
+            long firstTimePrepare = potentialJob.getStartPrepareTime().getTime();
+            long currentTime  = System.currentTimeMillis();
+            long timePassSinceFirstPrepare = currentTime - firstTimePrepare;
+            int hoursPassed   = (int) (timePassSinceFirstPrepare / (1000*60*60));
+
+            if(hoursPassed >= maxPrepareTimeHours){
+                return true;
+            }
+
+            if(isTimeExpired(potentialJob.getStartPrepareTime().getTime(),maxPrepareTimeHours, TimeUnit.HOURS)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isZombie(Job job) {
+        QueryResults<Agent> agents = agentDAO.find(agentDAO.createQuery());
+        // check if there is an agent in the system that can execute this job
+        for (Agent agent : agents) {
+            if (job.getSuite().getRequirements().isEmpty()
+                    || job.getSuite().getRequirements() == null
+                    || agent.getCapabilities().containsAll(job.getSuite().getRequirements())){
+               return false;
+            }
+        }
+        return true;
     }
 
     private Morphia initMorphia() {
@@ -260,7 +383,7 @@ public class NewmanResource {
             @Context UriInfo uriInfo) {
 
         Query<FutureJob> query = futureJobDAO.createQuery();
-        query.order("submitTime");
+        query.order("-submitTime");
         FutureJob futureJob = futureJobDAO.findOne(query);
         if(futureJob != null){
             Datastore datastore = futureJobDAO.getDatastore();
@@ -1296,10 +1419,7 @@ public class NewmanResource {
             }
         }
 
-        Query<Job> basicQuery = jobDAO.createQuery();
-        basicQuery.or(basicQuery.criteria("state").equal(State.READY), basicQuery.criteria("state").equal(State.RUNNING));
-        basicQuery.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
-        basicQuery.order("submitTime");
+        Query<Job> basicQuery = basicJobQuery();
 
         Job job = findJob(agent.getCapabilities(), basicQuery);
 
@@ -1316,6 +1436,14 @@ public class NewmanResource {
             updateOps.set("jobId", job.getId());
             updateOps.set("state", Agent.State.PREPARING);
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().add("preparingAgents", agent.getName());
+            // update startPrepareTime only if not set
+            if(job.getStartPrepareTime() == null){
+                updateJobStatus.set("startPrepareTime", new Date());
+            }
+            // job can be run = not a zombie
+            if(job.getLastTimeZombie() != null){
+                updateJobStatus.unset("lastTimeZombie");
+            }
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), updateJobStatus);
             broadcastMessage(MODIFIED_JOB, job);
             broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(job.getSuite()));
