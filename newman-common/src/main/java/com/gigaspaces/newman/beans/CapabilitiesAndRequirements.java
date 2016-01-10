@@ -14,7 +14,11 @@ public class CapabilitiesAndRequirements {
     }
 
     public static Comparator<Job> requirementsSort = (job_1, job_2) -> {
-        return (job_2.getSuite().getRequirements().size() - job_1.getSuite().getRequirements().size()); // descending order
+        int comp = job_2.getSuite().getRequirements().size() - job_1.getSuite().getRequirements().size();
+        if(comp == 0){
+            comp =  job_2.getId().compareTo(job_1.getId());
+        }
+        return comp;
     };
 
     public static Set<String> parse(String input){

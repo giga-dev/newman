@@ -1,4 +1,3 @@
-
 <link rel="import" href="routes.html">
 
 <polymer-element name="job-state" attributes="job">
@@ -6,7 +5,7 @@
         <link rel="stylesheet" href="app.css">
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
 
-        <div class="newman-job-state-label label {{{'label-default' : job.state == 'READY', 'label-success' : job.state == 'DONE', 'label-info' : job.state == 'RUNNING', 'label-warning' : job.state == 'PAUSED'} | tokenList}}">
+        <div class="newman-job-state-label label {{{'label-default' : job.state == 'READY', 'label-success' : job.state == 'DONE', 'label-info' : job.state == 'RUNNING', 'label-warning' : job.state == 'PAUSED' , 'label-danger' : job.state == 'BROKEN' } | tokenList}}">
             {{job.state}}
         </div>
     </template>

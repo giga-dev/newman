@@ -201,7 +201,7 @@ public class NewmanSubmitter {
             if (job == null){
                 throw new IllegalArgumentException("No such job with id: " + jobId);
             }
-            return job.getState() == State.DONE;
+            return job.getState() == State.DONE || job.getState() == State.BROKEN;
 
         }
         catch (InterruptedException | ExecutionException | TimeoutException e) {

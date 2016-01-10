@@ -169,12 +169,18 @@ public class NewmanResource {
     }
 
     private boolean handleSetupProblem(Job potentialJob) {
-        if(tooLongPrepareTime(potentialJob) && potentialJob.getState().equals(State.READY)){
-            logger.info("Deleting job because it had setup problem. job [{}].", potentialJob);
-            // deleteJob(potentialJob.getId()); // TODO testing
+        int maxPrepareTimeHours = 1;
+        if(tooLongPrepareTime(potentialJob, maxPrepareTimeHours) && potentialJob.getState().equals(State.READY)){
+            logger.info("Job state become broken because it had setup problem for {} hours. job: [id:{}, name: {}, build:{}].", maxPrepareTimeHours, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
+//            updateBrokenJob(potentialJob); // TODO testing
             return true;
         }
         return false;
+    }
+
+    private void updateBrokenJob(Job potentialJob) {
+        potentialJob.setState(State.BROKEN);
+        updateJob(potentialJob.getId(), potentialJob);
     }
 
     private boolean handleZombie(Job potentialJob) {
@@ -189,8 +195,8 @@ public class NewmanResource {
         else{ // already seen as zombie
             int hoursToWaitBeforeDelete = 1;
             if(isTimeExpired(potentialJob.getLastTimeZombie().getTime(), hoursToWaitBeforeDelete, TimeUnit.HOURS)){
-                logger.info("Deleting job because it became zombie (no match agents) for to long. job:[{}].", potentialJob);
-                //deleteJob(potentialJob.getId()); // TODO testing
+                logger.info("Job state is BROKEN because it became zombie (no match agents) for {} hours. job: [id:{}, name: {}, build:{}].", hoursToWaitBeforeDelete, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
+//                updateBrokenJob(potentialJob); // TODO testing
                 return true;
             }
         }
@@ -239,9 +245,8 @@ public class NewmanResource {
         return allCapabilities;
     }
 
-    private boolean tooLongPrepareTime(Job potentialJob) {
+    private boolean tooLongPrepareTime(Job potentialJob, int maxPrepareTimeHours) {
         if(potentialJob.getStartPrepareTime() != null){
-            int maxPrepareTimeHours = 2;
             long firstTimePrepare = potentialJob.getStartPrepareTime().getTime();
             long currentTime  = System.currentTimeMillis();
             long timePassSinceFirstPrepare = currentTime - firstTimePrepare;
@@ -537,6 +542,10 @@ public class NewmanResource {
             }
             if (state != null) {
                 UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", state);
+                if(state.equals(State.PAUSED)){
+                    // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
+                    updateJobStatus.unset("startPrepareTime");
+                }
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
                 broadcastMessage(MODIFIED_JOB, job);
 
@@ -549,7 +558,6 @@ public class NewmanResource {
                     UpdateResults update = testDAO.getDatastore().update(query, updateOps);
                     logger.info("---ToggleJobPause, state is READY, affected count:" + update.getUpdatedCount());
                 }
-//                broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs( job.getSuite() ) );
                 return job;
             }
         }
@@ -1350,18 +1358,15 @@ public class NewmanResource {
                 UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.runningTests");
                 if (job.getStartTime() == null) {
                     updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
-                    job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
-                    //logger.info("DEBUG (getTest) ---> update job: [{}]", job);
-                    //logger.info("DEBUG (getTest) ---> Test cause job update: [{}].", result);
-                    buildUpdateOperations.inc("buildStatus.runningJobs").dec("buildStatus.pendingJobs");
                 }
+                job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
+                buildUpdateOperations.inc("buildStatus.runningJobs").dec("buildStatus.pendingJobs");
                 agentUpdateOps.add("currentTests", result.getId());
                 agentUpdateOps.set("state", Agent.State.RUNNING);
                 Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()),
                         buildUpdateOperations);
                 broadcastMessage(MODIFIED_TEST, result);
                 broadcastMessage(MODIFIED_JOB, job);
-//                broadcastMessage(MODIFIED_SUITE,createSuiteWithJobs( job.getSuite() ) );
                 broadcastMessage(MODIFIED_BUILD, build);
             } else {
                 // return the test to the pool.
@@ -1553,6 +1558,23 @@ public class NewmanResource {
         Build result = buildDAO.getDatastore().findAndModify(query, updateOps);
         if (result != null) {
             broadcastMessage(MODIFIED_BUILD, result);
+        }
+        return result;
+    }
+
+    @POST
+    @Path("job/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Job updateJob(final @PathParam("id") String id, final Job job) {
+        UpdateOperations<Job> updateOps = jobDAO.createUpdateOperations();
+        if (job.getState() != null) {
+            updateOps.set("state", job.getState());
+        }
+        Query<Job> query = jobDAO.createIdQuery(id);
+        Job result = buildDAO.getDatastore().findAndModify(query, updateOps);
+        if (result != null) {
+            broadcastMessage(MODIFIED_JOB, result);
         }
         return result;
     }
@@ -1996,12 +2018,9 @@ public class NewmanResource {
             if (agent.getState() == Agent.State.PREPARING) {
                 jobUpdateOps.removeAll("preparingAgents", agent.getName());
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);
-                //logger.info("DEBUG (returnTests) agent is PREPARING ---> update job: [{}]", job);
             } else if (agent.getState() == Agent.State.RUNNING && !tests.isEmpty()) {
                 jobUpdateOps.inc("runningTests", 0 - tests.size());
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);
-                //logger.info("DEBUG (returnTests) agent is running ---> update job: [{}]", job);
-                //logger.info("DEBUG (returnTests) ---> 0 - tests.size(): [{}]", 0 - tests.size());
             }
         }
         Agent ag = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()),
