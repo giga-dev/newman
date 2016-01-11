@@ -360,7 +360,7 @@ public class NewmanResource {
             , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
 
-        List<Job> jobs = retrieveJobs( buildId, orderBy, all, offset, limit );
+        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit);
         return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
     }
 
@@ -1356,18 +1356,24 @@ public class NewmanResource {
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
             if (job != null) {
                 UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.runningTests");
+                UpdateOperations<Job> jobUpdateOperations = jobDAO.createUpdateOperations();
+                jobUpdateOperations.set("state", State.RUNNING);
                 if (job.getStartTime() == null) {
-                    updateJobStatus = jobDAO.createUpdateOperations().set("startTime", new Date()).set("state", State.RUNNING);
+                    jobUpdateOperations.set("startTime", new Date());
+                    buildUpdateOperations.inc("buildStatus.runningJobs").dec("buildStatus.pendingJobs");
                 }
-                job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
-                buildUpdateOperations.inc("buildStatus.runningJobs").dec("buildStatus.pendingJobs");
+                job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), jobUpdateOperations);
                 agentUpdateOps.add("currentTests", result.getId());
                 agentUpdateOps.set("state", Agent.State.RUNNING);
-                Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()),
-                        buildUpdateOperations);
+                if(job != null){
+                    Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()),
+                            buildUpdateOperations);
+                    broadcastMessage(MODIFIED_JOB, job);
+                    if(build != null){
+                        broadcastMessage(MODIFIED_BUILD, build);
+                    }
+                }
                 broadcastMessage(MODIFIED_TEST, result);
-                broadcastMessage(MODIFIED_JOB, job);
-                broadcastMessage(MODIFIED_BUILD, build);
             } else {
                 // return the test to the pool.
                 updateOps = testDAO.createUpdateOperations().set("status", Test.Status.PENDING)
