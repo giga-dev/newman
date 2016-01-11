@@ -171,8 +171,8 @@ public class NewmanResource {
     private boolean handleSetupProblem(Job potentialJob) {
         int maxPrepareTimeHours = 1;
         if(tooLongPrepareTime(potentialJob, maxPrepareTimeHours) && potentialJob.getState().equals(State.READY)){
-            logger.info("Job state become broken because it had setup problem for {} hours. job: [id:{}, name: {}, build:{}].", maxPrepareTimeHours, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
-//            updateBrokenJob(potentialJob); // TODO testing
+            logger.info("Job state is BROKEN because it had setup problem for {} hours. job: [id:{}, name: {}, build:{}].", maxPrepareTimeHours, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
+            updateBrokenJob(potentialJob);
             return true;
         }
         return false;
@@ -196,7 +196,7 @@ public class NewmanResource {
             int hoursToWaitBeforeDelete = 1;
             if(isTimeExpired(potentialJob.getLastTimeZombie().getTime(), hoursToWaitBeforeDelete, TimeUnit.HOURS)){
                 logger.info("Job state is BROKEN because it became zombie (no match agents) for {} hours. job: [id:{}, name: {}, build:{}].", hoursToWaitBeforeDelete, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
-//                updateBrokenJob(potentialJob); // TODO testing
+                updateBrokenJob(potentialJob);
                 return true;
             }
         }
