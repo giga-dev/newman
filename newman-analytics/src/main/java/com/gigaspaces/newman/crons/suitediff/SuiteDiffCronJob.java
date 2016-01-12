@@ -160,7 +160,11 @@ public class SuiteDiffCronJob implements CronJob {
         } else {
             String fromSha = previousBuild.getShas().get("xap");
             String toSha = latestBuild.getShas().get("xap");
-            changeset = "https://github.com/Gigaspaces/xap/compare/" + fromSha + "..." + toSha;
+            if (fromSha.equals(toSha)) {
+                changeset = "https://github.com/Gigaspaces/xap/commit/" + toSha;
+            } else {
+                changeset = "https://github.com/Gigaspaces/xap/compare/" + fromSha + "..." + toSha;
+            }
         }
         return changeset;
     }
