@@ -17,6 +17,11 @@
 - name: "copy env script"
   copy: src={{newman_local_dir}}/ansible/roles/submitter_deploy/files/submitter-env.sh dest={{submitter_home_dir}} owner=xap mode=0777
 - name: "start submitter"
-  shell: ./nohup-newman-submitter-loop.sh chdir="{{submitter_home_dir}}"
+  command: ./nohup-newman-submitter-loop.sh chdir="{{submitter_home_dir}}"
 - name: "wait for submitter to start"
-  wait_for: path={{submitter_home_dir}}/submitter-loop.log search_regex="starting loop over branches"
+  wait_for: path={{submitter_home_dir}}/submitter-loop.log search_regex="starting loop over branches" timeout=5
+  register: result
+  ignore_errors: True
+- name: "failed to run submitter. retry to start submitter."
+  command: ./nohup-newman-submitter-loop.sh chdir="{{submitter_home_dir}}"
+  when: result|failed

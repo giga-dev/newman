@@ -33,7 +33,7 @@
                         <th width="7%">Branch</th>
                         <th width="14%">Date</th>
                         <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
-                        <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
+                        <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-danger">Broken</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
                         <th width="26%"><span class="label label-header">Suite(s)</span></th>
                     </tr>
                     </thead>
@@ -52,6 +52,7 @@
 
                                 <td>
                                     <span class="label label-success">{{activeBuild.buildStatus.doneJobs}}</span>
+                                    <span class="label label-danger">{{activeBuild.buildStatus.brokenJobs}}</span>
                                     <span class="label label-default">{{activeBuild.buildStatus.totalJobs}}</span>
                                 </td>
                                 <td class="word-wrap-td">
@@ -107,7 +108,7 @@
                         <th width="7%">Branch</th>
                         <th width="14%">Date</th>
                         <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
-                        <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
+                        <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-danger">Broken</span> /<span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
                         <th width="26%"><span class="label label-header">Suites</span></th>
                     </tr>
                     </thead>
@@ -126,6 +127,7 @@
 
                                 <td>
                                     <span class="label label-success">{{pendingBuild.buildStatus.doneJobs}}</span>
+                                    <span class="label label-danger">{{activeBuild.buildStatus.brokenJobs}}</span>
                                     <span class="label label-default">{{pendingBuild.buildStatus.totalJobs}}</span>
                                 </td>
                                 <td class="word-wrap-td">

@@ -171,7 +171,8 @@ public class NewmanResource {
     private boolean handleSetupProblem(Job potentialJob) {
         int maxPrepareTimeHours = 1;
         if(tooLongPrepareTime(potentialJob, maxPrepareTimeHours) && potentialJob.getState().equals(State.READY)){
-            logger.info("Job state is BROKEN because it had setup problem for {} hours. job: [id:{}, name: {}, build:{}].", maxPrepareTimeHours, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
+            logger.info("Job state is BROKEN because it had setup problem for {} hours. job - id:[{}], name: [{}], build:[{}], startPrepareTime: [{}].",
+                    maxPrepareTimeHours, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName(), potentialJob.getStartPrepareTime());
             updateBrokenJob(potentialJob);
             return true;
         }
@@ -181,6 +182,10 @@ public class NewmanResource {
     private void updateBrokenJob(Job potentialJob) {
         potentialJob.setState(State.BROKEN);
         updateJob(potentialJob.getId(), potentialJob);
+
+        UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations();
+        buildUpdateOperations.inc("buildStatus.brokenJobs").dec("buildStatus.runningJobs");
+        buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(potentialJob.getBuild().getId()), buildUpdateOperations);
     }
 
     private boolean handleZombie(Job potentialJob) {
@@ -195,7 +200,8 @@ public class NewmanResource {
         else{ // already seen as zombie
             int hoursToWaitBeforeDelete = 1;
             if(isTimeExpired(potentialJob.getLastTimeZombie().getTime(), hoursToWaitBeforeDelete, TimeUnit.HOURS)){
-                logger.info("Job state is BROKEN because it became zombie (no match agents) for {} hours. job: [id:{}, name: {}, build:{}].", hoursToWaitBeforeDelete, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
+                logger.info("Job state is BROKEN because it became zombie (no match agents) for {} hours. job: [id:{}, name: {}, build:{}].",
+                        hoursToWaitBeforeDelete, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
                 updateBrokenJob(potentialJob);
                 return true;
             }
@@ -572,7 +578,7 @@ public class NewmanResource {
                 buildDAO.find(buildDAO.createQuery().
                         where("this.buildStatus.runningJobs>0").
                         where("this.buildStatus.totalJobs>0").
-                        where("this.buildStatus.doneJobs < this.buildStatus.totalJobs").
+                        where("this.buildStatus.doneJobs + this.buildStatus.brokenJobs < this.buildStatus.totalJobs").
                         order("-buildTime")).
                         asList();
         List<Build> pendingBuilds =
@@ -580,14 +586,14 @@ public class NewmanResource {
                         where("this.buildStatus.pendingJobs>0").
                         where("this.buildStatus.runningJobs==0").
                         where("this.buildStatus.totalJobs>0").
-                        where("this.buildStatus.doneJobs < this.buildStatus.totalJobs").
+                        where("this.buildStatus.doneJobs + this.buildStatus.brokenJobs < this.buildStatus.totalJobs").
                         limit(5).
                         order("-buildTime")).
                         asList();
         List<Build> historyBuilds =
                 buildDAO.find(buildDAO.createQuery().
                         where("this.buildStatus.totalJobs>0").
-                        where("this.buildStatus.doneJobs == this.buildStatus.totalJobs").
+                        where("this.buildStatus.doneJobs + this.buildStatus.brokenJobs == this.buildStatus.totalJobs").
                         limit(5).
                         order("-buildTime")).
                         asList();
@@ -713,7 +719,7 @@ public class NewmanResource {
             buildsRes = build;
         }
         else if(modeStr.equalsIgnoreCase("NIGHTLY")){
-        // insure if nightly mode and there aren't new builds - take last build anyway
+        // ensure if nightly mode and there aren't new builds - take last build anyway
             buildsRes = getLatestBuild(branchStr);
         }
 
@@ -762,7 +768,6 @@ public class NewmanResource {
             }
             updateJobStatus.dec("runningTests");
             updateBuild.dec("buildStatus.runningTests");
-            //logger.info("DEBUG(finishTest) ---> prepare job update because test: id:[{}], name:[{}], jobId:[{}]", test.getId(), test.getName(), test.getJobId());
 
             if (test.getErrorMessage() != null) {
                 testUpdateOps.set("errorMessage", test.getErrorMessage());
@@ -789,7 +794,6 @@ public class NewmanResource {
                 updateBuild.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
             }
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
-            //logger.info("DEBUG(finishTest) ---> modify job: [{}], testResult: [{}]", job, result);
             Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
 
             if (result.getAssignedAgent() != null) {
@@ -1449,6 +1453,7 @@ public class NewmanResource {
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().add("preparingAgents", agent.getName());
             // update startPrepareTime only if not set
             if(job.getStartPrepareTime() == null){
+                logger.info("agent [host:[{}], name:[{}]] start prepare on job [id:[{}], name:[{}]].",agent.getHost(), agent.getName(), job.getId(), job.getSuite().getName());
                 updateJobStatus.set("startPrepareTime", new Date());
             }
             // job can be run = not a zombie
@@ -1683,6 +1688,12 @@ public class NewmanResource {
                 int curPendingJobs = associatedBuildStatus.getPendingJobs();
                 if (curPendingJobs > 0) {
                     updateOps.set("buildStatus.pendingJobs", curPendingJobs - 1);
+                }
+            }
+            else if (state == State.BROKEN) {
+                int currBrokenJobs = associatedBuildStatus.getBrokenJobs();
+                if (currBrokenJobs > 0) {
+                    updateOps.set("buildStatus.brokenJobs", currBrokenJobs - 1);
                 }
             }
 

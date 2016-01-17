@@ -18,6 +18,7 @@ public class BuildStatus {
     private int pendingJobs;
     private int runningJobs;
     private int doneJobs;
+    private int brokenJobs;
 
     private List<String> suitesNames;
     private List<String> suitesIds;
@@ -107,6 +108,14 @@ public class BuildStatus {
         this.suitesIds = suitesIds;
     }
 
+    public int getBrokenJobs() {
+        return brokenJobs;
+    }
+
+    public void setBrokenJobs(int brokenJobs) {
+        this.brokenJobs = brokenJobs;
+    }
+
     @Override
     public String toString() {
         return "BuildStatus{" +
@@ -118,6 +127,7 @@ public class BuildStatus {
                 ", pendingJobs=" + pendingJobs +
                 ", runningJobs=" + runningJobs +
                 ", doneJobs=" + doneJobs +
+                ", brokenJobs=" + brokenJobs +
                 ", suitesNames=" + suitesNames +
                 ", suitesIds=" + suitesIds +
                 '}';
