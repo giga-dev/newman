@@ -111,7 +111,7 @@ public class NewmanSuiteSubmitter {
         try {
             Suite suite = new Suite();
             suite.setName("xap-core");
-            suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=3");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=2");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
             String Requirements = "";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
@@ -666,5 +666,41 @@ public class NewmanSuiteSubmitter {
             criterias.add(include(getTestCriteriasFromPermutationURI(permutationURI)));
         }
         return CriteriaBuilder.join(criterias.toArray(new Criteria[criterias.size()]));
+    }
+    public void manualSubmitXapCoreZookeeper() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("xap-core-zookeeper");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=2,TGRID_CUSTOM_SYSTEM_PROPS=-Dzookeeper.enable=true");
+            // TODO note - if set is empty, mongodb will NOT write that filed to DB
+            String Requirements = "";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            String testType = "tgrid";
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                    CriteriaBuilder.exclude(
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.Performance"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.oneway_replication.OnewayMultithreaded"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.multicast"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.tg"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.stress"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.async.AsyncExtensionTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.zetascale"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.disableoffheap"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.mapdb"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.dcache.Extends"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest")
+                    )
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
     }
 }
