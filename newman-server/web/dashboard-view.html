@@ -155,14 +155,14 @@
                         <th width="7%">Branch</th>
                         <th width="14%">Date</th>
                         <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
-                        <th width="15%"><span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
+                        <th width="15%"><span class="label label-default">Total</span> / <span class="label label-danger">Broken</span> <span class="label label-header">Jobs</span></th>
                         <th width="26%"><span class="label label-header">Suites</span></th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{historyBuild in data.historyBuilds}}">
                         <template if="{{historyBuild.buildStatus.totalJobs > 0}}">
-                            <tr class="{{{'succeed-row' : historyBuild.buildStatus.passedTests == historyBuild.buildStatus.totalTests, 'default-row' : historyBuild.buildStatus.passedTests != historyBuild.buildStatus.totalTests} | tokenList}}">
+                            <tr class="{{{'succeed-row' : historyBuild.buildStatus.passedTests == historyBuild.buildStatus.totalTests, 'broken-row' : historyBuild.buildStatus.brokenJobs > 0, 'default-row' : historyBuild.buildStatus.passedTests != historyBuild.buildStatus.totalTests } | tokenList}}">
                                 <td title="{{historyBuild.name}}"><a href="{{urlFor('build', {id: historyBuild.id})}}">{{historyBuild.name}}</a></td>
                                 <td title="{{historyBuild.branch}}">{{historyBuild.branch}}</td>
                                 <td>{{historyBuild.buildTime | formatDate}}</td>
@@ -172,7 +172,10 @@
                                     <span class="label label-default">{{historyBuild.buildStatus.totalTests}}</span>
                                 </td>
 
-                                <td>{{historyBuild.buildStatus.totalJobs}}</td>
+                                <td>
+                                    <span class="label label-default">{{historyBuild.buildStatus.totalJobs}}</span>
+                                    <span class="label label-danger">{{historyBuild.buildStatus.brokenJobs}}</span>
+                                </td>
                                 <td class="word-wrap-td">
                                     <template repeat="{{suiteId, index in historyBuild.buildStatus.suitesIds}}">
                                         <template if="{{index!== 'undefined' && historyBuild.buildStatus.suitesNames[index]}}">
