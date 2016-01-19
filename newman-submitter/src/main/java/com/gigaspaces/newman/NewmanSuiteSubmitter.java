@@ -39,7 +39,6 @@ public class NewmanSuiteSubmitter {
     public static final String NEWMAN_CRITERIA_INCLUDE_LIST = "NEWMAN_CRITERIA_INCLUDE_LIST";
     public static final String NEWMAN_CRITERIA_EXCLUDE_LIST = "NEWMAN_CRITERIA_EXCLUDE_LIST";
     public static final String NEWMAN_CRITERIA_PERMUTATION_URI = "NEWMAN_CRITERIA_PERMUTATION_URI";
-    private static final String NEWMAN_AGENT_DEFAULT_REQUIREMENTS = "";
     public static final String NEWMAN_SUITE_REQUIREMENTS = "newman.suite.requirements";
     /**
      * All input is done using environment variables.
@@ -81,7 +80,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("jetty9");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1,JETTY_VERSION=9");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "DOCKER";
+            String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "sgtest";
 
@@ -113,7 +112,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("xap-core");
             suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=2");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "";
+            String Requirements = "LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "tgrid";
             Criteria criteria = CriteriaBuilder.join(
@@ -150,7 +149,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("wan");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "DOCKER";
+            String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(
@@ -177,7 +176,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("disconnect");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "DOCKER";
+            String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(
@@ -203,7 +202,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("security");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "DOCKER";
+            String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(
@@ -231,7 +230,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("esm");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "DOCKER";
+            String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(
@@ -258,7 +257,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("esm-security");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "DOCKER";
+            String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(
@@ -284,7 +283,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("service-grid");
             suite.setCustomVariables("SUITE_TYPE=sgtest,THREADS_LIMIT=1,CUSTOM_SETUP_TIMEOUT=1800000");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "DOCKER";
+            String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             Criteria criteria = CriteriaBuilder.join(TestCriteria.createCriteriaByTestType("sgtest"),
                     exclude(PatternCriteria.containsCriteria(".cloudify."),
@@ -332,7 +331,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("map-db");
             suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=false -Dblobstore.entriespercentage=0 -Dcom.gigaspaces.quality.tf.mapdb-blobstore.enabled=true");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "";
+            String Requirements = "LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "tgrid";
             String mapdbExcludePermutationFile = "file:///home/boris/dev/sources/git/xap/tests/sanity/mapdb_excluded_permutations.txt";
@@ -370,7 +369,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("rocksdb");
             suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=true -Dblobstore.entriespercentage=0 -Dcom.gigaspaces.quality.tf.rocksdb-blobstore.enabled=true");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "";
+            String Requirements = "LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "tgrid";
             String allTestsPermutation = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests";
@@ -395,7 +394,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("off-heap");
             suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dcom.gs.OffHeapData=true -Dcom.gs.OffHeapDataNewInterface=true -Dcom.gs.DirectPersistencyLastPrimaryStatePath=./output/lastprimary.properties");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "";
+            String Requirements = "LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "tgrid";
             Criteria criteria = CriteriaBuilder.join(
@@ -489,7 +488,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("http-session");
             suite.setCustomVariables("SUITE_TYPE=httpsession,JAVA_VERSION=7");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "DOCKER";
+            String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "httpsession";
             Criteria criteria = CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType));
@@ -509,42 +508,10 @@ public class NewmanSuiteSubmitter {
             suite.setName("mongo-db");
             suite.setCustomVariables("SUITE_TYPE=mongodb,THREADS_LIMIT=1");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "DOCKER";
+            String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "mongodb";
             Criteria criteria = CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType));
-            suite.setCriteria(criteria);
-            logger.info("Adding suite: " + suite);
-            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
-            logger.info("result: " + result);
-        }
-        finally {
-            newmanClient.close();
-        }
-    }
-
-    /**
-     * param example:
-     *   String allTestsPermutation = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests"
-     */
-    public void manualSubmitSSD(String allTestsPermutation) throws Exception {
-        NewmanClient newmanClient = getNewmanClient();
-        try {
-            Suite suite = new Suite();
-            suite.setName("ssd");
-            suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=1,TGRID_CUSTOM_SYSTEM_PROPS=-Dcom.gigaspaces.quality.tf.blobstore.enabled=true " +
-                    "-Dblobstore.capacityGB=150 -Dblobstore.cache.capacityMB=50 -Dblobstore.devices=\"[/dev/sdb1,/dev/sdb2,/dev/sdc1,/dev/sdc2]\" " +
-                    "-Dblobstore.persistent=true -Dblobstore.writethru=true -Dblobstore.entriespercentage=0 -Dcom.gs.blobstore-devices=/tmp/blobstore " +
-                    "-Dcom.gs.blobstore.license.path=/export/tgrid/TestingGrid-latest/libfdf/fdf-license.txt -Dcom.gs.enabled-backward-space-lifecycle-admin=true");
-            // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "SSD";
-            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
-            String testType = "tgrid";
-            Criteria criteria = CriteriaBuilder.join(
-                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
-                    CriteriaBuilder.include(getTestCriteriasFromPermutationURI(allTestsPermutation))
-            );
-
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
@@ -674,7 +641,7 @@ public class NewmanSuiteSubmitter {
             suite.setName("xap-core-zookeeper");
             suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=2,TGRID_CUSTOM_SYSTEM_PROPS=-Dzookeeper.enable=true");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "";
+            String Requirements = "LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "tgrid";
             Criteria criteria = CriteriaBuilder.join(
