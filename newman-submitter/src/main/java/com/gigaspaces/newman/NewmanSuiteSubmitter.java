@@ -658,7 +658,13 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.mapdb"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.dcache.Extends"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.events.DurableNotificationsChangeBasicDurabilityTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.events.DurableNotificationsPartialUpdateBasicDurabilityTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.avnza.case7656.LocalViewSpaceWithMirrorTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.replication.basic_replication.LocalViewSpaceWithMirrorRemoveTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.cluster.primaryelection.SuspendPartitionPrimariesOnSplitBrainDetectionTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.space_filter.InitFailureFilterTest")
                     )
             );
             suite.setCriteria(criteria);
