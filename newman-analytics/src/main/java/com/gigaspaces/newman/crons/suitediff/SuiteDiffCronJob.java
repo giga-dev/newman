@@ -215,14 +215,7 @@ public class SuiteDiffCronJob implements CronJob {
                     latestMatch = history;
                 }
                 if (StringUtils.notEmpty(tag) && history.getTags().contains(tag)) {
-                    //temporary workaround - to identify nightly suite
-                    if (tag.equals("DOTNET")) {
-                        if (countSuites(newmanClient, history) > 5) {
-                            return history;
-                        }
-                    } else {
-                        return history;
-                    }
+                    return history;
                 }
             }
         }
@@ -233,20 +226,6 @@ public class SuiteDiffCronJob implements CronJob {
         throw new IllegalStateException("No build matching branch: " + branch);
     }
 
-    /**
-     * Temporary workaround to count number of suites of running builds
-     * @return the number of suites run on this build
-     */
-    private int countSuites(NewmanClient newmanClient, Build build) {
-        int suiteCount = 0;
-        try {
-            Batch<Job> jobBatch = newmanClient.getJobs(build.getId()).toCompletableFuture().get();
-            suiteCount = jobBatch.getValues().size();
-        } catch (Exception e) {
-            logger.warn("Failed to get jobs for buildId: " + build.getId());
-        }
-        return suiteCount;
-    }
 
     private Build getPreviousBuildFromFile(Properties properties, Build latestBuild, NewmanClient newmanClient) throws Exception {
         String previousBuildIdOverride = properties.getProperty(CRONS_SUITEDIFF_PREVIOUS_BUILD_ID);
