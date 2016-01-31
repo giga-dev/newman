@@ -3,7 +3,10 @@ package com.gigaspaces.newman.crons.suitediff;
 import com.gigaspaces.newman.NewmanClient;
 import com.gigaspaces.newman.analytics.CronJob;
 import com.gigaspaces.newman.analytics.PropertiesConfigurer;
-import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.beans.Batch;
+import com.gigaspaces.newman.beans.Build;
+import com.gigaspaces.newman.beans.DashboardData;
+import com.gigaspaces.newman.beans.Job;
 import com.gigaspaces.newman.server.NewmanServerConfig;
 import com.gigaspaces.newman.smtp.Mailman;
 import com.gigaspaces.newman.utils.StringUtils;
@@ -28,15 +31,14 @@ import java.util.concurrent.TimeUnit;
  */
 public class SuiteDiffCronJob implements CronJob {
 
-    private static final Logger logger = LoggerFactory.getLogger(SuiteDiffCronJob.class);
-
-    private static final String DEFAULT_BRANCH = "master";
-    private static final String BID_FILE_SUFFIX = ".bid";
-    private static final String CRONS_SUITEDIFF_BRANCH = "crons.suitediff.branch";
     public static final String CRONS_SUITEDIFF_TAG = "crons.suitediff.tag";
     public static final String CRONS_SUITEDIFF_LATEST_BUILD_ID = "crons.suitediff.latestBuildId";
     public static final String CRONS_SUITEDIFF_PREVIOUS_BUILD_ID = "crons.suitediff.previousBuildId";
     public static final String CRONS_SUITEDIFF_TRACK_LATEST = "crons.suitediff.trackLatest";
+    private static final Logger logger = LoggerFactory.getLogger(SuiteDiffCronJob.class);
+    private static final String DEFAULT_BRANCH = "master";
+    private static final String BID_FILE_SUFFIX = ".bid";
+    private static final String CRONS_SUITEDIFF_BRANCH = "crons.suitediff.branch";
 
     @Override
     public void run(Properties properties) {
@@ -94,6 +96,11 @@ public class SuiteDiffCronJob implements CronJob {
 
         Build latestBuild = getLatestBuild(properties, historyBuilds, newmanClient);
         Build previousBuild = getPreviousBuildFromFile(properties, latestBuild, newmanClient);
+
+        if (latestBuild.getId().equals(previousBuild.getId())) {
+            logger.info("Latest and previous build Ids are equal (id=" + latestBuild.getId() + ") - No report will be generated.");
+            return;
+        }
 
         //calculate
         Map<String, Job> latest_mapSuite2Job = getJobsByBuildId(newmanClient, latestBuild.getId());
