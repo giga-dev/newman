@@ -1,4 +1,3 @@
-
 <link rel="import" href="routes.html">
 <link rel="import" href="newman-switch.html">
 <link rel="import" href="../components/core-ajax/core-ajax.html">
@@ -187,6 +186,34 @@
                         </template>
                     </template>
 
+                    </tbody>
+                </table>
+            </div>
+
+            <h1>Future Jobs</h1>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover word-wrap-table">
+                    <thead>
+                    <tr>
+                        <th width="10%">Build ID</th>
+                        <th width="10%">Suite ID</th>
+                        <th width="10%">Build Name</th>
+                        <th width="10%">Suite Name</th>
+                        <th width="10%">Author</th>
+                        <th width="10%">Submit Time</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <template repeat="{{futureJob in data.futureJobs}}">
+                        <tr>
+                            <td title="{futureJob.buildID}}"><a href="{{urlFor('build', {id: futureJob.buildID})}}">{{futureJob.buildID}}</a></td>
+                            <td title="{futureJob.suiteID}}"><a href="{{urlFor('suite', {id: futureJob.suiteID})}}">{{futureJob.suiteID}}</a></td>
+                            <td>{{futureJob.buildName}}</td>
+                            <td> {{futureJob.suiteName}}</td>
+                            <td>{{futureJob.author}}</td>
+                            <td>{{futureJob.submitTime | formatDate}}</td>
+                        </tr>
+                    </template>
                     </tbody>
                 </table>
             </div>

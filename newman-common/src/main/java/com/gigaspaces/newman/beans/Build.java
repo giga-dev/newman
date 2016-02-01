@@ -107,6 +107,10 @@ public class Build {
         this.tags = tags;
     }
 
+    public void addTag(String tag){
+        tags.add(tag);
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())

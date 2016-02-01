@@ -327,7 +327,8 @@ public class NewmanResource {
         Query<Test> query = testDAO.createQuery();
         for (Test test : testDAO.find(query)) {
             if (test.getSha() == null) {
-                UpdateOperations<Test> ops = testDAO.createUpdateOperations().set("sha", Sha.compute(test.getName(), test.getArguments()));
+                Job job = getJob(test.getJobId());
+                UpdateOperations<Test> ops = testDAO.createUpdateOperations().set("sha", Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId()));
                 testDAO.updateFirst(testDAO.createIdQuery(test.getId()), ops);
                 ++records;
             }
@@ -505,22 +506,19 @@ public class NewmanResource {
 
         if(buildId != null){
             build =  buildDAO.findOne(buildDAO.createIdQuery(buildId));
-            if(build == null) throw new BadRequestException("invalid build id in create FutureJob: " + buildId);
+            if(build == null) {
+                throw new BadRequestException("invalid build id in create FutureJob: " + buildId);
+            }
         }
         if(suiteId != null){
             suite = suiteDAO.findOne(suiteDAO.createIdQuery(suiteId));
-            if(suite == null) throw new BadRequestException("invalid suite id in create FutureJob: " + suiteId);
+            if(suite == null) {
+                throw new BadRequestException("invalid suite id in create FutureJob: " + suiteId);
+            }
         }
 
-        FutureJob futureJob = new FutureJob();
-        if (build != null) {
-            futureJob.setBuildID(build.getId());
-        }
-        if (suite != null) {
-            futureJob.setSuiteID(suite.getId());
-        }
-        futureJob.setSubmitTime(new Date());
-        futureJob.setAuthor(author);
+        //noinspection ConstantConditions
+        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), suite.getId(), suite.getName(), author);
 
         futureJobDAO.save(futureJob);
         broadcastMessage(CREATE_FUTURE_JOB,futureJob);
@@ -597,10 +595,12 @@ public class NewmanResource {
                         limit(5).
                         order("-buildTime")).
                         asList();
+        Query<FutureJob> futureJobQuery = futureJobDAO.createQuery();
+        List<FutureJob> futureJobs = futureJobDAO.find(futureJobQuery).asList();
 
         Map<String, List<Job>> activeJobsMap = createActiveJobsMap(activeBuilds);
 
-        return new DashboardData(activeBuilds, pendingBuilds, historyBuilds, activeJobsMap);
+        return new DashboardData(activeBuilds, pendingBuilds, historyBuilds, activeJobsMap, futureJobs);
     }
 
     @GET
@@ -721,6 +721,8 @@ public class NewmanResource {
         else if(modeStr.equalsIgnoreCase("NIGHTLY")){
         // ensure if nightly mode and there aren't new builds - take last build anyway
             buildsRes = getLatestBuild(branchStr);
+            buildsRes.addTag("NIGHTLY");
+            updateBuild(buildsRes.getId(), buildsRes);
         }
 
         return buildsRes;
@@ -732,7 +734,8 @@ public class NewmanResource {
         }
         test.setStatus(Test.Status.PENDING);
         test.setScheduledAt(new Date());
-        test.setSha(Sha.compute(test.getName(), test.getArguments()));
+        Job job = getJob(test.getJobId());
+        test.setSha(Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId()));
         testDAO.save(test);
         return test;
     }
@@ -1564,6 +1567,9 @@ public class NewmanResource {
         }
         if (build.getTestsMetadata() != null) {
             updateOps.set("testsMetadata", build.getTestsMetadata());
+        }
+        if (build.getTags() != null) {
+            updateOps.set("tags", build.getTags());
         }
         Query<Build> query = buildDAO.createIdQuery(id);
         Build result = buildDAO.getDatastore().findAndModify(query, updateOps);

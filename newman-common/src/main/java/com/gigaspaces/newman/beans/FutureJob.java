@@ -10,21 +10,26 @@ import java.util.Date;
  * on 10/19/15.
  */
 
+@SuppressWarnings("ALL")
 @Entity
 public class FutureJob {
     @Id
     private String id;
-    private String suiteID;
     private String buildID;
-    private Date submitTime;
+    private String buildName;
+    private String suiteID;
+    private String suiteName;
     private String author;
+    private Date submitTime;
 
     public FutureJob() {
     }
 
-    public FutureJob(String buildID, String suiteID, String author) {
+    public FutureJob(String buildID, String buildName, String suiteID, String suiteName, String author) {
         this.buildID = buildID;
+        this.buildName = buildName;
         this.suiteID = suiteID;
+        this.suiteName = suiteName;
         this.author = author;
         this.submitTime = new Date();
     }
@@ -67,5 +72,21 @@ public class FutureJob {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getSuiteName() {
+        return suiteName;
+    }
+
+    public void setSuiteName(String suiteName) {
+        this.suiteName = suiteName;
+    }
+
+    public String getBuildName() {
+        return buildName;
+    }
+
+    public void setBuildName(String buildName) {
+        this.buildName = buildName;
     }
 }

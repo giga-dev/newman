@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class Sha {
 
-    public static String compute(String name, List<String> arguments) {
+    public static String compute(String name, List<String> arguments, String suiteId) {
         try {
             MessageDigest cript = MessageDigest.getInstance("SHA-1");
             cript.reset();
@@ -21,6 +21,7 @@ public class Sha {
                     cript.update(argument.getBytes("utf-8"));
                 }
             }
+            cript.update(suiteId.getBytes("utf-8"));
             return new String(Base64.getEncoder().encode(cript.digest()));
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
@@ -28,6 +29,6 @@ public class Sha {
     }
 
     public static void main(String[] args){
-        System.out.println(compute("foo", Arrays.asList("arg1", "arg2")));
+        System.out.println(compute("foo", Arrays.asList("arg1", "arg2"), "suite-name"));
     }
 }
