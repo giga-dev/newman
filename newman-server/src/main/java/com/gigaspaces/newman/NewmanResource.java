@@ -718,9 +718,11 @@ public class NewmanResource {
         if (build != null && build.getBuildStatus().getTotalJobs() == 0) {
             buildsRes = build;
         }
-        else if(modeStr.equalsIgnoreCase("NIGHTLY")){
-        // ensure if nightly mode and there aren't new builds - take last build anyway
-            buildsRes = getLatestBuild(branchStr);
+        if(modeStr.equalsIgnoreCase("NIGHTLY")){
+            // if nightly mode and there aren't new builds - take last build anyway
+            if(buildsRes == null){
+                buildsRes = getLatestBuild(branchStr);
+            }
             buildsRes.addTag("NIGHTLY");
             updateBuild(buildsRes.getId(), buildsRes);
         }

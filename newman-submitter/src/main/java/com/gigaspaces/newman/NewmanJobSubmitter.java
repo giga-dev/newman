@@ -132,7 +132,7 @@ public class NewmanJobSubmitter {
 
     private void addTests(List<Test> tests, NewmanClient client) throws ExecutionException, InterruptedException, TimeoutException {
         try {
-            client.createTests(tests).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            client.createTests(tests).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS * 5, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             logger.error("can't create tests. exception: {}", e);
             throw e;
