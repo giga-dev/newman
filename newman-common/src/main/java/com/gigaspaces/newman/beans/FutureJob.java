@@ -17,6 +17,7 @@ public class FutureJob {
     private String id;
     private String buildID;
     private String buildName;
+    private String buildBranch;
     private String suiteID;
     private String suiteName;
     private String author;
@@ -25,9 +26,10 @@ public class FutureJob {
     public FutureJob() {
     }
 
-    public FutureJob(String buildID, String buildName, String suiteID, String suiteName, String author) {
+    public FutureJob(String buildID, String buildName, String buildBranch, String suiteID, String suiteName, String author) {
         this.buildID = buildID;
         this.buildName = buildName;
+        this.buildBranch = buildBranch;
         this.suiteID = suiteID;
         this.suiteName = suiteName;
         this.author = author;
@@ -44,6 +46,14 @@ public class FutureJob {
 
     public String getBuildID() {
         return buildID;
+    }
+
+    public String getBuildBranch() {
+        return buildBranch;
+    }
+
+    public void setBuildBranch(String buildBranch) {
+        this.buildBranch = buildBranch;
     }
 
     public void setBuildID(String buildID) {

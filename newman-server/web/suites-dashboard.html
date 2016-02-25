@@ -39,8 +39,7 @@
                             <tr>
                                 <th></th>
                                 <th class="table-header">Job ID</th>
-                                <th class="table-header">Build Name</th>
-                                <th class="table-header">Branch</th>
+                                <th class="table-header">Build</th>
                                 <th class="table-header">Results</th>
                                 <th class="table-header">Submitted At</th>
                             </tr>
@@ -48,8 +47,7 @@
                                 <tr class="{{{'succeed-row' : job.passedTests == job.totalTests, 'default-row' : job.passedTests != job.totalTests} | tokenList}}">
                                     <td></td>
                                     <td><a href="{{urlFor('job', {id: job.id, filterByStatus: 'ALL'})}}">{{job.id}}</a></td>
-                                    <td><a href="{{urlFor('build', {id: job.buildId})}}">{{job.buildName}}</a></td>
-                                    <td>{{job.buildBranch}}</td>
+                                    <td><a href="{{urlFor('build', {id: job.buildId})}}">{{job.buildName}} ({{job.buildBranch}})</a></td>
                                     <td>
                                         <template bind if="{{job.failedTests>0}}">
                                             <span class="label label-danger">

@@ -28,20 +28,18 @@
                 <table class="table table-bordered table-striped table-hover word-wrap-table" style="margin-bottom: 0px">
                     <thead>
                     <tr>
-                        <th width="15%">Name</th>
-                        <th width="7%">Branch</th>
-                        <th width="14%">Date</th>
-                        <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
-                        <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-danger">Broken</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
-                        <th width="26%"><span class="label label-header">Suite(s)</span></th>
+                        <th width="17%">Build</th>
+                        <th width="10%">Date</th>
+                        <th width="18%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
+                        <th width="16%"><span class="label label-success"># Done</span> / <span class="label label-danger">Broken</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
+                        <th width="39%"><span class="label label-header">Suite(s)</span></th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{activeBuild in data.activeBuilds}}">
                         <template if="{{activeBuild.buildStatus.totalJobs > 0}}">
                             <tr>
-                                <td title="{{activeBuild.name}}"><a href="{{urlFor('build', {id: activeBuild.id})}}">{{activeBuild.name}}</a></td>
-                                <td title="{{activeBuild.branch}}">{{activeBuild.branch}}</td>
+                                <td title="{{activeBuild.name}}"><a href="{{urlFor('build', {id: activeBuild.id})}}">{{activeBuild.name}} ({{activeBuild.branch}})</a></td>
                                 <td>{{activeBuild.buildTime | formatDate}}</td>
                                 <td>
                                     <span class="label label-success">{{activeBuild.buildStatus.passedTests}}</span>
@@ -64,7 +62,7 @@
                             </tr>
                             <template repeat="{{activeJob in data.activeJobs[activeBuild.id]}}">
                                 <tr>
-                                    <td colspan="2" title="{{activeJob.id}}" style="padding-left: 35px">
+                                    <td colspan="1" title="{{activeJob.id}}" style="padding-left: 36px">
                                         &#8627;Job:<a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'ALL'})}}">{{activeJob.id}}</a>
                                     </td>
                                     <td title="{{activeJob.duration}}">
@@ -103,20 +101,18 @@
                 <table class="table table-bordered table-striped table-hover word-wrap-table">
                     <thead>
                     <tr>
-                        <th width="15%">Name</th>
-                        <th width="7%">Branch</th>
-                        <th width="14%">Date</th>
-                        <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
-                        <th width="15%"><span class="label label-success"># Done</span> / <span class="label label-danger">Broken</span> /<span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
-                        <th width="26%"><span class="label label-header">Suites</span></th>
+                        <th width="14%">Build</th>
+                        <th width="10%">Date</th>
+                        <th width="18%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
+                        <th width="16%"><span class="label label-success"># Done</span> / <span class="label label-danger">Broken</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
+                        <th width="42%"><span class="label label-header">Suites</span></th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{pendingBuild in data.pendingBuilds}}">
                         <template if="{{pendingBuild.buildStatus.totalJobs > 0}}">
                             <tr>
-                                <td title="{{pendingBuild.name}}"><a href="{{urlFor('build', {id: pendingBuild.id})}}">{{pendingBuild.name}}</a></td>
-                                <td title="{{pendingBuild.branch}}">{{pending.branch}}</td>
+                                <td title="{{pendingBuild.name}}"><a href="{{urlFor('build', {id: pendingBuild.id})}}">{{pendingBuild.name}} ({{pending.branch}})</a></td>
                                 <td>{{pendingBuild.buildTime | formatDate}}</td>
                                 <td>
                                     <span class="label label-success">{{pendingBuild.buildStatus.passedTests}}</span>
@@ -150,20 +146,18 @@
                 <table class="table table-bordered table-striped table-hover word-wrap-table">
                     <thead>
                     <tr>
-                        <th width="15%">Name</th>
-                        <th width="7%">Branch</th>
-                        <th width="14%">Date</th>
-                        <th width="23%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
-                        <th width="15%"><span class="label label-default">Total</span> / <span class="label label-danger">Broken</span> <span class="label label-header">Jobs</span></th>
-                        <th width="26%"><span class="label label-header">Suites</span></th>
+                        <th width="14%">Build</th>
+                        <th width="10%">Date</th>
+                        <th width="16%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-default">Total</span><span class="label label-header">Tests</span></th>
+                        <th width="12%"><span class="label label-default">Total</span> / <span class="label label-danger">Broken</span> <span class="label label-header">Jobs</span></th>
+                        <th width="48%"><span class="label label-header">Suites</span></th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{historyBuild in data.historyBuilds}}">
                         <template if="{{historyBuild.buildStatus.totalJobs > 0}}">
                             <tr class="{{{'succeed-row' : historyBuild.buildStatus.passedTests == historyBuild.buildStatus.totalTests, 'broken-row' : historyBuild.buildStatus.brokenJobs > 0, 'default-row' : historyBuild.buildStatus.passedTests != historyBuild.buildStatus.totalTests } | tokenList}}">
-                                <td title="{{historyBuild.name}}"><a href="{{urlFor('build', {id: historyBuild.id})}}">{{historyBuild.name}}</a></td>
-                                <td title="{{historyBuild.branch}}">{{historyBuild.branch}}</td>
+                                <td title="{{historyBuild.name}}"><a href="{{urlFor('build', {id: historyBuild.id})}}">{{historyBuild.name}} ({{historyBuild.branch}})</a></td>
                                 <td>{{historyBuild.buildTime | formatDate}}</td>
                                 <td>
                                     <span class="label label-success">{{historyBuild.buildStatus.passedTests}}</span>
@@ -195,21 +189,17 @@
                 <table class="table table-bordered table-striped table-hover word-wrap-table">
                     <thead>
                     <tr>
-                        <th width="10%">Build ID</th>
-                        <th width="10%">Suite ID</th>
-                        <th width="10%">Build Name</th>
-                        <th width="10%">Suite Name</th>
-                        <th width="10%">Author</th>
-                        <th width="10%">Submit Time</th>
+                        <th>Build</th>
+                        <th>Suite Name</th>
+                        <th>Author</th>
+                        <th>Submit Time</th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{futureJob in data.futureJobs}}">
                         <tr>
-                            <td title="{futureJob.buildID}}"><a href="{{urlFor('build', {id: futureJob.buildID})}}">{{futureJob.buildID}}</a></td>
-                            <td title="{futureJob.suiteID}}"><a href="{{urlFor('suite', {id: futureJob.suiteID})}}">{{futureJob.suiteID}}</a></td>
-                            <td>{{futureJob.buildName}}</td>
-                            <td> {{futureJob.suiteName}}</td>
+                            <td title="{futureJob.buildID}}"><a href="{{urlFor('build', {id: futureJob.buildID})}}">{{futureJob.buildName}} ({{futureJob.buildBranch}})</a></td>
+                            <td title="{futureJob.suiteID}}"><a href="{{urlFor('suite', {id: futureJob.suiteID})}}">{{futureJob.suiteName}}</a></td>
                             <td>{{futureJob.author}}</td>
                             <td>{{futureJob.submitTime | formatDate}}</td>
                         </tr>

@@ -518,7 +518,7 @@ public class NewmanResource {
         }
 
         //noinspection ConstantConditions
-        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), suite.getId(), suite.getName(), author);
+        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), author);
 
         futureJobDAO.save(futureJob);
         broadcastMessage(CREATE_FUTURE_JOB,futureJob);

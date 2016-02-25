@@ -37,21 +37,19 @@
                 <table class="table table-bordered table-striped table-nowrap table-hover">
                     <thead>
                     <tr>
-                        <th>Build Name</th>
-                        <th>Branch</th>
+                        <th width="18%">Build</th>
+                        <th width="15%">Id</th>
                         <th>Build Date</th>
                         <th>Build Time</th>
-                        <th>URI</th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
-                            <td><a href="{{urlFor('build', {id: item.id})}}">{{item.name}}</a></td>
-                            <td>{{item.branch}}</td>
+                            <td><a href="{{urlFor('build', {id: item.id})}}">{{item.name}} ({{item.branch}})</a></td>
+                            <td>{{item.id}}</td>
                             <td>{{item.buildTime | formatDate}}</td>
                             <td title="{{item.buildTime | formatDate}}">{{item.buildTime | formatDateFromNow}}</td>
-                            <td><a href="{{item.uri}}">{{item.uri}}</a></td>
                         </tr>
                     </template>
                     </tbody>
