@@ -1973,16 +1973,18 @@ public class NewmanResource {
     @Path("suspend")
     @Produces(MediaType.APPLICATION_JSON)
     public Response suspend() throws InterruptedException {
-            UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations();
+        UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations();
         jobUpdateOps.set("state", State.PAUSED);
+
         try {
-            Query<Job> query = jobDAO.createQuery();
-            query.or(query.criteria("state").equal(State.RUNNING), query.criteria("state").equal(State.READY));
-            jobDAO.getDatastore().update(query, jobUpdateOps);
+            Query<Job> updateStateQuery = jobDAO.createQuery();
+            updateStateQuery.or(updateStateQuery.criteria("state").equal(State.RUNNING), updateStateQuery.criteria("state").equal(State.READY));
+            jobDAO.getDatastore().update(updateStateQuery, jobUpdateOps);
+
             final Query<Job> stillRunningJobsQuery = jobDAO.createQuery().filter("runningTests >", 0);
             QueryResults<Job> runningJobsResult = jobDAO.find(stillRunningJobsQuery);
 
-            while( !runningJobsResult.asList().isEmpty() && hasAllDoneJobs( runningJobsResult.asList() ) ) {
+            while( !runningJobsResult.asList().isEmpty() && !hasAllDoneJobs( runningJobsResult.asList() ) ) {
                 List<Job> jobList = runningJobsResult.asList();
                 logger.info("waiting for all agents to finish running tests, {} jobs are still running:", jobList.size());
                 logger.info(Arrays.toString( jobList.toArray()));
