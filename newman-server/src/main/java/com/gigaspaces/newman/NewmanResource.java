@@ -348,7 +348,7 @@ public class NewmanResource {
             , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
 
-        List<Job> jobs = retrieveJobs( buildId, orderBy, all, offset, limit );
+        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit);
         List<JobView> jobViews = new ArrayList<>( jobs.size() );
 
         for( Job job : jobs ){
@@ -1845,7 +1845,7 @@ public class NewmanResource {
             orderBy.forEach(query::order);
         }
 
-        query.order( "name" );
+        query.order("name");
 
         List<Suite> suites = suiteDAO.find(query).asList();
         List<SuiteView> suiteViews = new ArrayList<>( suites.size() );
@@ -1979,16 +1979,15 @@ public class NewmanResource {
             Query<Job> query = jobDAO.createQuery();
             query.or(query.criteria("state").equal(State.RUNNING), query.criteria("state").equal(State.READY));
             jobDAO.getDatastore().update(query, jobUpdateOps);
+            final Query<Job> stillRunningJobsQuery = jobDAO.createQuery().filter("runningTests >", 0);
+            QueryResults<Job> runningJobsResult = jobDAO.find(stillRunningJobsQuery);
 
-            Query<Job> findNotCompletedJobsQuery = jobDAO.createQuery();
-            final Query<Job> stillRunningJobsQuery = findNotCompletedJobsQuery.filter("runningTests >", 0);//.and(findNotCompletedJobsQuery.criteria("state").notEqual(State.RUNNING));
-            stillRunningJobsQuery.and( stillRunningJobsQuery.criteria("state").notEqual(State.DONE));
-            QueryResults<Job> runningJobs = jobDAO.find(stillRunningJobsQuery);
-            while (runningJobs.asList().size() != 0 ) {
-                logger.info("waiting for all agents to finish running tests, {} jobs are still running:", runningJobs.asList().size());
-                logger.info(Arrays.toString(runningJobs.asList().toArray()));
-                Thread.sleep(5000);
-                runningJobs = jobDAO.find(stillRunningJobsQuery);
+            while( !runningJobsResult.asList().isEmpty() && hasAllDoneJobs( runningJobsResult.asList() ) ) {
+                List<Job> jobList = runningJobsResult.asList();
+                logger.info("waiting for all agents to finish running tests, {} jobs are still running:", jobList.size());
+                logger.info(Arrays.toString( jobList.toArray()));
+                Thread.sleep(10000);
+                runningJobsResult = jobDAO.find(stillRunningJobsQuery);
             }
         }
         catch (Exception e){
@@ -1996,6 +1995,15 @@ public class NewmanResource {
             return Response.serverError().build();
         }
         return Response.ok().build();
+    }
+
+    private boolean hasAllDoneJobs(List<Job> runningJobs) {
+        for( Job job : runningJobs ){
+            if( job.getState() != State.DONE && job.getState() != State.PAUSED ){
+                return false;
+            }
+        }
+        return true;
     }
 
 
