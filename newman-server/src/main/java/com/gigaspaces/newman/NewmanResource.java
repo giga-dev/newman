@@ -1979,9 +1979,12 @@ public class NewmanResource {
             Query<Job> query = jobDAO.createQuery();
             query.or(query.criteria("state").equal(State.RUNNING), query.criteria("state").equal(State.READY));
             jobDAO.getDatastore().update(query, jobUpdateOps);
-            final Query<Job> stillRunningJobsQuery = jobDAO.createQuery().filter("runningTests >", 0);
+
+            Query<Job> findNotCompletedJobsQuery = jobDAO.createQuery();
+            final Query<Job> stillRunningJobsQuery = findNotCompletedJobsQuery.filter("runningTests >", 0);//.and(findNotCompletedJobsQuery.criteria("state").notEqual(State.RUNNING));
+            stillRunningJobsQuery.and( stillRunningJobsQuery.criteria("state").notEqual(State.DONE));
             QueryResults<Job> runningJobs = jobDAO.find(stillRunningJobsQuery);
-            while (runningJobs.asList().size() != 0) {
+            while (runningJobs.asList().size() != 0 ) {
                 logger.info("waiting for all agents to finish running tests, {} jobs are still running:", runningJobs.asList().size());
                 logger.info(Arrays.toString(runningJobs.asList().toArray()));
                 Thread.sleep(5000);
