@@ -87,20 +87,20 @@
                                 <dashboard-view url="api/newman/dashboard" route="home"></dashboard-view>
                                 <!--dashboard-view url="api/newman/suites-dashboard" route="suites-dashboard"></dashboard-view-->
                                 <section route="builds">
-                                    <h1>Builds</h1>
+                                    <h3>Builds</h3>
                                     <builds-table url="api/newman/build?orderBy=-buildTime"></builds-table>
                                 </section>
 
                                 <section route="jobs">
-                                    <h1>Jobs</h1>
+                                    <h3>Jobs</h3>
                                     <jobs-table url="api/newman/jobs-view?all=true&orderBy=-submitTime"></jobs-table>
                                 </section>
                                 <section route="suites-dashboard">
-                                    <h1>Suites Dashboard of completed jobs</h1>
+                                    <h3>Suites Dashboard of completed jobs</h3>
                                     <suites-dashboard url="api/newman/suites-dashboard"></suites-dashboard>
                                 </section>
                                 <section route="agents">
-                                    <h1>Agents</h1>
+                                    <h3>Agents</h3>
                                     <agent-table url="api/newman/agent?all=true"></agent-table>
                                 </section>
                                 <section route="test">
@@ -109,7 +109,7 @@
                                 <section route="job">
                                     <template if="{{route('job').params.id}}">
                                         <job-info url="api/newman/job/{{route('job').params.id}}"></job-info>
-                                        <h1>Job Tests</h1>
+                                        <h3>Job Tests</h3>
                                         <tests-table url="api/newman/job-tests-view?jobId={{route('job').params.id}}&all=true&filterByStatus={{route('job').params.filterByStatus}}" jobId="{{route('job').params.id}}">
                                         </tests-table>
     </template>
@@ -133,11 +133,11 @@
         </template>
     </section>
     <section route="future-job">
-        <h1>Submit New Job</h1>
-        <future-job url="api/newman/futureJob"></future-job>
+        <h3>Submit New Job</h3>
+        <future-job url="api/newman/all-builds-and-suites"></future-job>
     </section>
     <section route="mongo-admin">
-        <h1>A very simple Mongo admin {{route('mongo-admin').params.id}}</h1>
+        <h3>A very simple Mongo admin {{route('mongo-admin').params.id}}</h3>
         <mongo-admin url="api/newman/db"></mongo-admin>
     </section>
     </core-pages>

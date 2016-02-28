@@ -358,6 +358,32 @@ public class NewmanResource {
     }
 
     @GET
+    @Path("all-builds-and-suites")
+    @Produces(MediaType.APPLICATION_JSON)
+    public AllSuitesAndBuilds getAllBuildsAndSuites() {
+
+        Query<Suite> suitesQuery = suiteDAO.createQuery();
+        suitesQuery.order( "name" );
+        List<Suite> suites = suiteDAO.find( suitesQuery ).asList();
+        List<SuiteView> suiteViews = new ArrayList<>( suites.size() );
+        for( Suite suite : suites ){
+            suiteViews.add( new SuiteView( suite ) );
+        }
+
+        final int buildsLimit = 30;
+        Query<Build> buildsQuery = buildDAO.createQuery();
+        buildsQuery.order("-buildTime").limit( buildsLimit );
+        List<Build> builds = buildDAO.find( buildsQuery ).asList();
+        int buildsCount = builds.size();
+        List<BuildView> buildViews = new ArrayList<>( buildsCount );
+        for( Build build : builds ){
+            buildViews.add( new BuildView( build ) );
+        }
+
+        return new AllSuitesAndBuilds( buildViews, suiteViews );
+    }
+
+    @GET
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Job> jobs(@DefaultValue("0") @QueryParam("offset") int offset,
@@ -1818,6 +1844,8 @@ public class NewmanResource {
         if (orderBy != null) {
             orderBy.forEach(query::order);
         }
+
+        query.order( "name" );
 
         List<Suite> suites = suiteDAO.find(query).asList();
         List<SuiteView> suiteViews = new ArrayList<>( suites.size() );
