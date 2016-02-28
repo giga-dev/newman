@@ -15,7 +15,7 @@
 
         <div class="content" flex>
             <form>
-                <select class="input-lg form-control" id="suiteId">
+                <select class="input-lg form-control" id="suiteId" style="margin-left: 10px; width: 500px">
                     <option value="">Select a Suite</option>
                     <template repeat="{{suite in allSuites}}">
                         <option value="{{suite.id}}">{{suite.name}}</option>
@@ -23,12 +23,24 @@
                 </select>
 
 
-                <select class="input-lg form-control" id="buildId" style="margin-top: 15px">
+                <div class="radio" style="margin-top: 25px; margin-left: 10px; font-size: 16px">
+                    <label><input type="radio" id="selectBuildIdRb" checked name="optradio" on-click="{{onClickSelectBuildRb}}">Select build:</label>
+                </div>
+
+
+                <select class="input-lg form-control" id="selectedBuildId" style="margin-left: 15px; width: 500px">
                     <option value="">Select a Build</option>
                     <template repeat="{{build in allBuilds}}">
                         <option value="{{build.id}}">{{build.name}} ({{build.branch}})</option>
                     </template>
                 </select>
+
+                <div class="radio" style="margin-left: 10px; font-size: 16px">
+                    <label><input type="radio" id="enterBuildIdRb" name="optradio" on-click="{{onClickEnterBuildRb}}">Enter build Id:</label>
+                </div>
+                <input type="text" disabled class="form-control" id="enteredBuildId" style="margin-left: 15px; width: 500px; height: 40px">
+
+
                 <button type="button" class="btn btn-default" on-click="{{submitFutureJob}}" style="margin-top: 15px">Submit</button>
             </form>
         </div>
@@ -42,6 +54,7 @@
     </template>
 
     <script>
+
         Polymer({
             applyAuthorStyles: true,
             messageTxt : '',
@@ -54,28 +67,42 @@
                 this.allSuites = response.suites;
                 this.allBuilds = response.builds;
             },
+            onClickSelectBuildRb: function(){
+                this.$.selectedBuildId.disabled=false;
+                this.$.enteredBuildId.disabled=true;
+            },
+            onClickEnterBuildRb: function(){
+                this.$.selectedBuildId.disabled=true;
+                this.$.enteredBuildId.disabled=false;
+            },
             jobSubmitResponse: function(event,resp){
 
                 console.info("got future job response:", event, resp);
-                 this.$.status.innerHTML = JSON.stringify(resp.response);
+                this.$.status.innerHTML = JSON.stringify(resp.response);
             },
             submitFutureJob : function(){
                 var suiteId = this.$.suiteId.value;
-                var buildId = this.$.buildId.value;
+
+                var selectBuildIdRbChecked = this.$.selectBuildIdRb.checked;
+
+                var buildId = null;
+                if( selectBuildIdRbChecked ){
+                    buildId = this.$.selectedBuildId.value;
+                }
+                else{
+                    buildId = this.$.enteredBuildId.value;
+                }
 
                 if( !suiteId && !buildId ){
-                    this.messageTxt = 'Both invalid Suite and Build were selected';
-                    //alert( 'Invalid Suite and Build were selected' );
+                    this.messageTxt = 'Neither Suite nor Build were selected';
                     this.$.alertDialog.toggle();
                 }
                 else if( !suiteId ){
                     this.messageTxt = 'Invalid Suite was selected';
-                    //alert( 'Invalid Suite was selected' );
                     this.$.alertDialog.toggle();
                 }
                 else if( !buildId ){
                     this.messageTxt = 'Invalid Build was selected';
-                    //alert( 'Invalid Build was selected' );
                     this.$.alertDialog.toggle();
                 }
                 if( suiteId && buildId){
