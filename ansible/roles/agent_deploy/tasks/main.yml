@@ -46,21 +46,26 @@
 - name: "create supervisord out file"
   shell: touch {{agent_home_dir}}/supervisord_logs/out.log
 
-- name: "start supervisord if not exists"
-  shell: supervisord -c {{agent_home_dir}}/supervisord.conf
-  ignore_errors: yes
-
-- name: "stop newman agent"
-  supervisorctl: name=newman_agent state=stopped config={{agent_home_dir}}/supervisord.conf
-
-- name: "undeploy old agents"
-  script: "{{newman_local_dir}}/ansible/roles/agent_deploy/files/stop-newman-agent.sh"
-  ignore_errors: yes
-
 - name: "deploy new agent jar"
   copy: src={{newman_local_dir}}/newman-agent/target/newman-agent-1.0.jar dest={{agent_home_dir}} owner=xap mode=0777
   tags:
     - deploy
 
-- name: "start newman agent"
-  supervisorctl: name=newman_agent state=started config={{agent_home_dir}}/supervisord.conf
+- name: "restart agent machine"
+  command: init 6
+  async: 0
+  poll: 0
+  sudo: true
+  ignore_errors: true
+
+- name: "waiting for agent machine to come back"
+  local_action: wait_for host={{ inventory_hostname }} port=22 delay=15 state=started
+  sudo: false
+
+- name: "ensure agent started"
+  command: cat /home/xap/newman-agent/nohup_agent1.out
+  register: log_output
+  until: log_output.stdout.find("Agent is initializing") > -1
+  retries: 5
+  delay: 10
+
