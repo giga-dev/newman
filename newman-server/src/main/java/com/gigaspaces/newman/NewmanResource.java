@@ -328,7 +328,7 @@ public class NewmanResource {
         for (Test test : testDAO.find(query)) {
             if (test.getSha() == null) {
                 Job job = getJob(test.getJobId());
-                UpdateOperations<Test> ops = testDAO.createUpdateOperations().set("sha", Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId()));
+                UpdateOperations<Test> ops = testDAO.createUpdateOperations().set("sha", Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId(), job.getBuild().getBranch()));
                 testDAO.updateFirst(testDAO.createIdQuery(test.getId()), ops);
                 ++records;
             }
@@ -763,7 +763,7 @@ public class NewmanResource {
         test.setStatus(Test.Status.PENDING);
         test.setScheduledAt(new Date());
         Job job = getJob(test.getJobId());
-        test.setSha(Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId()));
+        test.setSha(Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId(), job.getBuild().getBranch()));
         testDAO.save(test);
         return test;
     }
