@@ -321,7 +321,7 @@ public class NewmanAgent {
         while (true) {
             try {
                 //update test removes Agent assignment
-                Test finishedTest = c.finishTest(testResult).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                Test finishedTest = c.finishTest(testResult).toCompletableFuture().get();
                 logger.info("finished test [{}].", finishedTest);
                 Path logs = append(config.getNewmanHome(), "logs");
                 Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
