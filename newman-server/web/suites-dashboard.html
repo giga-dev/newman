@@ -122,6 +122,20 @@
                     return values;
                 }
             },
+            runFilterWithEquals: function(){
+                this.data  = this.applyFilterWithEquals(this.filter, this.allValues);
+            },
+            applyFilterWithEquals: function(filter, values){
+                /*console.log( 'filter:' , filter, ', values:', values );*/
+                if(values && filter != null && filter != undefined){
+                    return values.filter(function(value){
+                        return value.name != undefined && value.name != null && value.name.toLowerCase() == filter.toLowerCase();
+                    });
+                }
+                else{
+                    return values;
+                }
+            },
             onCreatedSuite: function(ev, suiteWithJob){
                 this.byId[suiteWithJob.id] = suiteWithJob;
                 this.allValues.unshift(suiteWithJob);
@@ -146,7 +160,7 @@
                     this.$.filterfield.value='';
                 }
                 this.filter = this.$.filterfield.value;
-                this.runFilter();
+                this.runFilterWithEquals();
             }
         }, window.sharedMixin));
     </script>
