@@ -129,7 +129,8 @@
                 /*console.log( 'filter:' , filter, ', values:', values );*/
                 if(values && filter != null && filter != undefined){
                     return values.filter(function(value){
-                        return value.name != undefined && value.name != null && value.name.toLowerCase() == filter.toLowerCase();
+                        return value.name != undefined && value.name != null &&
+                                ( value.name.toLowerCase() == filter.toLowerCase() || !filter );
                     });
                 }
                 else{
