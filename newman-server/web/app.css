@@ -128,3 +128,24 @@ body{
 .black-column{
     color:#0C090A
 }
+.main-table{
+    margin-top: -25px;
+    margin-bottom: -31px;
+}
+
+.top-table-navigation{
+    margin-top: -25px;
+}
+
+.bottom-table-navigation{
+    margin-bottom: 0px;
+}
+
+.font-size-small{
+    font-size: 13px;
+}
+
+.failed-check-box-div{
+    margin-top: -23px;
+    margin-bottom: 23px;
+}

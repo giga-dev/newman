@@ -27,7 +27,7 @@
         <h2>Name and arguments:<span class="test-name-label">
              {{pages[0][0].test.arguments}}
         </span></h2>
-        <div class="content" flex>
+        <div class="content top-table-navigation" flex>
             <form class="form-inline">
                 <div class="form-group">
                     <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter" class="form-control">
@@ -37,7 +37,7 @@
                     </table-pagination>
                 </div>
             </form>
-            <div class="table-responsive" on-switch-clicked="{{onSwitchClicked}}">
+            <div class="table-responsive main-table" on-switch-clicked="{{onSwitchClicked}}">
                 <table class="table table-bordered table-striped table-nowrap table-hover"><!--data-sort-name="name" data-sort-order="desc"-->
                     <thead>
                     <tr>
@@ -78,8 +78,10 @@
                     </tbody>
                 </table>
             </div>
+            <div class="bottom-table-navigation">
             <table-pagination total="{{pages.length}}" current="{{currentPage}}"
                               on-page-change="{{onPageChange}}"></table-pagination>
+            </div>
         </div>
     </template>
 
@@ -103,7 +105,7 @@
                 var current = [];
                 for(var i = 0; i < this.data.length; ++i){
                     current.push(this.data[i]);
-                    if(current.length === 25){
+                    if(current.length === 19){
                         res.push(current);
                         current = [];
                     }

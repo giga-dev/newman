@@ -13,10 +13,10 @@
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
         <core-ajax id="copy" handleAs="json" method="POST" withCredentials="true" content="application/json" headers='{"Accept": "application/json","Content-Type": "application/json" }'></core-ajax>
         <div class="content" flex>
-            <h3>Suites</h3>
-            <form class="form-inline">
-                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Suite name filter" class="form-control">
-            </form>
+                <h3>Suites</h3>
+                <form class="form-inline">
+                    <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Suite name filter" class="form-control">
+                </form>
             <div class="table-responsive">
                 <table class="table table-hover table-striped table-bordered table-condensed word-wrap-table">
                     <thead>
@@ -33,7 +33,7 @@
                         <tr>
                             <td><a href="{{urlFor('suite', {id: item.id})}}">{{item.name}}</a></td>
                             <td><a href="{{urlFor('suite', {id: item.id})}}">{{item.id}}</a></td>
-                            <td class="word-wrap-td">{{item.customVariables}}</td>
+                            <td class="word-wrap-td font-size-small">{{item.customVariables}}</td>
                             <!--<td><pre><code>{{item.criteria | removeNulls | json}}</code></pre></td>-->
                             <td>
                                 <button data-toggle="tooltip" data-placement="left" title="Copy {{item.name}}" class="btn btn-success" on-click="{{toggleDropAgentConfirmationDialog}}" suite-id="{{item.id}}" suite-name="{{item.name}}">

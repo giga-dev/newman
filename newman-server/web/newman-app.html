@@ -85,7 +85,6 @@
                         <more-route-selector>
                             <core-pages>
                                 <dashboard-view url="api/newman/dashboard" route="home"></dashboard-view>
-                                <!--dashboard-view url="api/newman/suites-dashboard" route="suites-dashboard"></dashboard-view-->
                                 <section route="builds">
                                     <h3>Builds</h3>
                                     <builds-table url="api/newman/build?orderBy=-buildTime"></builds-table>
@@ -95,10 +94,12 @@
                                     <h3>Jobs</h3>
                                     <jobs-table url="api/newman/jobs-view?all=true&orderBy=-submitTime"></jobs-table>
                                 </section>
+
                                 <section route="suites-dashboard">
                                     <h3>Suites Dashboard of completed jobs</h3>
                                     <suites-dashboard url="api/newman/suites-dashboard"></suites-dashboard>
                                 </section>
+
                                 <section route="agents">
                                     <h3>Agents</h3>
                                     <agent-table url="api/newman/agent?all=true"></agent-table>
@@ -112,71 +113,64 @@
                                         <h3>Job Tests</h3>
                                         <tests-table url="api/newman/job-tests-view?jobId={{route('job').params.id}}&all=true&filterByStatus={{route('job').params.filterByStatus}}" jobId="{{route('job').params.id}}">
                                         </tests-table>
-    </template>
-    </section>
-    <section route="test-history">
-        <template if="{{route('test-history').params.id}}">
-            <test-history url="api/newman/test-history/{{route('test-history').params.id}}"></test-history>
-            <test-history-table
-                    url="api/newman/test-history?id={{route('test-history').params.id}}" testId="{{route('test-history').params.id}}"></test-history-table>
-        </template>
-    </section>
-    <section route="build" attributes="url active" active>
-        <build-info url="api/newman/build/{{route('build').params.id}}"></build-info>
-        <h2>Participate in the following jobs:</h2>
-        <jobs-table url="api/newman/jobs-view?buildId={{route('build').params.id}}&all=true"></jobs-table>
-    </section>
-    <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
-    <section route="suite">
-        <template if="{{route('suite').params.id}}">
-            <suite-view url="api/newman/suite/{{route('suite').params.id}}"></suite-view>
-        </template>
-    </section>
-    <section route="future-job">
-        <h3>Submit New Job</h3>
-        <future-job url="api/newman/all-builds-and-suites"></future-job>
-    </section>
-    <section route="mongo-admin">
-        <h3>A very simple Mongo admin {{route('mongo-admin').params.id}}</h3>
-        <mongo-admin url="api/newman/db"></mongo-admin>
-    </section>
-    </core-pages>
-    </more-route-selector>
-    </main>
-    </core-header-panel>
-    </core-drawer-panel>
-    </sse-sender>
+                                    </template>
+                                </section>
+-                                <section route="test-history">
+                                    <template if="{{route('test-history').params.id}}">
+                                        <test-history url="api/newman/test-history/{{route('test-history').params.id}}"></test-history>
+                                        <test-history-table
+                                             url="api/newman/test-history?id={{route('test-history').params.id}}" testId="{{route('test-history').params.id}}">
+                                        </test-history-table>
+                                    </template>
+                                </section>
+                                <section route="build" attributes="url active" active>
+                                    <build-info url="api/newman/build/{{route('build').params.id}}"></build-info>
+                                    <h2>Participate in the following jobs:</h2>
+                                    <jobs-table url="api/newman/jobs-view?buildId={{route('build').params.id}}&all=true"></jobs-table>
+                                </section>
+                                <suites-view url="api/newman/suite?all=true" route="suites"></suites-view>
+                                <section route="suite">
+                                    <template if="{{route('suite').params.id}}">
+                                        <suite-view url="api/newman/suite/{{route('suite').params.id}}"></suite-view>
+                                    </template>
+                                </section>
+                                <section route="future-job">
+                                    <h3>Submit New Job</h3>
+                                    <future-job url="api/newman/all-builds-and-suites"></future-job>
+                                </section>
+                                <section route="mongo-admin">
+                                    <h3>A very simple Mongo admin {{route('mongo-admin').params.id}}</h3>
+                                    <mongo-admin url="api/newman/db"></mongo-admin>
+                                </section>
+                            </core-pages>
+                        </more-route-selector>
+                    </main>
+                </core-header-panel>
+            </core-drawer-panel>
+        </sse-sender>
     </template>
     <script>
-    Polymer({
-      user : null,
-      heading : "",
-      logsDiskUsage: "",
-      selected:0,
-      heading : "Hello Newman users!",
-      created: function() {
-         this.user = {};
-      },
-      domReady: function() {
-      },
-      ajaxResponse:function(event, object){
-        this.user = object.response;
-        this.heading = "Hello " + this.user.userName;
-      },
-      activeChanged: function(oldValue, newValue){
-          //console.info("build view activeChanged to ", newValue);
-      },
-      logSizeResponse: function(event, resp){
-          this.logsDiskUsage = "Logs size: " + window.app.humanFileSize(resp.response, false);
-      },
-    });
-
-
-
-
-
-
-
-
+        Polymer({
+            user : null,
+            heading : "",
+            logsDiskUsage: "",
+            selected:0,
+            heading : "Hello Newman users!",
+            created: function() {
+                this.user = {};
+            },
+            domReady: function() {
+            },
+            ajaxResponse:function(event, object){
+                this.user = object.response;
+                this.heading = "Hello " + this.user.userName;
+            },
+            activeChanged: function(oldValue, newValue){
+                //console.info("build view activeChanged to ", newValue);
+            },
+            logSizeResponse: function(event, resp){
+                this.logsDiskUsage = "Logs size: " + window.app.humanFileSize(resp.response, false);
+            },
+        });
     </script>
 </polymer-element>

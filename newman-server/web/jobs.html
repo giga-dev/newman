@@ -32,7 +32,7 @@
         <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}" withCredentials="true"></core-ajax>
 
         <core-ajax id="jobToggler" handleAs="json" withCredentials="true" method="post"></core-ajax>
-        <div class="content" flex>
+        <div class="content top-table-navigation" flex>
             <form class="form-inline">
                 <div class="form-group">
                     <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter"
@@ -45,7 +45,7 @@
 
             </form>
             <!--<multi-status>foo</multi-status>-->
-            <div class="table-responsive" on-switch-clicked="{{onSwitchClicked}}">
+            <div class="table-responsive main-table" on-switch-clicked="{{onSwitchClicked}}">
                 <!--<table class="table table-hover table-striped table-bordered table-condensed">-->
                 <table class="table table-bordered table-striped table-nowrap table-hover">
                     <thead>
@@ -119,14 +119,14 @@
                     </tbody>
                 </table>
             </div>
-            <table-pagination total="{{pages.length}}" current="{{currentPage}}" on-page-change="{{onPageChange}}"></table-pagination>
-
+            <div class="bottom-table-navigation">
+                <table-pagination total="{{pages.length}}" current="{{currentPage}}" on-page-change="{{onPageChange}}"></table-pagination>
+            </div>
             <paper-action-dialog backdrop autoCloseDisabled  id="confirmdialogdropcollection" heading="Drop Job?" transition="paper-dialog-transition-bottom" style="position: fixed; outline: none; display: none;">
                 <p>Are you sure you want to delete job [{{jobId}}]?</p>
                 <paper-button affirmative raised class="colored" on-click="{{dropJob}}">OK</paper-button>
                 <paper-button raised affirmative default>Cancel</paper-button>
             </paper-action-dialog>
-
         </div>
     </template>
     <script>
@@ -151,7 +151,7 @@
                 var current = [];
                 for(var i = 0; i < this.data.length; ++i){
                     current.push(this.data[i]);
-                    if(current.length === 25){
+                    if(current.length === 13){
                         res.push(current);
                         current = [];
                     }

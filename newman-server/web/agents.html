@@ -7,20 +7,20 @@
 <polymer-element name="agent-table" attributes="url" on-modified-agent="{{onModifiedAgent}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
-
+        <link rel="stylesheet" href="app.css">
         <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
         <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}" withCredentials="true"></core-ajax>
-
-        <div class="content" flex>
+        <div class="content top-table-navigation" flex>
             <form class="form-inline">
-                <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter" class="form-control">
+                <div class="form-group">
+                    <input type="text" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Filter" class="form-control">
+                </div>
+                <div class="form-group">
+                    <table-pagination total="{{pages.length}}" current="{{currentPage}}" on-page-change="{{onPageChange}}"/>
+                </div>
             </form>
-            <div class="form-group">
-                <table-pagination total="{{pages.length}}" current="{{currentPage}}"
-                                  on-page-change="{{onPageChange}}"></table-pagination>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover table-striped table-bordered table-condensed">
+            <div class="table-responsive main-table">
+                <table class="table table-hover table-striped table-bordered table-condensed" >
                     <thead>
                     <tr>
                         <th>Name</th>
@@ -70,15 +70,14 @@
                     </tbody>
                 </table>
             </div>
-            <table-pagination total="{{pages.length}}" current="{{currentPage}}"
-                              on-page-change="{{onPageChange}}"></table-pagination>
-
+            <div class="bottom-table-navigation">
+                <table-pagination total="{{pages.length}}" current="{{currentPage}}" on-page-change="{{onPageChange}}"/>
+            </div>
             <paper-action-dialog backdrop autoCloseDisabled  id="confirmdialogdeleteagent" heading="Drop agent [{{dropAgentName}}]?" transition="paper-dialog-transition-bottom" style="position: fixed; outline: none; display: none;">
                 <p>Are you sure you want to delete agent [{{dropAgentName}}]?</p>
                 <paper-button affirmative raised class="colored" on-click="{{dropOne}}">OK</paper-button>
                 <paper-button raised affirmative default>Cancel</paper-button>
             </paper-action-dialog>
-
         </div>
     </template>
 
@@ -105,7 +104,7 @@
                 var current = [];
                 for(var i = 0; i < this.data.length; ++i){
                     current.push(this.data[i]);
-                    if(current.length === 25){
+                    if(current.length === 21){
                         res.push(current);
                         current = [];
                     }
