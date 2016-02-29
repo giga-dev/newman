@@ -112,7 +112,7 @@
                     <template repeat="{{pendingBuild in data.pendingBuilds}}">
                         <template if="{{pendingBuild.buildStatus.totalJobs > 0}}">
                             <tr>
-                                <td title="{{pendingBuild.name}}"><a href="{{urlFor('build', {id: pendingBuild.id})}}">{{pendingBuild.name}} ({{pending.branch}})</a></td>
+                                <td title="{{pendingBuild.name}}"><a href="{{urlFor('build', {id: pendingBuild.id})}}">{{pendingBuild.name}} ({{pendingBuild.branch}})</a></td>
                                 <td>{{pendingBuild.buildTime | formatDate}}</td>
                                 <td>
                                     <span class="label label-success">{{pendingBuild.buildStatus.passedTests}}</span>
