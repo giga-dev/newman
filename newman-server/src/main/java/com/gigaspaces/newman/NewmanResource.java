@@ -98,6 +98,8 @@ public class NewmanResource {
     private static String HTTP_WEB_ROOT_PATH;
     private static String HTTPS_WEB_ROOT_PATH;
 
+    private static final Object takenTestLock = new Object();
+
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
         //noinspection SpellCheckingInspection
@@ -1387,7 +1389,10 @@ public class NewmanResource {
         query.and(query.criteria("jobId").equal(jobId), query.criteria("status").equal(Test.Status.PENDING));
         UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
                 .set("assignedAgent", name).set("startTime", new Date());
-        Test result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
+        Test result;
+        synchronized (takenTestLock) {
+            result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
+        }
 
         if (result != null) {
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
