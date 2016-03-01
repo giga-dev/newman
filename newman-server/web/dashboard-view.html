@@ -28,11 +28,11 @@
                 <table class="table table-bordered table-striped table-hover word-wrap-table" style="margin-bottom: 0px">
                     <thead>
                     <tr>
-                        <th width="17%">Build</th>
-                        <th width="10%">Date</th>
+                        <th width="20%">Build</th>
+                        <th width="11%">Date</th>
                         <th width="18%"><span class="label label-success"># Passed</span> / <span class="label label-danger">Failed</span> / <span class="label label-primary">Pending</span><span class="label label-header">Tests</span></th>
                         <th width="16%"><span class="label label-success"># Done</span> / <span class="label label-danger">Broken</span> / <span class="label label-default">Total</span><span class="label label-header">Jobs</span></th>
-                        <th width="39%"><span class="label label-header">Suite(s)</span></th>
+                        <th width="35%"><span class="label label-header">Suite(s)</span></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -52,7 +52,7 @@
                                     <span class="label label-danger">{{activeBuild.buildStatus.brokenJobs}}</span>
                                     <span class="label label-default">{{activeBuild.buildStatus.totalJobs}}</span>
                                 </td>
-                                <td class="word-wrap-td">
+                                <td class="word-wrap-td font-size-14">
                                     <template repeat="{{suiteId, index in activeBuild.buildStatus.suitesIds}}">
                                         <template if="{{index!== 'undefined' && activeBuild.buildStatus.suitesNames[index]}}">
                                             <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(activeBuild.buildStatus.suitesNames[index])}}</span> </a>
@@ -62,7 +62,7 @@
                             </tr>
                             <template repeat="{{activeJob in data.activeJobs[activeBuild.id]}}">
                                 <tr>
-                                    <td colspan="1" title="{{activeJob.id}}" style="padding-left: 36px">
+                                    <td colspan="1" title="{{activeJob.id}}" style="padding-left: 17px">
                                         &#8627;Job:<a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'ALL'})}}">{{activeJob.id}}</a>
                                     </td>
                                     <td title="{{activeJob.duration}}">
@@ -82,7 +82,7 @@
                                             <a href="{{urlFor('job', {id: activeJob.id, filterByStatus: 'ALL'})}}" class="tests-num-link">{{activeJob.totalTests}}</a>
                                         </span>
                                     </td>
-                                    <td title="{{activeJob.suite.name}}">
+                                    <td title="{{activeJob.suite.name}}" class="word-wrap-td font-size-14">
                                         <template if="{{activeJob.suite.id != null}}">
                                             <a href="{{urlFor('suite', {id: activeJob.suite.id})}}">{{activeJob.suite.name}}</a>
                                         </template>
@@ -125,7 +125,7 @@
                                     <span class="label label-danger">{{activeBuild.buildStatus.brokenJobs}}</span>
                                     <span class="label label-default">{{pendingBuild.buildStatus.totalJobs}}</span>
                                 </td>
-                                <td class="word-wrap-td">
+                                <td class="word-wrap-td font-size-14">
                                     <template repeat="{{suiteId, index in pendingBuild.buildStatus.suitesIds}}">
                                         <template if="{{index!== 'undefined' && pendingBuild.buildStatus.suitesNames[index]}}">
                                             <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(pendingBuild.buildStatus.suitesNames[index])}}</span> </a>
@@ -169,7 +169,7 @@
                                     <span class="label label-default">{{historyBuild.buildStatus.totalJobs}}</span>
                                     <span class="label label-danger">{{historyBuild.buildStatus.brokenJobs}}</span>
                                 </td>
-                                <td class="word-wrap-td">
+                                <td class="word-wrap-td font-size-14">
                                     <template repeat="{{suiteId, index in historyBuild.buildStatus.suitesIds}}">
                                         <template if="{{index!== 'undefined' && historyBuild.buildStatus.suitesNames[index]}}">
                                             <a href="{{urlFor('suite', {id: suiteId})}}"><span class="label-link">{{calculateShortSuiteName(historyBuild.buildStatus.suitesNames[index])}}</span></a>
