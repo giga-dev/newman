@@ -1387,15 +1387,19 @@ public class NewmanResource {
         UpdateOperations<Agent> agentUpdateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date());
         Test result;
         int batchSize = 0;
+        int limit = 0;
         UpdateOperations<Test> updateOps;
         Query<Test> query;
         synchronized (takenTestLock) {
+            logger.warn("agent took lock [{}]", agent.getName());
             query = testDAO.createQuery();
             batchSize = query.getBatchSize();
+            limit = query.getLimit();
             query.and(query.criteria("jobId").equal(jobId), query.criteria("status").equal(Test.Status.PENDING));
             updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
                 .set("assignedAgent", name).set("startTime", new Date());
             result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
+            logger.warn("agent **FREE** lock [{}]", agent.getName());
         }
 
         if (result != null) {
@@ -1448,7 +1452,7 @@ public class NewmanResource {
         }
         agent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, true);
         broadcastMessage(MODIFIED_AGENT, agent);
-        logger.warn("agent [{}] got test [{}]. ### batchSize [{}]", agent.getName(), result.getId(), batchSize);
+        logger.warn("agent [{}] got test id: [{}], test-state:[{}]. ### batchSize - [{}], limit [{}]", agent.getName(), result.getId(),result.getStatus(),  batchSize, limit);
         return result;
     }
 
