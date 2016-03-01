@@ -1393,8 +1393,7 @@ public class NewmanResource {
             query.and(query.criteria("jobId").equal(jobId), query.criteria("status").equal(Test.Status.PENDING));
             updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
                 .set("assignedAgent", name).set("startTime", new Date());
-            testDAO.getDatastore().update(query, updateOps,false);
-            result = testDAO.findOne(query);
+            result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
         }
 
         if (result != null) {
