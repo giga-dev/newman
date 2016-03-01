@@ -775,7 +775,7 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public synchronized Test finishTest(final Test test) {
         try{
-            logger.info("trying to finish test {}.", test);
+            logger.info("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
@@ -838,6 +838,9 @@ public class NewmanResource {
                         idling = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent())
                                         .where("this.currentTests.length == 0"),
                                 agentDAO.createUpdateOperations().set("state", Agent.State.IDLING));
+                        if(idling != null){
+                            logger.warn("agent [{}] become idling because it finish all his tests",idling.getName());
+                        }
                     }
                     broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
                 }
@@ -846,7 +849,7 @@ public class NewmanResource {
             broadcastMessage(MODIFIED_TEST, result);
             broadcastMessage(MODIFIED_JOB, job);
             broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(job.getSuite()));
-            logger.info("succeed finish test {}.", result);
+            logger.info("succeed finish test- id:[{}], name:[{}]", result.getId(), result.getName());
             return result;
         }
         catch (Exception e){
@@ -1422,6 +1425,7 @@ public class NewmanResource {
                             agentDAO.createUpdateOperations().set("state", Agent.State.IDLING));
                     if (idling != null) {
                         agent = idling;
+                        logger.warn("agent [{}] is idling from getTest because finished all his tests", agent.getName());
                     }
                 }
 
@@ -1499,7 +1503,9 @@ public class NewmanResource {
         }
 
         Agent readyAgent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, false, true);
-
+        if(readyAgent != null && readyAgent.getState().equals(Agent.State.IDLING)){
+            logger.warn("agent [{}] is idling at subscribe because didn't find job", readyAgent.getName());
+        }
 
         broadcastMessage(MODIFIED_AGENT, readyAgent);
         return job;
@@ -2049,7 +2055,7 @@ public class NewmanResource {
     }
 
     private void handleZombieAgent(Agent agent) {
-        logger.warn("Agent {} is did not report on time while he was IDLING and will be deleted", agent);
+        logger.warn("Agent {} is did not report on time while he was IDLING and will be deleted", agent.getName());
         final Agent toDelete = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agent.getName()));
         if (toDelete != null) {
             agentDAO.getDatastore().findAndDelete(agentDAO.createIdQuery(toDelete.getId()));
@@ -2057,7 +2063,7 @@ public class NewmanResource {
     }
 
     private void handleUnseenAgent(Agent agent) {
-        logger.warn("Agent {} is did not report on time", agent);
+        logger.warn("Agent {} is did not report on time", agent.getName());
         returnTests(agent);
 
     }
@@ -2074,7 +2080,7 @@ public class NewmanResource {
                             .field("assignedAgent").equal(agent.getName()),
                     testDAO.createUpdateOperations().unset("assignedAgent").unset("startTime").set("status", Test.Status.PENDING));
             if (found != null) {
-                logger.warn("test {} was released since agent {} not seen for a long time", found, agent);
+                logger.warn("test {} was released since agent {} not seen for a long time", found.getId(), agent.getName());
                 tests.add(found);
             }
         }
@@ -2092,6 +2098,9 @@ public class NewmanResource {
         Agent ag = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()),
                 agentDAO.createUpdateOperations().set("currentTests", new HashSet<>()).set("state", Agent.State.IDLING));
 
+        if(ag != null && ag.getState().equals(Agent.State.IDLING)){
+            logger.warn("agent [{}] is idling while returning tests to pool", ag.getName());
+        }
         for (Test test : tests) {
             broadcastMessage(MODIFIED_TEST, test);
         }
