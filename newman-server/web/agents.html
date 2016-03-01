@@ -10,6 +10,7 @@
         <link rel="stylesheet" href="app.css">
         <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
         <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}" withCredentials="true"></core-ajax>
+        <h3>Agents ({{allValues.length}})</h3>
         <div class="content top-table-navigation" flex>
             <form class="form-inline">
                 <div class="form-group">
@@ -104,7 +105,7 @@
                 var current = [];
                 for(var i = 0; i < this.data.length; ++i){
                     current.push(this.data[i]);
-                    if(current.length === 21){
+                    if(current.length === 24){
                         res.push(current);
                         current = [];
                     }

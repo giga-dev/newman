@@ -23,7 +23,7 @@
             <form class="form-inline">
                 <input type="text" id="filterfield" value="{{filter}}" on-keyup="{{runFilter}}" placeholder="Suite name filter" class="form-control">
             </form>
-            <div class="table-responsive">
+            <div class="table-responsive" style="overflow-y:auto;height:800px;display:block;">
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <tbody>
                     <template repeat="{{suite in data}}">
