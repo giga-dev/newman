@@ -2072,7 +2072,7 @@ public class NewmanResource {
             final Query<Job> stillRunningJobsQuery = jobDAO.createQuery().filter("runningTests >", 0);
             QueryResults<Job> runningJobsResult = jobDAO.find(stillRunningJobsQuery);
 
-            while( !runningJobsResult.asList().isEmpty() && !hasAllDoneJobs( runningJobsResult.asList() ) ) {
+            while( !runningJobsResult.asList().isEmpty() ) {
                 List<Job> jobList = runningJobsResult.asList();
                 logger.info("waiting for all agents to finish running tests, {} jobs are still running:", jobList.size());
                 logger.info(Arrays.toString( jobList.toArray()));
@@ -2086,16 +2086,6 @@ public class NewmanResource {
         }
         return Response.ok().build();
     }
-
-    private boolean hasAllDoneJobs(List<Job> runningJobs) {
-        for( Job job : runningJobs ){
-            if( job.getState() != State.DONE && job.getState() != State.PAUSED ){
-                return false;
-            }
-        }
-        return true;
-    }
-
 
     private java.nio.file.Path saveFile(InputStream is, String location) throws IOException {
         java.nio.file.Path path = Paths.get(location);
