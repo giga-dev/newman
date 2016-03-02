@@ -428,6 +428,10 @@ public class NewmanResource {
     }
 
 
+    private void addRequiredBuildTableColumns( Query<Build> query ){
+        query.retrievedFields(false, "resources", "testsMetadata", "shas", "tags");
+    }
+
     private void addRequiredJobTableColumns( Query<Job> query ){
         query.retrievedFields( true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name",
                 "submitTime", "startTime", "endTime", "testURI", "submittedBy", "state", "totalTests",
@@ -619,17 +623,21 @@ public class NewmanResource {
     @Path("dashboard")
     @Produces(MediaType.APPLICATION_JSON)
     public DashboardData getActiveJobGroup(@Context UriInfo uriInfo) {
+
+        Query<Build> activeBuildsQuery = buildDAO.createQuery();
+        addRequiredBuildTableColumns(activeBuildsQuery);
         List<Build> activeBuilds =
-                buildDAO.find(buildDAO.createQuery().
-                        retrievedFields(false, "resources", "testsMetadata", "shas").
+                buildDAO.find(activeBuildsQuery.
                         where("this.buildStatus.runningJobs>0").
                         where("this.buildStatus.totalJobs>0").
                         where("this.buildStatus.doneJobs + this.buildStatus.brokenJobs < this.buildStatus.totalJobs").
                         order("-buildTime")).
                         asList();
+
+        Query<Build> pendingBuildsQuery = buildDAO.createQuery();
+        addRequiredBuildTableColumns(pendingBuildsQuery);
         List<Build> pendingBuilds =
-                buildDAO.find(buildDAO.createQuery().
-                        retrievedFields(false, "resources", "testsMetadata", "shas").
+                buildDAO.find(pendingBuildsQuery.
                         where("this.buildStatus.pendingJobs>0").
                         where("this.buildStatus.runningJobs==0").
                         where("this.buildStatus.totalJobs>0").
@@ -637,9 +645,11 @@ public class NewmanResource {
                         limit(5).
                         order("-buildTime")).
                         asList();
+
+        Query<Build> historyBuildsQuery = buildDAO.createQuery();
+        addRequiredBuildTableColumns(historyBuildsQuery);
         List<Build> historyBuilds =
-                buildDAO.find(buildDAO.createQuery().
-                        retrievedFields(false, "resources", "testsMetadata", "shas").
+                buildDAO.find(historyBuildsQuery.
                         where("this.buildStatus.totalJobs>0").
                         where("this.buildStatus.doneJobs + this.buildStatus.brokenJobs == this.buildStatus.totalJobs").
                         limit(5).
@@ -1991,6 +2001,8 @@ public class NewmanResource {
     private List<Job> getActiveBuildJobs(Build build) {
 
         Query<Job> query = jobDAO.createQuery();
+        query.retrievedFields( true, "id", "passedTests", "failedTests", "runningTests", "totalTests",
+                "suite.id", "suite.name" );
         query.field("build.id").equal(build.getId()).field("state").equal(State.RUNNING);
         return jobDAO.find(query).asList();
     }
