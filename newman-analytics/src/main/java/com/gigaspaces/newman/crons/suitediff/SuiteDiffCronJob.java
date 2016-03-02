@@ -7,6 +7,7 @@ import com.gigaspaces.newman.beans.Batch;
 import com.gigaspaces.newman.beans.Build;
 import com.gigaspaces.newman.beans.DashboardData;
 import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.beans.State;
 import com.gigaspaces.newman.server.NewmanServerConfig;
 import com.gigaspaces.newman.smtp.Mailman;
 import com.gigaspaces.newman.utils.StringUtils;
@@ -179,7 +180,11 @@ public class SuiteDiffCronJob implements CronJob {
     private long calculateBuildDurationInMillis(Map<String, Job> mapSuite2Job) {
         long totalTime = 0;
         for (Job job : mapSuite2Job.values()) {
-            totalTime += (job.getEndTime().getTime() - job.getStartTime().getTime());
+            logger.info( "---Within for, calculateBuildDurationInMillis, job id=" + job.getId() + ", end time:" +
+                    job.getEndTime() + ", start time:" + job.getStartTime() + ", state=" + job.getState() );
+            if( job.getState() != State.BROKEN ) {
+                totalTime += (job.getEndTime().getTime() - job.getStartTime().getTime());
+            }
         }
         return totalTime;
     }
