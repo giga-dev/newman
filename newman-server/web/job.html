@@ -34,7 +34,7 @@
             <dl class="dl-horizontal">
                 <template if="{{data.build.id}}">
                     <dt class="newman-job-table-cell">Build</dt>
-                    <dd class="newman-job-table-cell"><a href="{{urlFor('build', {id: data.build.id})}}">{{data.build.name}}</a></dd>
+                    <dd class="newman-job-table-cell"><a href="{{urlFor('build', {id: data.build.id})}}">{{data.build.name}} ({{data.build.branch}})</a></dd>
                 </template>
                 <dt class="newman-job-table-cell">State</dt>
                 <dd class="newman-job-table-cell">
