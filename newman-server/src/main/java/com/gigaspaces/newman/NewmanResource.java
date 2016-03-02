@@ -1409,8 +1409,11 @@ public class NewmanResource {
         List<Agent> agents = agentDAO.find(query).asList();
         for( Agent agent : agents ){
             String jobId = agent.getJobId();
-            Job job = findOneThinJobById(jobId);
-            agent.setJob(job);
+            if( jobId != null ) {
+                Job job = findOneThinJobById(jobId);
+                logger.info("within for on agents, jobID=" + jobId + ", job=" + job);
+                agent.setJob(job);
+            }
         }
 
         return new Batch<>(agents, offset, limit, all, orderBy, uriInfo);
