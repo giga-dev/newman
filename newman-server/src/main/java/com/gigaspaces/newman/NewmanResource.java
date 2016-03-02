@@ -460,7 +460,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Job getJob(@PathParam("id") final String id) {
 
-        Job job = jobDAO.findOne(jobDAO.createQuery().field("_id").equal(new ObjectId(id)));
+        Job job = findOneJobById(id);
         if (job != null) {
             Bson jobIdFilter = Filters.eq("jobId", id);
             long filterTestsStart = System.currentTimeMillis();
@@ -476,6 +476,17 @@ public class NewmanResource {
         }
 
         return job;
+    }
+
+    private Job findOneJobById(String jobId){
+        Query<Job> query = jobDAO.createQuery();
+        return jobDAO.findOne( query.field("_id").equal(new ObjectId( jobId ) ) );
+    }
+
+    private Job findOneThinJobById( String jobId ){
+        Query<Job> query = jobDAO.createQuery();
+        query.retrievedFields( true, "id", "suite.id", "suite.name", "build.id", "build.name", "build.branch" );
+        return jobDAO.findOne( query.field("_id").equal(new ObjectId(jobId)) );
     }
 
 
@@ -580,7 +591,7 @@ public class NewmanResource {
     @Path("job/{id}/toggle")
     @Produces(MediaType.APPLICATION_JSON)
     public Job toggelJobPause(@PathParam("id") final String id) {
-        Job job = jobDAO.findOne(jobDAO.createQuery().field("_id").equal(new ObjectId(id)));
+        Job job = findOneJobById(id);
         if (job != null) {
             State state = null;
             State old = job.getState();
@@ -866,6 +877,7 @@ public class NewmanResource {
                         .removeAll("currentTests", test.getId());
                 Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent()), updateOps, false, false);
                 if (agent != null) {
+                    agent.setJob( job );
                     //logger.info("DEBUG(finishTest) find and update agent ---> agent: [{}]", agent.getName());
                     Agent idling = null;
                     if (agent.getCurrentTests().isEmpty()) {
@@ -1393,7 +1405,15 @@ public class NewmanResource {
         if (orderBy != null) {
             orderBy.forEach(query::order);
         }
-        return new Batch<>(agentDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
+
+        List<Agent> agents = agentDAO.find(query).asList();
+        for( Agent agent : agents ){
+            String jobId = agent.getJobId();
+            Job job = findOneThinJobById(jobId);
+            agent.setJob(job);
+        }
+
+        return new Batch<>(agents, offset, limit, all, orderBy, uriInfo);
     }
 
     @POST
@@ -2156,6 +2176,7 @@ public class NewmanResource {
         }
         Agent ag = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()),
                 agentDAO.createUpdateOperations().set("currentTests", new HashSet<>()).set("state", Agent.State.IDLING));
+        ag.setJob(job);
 
         if(ag != null && ag.getState().equals(Agent.State.IDLING)){
             logger.warn("agent [{}] is idling while returning tests to pool", ag.getName());

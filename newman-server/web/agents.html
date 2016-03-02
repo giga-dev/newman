@@ -28,9 +28,10 @@
                         <th>Capabilities</th>
                         <th>State</th>
                         <th>Host</th>
-                        <th>IP Address</th>
                         <th>PID</th>
                         <th>Job</th>
+                        <th>Build</th>
+                        <th>Suite</th>
                         <th>CurrentTests</th>
                         <th>Last seen</th>
                         <th>Drop</th>
@@ -49,12 +50,26 @@
                             <td>{{item.host}}</td>
                             <td>{{item.hostAddress}}</td>
                             <td>{{item.pid}}</td>
+
+                            <!--job-->
                             <template if="{{item.jobId}}">
                                 <td><a href="{{urlFor('job', {id: item.jobId, filterByStatus: 'ALL'})}}">{{item.jobId}}</a></td>
                             </template>
                             <template if="{{!item.jobId}}">
                                 <td></td>
                             </template>
+
+                            <!--build name and branch, suite name-->
+                            <template if="{{item.job}}">
+                                <td><a href="{{urlFor('build', {id: item.job.build.id})}}">{{item.job.build.name}} ({{item.job.build.branch}})</a></td>
+                                <td><a href="{{urlFor('suite', {id: item.job.suite.id})}}">{{item.job.suite.name}}</a></td>
+                            </template>
+                            <template if="{{!item.job}}">
+                                <td></td>
+                                <td></td>
+                            </template>
+
+
                             <td>
                                 <template repeat="{{testId in item.currentTests}}">
                                     <a href="{{urlFor('test', {id: testId})}}">[{{testId}}]</a>

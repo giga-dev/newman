@@ -5,6 +5,7 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.Transient;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -31,6 +32,8 @@ public class Agent {
     private String pid;
     @Embedded(concreteClass = java.util.TreeSet.class)
     private Set<String> capabilities;
+    @Transient
+    private Job job;
 
     public Agent() {
         currentTests = new HashSet<>();
@@ -132,6 +135,14 @@ public class Agent {
 
     public void setCapabilities(Set<String> capabilities) {
         this.capabilities = capabilities;
+    }
+
+    public Job getJob() {
+        return job;
+    }
+
+    public void setJob(Job job) {
+        this.job = job;
     }
 
     public enum State{
