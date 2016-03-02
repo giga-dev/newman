@@ -352,17 +352,12 @@ public class NewmanResource {
             , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
 
-        long startTime = System.currentTimeMillis();
-
-        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit);
-        long timeAfterRetrievingJobs = System.currentTimeMillis();
-        logger.info( "jobsView>>> retrieving jobs took:" + ( timeAfterRetrievingJobs - startTime ) + " msec., jobs count=" + jobs.size() );
+        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit, true);
         List<JobView> jobViews = new ArrayList<>( jobs.size() );
 
         for( Job job : jobs ){
             jobViews.add( new JobView( job ) );
         }
-        logger.info( "jobsView>>> RETURN jobsView took:" + ( System.currentTimeMillis() - startTime ) + " msec., jobViews size:" + jobViews.size() );
         return new Batch<>(jobViews, offset, limit, all, orderBy, uriInfo);
     }
 
@@ -371,11 +366,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public AllSuitesAndBuilds getAllBuildsAndSuites() {
 
-        long startTime = System.currentTimeMillis();
-
-        List<Suite> suites = getAllThinSuites( true );//  suiteDAO.find( suitesQuery ).asList();
-
-        logger.info( "getAllBuildsAndSuites>>> after bringing all suites, took: " + ( System.currentTimeMillis() - startTime ) );
+        List<Suite> suites = getAllThinSuites(true);//  suiteDAO.find( suitesQuery ).asList();
 
         List<SuiteView> suiteViews = new ArrayList<>( suites.size() );
         for( Suite suite : suites ){
@@ -383,17 +374,11 @@ public class NewmanResource {
         }
 
         List<Build> builds = getThinBuilds();
-
-        logger.info( "getAllBuildsAndSuites>>>  after bringing all builds, took: " + ( System.currentTimeMillis() - startTime ) );
-
         int buildsCount = builds.size();
         List<BuildView> buildViews = new ArrayList<>( buildsCount );
         for( Build build : builds ){
             buildViews.add( new BuildView( build ) );
         }
-
-        logger.info("getAllBuildsAndSuites>>>  RETURN  getAllBuildsAndSuites took:" + (System.currentTimeMillis() - startTime) + " msec.");
-
         return new AllSuitesAndBuilds( buildViews, suiteViews );
     }
 
@@ -401,8 +386,8 @@ public class NewmanResource {
         final int buildsLimit = 30;
         Query<Build> buildsQuery = buildDAO.createQuery();
 
-        buildsQuery.retrievedFields( true, "id", "name", "branch" );
-        buildsQuery.order("-buildTime").limit( buildsLimit );
+        buildsQuery.retrievedFields(true, "id", "name", "branch");
+        buildsQuery.order("-buildTime").limit(buildsLimit);
         List<Build> builds = buildDAO.find( buildsQuery ).asList();
         return builds;
     }
@@ -418,11 +403,11 @@ public class NewmanResource {
             , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
 
-        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit);
+        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit, false);
         return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
     }
 
-    private List<Job> retrieveJobs( String buildId, List<String> orderBy, boolean all, int offset, int limit ) {
+    private List<Job> retrieveJobs( String buildId, List<String> orderBy, boolean all, int offset, int limit, boolean returnThinObjects ) {
 
         Query<Job> query = jobDAO.createQuery();
         if (buildId != null) {
@@ -435,7 +420,18 @@ public class NewmanResource {
             query.offset(offset).limit(limit);
         }
 
+        if( returnThinObjects ){
+            addRequiredJobTableColumns(query);
+        }
+
         return jobDAO.find(query).asList();
+    }
+
+
+    private void addRequiredJobTableColumns( Query<Job> query ){
+        query.retrievedFields( true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name",
+                "submitTime", "startTime", "endTime", "testURI", "submittedBy", "state", "totalTests",
+                "passedTests", "failedTests", "runningTests", "preparingAgents" );
     }
 
 
@@ -1914,25 +1910,13 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllSuitesWithJobs() {
 
-        long startTime = System.currentTimeMillis();
-
         List<Suite> suites = getAllThinSuites(false);//suiteDAO.find(suitesQuery).asList();
-
-        long timeAfterBringingAllSuites = System.currentTimeMillis();
-        logger.info("getAllSuitesWithJobs>>>  bringing all suites took:" + (timeAfterBringingAllSuites - startTime) + " msec.");
 
         List<SuiteWithJobs> suitesWithJobs = new ArrayList<>(suites.size());
         suitesWithJobs.addAll(suites.stream().map(this::createSuiteWithJobs).collect(Collectors.toList()));
 
-        long beforeJobsListReverse = System.currentTimeMillis();
-        logger.info("getAllSuitesWithJobs>>>  prepare all data before reverse took:" + (beforeJobsListReverse - startTime) + " msec.");
-
         //reverse map in order to display first latest suites
         Collections.reverse(suitesWithJobs);
-
-        long afterJobsListReverse = System.currentTimeMillis();
-
-        logger.info("getAllSuitesWithJobs>>>  RETURN getAllSuitesWithJobs took:" + ( afterJobsListReverse - startTime) + " msec.");
 
         return Response.ok(Entity.json(suitesWithJobs)).build();
     }
@@ -1944,7 +1928,6 @@ public class NewmanResource {
                                            @DefaultValue("0") @QueryParam("offset") int offset,
                                            @DefaultValue("50") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
 
-        long startTime = System.currentTimeMillis();
         Test thisTest = getTest(id);
         final String sha = thisTest.getSha();
 
@@ -1955,9 +1938,6 @@ public class NewmanResource {
         testsQuery.limit(limit);
 
         List<Test> tests = testDAO.find(testsQuery).asList();
-
-        long time2 = System.currentTimeMillis();
-        logger.info( " getTests>>>  retrieving of all tests took:" + ( time2 - startTime ) );
 
         //logger.info("DEBUG (getTests) get test history of testId: [{}], (thisTest: [{}])", id, thisTest);
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
@@ -1970,9 +1950,6 @@ public class NewmanResource {
             //logger.info("DEBUG (getTests) ---- > testHistoryItem is: [{}]", testHistoryItem);
             testHistoryItemsList.add(testHistoryItem);
         }
-
-        long endTime = System.currentTimeMillis();
-        logger.info( " getTests>>>  all method took:" + ( endTime - startTime ) );
 
         return new Batch<>(testHistoryItemsList, offset, limit, false, Collections.emptyList(), uriInfo);
     }
@@ -1995,6 +1972,8 @@ public class NewmanResource {
         jobsQuery.field("suite.id").equal(suiteId);
         jobsQuery.criteria("state").equal(State.DONE);
         jobsQuery.order("-endTime").limit(maxJobsPerSuite);
+
+        addRequiredJobTableColumns(jobsQuery);
 
         List<Job> jobsList = jobDAO.find(jobsQuery).asList();
         return new SuiteWithJobs(suite, jobsList);
