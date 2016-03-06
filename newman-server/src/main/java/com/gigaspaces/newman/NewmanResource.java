@@ -956,8 +956,7 @@ public class NewmanResource {
         }
 
         //redundant test properties for job tests view
-        query.retrievedFields( false, "sha", "properties", "jobId", "testType",
-                            "timeout", "errorMessage", "logs", "startTime", "endTime", "scheduledAt" );
+        query.retrievedFields( false, "sha", "properties", "jobId", "testType", "timeout", "errorMessage", "logs", "scheduledAt" );
 
         return testDAO.find(query).asList();
     }
