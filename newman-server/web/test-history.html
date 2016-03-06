@@ -43,10 +43,9 @@
                     <tr>
                         <th width="14%" data-sortable="true">Test Id</th>
                         <th width="14%" data-sortable="true">Job Id</th>
-                        <th width="8%" data-sortable="true">Build</th>
-                        <th width="8%" data-sortable="true">Branch</th>
+                        <th width="12%" data-sortable="true">Build</th>
                         <th width="8%" data-sortable="true">End Time</th>
-                        <th width="10%" data-sortable="true">Duration</th>
+                        <th width="9%" data-sortable="true">Duration</th>
                         <th width="7%" data-sortable="true">Status</th>
                         <th data-sortable="true">Error Message</th>
                     </tr>
@@ -59,14 +58,13 @@
                             <td title="{{item.job.buildName}}">
                                 <template if="{{item.job.buildId != null}}">
                                     <a href="{{urlFor('build', {id: item.job.buildId})}}">
-                                        {{item.job.buildName}}
+                                        {{item.job.buildName}} ({{item.job.buildBranch}})
                                     </a>
                                 </template>
                                 <template if="{{item.job.buildId == null}}">
                                     N/A
                                 </template>
                             </td>
-                            <td title="{{item.job.buildBranch}}">{{item.job.buildBranch}}</td>
                             <td title="{{item.test.endTime | formatDate }}">{{item.test.endTime | formatDateFromNow }}</td>
                             <td>{{item.test | formatTotalTime}}</td>
                             <td>
