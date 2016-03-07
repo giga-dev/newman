@@ -15,6 +15,8 @@ public class SuiteWithJobs {
     @Id
     private String id;
 
+    private SuiteView suite;
+
     private String name;
 
     private List<JobView> jobs = new ArrayList<JobView>();
@@ -31,8 +33,9 @@ public class SuiteWithJobs {
         for( Job job : jobsList ){
             jobs.add( new JobView( job ) );
         }
-        setId( suite.getId() );
+        setId(suite.getId());
         setName( suite.getName() );
+        this.suite = new SuiteView( suite );
     }
 
     public String getId() {
@@ -59,6 +62,13 @@ public class SuiteWithJobs {
         this.jobs = jobs;
     }
 
+    public SuiteView getSuite() {
+        return suite;
+    }
+
+    public void setSuite(SuiteView suite) {
+        this.suite = suite;
+    }
     @Override
     public String toString() {
         return "SuiteWithJobs{" +
@@ -67,4 +77,5 @@ public class SuiteWithJobs {
                 ", jobs=" + jobs +
                 '}';
     }
+
 }

@@ -1883,14 +1883,19 @@ public class NewmanResource {
     }
 
     @POST
-    @Path("suite")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("suite/{sourceSuiteId}/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Suite addSuite(Suite suite) {
-        suiteDAO.save(suite);
-        logger.info("---addSuite---" + suite);
-        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(suite));
-        return suite;
+    public Suite addSuite( final @PathParam("sourceSuiteId") String sourceSuiteId, final @PathParam("name") String name ) {
+
+        Suite sourceSuite = getSuite(sourceSuiteId);
+        Suite duplicatedSuite = sourceSuite;
+        duplicatedSuite.setName( name );
+        duplicatedSuite.setId( null );
+
+        suiteDAO.save( duplicatedSuite );
+        logger.info("---addSuite---" + duplicatedSuite );
+        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(duplicatedSuite));
+        return duplicatedSuite;
     }
 
     @GET
