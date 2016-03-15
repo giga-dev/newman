@@ -96,9 +96,11 @@ public class NewmanBuildSubmitter {
             b.setShas(shas);
             // set resources
             Collection<URI> buildResources = buildMetadata.getResources().stream().map(URI::create).collect(Collectors.toList());
+            FileUtils.validateUris(buildResources);
             b.setResources(buildResources);
             // set tests metadata
             Collection<URI> testsMetadata = buildMetadata.getTestsMetadata().stream().map(URI::create).collect(Collectors.toList());
+            FileUtils.validateUris(testsMetadata);
             b.setTestsMetadata(testsMetadata);
             // set tags
             b.setTags(buildMetadata.getTags());
@@ -129,6 +131,10 @@ public class NewmanBuildSubmitter {
             for (String element : splicedMetadata) {
                 shas.put(element.split(":")[0], element.split(":")[1]);
             }
+        }
+        catch (Exception e) {
+            logger.error("fail to get or parse build shas file", e);
+            throw e;
         }
         finally {
             if (is != null) {
