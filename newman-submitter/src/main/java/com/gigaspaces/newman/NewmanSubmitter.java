@@ -103,7 +103,7 @@ public class NewmanSubmitter {
         List<String> suitesId = Arrays.asList(suitesIDStr.split(","));
         try {
             for (String suiteId : filterSuites(suitesId, buildId)) {
-                Future<String> worker = submitJobsByThreads(suiteId, buildId);
+                Future<String> worker = submitJobsByThreads(suiteId, buildId, username);
                 jobs.add(worker);
             }
             // wait for every running job to finish.
@@ -153,14 +153,14 @@ public class NewmanSubmitter {
         List<Future<String>> futureJobIds = new ArrayList<>();
         FutureJob futureJob = getAndDeleteFutureJob();
         while(futureJob != null){
-            Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID());
+            Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID(), futureJob.getAuthor());
             futureJobIds.add(futureJobWorker);
             futureJob = getAndDeleteFutureJob();
         }
         return futureJobIds;
     }
 
-    private Future<String> submitJobsByThreads(String suiteId, String buildId){
+    private Future<String> submitJobsByThreads(String suiteId, String buildId, String author){
         return workers.submit(() -> {
             Suite suite = null;
             try {
@@ -170,7 +170,7 @@ public class NewmanSubmitter {
                 }
                 final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
 
-                String jobId = jobSubmitter.submitJob();
+                String jobId = jobSubmitter.submitJob(author);
 
                 while (!isJobFinished(jobId)) {
                     logger.info("waiting for job {} to end", jobId);

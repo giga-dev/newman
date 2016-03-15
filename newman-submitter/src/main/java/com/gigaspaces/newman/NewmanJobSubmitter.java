@@ -53,7 +53,7 @@ public class NewmanJobSubmitter {
         }
     }
 
-    public String submitJob() throws ExecutionException, InterruptedException, IOException, ParseException, TimeoutException {
+    public String submitJob(String author) throws ExecutionException, InterruptedException, IOException, ParseException, TimeoutException {
         try {
             Suite suite = null;
             try {
@@ -79,7 +79,7 @@ public class NewmanJobSubmitter {
 
             validateUris(build.getTestsMetadata()); // throws exception if URI not exists
 
-            Job job = addJob(newmanClient, suiteId, buildId);
+            Job job = addJob(newmanClient, suiteId, buildId, author);
             logger.info("added a new job {}", job);
             Collection<URI> testsMetadata = build.getTestsMetadata();
 
@@ -118,10 +118,11 @@ public class NewmanJobSubmitter {
     }
 
 
-    private Job addJob(NewmanClient client, String suiteId, String buildId) throws ExecutionException, InterruptedException, TimeoutException {
+    private Job addJob(NewmanClient client, String suiteId, String buildId, String author) throws ExecutionException, InterruptedException, TimeoutException {
         JobRequest jobRequest = new JobRequest();
         jobRequest.setBuildId(buildId);
         jobRequest.setSuiteId(suiteId);
+        jobRequest.setAuthor(author);
         try {
             return client.createJob(jobRequest).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
@@ -176,7 +177,7 @@ public class NewmanJobSubmitter {
 
         NewmanJobSubmitter submitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
 
-        final String jobId = submitter.submitJob();
+        final String jobId = submitter.submitJob(username);
 
         logger.info("Submitted a new job with id {}", jobId);
     }

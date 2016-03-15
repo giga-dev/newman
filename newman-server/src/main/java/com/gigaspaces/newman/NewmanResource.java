@@ -539,7 +539,7 @@ public class NewmanResource {
             job.setSuite(suite);
             job.setState(State.READY);
             job.setSubmitTime(new Date());
-            job.setSubmittedBy(sc.getUserPrincipal().getName());
+            job.setSubmittedBy(jobRequest.getAuthor());
             jobDAO.save(job);
             UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.totalJobs")
                     .inc("buildStatus.pendingJobs")

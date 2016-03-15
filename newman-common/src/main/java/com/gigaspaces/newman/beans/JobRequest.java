@@ -10,6 +10,7 @@ public class JobRequest {
 
     private String buildId;
     private String suiteId;
+    private String author;
 
     public JobRequest() {
     }
@@ -34,6 +35,16 @@ public class JobRequest {
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
                 .append("buildId", buildId)
+                .append("suiteId", suiteId)
+                .append("author", author)
                 .toString();
+    }
+
+    public String getAuthor() {
+        return this.author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
     }
 }
