@@ -1898,6 +1898,17 @@ public class NewmanResource {
         return duplicatedSuite;
     }
 
+    @POST
+    @Path("suite")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Suite addSuite(Suite suite) {
+        suiteDAO.save(suite);
+        logger.info("---addSuite---" + suite);
+        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(suite));
+        return suite;
+    }
+
     @GET
     @Path("suite/{id}")
     @Produces(MediaType.APPLICATION_JSON)
