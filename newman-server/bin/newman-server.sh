@@ -22,6 +22,9 @@ if [ ! -a "../config/realm.properties" ]; then
    echo "boris: boris, user" >> ../config/realm.properties
    echo "moran: moran, user" >> ../config/realm.properties
    echo "barak: barak, user" >> ../config/realm.properties
+   echo "ester: ester, user" >> ../config/realm.properties
+   echo "yuval: yuval, user" >> ../config/realm.properties
+   echo "inbar: inbar, user" >> ../config/realm.properties
 fi
 
 # System environment variables
