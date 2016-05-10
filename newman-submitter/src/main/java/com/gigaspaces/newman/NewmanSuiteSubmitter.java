@@ -91,7 +91,8 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria(".PureSpringMVCWebAppSharedModeTest#"),
                             PatternCriteria.containsCriteria(".PureSpringMVCWebAppTest#"),
                             PatternCriteria.containsCriteria(".PureSpringMVCWithEmbeddedSpaceWebAppTest#"),
-                            PatternCriteria.containsCriteria(".PureSpringMVCWithRemoteSpaceWebAppTest#")),
+                            PatternCriteria.containsCriteria(".PureSpringMVCWithRemoteSpaceWebAppTest#"),
+                            PatternCriteria.containsCriteria(".JettyUnitTest#")),
                     TestCriteria.createCriteriaByTestType(testType)
 
             );
