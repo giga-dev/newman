@@ -227,16 +227,23 @@ public class NewmanSubmitter {
         logger.info("submitting future jobs if there are any");
         boolean hasFutureJobs = newmanSubmitter.submitFutureJobsIfAny();
         logger.info("hasFutureJobs: {}", hasFutureJobs);
+        // NOTE exit code = -1 if there are future jobs
         if (hasFutureJobs) {
             newmanSubmitter.tearDown();
-            System.exit(1);
+            System.exit(-1);
         }
 
         String buildIdToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
         logger.info("build to run - id:[{}], branch:[{}], tags:[{}], mode:[{}].",buildIdToRun, branch, tags, mode);
         if(buildIdToRun != null){
-            Build cachedBuild = newmanSubmitter.newmanClient.cacheBuildInServer(buildIdToRun).toCompletableFuture().get();
-            newmanSubmitter.submitAndWait(cachedBuild.getId(), suitesId);
+            try{
+                Build cachedBuild = newmanSubmitter.newmanClient.cacheBuildInServer(buildIdToRun).toCompletableFuture().get();
+                newmanSubmitter.submitAndWait(cachedBuild.getId(), suitesId);
+            }
+            catch (Exception ignored){
+                // TODO if build is not valid tag it as BROKEN
+                logger.error("Not succeeding cache or submit job. build id- ["+ buildIdToRun +"] on branch :[" + branch +"]");
+            }
         }
         System.exit(0);
     }
