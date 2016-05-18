@@ -30,9 +30,12 @@ public class NewmanAgent {
     private final Timer timer = new Timer(true);
     private static final int DEFAULT_TIMEOUT_SECONDS = 60;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         NewmanAgent agent = new NewmanAgent();
-        agent.initialize();
+        if (args[0].trim().equalsIgnoreCase("setup")){
+            createJobSetupEnv(args, agent);
+        }
+        agent.initialize(true);
         try {
             agent.start();
         } catch (Exception e) {
@@ -40,6 +43,21 @@ public class NewmanAgent {
         } finally {
             agent.close();
             System.exit(1);
+        }
+    }
+
+    private static void createJobSetupEnv(String[] args, NewmanAgent agent) throws ExecutionException, InterruptedException, IOException {
+        logger.info("performing job setup env");
+        agent.initialize(false);
+        if (args.length != 3) {
+            logger.info("Usage: java -jar newman-agent-1.0.jar <setup> <suiteId> <buildId> ... [list-of-regular-system-properties]");
+            System.exit(1);
+        }
+        else {
+            String suiteId = args[1];
+            String buildId = args[2];
+            agent.prepareJobSetupEnv(suiteId, buildId);
+            System.exit(0);
         }
     }
 
@@ -51,7 +69,7 @@ public class NewmanAgent {
         this.active = true;
     }
 
-    private void initialize() {
+    private void initialize(boolean withShutdownHook) {
         logger.info("Agent is initializing...");
         logger.info("Agent home dir is {}, please make sure no other agent is using this folder", config.getNewmanHome());
         while (true) {
@@ -71,8 +89,37 @@ public class NewmanAgent {
             }
         }
         setFinalAgentName();
+        if (withShutdownHook) {
+            attachShutDownHook();
+        }
+    }
 
-        attachShutDownHook();
+    private void prepareJobSetupEnv(String suiteId, String buildId) throws ExecutionException, InterruptedException, IOException {
+        Suite suite = client.getSuite(suiteId).toCompletableFuture().get();
+        if (suite == null) {
+            throw new RuntimeException("no suite with id " + suiteId);
+        }
+
+        Build build = client.getBuild(buildId).toCompletableFuture().get();
+        if (build == null) {
+            throw new RuntimeException("no build with id " + buildId);
+        }
+
+        Job mockJob = new Job();
+        mockJob.setBuild(build);
+        mockJob.setSuite(suite);
+        mockJob.setId("mock");
+
+        JobExecutor jobExecutor = new JobExecutor(mockJob, config.getNewmanHome());
+        boolean success = jobExecutor.setup();
+        if (!success) {
+            throw new RuntimeException("failed to execute job setup");
+        }
+        FileUtils.createFolder(append(jobExecutor.getJobFolder(), "test"));
+        logger.info("##############################################################");
+        logger.info("Created job setup environment in " + jobExecutor.getJobFolder());
+        logger.info("Example of running a test: cd " + jobExecutor.getJobFolder() + "/test; ../run-sgtest.sh <test-name>");
+        logger.info("##############################################################");
     }
 
     private void attachShutDownHook() {
@@ -104,13 +151,14 @@ public class NewmanAgent {
     private void start() {
         NewmanClient c = getClient();
         KeepAliveTask keepAliveTask = null;
-        while (isActive()) {
+        /*while (isActive()) {*/
             Job job = waitForJob();
             // ping server during job setup and execution
             keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
             boolean setupFinished = jobExecutor.setup();
-            if (!setupFinished) {
+            System.exit(0);
+            /*if (!setupFinished) {
                 logger.error("Setup of job {} failed, will wait for a new job", job.getId());
                 jobExecutor.teardown();
                 //inform the server that agent is not working on this job
@@ -154,11 +202,11 @@ public class NewmanAgent {
                 } catch (Exception e) {
                     logger.warn("worker exited with exception", e);
                 }
-            }
+            }*/
             keepAliveTask.cancel();
-            jobExecutor.teardown();
+            //jobExecutor.teardown();
         }
-    }
+    //}
 
     private int calculateNumberOfWorkers(Job job) {
         if (job.getSuite() == null || job.getSuite().getCustomVariables() == null) {
