@@ -1,0 +1,3 @@
+---
+# vars for deploy_submitter_jar role
+newman_local_dir: "../"

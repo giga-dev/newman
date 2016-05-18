@@ -5,6 +5,7 @@
   connection: local
   roles:
     - newman_install
+    - deploy_submitter_jar
 - name: "deploy/redeploy newman submitter"
   hosts: newmanSubmitter
   remote_user: xap

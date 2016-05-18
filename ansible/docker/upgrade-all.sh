@@ -29,6 +29,10 @@ fi
 cd /newman/ansible
 sed -i "s/#host_key_checking = False/host_key_checking = False/g" /etc/ansible/ansible.cfg
 
+# aws keys
+export AWS_ACCESS_KEY_ID=$pass3
+export AWS_SECRET_ACCESS_KEY=$pass4
+
 if [ "$module" == "all" ]
 then
   echo "deploying whole environment"
