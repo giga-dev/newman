@@ -3,11 +3,7 @@ package com.gigaspaces.newman.crons.suitediff;
 import com.gigaspaces.newman.NewmanClient;
 import com.gigaspaces.newman.analytics.CronJob;
 import com.gigaspaces.newman.analytics.PropertiesConfigurer;
-import com.gigaspaces.newman.beans.Batch;
-import com.gigaspaces.newman.beans.Build;
-import com.gigaspaces.newman.beans.DashboardData;
-import com.gigaspaces.newman.beans.Job;
-import com.gigaspaces.newman.beans.State;
+import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.server.NewmanServerConfig;
 import com.gigaspaces.newman.smtp.Mailman;
 import com.gigaspaces.newman.utils.StringUtils;
@@ -39,6 +35,7 @@ public class SuiteDiffCronJob implements CronJob {
     private static final Logger logger = LoggerFactory.getLogger(SuiteDiffCronJob.class);
     private static final String DEFAULT_BRANCH = "master";
     private static final String BID_FILE_SUFFIX = ".bid";
+    private static final String AUDIT_FILE_SUFFIX = ".audit";
     private static final String CRONS_SUITEDIFF_BRANCH = "crons.suitediff.branch";
 
     @Override
@@ -96,12 +93,7 @@ public class SuiteDiffCronJob implements CronJob {
         }
 
         Build latestBuild = getLatestBuild(properties, historyBuilds, newmanClient);
-        Build previousBuild = getPreviousBuildFromFile(properties, latestBuild, newmanClient);
-
-        if (latestBuild.getId().equals(previousBuild.getId())) {
-            logger.info("Latest and previous build Ids are equal (id=" + latestBuild.getId() + ") - No report will be generated.");
-            return;
-        }
+        Build previousBuild = getPreviousBuildOrLatest(properties, latestBuild, newmanClient);
 
         //calculate
         Map<String, Job> latest_mapSuite2Job = getJobsByBuildId(newmanClient, latestBuild.getId());
@@ -135,7 +127,7 @@ public class SuiteDiffCronJob implements CronJob {
         htmlTemplate.setAttribute("previousBuildDate", simpleDateFormat.format(previousBuild.getBuildTime()));
         htmlTemplate.setAttribute("previousBuildDuration", toHumanReadableDuration(calculateBuildDurationInMillis(previous_mapSuite2Job)));
 
-        htmlTemplate.setAttribute("changeset", getChangeset(previousBuild, latestBuild));
+        htmlTemplate.setAttribute("changeset", getChangeSet(previousBuild, latestBuild));
 
         //send mail
         String subject = subjectTemplate.toString();
@@ -152,36 +144,36 @@ public class SuiteDiffCronJob implements CronJob {
 
         //save latestBuild for next time we wake up
         if (Boolean.parseBoolean(properties.getProperty(CRONS_SUITEDIFF_TRACK_LATEST, "true"))) {
-            // save only if branches match otherwise keep comparison fixed to whatever was placed in file
-            if (latestBuild.getBranch().equals(previousBuild.getBranch())) {
-                logger.info("Saving latest buildId to file");
-                saveLatestBuildToFile(properties, latestBuild);
-            }
+            saveLatestBuildToFile(properties, latestBuild);
         }
+
+        saveToAuditLogFile(properties, latestBuild);
     }
 
-    private String getChangeset(Build previousBuild, Build latestBuild) {
-        String changeset = null;
+    private String getChangeSet(Build previousBuild, Build latestBuild) {
+        String changeSet;
         if (previousBuild.getId().equals(latestBuild.getId())) {
             String xapSha = latestBuild.getShas().get("xap");
-            changeset = "https://github.com/Gigaspaces/xap/commit/" + xapSha;
+            changeSet = "https://github.com/Gigaspaces/xap/commit/" + xapSha;
         } else {
             String fromSha = previousBuild.getShas().get("xap");
             String toSha = latestBuild.getShas().get("xap");
             if (fromSha.equals(toSha)) {
-                changeset = "https://github.com/Gigaspaces/xap/commit/" + toSha;
+                changeSet = "https://github.com/Gigaspaces/xap/commit/" + toSha;
             } else {
-                changeset = "https://github.com/Gigaspaces/xap/compare/" + fromSha + "..." + toSha;
+                changeSet = "https://github.com/Gigaspaces/xap/compare/" + fromSha + "..." + toSha;
             }
         }
-        return changeset;
+        return changeSet;
     }
 
     private long calculateBuildDurationInMillis(Map<String, Job> mapSuite2Job) {
         long totalTime = 0;
         for (Job job : mapSuite2Job.values()) {
-            logger.info( "---Within for, calculateBuildDurationInMillis, job id=" + job.getId() + ", end time:" +
-                    job.getEndTime() + ", start time:" + job.getStartTime() + ", state=" + job.getState() );
+            if (logger.isDebugEnabled()) {
+                logger.debug("--- Within for, calculateBuildDurationInMillis, job id=" + job.getId() + ", end time:" +
+                        job.getEndTime() + ", start time:" + job.getStartTime() + ", state=" + job.getState());
+            }
             if( job.getState() != State.BROKEN ) {
                 totalTime += (job.getEndTime().getTime() - job.getStartTime().getTime());
             }
@@ -191,7 +183,7 @@ public class SuiteDiffCronJob implements CronJob {
 
     private String toHumanReadableDuration(long durationInMillis) {
 
-        Map<TimeUnit,Long> result = new LinkedHashMap<TimeUnit,Long>();
+        Map<TimeUnit,Long> result = new LinkedHashMap<>();
         TimeUnit[] units = new TimeUnit[]{TimeUnit.HOURS, TimeUnit.MINUTES};
         long restOfDurationInMillis = durationInMillis;
         for ( TimeUnit unit : units ) {
@@ -223,11 +215,14 @@ public class SuiteDiffCronJob implements CronJob {
         Build latestMatch = null;
         for (Build history : historyBuilds) {
             if (history.getBranch().equals(branch)) {
-                if (latestMatch == null) {
+                if (StringUtils.notEmpty(tag)) {
+                    if (history.getTags().contains(tag)) {
+                        latestMatch = history;
+                        break;
+                    }
+                } else {
                     latestMatch = history;
-                }
-                if (StringUtils.notEmpty(tag) && history.getTags().contains(tag)) {
-                    return history;
+                    break;
                 }
             }
         }
@@ -238,6 +233,31 @@ public class SuiteDiffCronJob implements CronJob {
         throw new IllegalStateException("No build matching branch: " + branch);
     }
 
+    /**
+     * Tries to fetch previous build id from file, if not found will use latest build as previous.
+     * If file is found, and id's of previous and latest equals, no report will be generated.
+     * Otherwise, returns previous build id
+     */
+    private Build getPreviousBuildOrLatest(Properties properties, Build latestBuild, NewmanClient newmanClient) throws Exception {
+        Build previousBuild = null;
+        try {
+            previousBuild = getPreviousBuildFromFile(properties, latestBuild, newmanClient);
+        }catch (Exception e) {
+            return latestBuild;
+        }
+
+        if (latestBuild.getId().equals(previousBuild.getId())) {
+            throw new IllegalStateException("Latest and previous build Ids are equal (id=" + latestBuild.getId() + ") - No report will be generated.");
+        }
+
+        //read previous from audit log
+        String auditBuildId = getPreviousBuildFromAuditFile(properties, latestBuild);
+        if (latestBuild.getId().equals(auditBuildId)) {
+            throw new IllegalStateException("Latest and previous audit build Ids are equal (id=" + latestBuild.getId() + ") - No report will be generated.");
+        }
+
+        return previousBuild;
+    }
 
     private Build getPreviousBuildFromFile(Properties properties, Build latestBuild, NewmanClient newmanClient) throws Exception {
         String previousBuildIdOverride = properties.getProperty(CRONS_SUITEDIFF_PREVIOUS_BUILD_ID);
@@ -259,10 +279,8 @@ public class SuiteDiffCronJob implements CronJob {
             return newmanClient.getBuild(buildId).toCompletableFuture().get(1, TimeUnit.MINUTES);
         } catch (Exception e) {
             logger.warn("Failed to get previous build-id from file: {}", file.getAbsolutePath(), e);
+            throw e;
         }
-
-        logger.info("Report will not compare latest build with previous build");
-        return latestBuild;
     }
 
     private void saveLatestBuildToFile(Properties properties, Build latestBuild) {
@@ -270,9 +288,36 @@ public class SuiteDiffCronJob implements CronJob {
         String buildIdFile = latestBuild.getBranch() + BID_FILE_SUFFIX; //e.g. master.bid (master last build id)
         File file = new File(path, buildIdFile);
         try {
+            logger.info("Save latest build-id: {} to file: {}", latestBuild.getId(), file.getAbsolutePath());
             org.apache.commons.io.FileUtils.writeStringToFile(file, latestBuild.getId());
         } catch (IOException e) {
             logger.warn("Failed to write latest build-id to file: {}", file.getAbsolutePath(), e);
+        }
+    }
+
+    private String getPreviousBuildFromAuditFile(Properties properties, Build latestBuild) throws Exception {
+        String path = getResourcesPath(properties);
+        String auditFile = latestBuild.getBranch() + AUDIT_FILE_SUFFIX; //e.g. master.audit
+        File file = new File(path, auditFile);
+        try {
+            String buildId = org.apache.commons.io.FileUtils.readFileToString(file).trim();
+            logger.info("Previous audit build-id: {}", buildId);
+            return buildId;
+        } catch (Exception e) {
+            logger.warn("Failed to get previous audit build-id from file: {}", file.getAbsolutePath(), e);
+            return null;
+        }
+    }
+
+    private void saveToAuditLogFile(Properties properties, Build latestBuild) {
+        String path = getResourcesPath(properties);
+        String auditFile = latestBuild.getBranch() + AUDIT_FILE_SUFFIX; //e.g. master.audit
+        File file = new File(path, auditFile);
+        try {
+            logger.info("Save audit build-id: {} to file: {}", latestBuild.getId(), file.getAbsolutePath());
+            org.apache.commons.io.FileUtils.writeStringToFile(file, latestBuild.getId());
+        } catch (IOException e) {
+            logger.warn("Failed to write latest audit build-id to file: {}", file.getAbsolutePath(), e);
         }
     }
 
