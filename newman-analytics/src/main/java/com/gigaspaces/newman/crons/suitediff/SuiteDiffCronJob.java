@@ -170,10 +170,6 @@ public class SuiteDiffCronJob implements CronJob {
     private long calculateBuildDurationInMillis(Map<String, Job> mapSuite2Job) {
         long totalTime = 0;
         for (Job job : mapSuite2Job.values()) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("--- Within for, calculateBuildDurationInMillis, job id=" + job.getId() + ", end time:" +
-                        job.getEndTime() + ", start time:" + job.getStartTime() + ", state=" + job.getState());
-            }
             if( job.getState() != State.BROKEN ) {
                 totalTime += (job.getEndTime().getTime() - job.getStartTime().getTime());
             }
@@ -214,6 +210,8 @@ public class SuiteDiffCronJob implements CronJob {
         String tag = properties.getProperty(CRONS_SUITEDIFF_TAG);
         Build latestMatch = null;
         for (Build history : historyBuilds) {
+            //Get full build details since history build object has some columns removed
+            history = newmanClient.getBuild(history.getId()).toCompletableFuture().get();
             if (history.getBranch().equals(branch)) {
                 if (StringUtils.notEmpty(tag)) {
                     if (history.getTags().contains(tag)) {
@@ -367,7 +365,9 @@ public class SuiteDiffCronJob implements CronJob {
         Map<String, Job> map = new HashMap<>();
         Batch<Job> jobBatch = newmanClient.getJobs(buildId).toCompletableFuture().get();
         for (Job job : jobBatch.getValues()) {
-            map.put(job.getSuite().getId(), job);
+            if (job.getState().equals(State.DONE)) {
+                map.put(job.getSuite().getId(), job);
+            }
         }
 
         return map;
