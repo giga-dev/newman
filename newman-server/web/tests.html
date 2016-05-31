@@ -60,18 +60,19 @@
                 <table class="table table-hover table-striped table-bordered table-condensed" style="table-layout: fixed; width: 100%">
                     <thead>
                     <tr>
-                        <th width="62%">Name(&Arguments)</th>
-                        <th width="80px" >Status</th>
-                        <th width="120px">History-Stats</th>
-                        <th width="80px">History</th>
-                        <th width="250px">AssignedAgent</th>
+                        <th width="35%">Name(&Arguments)</th>
+                        <th width="65px" >Status</th>
+                        <th width="105px">History-Stats</th>
+                        <th width="65px">History</th>
+                        <th width="210px">Error Message</th>
+                        <th width="210px">Assigned Agent</th>
                         <th width="100px">Duration</th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
-                            <td style="word-wrap: break-word"><a href="{{urlFor('test', {id: item.id})}}"><test-arguments test="{{item}}"></test-arguments></a></td>
+                            <td style="word-wrap:break-word"><a href="{{urlFor('test', {id: item.id})}}"><test-arguments test="{{item}}"></test-arguments></a></td>
                             <td><test-status test="{{item}}"></test-status></td>
                             <td class="{{{'black-column' : item.status == 'SUCCESS', 'red-column' : item.testScore <= 3, 'blue-column' : item.testScore > 3} | tokenList}}">{{item.historyStats | shortHistoryDisplay}}</td>
                             <td>
@@ -82,6 +83,8 @@
                                 -->
                                 <a href="{{urlFor('test-history', {id:item.id} )}}">History</a>
                             </td>
+                            <td style="word-wrap:break-word">{{item.errorMessage | shortErrorMsgDisplay}}</td>
+                            <!--<td>{{item.errorMessage}}</td>-->
                             <td>{{item.assignedAgent}}</td>
                             <td>{{item | formatTotalTime}}</td>
                         </tr>

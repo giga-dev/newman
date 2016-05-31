@@ -46,6 +46,16 @@
                 return history;
             }
             return history.substring(0,18);
+        },
+        shortErrorMsgDisplay: function(errorMsg){
+            if(errorMsg == null) {
+                return '';
+            }
+            if(errorMsg.length < 80){
+                return errorMsg;
+            }
+            return errorMsg.substring(0,79);
         }
+
     }
 </script>

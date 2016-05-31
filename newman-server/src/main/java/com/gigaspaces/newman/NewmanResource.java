@@ -956,7 +956,7 @@ public class NewmanResource {
         }
 
         //redundant test properties for job tests view
-        query.retrievedFields( false, "sha", "properties", "jobId", "testType", "timeout", "errorMessage", "logs", "scheduledAt" );
+        query.retrievedFields( false, "sha", "properties", "jobId", "testType", "timeout", "logs", "scheduledAt" );
 
         return testDAO.find(query).asList();
     }
@@ -1272,7 +1272,9 @@ public class NewmanResource {
             if (!new File(SERVER_UPLOAD_LOCATION_FOLDER).exists()) {
                 return Response.ok("0").build();
             }
-            return Response.ok(String.valueOf(Files.walk(Paths.get(SERVER_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum()), MediaType.TEXT_PLAIN_TYPE).build();
+            long sum1 = Files.walk(Paths.get(SERVER_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum();
+            String sum = String.valueOf(sum1);
+            return Response.ok(sum, MediaType.TEXT_PLAIN_TYPE).build();
         } catch (Exception e) {
             logger.error(e.toString(), e);
             return Response.status(Response.Status.EXPECTATION_FAILED).build();
@@ -2049,8 +2051,11 @@ public class NewmanResource {
     @Path("event")
     @Produces(SseFeature.SERVER_SENT_EVENTS)
     public EventOutput listenToBroadcast() {
+        long time1 = System.currentTimeMillis();
         final EventOutput eventOutput = new EventOutput();
         this.broadcaster.add(eventOutput);
+        long time2 = System.currentTimeMillis();
+        logger.info( "Handling of listenToBroadcast took [" + ( time2 - time1 ) + "] msec." );
         return eventOutput;
     }
 
@@ -2119,13 +2124,17 @@ public class NewmanResource {
     private void broadcastMessage(String type, Object value) {
         if (value != null) {
             try {
+                long time1 = System.currentTimeMillis();
                 OutboundEvent.Builder eventBuilder = new OutboundEvent.Builder();
                 OutboundEvent event = eventBuilder.name(type)
                         .mediaType(MediaType.APPLICATION_JSON_TYPE)
                         .data(value.getClass(), value)
                         .build();
-
+                long time2 = System.currentTimeMillis();
                 broadcaster.broadcast(event);
+                long time3 = System.currentTimeMillis();
+
+                logger.info( "Broadcasting message [" + type + "] with value [" + value + "] took " + ( time3 - time1 ) + " msec., creating took " + (time2 - time1) + " msec." );
             } catch (Throwable ignored) {
                 logger.error("Invoking of broadcastMessage() failed due the [{}], type={}, value:{}", ignored.toString(), type, value, ignored);
                 ignored.printStackTrace();

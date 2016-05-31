@@ -39,6 +39,7 @@
                     <thead>
                     <tr>
                         <th width="18%">Build</th>
+                        <th width="8%">Tags</th>
                         <th width="15%">Id</th>
                         <th>Build Date</th>
                         <th>Build Time</th>
@@ -48,6 +49,7 @@
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
                             <td><a href="{{urlFor('build', {id: item.id})}}">{{item.name}} ({{item.branch}})</a></td>
+                            <td>{{item.tags}}</td>
                             <td>{{item.id}}</td>
                             <td>{{item.buildTime | formatDate}}</td>
                             <td title="{{item.buildTime | formatDate}}">{{item.buildTime | formatDateFromNow}}</td>
