@@ -790,6 +790,8 @@ public class NewmanResource {
             buildsRes = build;
         }
         if(modeStr.equalsIgnoreCase("NIGHTLY")){
+            //get latest nightly build that didn't run, if exist
+            buildsRes = getLatestNightlyBuild();
             // if nightly mode and there aren't new builds - take last build anyway
             if(buildsRes == null){
                 buildsRes = getLatestBuild(branchStr);
@@ -799,6 +801,21 @@ public class NewmanResource {
         }
 
         return buildsRes;
+    }
+
+    private Build getLatestNightlyBuild() {
+        Build res = null;
+        Query<Build> query;
+        query = buildDAO.createQuery().order("-buildTime").field("tags").contains("NIGHTLY");
+        QueryResults<Build> queryResults = buildDAO.find(query);
+        List<Build> builds = queryResults.asList();
+        for (Build nightly : builds) {
+            if(nightly.getBuildStatus().getTotalJobs() == 0){
+                res = nightly;
+                break;
+            }
+        }
+        return res;
     }
 
     private Test addTest(Test test) {
