@@ -778,8 +778,9 @@ public class NewmanResource {
             tagsSet = new HashSet<>(Arrays.asList(tagsStr.split("\\s*,\\s*")));
         }
         Build buildsRes = null;
-
-        Query<Build> query = buildDAO.createQuery().order("-buildTime").field("branch").equal(branchStr);
+        Set<String> relaesTag = new HashSet<>();
+        relaesTag.add("RELEASE");
+        Query<Build> query = buildDAO.createQuery().order("-buildTime").field("branch").equal(branchStr).field("tags").hasNoneOf(relaesTag);
 
         if(tagsSet != null && !tagsSet.isEmpty()){ // build should be with specifics tags
             query.field("tags").hasAllOf(tagsSet);
@@ -791,7 +792,7 @@ public class NewmanResource {
         }
         if(modeStr.equalsIgnoreCase("NIGHTLY")){
             //get latest nightly build that didn't run, if exist
-            buildsRes = getLatestNightlyBuild();
+            buildsRes = getLatestReleaseBuild();
             // if nightly mode and there aren't new builds - take last build anyway
             if(buildsRes == null){
                 buildsRes = getLatestBuild(branchStr);
@@ -803,10 +804,10 @@ public class NewmanResource {
         return buildsRes;
     }
 
-    private Build getLatestNightlyBuild() {
+    private Build getLatestReleaseBuild() {
         Build res = null;
         Query<Build> query;
-        query = buildDAO.createQuery().order("-buildTime").field("tags").contains("NIGHTLY");
+        query = buildDAO.createQuery().order("-buildTime").field("tags").contains("RELEASE");
         QueryResults<Build> queryResults = buildDAO.find(query);
         List<Build> builds = queryResults.asList();
         for (Build nightly : builds) {
