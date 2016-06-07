@@ -14,7 +14,7 @@ while true; do
                 HOURS=$(date +%H)
 
                 # check if nightly or daily mode - every branch
-                if [ $HOURS -ge 19 -a $HOURS -le 22 ]; then
+                if [ $HOURS -ge 20 -a $HOURS -le 23 ]; then
                         echo "running in nightly mode, will trigger new jobs even if no changes where made, date is `date`"
                         export NEWMAN_SUITES="${NEWMAN_SUITES},${NEWMAN_NIGHTLY_SUITES}"
                         export NEWMAN_MODE="NIGHTLY"
