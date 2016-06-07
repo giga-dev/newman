@@ -151,14 +151,13 @@ public class NewmanAgent {
     private void start() {
         NewmanClient c = getClient();
         KeepAliveTask keepAliveTask = null;
-        /*while (isActive()) {*/
+        while (isActive()) {
             Job job = waitForJob();
             // ping server during job setup and execution
             keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
             boolean setupFinished = jobExecutor.setup();
-            System.exit(0);
-            /*if (!setupFinished) {
+            if (!setupFinished) {
                 logger.error("Setup of job {} failed, will wait for a new job", job.getId());
                 jobExecutor.teardown();
                 //inform the server that agent is not working on this job
@@ -202,11 +201,11 @@ public class NewmanAgent {
                 } catch (Exception e) {
                     logger.warn("worker exited with exception", e);
                 }
-            }*/
+            }
             keepAliveTask.cancel();
-            //jobExecutor.teardown();
+            jobExecutor.teardown();
         }
-    //}
+    }
 
     private int calculateNumberOfWorkers(Job job) {
         if (job.getSuite() == null || job.getSuite().getCustomVariables() == null) {
