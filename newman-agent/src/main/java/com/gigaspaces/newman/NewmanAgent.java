@@ -32,7 +32,7 @@ public class NewmanAgent {
 
     public static void main(String[] args) throws Exception {
         NewmanAgent agent = new NewmanAgent();
-        if (args[0].trim().equalsIgnoreCase("setup")){
+        if (args.length > 0 && args[0].trim().equalsIgnoreCase("setup")){
             createJobSetupEnv(args, agent);
         }
         agent.initialize(true);
