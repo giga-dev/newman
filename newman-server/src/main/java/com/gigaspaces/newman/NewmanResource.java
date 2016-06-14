@@ -1754,7 +1754,9 @@ public class NewmanResource {
     @Path("build/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Build getBuild(final @PathParam("id") String id) {
-        return buildDAO.findOne(buildDAO.createIdQuery(id));
+        Build build = buildDAO.findOne(buildDAO.createIdQuery(id));
+        logger.info( "Build [" + build.getName() + "] [" + build.getId() + "] shas:" + Arrays.toString( build.getShas().entrySet().toArray( new Map.Entry[build.getShas().size()] ) ) );
+        return build;
     }
 
 

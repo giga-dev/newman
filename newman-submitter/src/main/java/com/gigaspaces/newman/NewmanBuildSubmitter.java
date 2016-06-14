@@ -6,8 +6,9 @@ import com.gigaspaces.newman.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -117,31 +118,25 @@ public class NewmanBuildSubmitter {
         }
     }
 
-    private Map<String, String> parseBuildShasFile(String buildShasFile) throws IOException {
+    private Map<String, String> parseBuildShasFile( String buildShasFile ) throws FileNotFoundException {
         Map<String,String> shas = new HashMap<>();
-        InputStream is = null;
-        try {
-            is = URI.create(buildShasFile).toURL().openStream();
-            String metadata = FileUtils.readTextFile(is);
-            String modifiedMetadata = metadata.replace("[", "");
-            modifiedMetadata = modifiedMetadata.replace("]", "");
-            modifiedMetadata = modifiedMetadata.replace("\"", "");
-            modifiedMetadata = modifiedMetadata.replaceAll("\\s+", "");
-            String[] splicedMetadata = modifiedMetadata.split(",");
-            for (String element : splicedMetadata) {
-                shas.put(element.split(":")[0], element.split(":")[1]);
-            }
+        Scanner scan = new Scanner( new File( buildShasFile ) );
+        while( scan.hasNextLine() ){
+            String line = scan.nextLine();
+            Map.Entry<String, String> entry = parseBuildShasFileLine(line);
+            shas.put( entry.getKey(), entry.getValue() );
         }
-        catch (Exception e) {
-            logger.error("fail to get or parse build shas file", e);
-            throw e;
-        }
-        finally {
-            if (is != null) {
-                is.close();
-            }
-        }
+
         return shas;
+    }
+
+    private static Map.Entry<String, String> parseBuildShasFileLine(String line) {
+        String modifiedMetadata = line.replace("[", "");
+        modifiedMetadata = modifiedMetadata.replace("]", "");
+        modifiedMetadata = modifiedMetadata.replace("\"", "");
+        modifiedMetadata = modifiedMetadata.replaceAll("\\s+", "");
+        String[] split = modifiedMetadata.split(":");
+        return new AbstractMap.SimpleEntry( split[0], split[1] );
     }
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException, TimeoutException {
@@ -155,5 +150,4 @@ public class NewmanBuildSubmitter {
 
         buildSubmitter.submitBuild();
     }
-
 }
