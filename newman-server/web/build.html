@@ -41,13 +41,13 @@
                     <template if="{{key=='xap'}}">
                         <dt class="newman-build-table-cell ">{{key}}</dt>
                         <dd class="newman-build-table-cell">
-                            <a target="_blank" href='https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}'>https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}</a>
+                            <a target="_blank" href='{{shasMap[key]}}'>{{shasMap[key]}}</a>
                         </dd>
                     </template>
                     <template if="{{key!='xap'}}">
                         <dt class="newman-build-table-cell newman-build-optional-property-hidden newman-build-optional-marker">{{key}}</dt>
                         <dd class="newman-build-table-cell newman-build-optional-property-hidden newman-build-optional-marker">
-                            <a target="_blank" href='https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}'>https://github.com/Gigaspaces/xap/commit/{{shasMap[key]}}</a>
+                            <a target="_blank" href='{{shasMap[key]}}'>{{shasMap[key]}}</a>
                         </dd>
                     </template>
                 </template>

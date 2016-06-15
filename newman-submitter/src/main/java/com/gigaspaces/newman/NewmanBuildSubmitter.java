@@ -6,9 +6,7 @@ import com.gigaspaces.newman.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -118,25 +116,14 @@ public class NewmanBuildSubmitter {
         }
     }
 
-    private Map<String, String> parseBuildShasFile( String buildShasFile ) throws FileNotFoundException {
-        Map<String,String> shas = new HashMap<>();
-        Scanner scan = new Scanner( new File( buildShasFile ) );
-        while( scan.hasNextLine() ){
-            String line = scan.nextLine();
-            Map.Entry<String, String> entry = parseBuildShasFileLine(line);
-            shas.put( entry.getKey(), entry.getValue() );
-        }
+    private Map parseBuildShasFile( String buildShasFile ) throws IOException {
 
-        return shas;
-    }
+        Properties properties = new Properties();
+        InputStream input = new FileInputStream( buildShasFile );
+        //load a shas properties file
+        properties.load( input );
 
-    private static Map.Entry<String, String> parseBuildShasFileLine(String line) {
-        String modifiedMetadata = line.replace("[", "");
-        modifiedMetadata = modifiedMetadata.replace("]", "");
-        modifiedMetadata = modifiedMetadata.replace("\"", "");
-        modifiedMetadata = modifiedMetadata.replaceAll("\\s+", "");
-        String[] split = modifiedMetadata.split(":");
-        return new AbstractMap.SimpleEntry( split[0], split[1] );
+        return properties;
     }
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException, TimeoutException {
