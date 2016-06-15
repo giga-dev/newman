@@ -119,7 +119,7 @@ public class NewmanBuildSubmitter {
     private Map parseBuildShasFile( String buildShasFile ) throws IOException {
 
         Properties properties = new Properties();
-        InputStream input = new FileInputStream( buildShasFile );
+        InputStream input = URI.create(buildShasFile).toURL().openStream();
         //load a shas properties file
         properties.load( input );
 
