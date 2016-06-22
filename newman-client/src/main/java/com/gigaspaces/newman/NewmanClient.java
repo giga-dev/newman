@@ -237,4 +237,7 @@ public class NewmanClient {
         return new NewmanClient(restClient, URI);
     }
 
+    public CompletionStage<Build> appendToBuild(Build build) {
+        return restClient.target(uri).path("build").request().rx().post(Entity.json(build), Build.class);
+    }
 }

@@ -1669,6 +1669,48 @@ public class NewmanResource {
     }
 
     @POST
+    @Path("build")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Build appendToBuild(final Build build) {
+
+        if (build.getName() == null) {
+            throw new BadRequestException("can't append to build " + build + " without a name");
+        }
+
+        Build found = buildDAO.findOne(buildDAO.createQuery().field("name").equal(build.getName()));
+        if (found == null) {
+            throw new BadRequestException("can't append to build " + build + " since it does not exists");
+        }
+
+        if (build.getId() != null && !found.getId().equalsIgnoreCase(build.getId())) {
+            throw new UnsupportedOperationException("appending build id is not supported");
+        }
+
+        if (build.getBranch() != null && !build.getBranch().equalsIgnoreCase(found.getBranch())) {
+            throw new UnsupportedOperationException("appending branch is not supported");
+        }
+
+        if (build.getShas() != null && !build.getShas().isEmpty()) {
+            found.getShas().putAll(build.getShas());
+        }
+
+        if (build.getResources() != null && !build.getResources().isEmpty()) {
+            found.getResources().addAll(build.getResources());
+        }
+
+        if (build.getTestsMetadata() != null && !build.getTestsMetadata().isEmpty()) {
+            found.getTestsMetadata().addAll(build.getTestsMetadata());
+        }
+
+        if (build.getTags() != null && !build.getTags().isEmpty()) {
+            found.getTags().addAll(build.getTags());
+        }
+
+        return updateBuild(found.getId(), found);
+    }
+
+    @POST
     @Path("build/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
