@@ -335,7 +335,7 @@ public class NewmanSuiteSubmitter {
             String Requirements = "LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "tgrid";
-            String mapdbExcludePermutationFile = "file:///home/boris/dev/sources/git/xap/tests/sanity/mapdb_excluded_permutations.txt";
+            String mapdbExcludePermutationFile = "file:///home/yaeln/IdeaProjects/xap/xap-tests/xap-tests-datagrid/sanity/mapdb_excluded_permutations.txt";
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
                     CriteriaBuilder.exclude(
@@ -485,7 +485,10 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.indexing.IllegalIndexValueChangeTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.internal"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.dcache.Extends"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest"),
+                            PatternCriteria.containsCriteria("org.openspaces.remoting.scripting.ScalaLocalScriptExecutorTest"),
+                            PatternCriteria.containsCriteria("org.openspaces.scala.core.ScalaEnhancedGigaSpaceWrapperTest"),
+                            PatternCriteria.containsCriteria("org.openspaces.scala.immutabledata.ScalaImmutableDataTest")
                     )
             );
             suite.setCriteria(criteria);
