@@ -357,7 +357,9 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.dcache.Extends"),
                             PatternCriteria.containsCriteria("com.gigaspaces.internal"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.avnza.case10089.ValueOfSqlQueryTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.avnza.case10089.ValueOfQueryTest")
                     ),
                     CriteriaBuilder.exclude(getTestCriteriasFromPermutationURI(mapdbExcludePermutationFile))
             );
