@@ -127,7 +127,8 @@ public class SuiteDiffCronJob implements CronJob {
         htmlTemplate.setAttribute("previousBuildDate", simpleDateFormat.format(previousBuild.getBuildTime()));
         htmlTemplate.setAttribute("previousBuildDuration", toHumanReadableDuration(calculateBuildDurationInMillis(previous_mapSuite2Job)));
 
-        htmlTemplate.setAttribute("changeset", getChangeSet(previousBuild, latestBuild));
+        htmlTemplate.setAttribute("xapOpenChangeset", getChangeSet("xap-open", previousBuild, latestBuild));
+        htmlTemplate.setAttribute("xapChangeset", getChangeSet("xap", previousBuild, latestBuild));
 
         //send mail
         String subject = subjectTemplate.toString();
@@ -150,18 +151,21 @@ public class SuiteDiffCronJob implements CronJob {
         saveToAuditLogFile(properties, latestBuild);
     }
 
-    private String getChangeSet(Build previousBuild, Build latestBuild) {
+    private String getChangeSet(String repository, Build previousBuild, Build latestBuild) {
         String changeSet;
         if (previousBuild.getId().equals(latestBuild.getId())) {
-            String xapSha = latestBuild.getShas().get("xap");
-            changeSet = "https://github.com/Gigaspaces/xap/commit/" + xapSha;
+            String latestCommit = latestBuild.getShas().get(repository);
+            changeSet = latestCommit;
         } else {
-            String fromSha = previousBuild.getShas().get("xap");
-            String toSha = latestBuild.getShas().get("xap");
-            if (fromSha.equals(toSha)) {
-                changeSet = "https://github.com/Gigaspaces/xap/commit/" + toSha;
+            String previousCommit = previousBuild.getShas().get(repository);
+            String latestCommit = latestBuild.getShas().get(repository);
+            if (previousCommit.equals(latestCommit)) {
+                changeSet = latestCommit;
             } else {
-                changeSet = "https://github.com/Gigaspaces/xap/compare/" + fromSha + "..." + toSha;
+                String gitUrl = latestCommit.substring(0, latestCommit.lastIndexOf("/commit"));
+                String latestSha = latestCommit.substring(latestCommit.lastIndexOf('/')+1);
+                String previousSha = previousCommit.substring(previousCommit.lastIndexOf('/')+1);
+                changeSet = gitUrl +"/compare/" + previousSha + "..." + latestSha;
             }
         }
         return changeSet;
