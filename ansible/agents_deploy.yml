@@ -11,8 +11,8 @@
   remote_user: xap
 
   roles:
-    - agent_deploy
     - agent_crontabs
+    - agent_deploy
 
 #- name: "deploy newman tarzan ssd agents"
 #  hosts: newmanTarzanServers
