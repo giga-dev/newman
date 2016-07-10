@@ -1299,6 +1299,14 @@ public class NewmanResource {
         }
     }
 
+    @GET
+    @Path("agents/count")
+    public Response getAgentsCount() {
+        long count = agentDAO.count();
+        logger.info( "agents count=" + count );
+        return Response.ok(count, MediaType.TEXT_PLAIN_TYPE).build();
+    }
+
 
     @DELETE
     @Path("log")
