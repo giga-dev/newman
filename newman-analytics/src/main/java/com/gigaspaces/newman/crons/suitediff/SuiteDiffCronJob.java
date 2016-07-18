@@ -162,7 +162,12 @@ public class SuiteDiffCronJob implements CronJob {
             if (previousCommit.equals(latestCommit)) {
                 changeSet = latestCommit;
             } else {
-                String gitUrl = latestCommit.substring(0, latestCommit.lastIndexOf("/commit"));
+                String gitUrl = null;
+                if (latestCommit.indexOf("/commit") != -1) {
+                    gitUrl = latestCommit.substring(0, latestCommit.lastIndexOf("/commit"));
+                } else if (latestCommit.indexOf("/tree") != -1) {
+                    gitUrl = latestCommit.substring(0, latestCommit.lastIndexOf("/tree"));
+                }
                 String latestSha = latestCommit.substring(latestCommit.lastIndexOf('/')+1);
                 String previousSha = previousCommit.substring(previousCommit.lastIndexOf('/')+1);
                 changeSet = gitUrl +"/compare/" + previousSha + "..." + latestSha;
