@@ -94,6 +94,8 @@ public class NewmanResource {
 
     private final static String CRITERIA_PROP_NAME = "criteria";
 
+    private final static String MASTER_BRANCH_NAME = "master";
+
     private final static boolean buildCacheEnabled = Boolean.getBoolean("newman.server.enabledBuildCache");
     private static String HTTP_WEB_ROOT_PATH;
     private static String HTTPS_WEB_ROOT_PATH;
@@ -2049,12 +2051,31 @@ public class NewmanResource {
                                            @DefaultValue("50") @QueryParam("limit") int limit, @Context UriInfo uriInfo) {
 
         Test thisTest = getTest(id);
-        final String sha = thisTest.getSha();
+
+        String testName = thisTest.getName();
+        Date endTime = thisTest.getEndTime();
+        List<String> testArguments = thisTest.getArguments();
+
+        String jobId = thisTest.getJobId();
+        Job job = getJob(jobId);
+        Build build = job.getBuild();
+        String branch = build.getBranch();
+        Set<String> filterBranches = new HashSet<>();
+        filterBranches.add(MASTER_BRANCH_NAME);
+        filterBranches.add(branch);
+
+        logger.info( "--getTests() history, testId=" + id + ",jobId=" + jobId + ", buildId=" + build.getId() + ", branch=" + branch );
 
         Query<Test> testsQuery = testDAO.createQuery();
         testsQuery.or(testsQuery.criteria("status").equal(Test.Status.FAIL), testsQuery.criteria("status").equal(Test.Status.SUCCESS)); // get only success or fail test
         testsQuery.order("-endTime"); // order by end time
-        testsQuery.field("sha").equal(sha);
+        testsQuery.field("name").equal(testName).field("arguments").equal(testArguments);
+
+        //in order to improve query in the case of master branch
+        if( branch.equals( MASTER_BRANCH_NAME ) ) {
+            String sha = thisTest.getSha();
+            testsQuery.field("sha").equal(sha);
+        }
         testsQuery.limit(limit);
 
         List<Test> tests = testDAO.find(testsQuery).asList();
@@ -2062,24 +2083,31 @@ public class NewmanResource {
         //logger.info("DEBUG (getTests) get test history of testId: [{}], (thisTest: [{}])", id, thisTest);
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
-            //logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
-            TestHistoryItem testHistoryItem = createTestHistoryItem(test);
-            if (testHistoryItem == null) {
-                continue;
+            //don't bring tests that were ran after this test on any branch
+            if( test.getEndTime().compareTo( endTime ) <= 0 ) {
+                //logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
+                TestHistoryItem testHistoryItem = createTestHistoryItem(test, filterBranches);
+                if (testHistoryItem == null) {
+                    continue;
+                }
+                //logger.info("DEBUG (getTests) ---- > testHistoryItem is: [{}]", testHistoryItem);
+                testHistoryItemsList.add(testHistoryItem);
             }
-            //logger.info("DEBUG (getTests) ---- > testHistoryItem is: [{}]", testHistoryItem);
-            testHistoryItemsList.add(testHistoryItem);
         }
 
         return new Batch<>(testHistoryItemsList, offset, limit, false, Collections.emptyList(), uriInfo);
     }
 
 
-    private TestHistoryItem createTestHistoryItem(Test test) {
+    private TestHistoryItem createTestHistoryItem(Test test, Collection<String> filterBranches ) {
 
         Job job = getJob(test.getJobId());
         if (job == null) {
             return null;
+        }
+        String branch = job.getBuild().getBranch();
+        if( !filterBranches.contains( branch ) ){
+            return  null;
         }
         //logger.info("DEBUG (createTestHistoryItem) get job of test ---- > test: [{}], job: [{}])", test, job);
         return new TestHistoryItem( new TestView( test ), new JobView( job ) );
