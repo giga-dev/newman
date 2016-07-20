@@ -2066,7 +2066,7 @@ public class NewmanResource {
         filterBranches.add(MASTER_BRANCH_NAME);
         filterBranches.add(branch);
 
-        logger.info( "--getTests() history, testId=" + id + ",jobId=" + jobId + ", buildId=" + build.getId() + ", branch=" + branch );
+        logger.info( "--getTests() history, testId=" + id + ",jobId=" + jobId + ", buildId=" + build.getId() + ", branch=" + branch + ", endTime=" + endTime);
 
         Query<Test> testsQuery = testDAO.createQuery();
         testsQuery.or(testsQuery.criteria("status").equal(Test.Status.FAIL), testsQuery.criteria("status").equal(Test.Status.SUCCESS)); // get only success or fail test
@@ -2086,7 +2086,7 @@ public class NewmanResource {
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
             //don't bring tests that were ran after this test on any branch
-            if( test.getEndTime() != null && test.getEndTime().compareTo( endTime ) <= 0 ) {
+            if( test.getEndTime() != null && endTime != null && test.getEndTime().compareTo( endTime ) <= 0 ) {
                 //logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
                 TestHistoryItem testHistoryItem = createTestHistoryItem(test, filterBranches);
                 if (testHistoryItem == null) {
