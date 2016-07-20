@@ -223,9 +223,12 @@ public class SuiteDiffCronJob implements CronJob {
             history = newmanClient.getBuild(history.getId()).toCompletableFuture().get();
             if (history.getBranch().equals(branch)) {
                 if (StringUtils.notEmpty(tag)) {
-                    if (history.getTags().contains(tag)) {
-                        latestMatch = history;
-                        break;
+                    String[] splitTags = tag.split(",");
+                    for (String singleTag : splitTags) {
+                        if (history.getTags().contains(singleTag.trim())) {
+                            latestMatch = history;
+                            break;
+                        }
                     }
                 } else {
                     latestMatch = history;
