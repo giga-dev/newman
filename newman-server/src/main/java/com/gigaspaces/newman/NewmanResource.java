@@ -2087,7 +2087,7 @@ public class NewmanResource {
         for (Test test : tests) {
             logger.info( "--getTests() history, test.getEndTime()=" + test.getEndTime() + ", tests size:" + tests.size() );
             //don't bring tests that were ran after this test on any branch
-            if( test.getEndTime() != null && endTime != null && test.getEndTime().compareTo( endTime ) <= 0 ) {
+            if( endTime == null || (test.getEndTime() != null && test.getEndTime().compareTo( endTime ) <= 0 )) {
                 //logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
                 TestHistoryItem testHistoryItem = createTestHistoryItem(test, filterBranches);
                 if (testHistoryItem == null) {
