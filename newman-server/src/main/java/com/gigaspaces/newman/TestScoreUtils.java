@@ -49,19 +49,21 @@ public class TestScoreUtils {
 
         for (TestHistoryItem testHistoryItem : history) {
             Test.Status localStatus = testHistoryItem.getTest().getStatus();
+            logger.info( "--within for, localStatus=" + localStatus + ", testHistoryItem.getJob().getBuildBranch()=" + testHistoryItem.getJob().getBuildBranch() );
             if( localStatus != Test.Status.FAIL && localStatus != Test.Status.SUCCESS) {
                 continue;
             }
             updateTestStatusIndication( localStatus, testHistoryItem.getJob().getBuildBranch(), masterSb, branchSb );
         }
-
+        logger.info( "--before return history branchSb=" + branchSb.toString() + ", masterSb= " + masterSb.toString()  );
         String result = branchSb.length() == 0 ? masterSb.toString() : branchSb.toString() + DELIMETER + masterSb;
         logger.info( "--return history string [" + result + "] for tests in build " + curBuild.toString() + ", test:" + test );
         return result;
     }
 
     private static void updateTestStatusIndication( Test.Status status, String branchName, StringBuilder masterSb, StringBuilder branchSb ){
-        String localStatusIndication =  createTestStatusIndication( status );
+        String localStatusIndication = createTestStatusIndication( status );
+        logger.info( "--updateTestStatusIndication=" + localStatusIndication + ", branchName=" + branchName );
         if( branchName.equals( NewmanResource.MASTER_BRANCH_NAME ) ){
             masterSb.append( localStatusIndication );
         }

@@ -2081,10 +2081,11 @@ public class NewmanResource {
         testsQuery.limit(limit);
 
         List<Test> tests = testDAO.find(testsQuery).asList();
-
+        logger.info( "--getTests() history, testId=" + id + ", tests size:" + tests.size() );
         //logger.info("DEBUG (getTests) get test history of testId: [{}], (thisTest: [{}])", id, thisTest);
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
+            logger.info( "--getTests() history, test.getEndTime()=" + test.getEndTime() + ", tests size:" + tests.size() );
             //don't bring tests that were ran after this test on any branch
             if( test.getEndTime() != null && endTime != null && test.getEndTime().compareTo( endTime ) <= 0 ) {
                 //logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
