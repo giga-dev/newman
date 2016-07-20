@@ -1,18 +1,19 @@
-# -------------------------------------------------
-# run master each day at 7am from sunday-friday
-# -------------------------------------------------
-0 7 * * SUN-FRI cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=NIGHTLY > /home/xap/newman-analytics/logs/daily-suite-diff.log 2>&1
+# --------------------------------------------------------
+# run each day at 7-8am, every 15 min from sunday-saturday
+# --------------------------------------------------------
+*/15 7-8 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=NIGHTLY,RELEASE > /home/xap/newman-analytics/logs/daily-suite-diff.log 2>&1
+
+#--branch--
+#0 7 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=NIGHTLY,RELEASE crons.suitediff.branch=barakb-opencore > /home/xap/newman-analytics/logs/daily-suite-diff.log 2>&1
 
 # ----------------------------------------------------------
-# run branch from 7am-21pm, every 7 hours, sunday-thursday
+# interday cronjob - every 1 hours from 8am to 21:00
 # ----------------------------------------------------------
-#0 7-21/7 * * SUN-THU cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=NIGHTLY crons.suitediff.branch=10.2.1-build  > /home/xap/newman-analytics/logs/daily-suite-diff-branch.log 2>&1
+0 8-21/1 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.trackLatest=false > /home/xap/newman-analytics/logs/interday-suite-diff.log 2>&1
 
+#--branch--
+#0 8-21/1 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.trackLatest=true crons.suitediff.branch=xap-experimental > /home/xap/newman-analytics/logs/branch-interday-suite-diff.log 2>&1
 
-# ----------------------------------------------------------
-# interday cronjob - every 3 hours on master
-# ----------------------------------------------------------
-0 10-19/3 * * SUN-THU cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.trackLatest=false crons.suitediff.branch=master > /home/xap/newman-analytics/logs/interday-suite-diff.log 2>&1
 
 
 # ---------------------------------------------------------
