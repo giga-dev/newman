@@ -1,7 +1,11 @@
 package com.gigaspaces.newman;
 
+import com.gigaspaces.newman.beans.Build;
 import com.gigaspaces.newman.beans.Test;
 import com.gigaspaces.newman.beans.TestHistoryItem;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +18,10 @@ public class TestScoreUtils {
 
     public static String FAIL = "|";
     public static String PASS = ".";
+
+    public static String DELIMETER = "_";
+
+    private static final Logger logger = LoggerFactory.getLogger(NewmanResource.class);
 
     public static double score(String history){
         int intervalsCount = 0;
@@ -33,16 +41,36 @@ public class TestScoreUtils {
         return intervalsCount;
     }
 
-    public static String decodeShortHistoryString(List<TestHistoryItem> history, Test.Status currentStatus) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(currentStatus == Test.Status.FAIL ? FAIL +" " :PASS + " "); // check only fails --> need to add to begin of history current fail
-        for (TestHistoryItem value : history) {
-            if(value.getTest().getStatus() != Test.Status.FAIL && value.getTest().getStatus() != Test.Status.SUCCESS) continue;
-            sb.append(value.getTest().getStatus() == Test.Status.FAIL ? FAIL +" " :PASS + " ");
+    public static String decodeShortHistoryString( Test test, List<TestHistoryItem> history, Test.Status currentStatus, Build curBuild ) {
+        StringBuilder masterSb = new StringBuilder();
+        StringBuilder branchSb = new StringBuilder();
+        logger.info( "--Start return history for tests in build " + curBuild.toString() + ", test:" + test );
+        updateTestStatusIndication( currentStatus, curBuild.getBranch(), masterSb, branchSb );
+
+        for (TestHistoryItem testHistoryItem : history) {
+            Test.Status localStatus = testHistoryItem.getTest().getStatus();
+            if( localStatus != Test.Status.FAIL && localStatus != Test.Status.SUCCESS) {
+                continue;
+            }
+            updateTestStatusIndication( localStatus, testHistoryItem.getJob().getBuildBranch(), masterSb, branchSb );
         }
-        return sb.toString();
+
+        String result = branchSb.length() == 0 ? masterSb.toString() : branchSb.toString() + DELIMETER + masterSb;
+        logger.info( "--return history string [" + result + "] for tests in build " + curBuild.toString() + ", test:" + test );
+        return result;
     }
 
+    private static void updateTestStatusIndication( Test.Status status, String branchName, StringBuilder masterSb, StringBuilder branchSb ){
+        String localStatusIndication =  createTestStatusIndication( status );
+        if( branchName.equals( NewmanResource.MASTER_BRANCH_NAME ) ){
+            masterSb.append( localStatusIndication );
+        }
+        else{
+            branchSb.append( localStatusIndication );
+        }
+    }
 
-
+    private static String createTestStatusIndication( Test.Status status ){
+        return status == Test.Status.FAIL ? FAIL +" " :PASS + " ";
+    }
 }

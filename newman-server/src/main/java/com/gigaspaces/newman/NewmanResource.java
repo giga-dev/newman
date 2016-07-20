@@ -94,7 +94,7 @@ public class NewmanResource {
 
     private final static String CRITERIA_PROP_NAME = "criteria";
 
-    private final static String MASTER_BRANCH_NAME = "master";
+    final static String MASTER_BRANCH_NAME = "master";
 
     private final static boolean buildCacheEnabled = Boolean.getBoolean("newman.server.enabledBuildCache");
     private static String HTTP_WEB_ROOT_PATH;
@@ -844,7 +844,9 @@ public class NewmanResource {
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
-            if(getJob(test.getJobId()) == null){
+            String jobId = test.getJobId();
+            Job testJob = getJob(jobId);
+            if( testJob== null){
                 throw new BadRequestException("finishTest - the job of the test is not on database. test: ["+test+"].");
             }
             Test.Status status = test.getStatus();
@@ -873,12 +875,12 @@ public class NewmanResource {
             }
             int historyLength = 25;
             List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
-            String historyStatsString = TestScoreUtils.decodeShortHistoryString(testHistory, test.getStatus()); // added current fail to history;
+            String historyStatsString = TestScoreUtils.decodeShortHistoryString( test, testHistory, test.getStatus(),testJob.getBuild() ); // added current fail to history;
             double reliabilityTestScore = TestScoreUtils.score(historyStatsString);
 
             testUpdateOps.set("testScore", reliabilityTestScore);
             testUpdateOps.set("historyStats", historyStatsString);
-            logger.info("got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}]", historyStatsString, test.getId(), test.getName(), test.getJobId());
+            logger.info("got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}]", historyStatsString, test.getId(), test.getName(), jobId);
 
             Test result = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(test.getId()), testUpdateOps, false, false);
             Query<Test> query = testDAO.createQuery();
