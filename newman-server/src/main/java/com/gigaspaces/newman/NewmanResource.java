@@ -2086,7 +2086,7 @@ public class NewmanResource {
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
             //don't bring tests that were ran after this test on any branch
-            if( test.getEndTime().compareTo( endTime ) <= 0 ) {
+            if( test.getEndTime() != null && test.getEndTime().compareTo( endTime ) <= 0 ) {
                 //logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
                 TestHistoryItem testHistoryItem = createTestHistoryItem(test, filterBranches);
                 if (testHistoryItem == null) {
