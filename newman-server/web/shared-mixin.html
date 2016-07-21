@@ -47,7 +47,7 @@
                 return false;
             }
             var hasDelimeter = history.indexOf( historyDelimeter ) >= 0;
-            console.log( '> hasHistoryBranchDelimeter='+ hasDelimeter + ', history' + history )
+//            console.log( '> hasHistoryBranchDelimeter='+ hasDelimeter + ', history' + history )
             return hasDelimeter;
         },
         hasOnlyHistoryMaster: function(history){
@@ -55,7 +55,7 @@
                 return true;
             }
             var hasDelimeter = history.indexOf( historyDelimeter ) >= 0;
-            console.log( '> hasOnlyHistoryMaster='+ hasDelimeter + ', history' + history )
+//            console.log( '> hasOnlyHistoryMaster='+ hasDelimeter + ', history' + history )
             return !hasDelimeter;
         },
         shortBranchHistoryDisplay: function(history){
@@ -92,6 +92,9 @@
             return resultHistory[index] == undefined ? '' : resultHistory[index];
         },
         narrowHistory: function(history){
+            if(history == null) {
+                return '';
+            }
             if(history.length < 19){
                 return history;
             }

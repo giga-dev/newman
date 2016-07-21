@@ -65,7 +65,7 @@
             </template>
             <template if="{{data.historyStats | hasOnlyHistoryMaster}}">
                 <dt>History Stats master</dt>
-                <dd>{{data.historyStats}}</dd>
+                <dd>{{data.historyStats | narrowHistory}}</dd>
             </template>
             <dt>History</dt>
             <template bind if="{{data.id}}">

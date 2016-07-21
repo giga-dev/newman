@@ -75,12 +75,19 @@
                             <td style="word-wrap:break-word"><a href="{{urlFor('test', {id: item.id})}}"><test-arguments test="{{item}}"></test-arguments></a></td>
                             <td><test-status test="{{item}}"></test-status></td>
                             <td class="{{{'black-column' : item.status == 'SUCCESS', 'red-column' : item.testScore <= 3, 'blue-column' : item.testScore > 3} | tokenList}}">
-                                <span>
-                                    {{item.historyStats | shortBranchHistoryDisplay}}
-                                </span>
-                                <div>
-                                    {{item.historyStats | shortMasterHistoryDisplay}}
-                                </div>
+                                <template if="{{item.historyStats | hasHistoryBranchDelimeter}}">
+                                    <span>
+                                        {{item.historyStats | shortBranchHistoryDisplay}}
+                                    </span>
+                                    <div>
+                                        {{item.historyStats | shortMasterHistoryDisplay}}
+                                    </div>
+                                </template>
+                                <template if="{{item.historyStats | hasOnlyHistoryMaster}}">
+                                    <span>
+                                        {{item.historyStats | narrowHistory}}
+                                    </span>
+                                </template>
                             </td>
                             <td>
                                 <a href="{{urlFor('test-history', {id:item.id} )}}">History</a>
