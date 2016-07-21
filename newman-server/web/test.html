@@ -15,26 +15,26 @@
                    withCredentials="true"></core-ajax>
         <h3>Details for test {{data.name}}</h3>
         <dl class="dl-horizontal">
-            <dt>status</dt>
+            <dt>Status</dt>
             <dd>
                 <test-status test="{{data}}"></test-status>
             </dd>
-            <dt>id</dt>
+            <dt>Id</dt>
             <dd>{{data.id}}</dd>
             <template bind if="{{data.jobId}}">
                 <dt>jobId</dt>
                 <dd><a href="{{urlFor('job', {id: data.jobId, filterByStatus: 'ALL'})}}">{{data.jobId}}</a></dd>
             </template>
-            <dt>arguments</dt>
+            <dt>Arguments</dt>
             <dd><test-arguments test="{{data}}"></test-arguments></dd>
-            <dt>test type</dt>
+            <dt>Test Type</dt>
             <dd>{{data.testType}}</dd>
-            <dt>timeout</dt>
+            <dt>Timeout</dt>
             <dd>{{data.timeout | formatTimeout}}</dd>
 
-            <dt>errorMessage</dt>
+            <dt>Error Message</dt>
             <dd>{{data.errorMessage}}</dd>
-            <dt>logs</dt>
+            <dt>Logs</dt>
             <dd>
                 <template bind if="{{data.logs}}">
                     <ul class="unindent">
@@ -47,19 +47,27 @@
 
             <dt>Running Tests</dt>
             <dd>{{data.runningTests}}</dd>
-            <dt>assignedAgent</dt>
+            <dt>Assigned Agent</dt>
             <dd>{{data.assignedAgent}}</dd>
-            <dt>startTime</dt>
+            <dt>Start Time</dt>
             <dd>{{data.startTime | formatDate}}</dd>
-            <dt>endTime</dt>
+            <dt>End Time</dt>
             <dd>{{data.endTime | formatDate}}</dd>
-            <dt>scheduledAt</dt>
+            <dt>Scheduled At</dt>
             <dd>{{data.scheduledAt |formatDate}}</dd>
-            <dt>test score</dt>
+            <dt>Test Score</dt>
             <dd>{{data.testScore}}</dd>
-            <dt>history stats</dt>
-            <dd>{{data.historyStats}}</dd>
-            <dt>history</dt>
+            <template if="{{data.historyStats | hasHistoryBranchDelimeter}}">
+                <dt>History Stats branch</dt>
+                <dd>{{data.historyStats | shortBranchHistoryDisplay}}</dd>
+                <dt>History Stats master</dt>
+                <dd>{{data.historyStats | shortMasterHistoryDisplay}}</dd>
+            </template>
+            <template if="{{data.historyStats | hasOnlyHistoryMaster}}">
+                <dt>History Stats master</dt>
+                <dd>{{data.historyStats}}</dd>
+            </template>
+            <dt>History</dt>
             <template bind if="{{data.id}}">
                 <dd><a href="{{urlFor('test-history', {id: data.id } )}}">Test History</a></dd>
             </template>

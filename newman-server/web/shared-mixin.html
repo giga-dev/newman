@@ -1,6 +1,10 @@
 <script src="../components/moment/moment.js"></script>
 <script>
+
+    var historyDelimeter = '_';
+
     window.sharedMixin = {
+
         getDuration: function(item) {
 
             if( item.startTime === null ){
@@ -38,10 +42,56 @@
             }
             return moment.duration(timeout).asSeconds() + " seconds";
         },
-        shortHistoryDisplay: function(history){
+        hasHistoryBranchDelimeter: function(history){
+            if(history == null) {
+                return false;
+            }
+            var hasDelimeter = history.indexOf( historyDelimeter ) >= 0;
+            console.log( '> hasHistoryBranchDelimeter='+ hasDelimeter + ', history' + history )
+            return hasDelimeter;
+        },
+        hasOnlyHistoryMaster: function(history){
+            if(history == null) {
+                return true;
+            }
+            var hasDelimeter = history.indexOf( historyDelimeter ) >= 0;
+            console.log( '> hasOnlyHistoryMaster='+ hasDelimeter + ', history' + history )
+            return !hasDelimeter;
+        },
+        shortBranchHistoryDisplay: function(history){
+          return this.shortHistoryDisplay(history,0);
+        },
+        shortMasterHistoryDisplay: function(history){
+            return this.shortHistoryDisplay(history,1);
+        },
+        shortHistoryDisplay: function(history, index){
             if(history == null) {
                 return '';
             }
+
+            var delimeterIndex = history.indexOf( historyDelimeter );
+            var branchHistory = '';
+            var masterHistory = '';
+
+            if( delimeterIndex < 0 ){
+                masterHistory = this.narrowHistory( history );
+            }
+            else{
+                branchHistory = this.narrowHistory( history.substring(0,delimeterIndex) );
+                masterHistory = this.narrowHistory( history.substring(delimeterIndex+1,history.length) );
+            }
+
+            var resultHistoryArray;
+            if( branchHistory.length > 0 ){
+                resultHistory = [ branchHistory , masterHistory ];
+            }
+            else{
+                resultHistory = [ masterHistory ];
+            }
+
+            return resultHistory[index] == undefined ? '' : resultHistory[index];
+        },
+        narrowHistory: function(history){
             if(history.length < 19){
                 return history;
             }
