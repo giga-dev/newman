@@ -22,16 +22,14 @@
                     </template>
                 </select>
 
-
                 <div class="radio" style="margin-top: 25px; margin-left: 10px; font-size: 16px">
                     <label><input type="radio" id="selectBuildIdRb" checked name="optradio" on-click="{{onClickSelectBuildRb}}">Select build:</label>
                 </div>
 
-
                 <select class="input-lg form-control" id="selectedBuildId" style="margin-left: 15px; width: 500px">
                     <option value="">Select a Build</option>
                     <template repeat="{{build in allBuilds}}">
-                        <option value="{{build.id}}">{{build.name}} ({{build.branch}})</option>
+                        <option value="{{build.id}}">{{getBuildDescription(build)}}</option>
                     </template>
                 </select>
 
@@ -39,7 +37,6 @@
                     <label><input type="radio" id="enterBuildIdRb" name="optradio" on-click="{{onClickEnterBuildRb}}">Enter build Id:</label>
                 </div>
                 <input type="text" disabled class="form-control" id="enteredBuildId" style="margin-left: 15px; width: 500px; height: 40px">
-
 
                 <button type="button" class="btn btn-default" on-click="{{submitFutureJob}}" style="margin-top: 15px">Submit</button>
             </form>
@@ -79,6 +76,14 @@
 
                 console.info("got future job response:", event, resp);
                 this.$.status.innerHTML = JSON.stringify(resp.response);
+            },
+            getBuildDescription: function(build){
+
+                if(build.tags && build.tags.length > 0 && build.tags[0].length){
+                    return build.name + ' (' + build.branch + ')' +  ' (' + build.tags + ')';
+                }
+
+                return build.name + ' (' + build.branch + ')';
             },
             submitFutureJob : function(){
                 var suiteId = this.$.suiteId.value;

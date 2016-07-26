@@ -20,8 +20,9 @@
                 text-overflow: ellipsis;
             }
         </style>
-        <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}"
-                   withCredentials="true"></core-ajax>
+        <core-ajax id="reload" auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
+        <core-ajax id="del" handleAs="json" method="DELETE" on-core-response="{{reload}}" withCredentials="true"></core-ajax>
+
         <div class="content" flex>
             <div class="table-responsive">
                 <h1>Active Builds and Jobs</h1>
@@ -202,17 +203,27 @@
                             <td title="{futureJob.suiteID}}"><a href="{{urlFor('suite', {id: futureJob.suiteID})}}">{{futureJob.suiteName}}</a></td>
                             <td>{{futureJob.author}}</td>
                             <td>{{futureJob.submitTime | formatDate}}</td>
+                            <td>
+                                <button class="btn btn-success" on-click="{{toggleDropFutureJobConfirmationDialog}}" class="btn btn-danger" data-collection="{{futureJob.id}}">
+                                    <span class="glyphicon glyphicon glyphicon-remove"></span>
+                                </button>
+                            </td>
                         </tr>
                     </template>
                     </tbody>
                 </table>
             </div>
+            <paper-action-dialog backdrop autoCloseDisabled  id="confirmdialogdropfuturejob" heading="Drop Future Job?" transition="paper-dialog-transition-bottom" style="position: fixed; outline: none; display: none;">
+                <p>Are you sure you want to delete future job [{{futureJobId}}]?</p>
+                <paper-button affirmative raised class="colored" on-click="{{dropFutureJob}}">OK</paper-button>
+                <paper-button raised affirmative default>Cancel</paper-button>
+            </paper-action-dialog>
         </div>
     </template>
-
     <script>
     Polymer(Polymer.mixin({
       applyAuthorStyles: true,
+      futureJobId : '',
 
       created: function() {
           this.data = [];
@@ -220,6 +231,7 @@
           this.pending = {};
           this.history = {};
           this.activeJobs = {};
+          this.futureJobs = {};
           this.active = false;
       },
         ajaxResponse: function(event,resp){
@@ -246,6 +258,9 @@
             this.data.historyBuilds.forEach(function(build){
                 history[build.id] = build;
             });
+            this.data.futureJobs.forEach(function(futureJob){
+                futureJobs[futureJob.id] = futureJob;
+            });
             console.info("dashboard ", this.data);
         },
       onCreatedBuild: function(ev, build) {
@@ -258,6 +273,23 @@
               this.data.pendingBuilds.unshift(build);
               this.pending[build.id] = build;
           }
+      },
+      toggleDropFutureJobConfirmationDialog: function( event, detail, target ) {
+            var futureJobIdLocal = target.attributes['data-collection'].textContent;
+            this.futureJobId=futureJobIdLocal;
+            this.$.confirmdialogdropfuturejob.toggle();
+      },
+      dropFutureJob: function(event, detail,target){
+            this.$.del.url='api/newman/deleteFutureJob/' + this.futureJobId;
+            this.$.del.go();
+            deletedFutureJob = this.futureJobs[futureJobId];
+            if( deletedFutureJob ){
+                this.data.futureJobs.remove(deletedFutureJob);
+                var index = this.data.futureJobs.indexOf(deletedFutureJob);
+                if(-1 < index){
+                    this.data.activeBuilds.splice(index, 1);
+                }
+            }
       },
       onModifiedBuild: function(ev, build){
           var found;

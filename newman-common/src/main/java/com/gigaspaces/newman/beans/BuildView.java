@@ -2,6 +2,8 @@ package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.utils.ToStringBuilder;
 
+import java.util.Set;
+
 /**
  * Created by Evgeny Fisher
  * 2/25/16.
@@ -10,11 +12,13 @@ public class BuildView {
     private String id;
     private String name;
     private String branch;
+    private Set<String> tags;
 
     public BuildView( Build build ) {
         this.id = build.getId();
         this.name = build.getName();
         this.branch = build.getBranch();
+        this.tags = build.getTags();
     }
 
     public String getId() {
@@ -47,5 +51,13 @@ public class BuildView {
                 .append("id", id)
                 .append("name", name)
                 .toString();
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags( Set<String> tags ) {
+        this.tags = tags;
     }
 }

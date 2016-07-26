@@ -388,7 +388,7 @@ public class NewmanResource {
         final int buildsLimit = 30;
         Query<Build> buildsQuery = buildDAO.createQuery();
 
-        buildsQuery.retrievedFields(true, "id", "name", "branch");
+        buildsQuery.retrievedFields(true, "id", "name", "branch", "tags");
         buildsQuery.order("-buildTime").limit(buildsLimit);
         List<Build> builds = buildDAO.find( buildsQuery ).asList();
         return builds;
@@ -444,8 +444,7 @@ public class NewmanResource {
     @GET
     @Path("futureJob")
     @Produces(MediaType.APPLICATION_JSON)
-    public FutureJob getAndDeleteFutureJob(
-            @Context UriInfo uriInfo) {
+    public FutureJob getAndDeleteFutureJob(@Context UriInfo uriInfo) {
 
         Query<FutureJob> query = futureJobDAO.createQuery();
         query.order("-submitTime");
@@ -455,6 +454,21 @@ public class NewmanResource {
             datastore.findAndDelete(query);
         }
         return futureJob;
+    }
+
+    @DELETE
+    @Path("deleteFutureJob/{futureJobId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteFutureJob(final @PathParam("futureJobId") String futureJobId) {
+
+        Query<FutureJob> query = futureJobDAO.createIdQuery(futureJobId);
+        FutureJob futureJob = futureJobDAO.findOne( query );
+        if(futureJob != null){
+            Datastore datastore = futureJobDAO.getDatastore();
+            datastore.findAndDelete(query);
+        }
+
+        return Response.ok(Entity.json(futureJobId)).build();
     }
 
     @GET
