@@ -152,6 +152,7 @@ public class NewmanSubmitter {
     private List<Future<String>> submitFutureJobs() throws InterruptedException, ExecutionException, TimeoutException {
         List<Future<String>> futureJobIds = new ArrayList<>();
         FutureJob futureJob = getAndDeleteFutureJob();
+        logger.info("submitting future job - " + futureJob);
         while(futureJob != null){
             Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID(), futureJob.getAuthor());
             futureJobIds.add(futureJobWorker);
@@ -234,10 +235,10 @@ public class NewmanSubmitter {
         }
 
         String buildIdToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
-        logger.info("build to run - id:[{}], branch:[{}], tags:[{}], mode:[{}].",buildIdToRun, branch, tags, mode);
         if(buildIdToRun != null){
             try{
                 Build cachedBuild = newmanSubmitter.newmanClient.cacheBuildInServer(buildIdToRun).toCompletableFuture().get();
+                logger.info("build to run - name:[{}], id:[{}], branch:[{}], tags:[{}], mode:[{}].",cachedBuild.getName(), cachedBuild.getId(), cachedBuild.getBranch(), cachedBuild.getTags(), mode);
                 newmanSubmitter.submitAndWait(cachedBuild.getId(), suitesId);
             }
             catch (Exception ignored){

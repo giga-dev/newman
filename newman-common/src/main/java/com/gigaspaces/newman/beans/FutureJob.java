@@ -99,4 +99,18 @@ public class FutureJob {
     public void setBuildName(String buildName) {
         this.buildName = buildName;
     }
+
+    @Override
+    public String toString() {
+        return "FutureJob{" +
+                "id='" + id + '\'' +
+                ", buildID='" + buildID + '\'' +
+                ", buildName='" + buildName + '\'' +
+                ", buildBranch='" + buildBranch + '\'' +
+                ", suiteID='" + suiteID + '\'' +
+                ", suiteName='" + suiteName + '\'' +
+                ", author='" + author + '\'' +
+                ", submitTime=" + submitTime +
+                '}';
+    }
 }
