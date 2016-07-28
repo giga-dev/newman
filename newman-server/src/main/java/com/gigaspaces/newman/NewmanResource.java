@@ -2074,6 +2074,9 @@ public class NewmanResource {
 
         String jobId = thisTest.getJobId();
         Job job = getJob(jobId);
+        Suite suite = job.getSuite();
+        //retrieve all jobs belong to this suite
+        List<String> suiteJobs = getSuiteJobsIds(suite);
         Build build = job.getBuild();
         String branch = build.getBranch();
         Set<String> filterBranches = new HashSet<>();
@@ -2100,8 +2103,9 @@ public class NewmanResource {
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
             logger.info( "--getTests() history, test.getEndTime()=" + test.getEndTime() + ", tests size:" + tests.size() );
+            String jobIdLocal = test.getJobId();
             //don't bring tests that were ran after this test on any branch
-            if( endTime == null || (test.getEndTime() != null && test.getEndTime().compareTo( endTime ) <= 0 )) {
+            if( suiteJobs.contains( jobIdLocal ) && ( endTime == null || (test.getEndTime() != null && test.getEndTime().compareTo( endTime ) <= 0 ))) {
                 //logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
                 TestHistoryItem testHistoryItem = createTestHistoryItem(test, filterBranches);
                 if (testHistoryItem == null) {
@@ -2113,6 +2117,20 @@ public class NewmanResource {
         }
 
         return new Batch<>(testHistoryItemsList, offset, limit, false, Collections.emptyList(), uriInfo);
+    }
+
+    //retrieve all jobs belong to this suite
+    private List<String> getSuiteJobsIds(Suite suite) {
+        String suiteId = suite.getId();
+        Query<Job> query = jobDAO.createQuery();
+        query.field("suite.id").equal(suiteId);
+        List<ObjectId> jobObjectOIds = jobDAO.findIds(query);
+        List<String> retVal = new ArrayList<>( jobObjectOIds.size() );
+        for( ObjectId jobObjectId : jobObjectOIds ){
+            retVal.add(jobObjectId.toString() );
+        }
+
+        return retVal;
     }
 
 
