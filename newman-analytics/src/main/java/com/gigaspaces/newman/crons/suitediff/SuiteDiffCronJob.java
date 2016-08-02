@@ -252,8 +252,20 @@ public class SuiteDiffCronJob implements CronJob {
         Build previousBuild = null;
         try {
             previousBuild = getPreviousBuildFromFile(properties, latestBuild, newmanClient);
-        }catch (Exception e) {
-            return latestBuild;
+        } catch (Exception ignore1) {
+            // if latest is a branch build, and it is the first time we run this build, then there is
+            // no previous build to compare to; thus compare with master as previous
+            if (!latestBuild.getBranch().equals("master")) {
+                try {
+                    Build masterBranch = new Build();
+                    masterBranch.setBranch("master");
+                    previousBuild = getPreviousBuildFromFile(properties, masterBranch, newmanClient);
+                } catch (Exception ignore2) {
+                    return latestBuild;
+                }
+            } else {
+                return latestBuild;
+            }
         }
 
         if (latestBuild.getId().equals(previousBuild.getId())) {
