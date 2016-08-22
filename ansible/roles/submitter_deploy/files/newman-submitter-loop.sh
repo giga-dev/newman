@@ -18,11 +18,11 @@ while true; do
                         echo "running in nightly mode, will trigger new jobs even if no changes where made, date is `date`"
                         export NEWMAN_SUITES="${NEWMAN_SUITES},${NEWMAN_NIGHTLY_SUITES}"
                         export NEWMAN_MODE="NIGHTLY"
-                        export NEWMAN_BUILD_TAGS="DOTNET"
+                        export NEWMAN_BUILD_TAGS="XAP,DOTNET"
                 else
                         echo "running in daily mode, will trigger new jobs only if changes in build were made, date is `date`"
                         export NEWMAN_MODE="DAILY"
-                        export NEWMAN_BUILD_TAGS=""
+                        export NEWMAN_BUILD_TAGS="XAP"
                 fi
 
                  export NEWMAN_BUILD_BRANCH=${branch}
