@@ -708,7 +708,7 @@ public class NewmanSuiteSubmitter {
             suite.setCustomVariables("SUITE_TYPE=insightedge,CUSTOM_SETUP_TIMEOUT=2700000,THREADS_LIMIT=1,DIST_EDITION=community");
             String Requirements = "DOCKER,LINUX,MVN";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
-            String testType = "insightedge";
+            String testType = "insightedge-integration";
             Criteria criteria = CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType));
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
@@ -728,7 +728,7 @@ public class NewmanSuiteSubmitter {
             suite.setCustomVariables("SUITE_TYPE=insightedge,CUSTOM_SETUP_TIMEOUT=2700000,THREADS_LIMIT=1,DIST_EDITION=premium");
             String Requirements = "DOCKER,LINUX,MVN";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
-            String testType = "insightedge";
+            String testType = "insightedge-integration";
             Criteria criteria = CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType));
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
