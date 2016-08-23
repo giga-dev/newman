@@ -699,4 +699,44 @@ public class NewmanSuiteSubmitter {
             newmanClient.close();
         }
     }
+
+    public void manualSubmitInsightEdgeCommunity() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("insightedge-community");
+            suite.setCustomVariables("SUITE_TYPE=insightedge,CUSTOM_SETUP_TIMEOUT=2700000,THREADS_LIMIT=1,DIST_EDITION=community");
+            String Requirements = "DOCKER,LINUX,MVN";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            String testType = "insightedge";
+            Criteria criteria = CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType));
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitInsightEdgePremium() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("insightedge-premium");
+            suite.setCustomVariables("SUITE_TYPE=insightedge,CUSTOM_SETUP_TIMEOUT=2700000,THREADS_LIMIT=1,DIST_EDITION=premium");
+            String Requirements = "DOCKER,LINUX,MVN";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            String testType = "insightedge";
+            Criteria criteria = CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType));
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
 }
