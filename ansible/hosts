@@ -33,6 +33,9 @@ xap-newman-agent-39
 xap-newman-agent-40
 xap-newman-agent-41
 
+[newmanInsightEdgeDockerAgents]
+192.168.50.96
+
 [newNewmanDockerAgents]
 
 [newmanWindowsAgents]

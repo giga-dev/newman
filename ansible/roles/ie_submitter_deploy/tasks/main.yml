@@ -1,0 +1,27 @@
+---
+# deploys/re-deploys newman submitter
+- name: "create submitter folder if not exists"
+  shell: mkdir -p {{submitter_home_dir}}
+- name: "remove old submitter log if exists"
+  shell: rm -f {{submitter_home_dir}}/*.log
+  ignore_errors: yes
+- name: "undeploy old submitter"
+  command: pkill -f newman-submitter
+  ignore_errors: yes
+- name: "deploy new submitter jar"
+  copy: src={{newman_local_dir}}/newman-submitter/target/newman-submitter-1.0.jar dest={{submitter_home_dir}} owner=xap mode=0777
+- name: "copy main running script"
+  copy: src={{newman_local_dir}}/ansible/roles/ie_submitter_deploy/files/nohup-newman-submitter-loop.sh dest={{submitter_home_dir}} owner=xap mode=0777
+- name: "copy running script"
+  copy: src={{newman_local_dir}}/ansible/roles/ie_submitter_deploy/files/newman-submitter-loop.sh dest={{submitter_home_dir}} owner=xap mode=0777
+- name: "copy env script"
+  copy: src={{newman_local_dir}}/ansible/roles/ie_submitter_deploy/files/submitter-env.sh dest={{submitter_home_dir}} owner=xap mode=0777
+- name: "start submitter"
+  command: ./nohup-newman-submitter-loop.sh chdir="{{submitter_home_dir}}"
+- name: "wait for submitter to start"
+  wait_for: path={{submitter_home_dir}}/submitter-loop.log search_regex="starting loop over branches" timeout=5
+  register: result
+  ignore_errors: True
+- name: "failed to run submitter. retry to start submitter."
+  command: ./nohup-newman-submitter-loop.sh chdir="{{submitter_home_dir}}"
+  when: result|failed

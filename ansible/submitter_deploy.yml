@@ -12,4 +12,5 @@
 
   roles:
     - submitter_deploy
+    - ie_submitter_deploy
     - submitter_crontabs

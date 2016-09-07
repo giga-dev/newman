@@ -1,0 +1,4 @@
+---
+# server_deploy vars
+newman_local_dir: "../"
+submitter_home_dir: "/home/xap/insightedge/bin"

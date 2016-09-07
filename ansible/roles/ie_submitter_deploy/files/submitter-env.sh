@@ -1,0 +1,11 @@
+#!/bin/bash
+export BRANCH_FILE_PATH="/home/xap/insightedge/branch_list.txt"
+export NEWMAN_HOST=xap-newman
+export NEWMAN_PORT=8443
+export NEWMAN_USER_NAME=root
+export NEWMAN_PASSWORD=root
+#SUITES
+export INSIGHTEDGE_PREMIUM=57bbf0e329f67f0ee76e9900
+export INSIGHTEDGE_COMMUNITY=57bbf0cd29f67f0ee76e98ff
+#SUITES TO RUN
+export NEWMAN_SUITES=${INSIGHTEDGE_PREMIUM},${INSIGHTEDGE_COMMUNITY}
