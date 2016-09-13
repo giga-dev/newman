@@ -491,7 +491,10 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("org.openspaces.remoting.scripting.ScalaLocalScriptExecutorTest"),
                             PatternCriteria.containsCriteria("org.openspaces.scala.core.ScalaEnhancedGigaSpaceWrapperTest"),
                             PatternCriteria.containsCriteria("org.openspaces.scala.immutabledata.ScalaImmutableDataTest"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.unittest")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.unittest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.AndOrScanTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanScanningInfoTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanIndexInfoTest")
                     )
             );
             suite.setCriteria(criteria);
