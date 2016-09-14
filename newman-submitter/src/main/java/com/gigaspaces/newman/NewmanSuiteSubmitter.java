@@ -52,6 +52,8 @@ public class NewmanSuiteSubmitter {
 //        String ssd_tests = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests";
 //        submitter.manualSubmitSSD(ssd_tests);
 //        submitter.manualSubmitTgridRocksDB();
+//        submitter.manualSubmitTgridMapdb();
+//        submitter.manualSubmitTgridOffHeap();
     }
 
     public void submit() throws Exception {
@@ -494,7 +496,8 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.unittest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.AndOrScanTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanScanningInfoTest"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanIndexInfoTest")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanIndexInfoTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanQueryTreeTest ")
                     )
             );
             suite.setCriteria(criteria);
