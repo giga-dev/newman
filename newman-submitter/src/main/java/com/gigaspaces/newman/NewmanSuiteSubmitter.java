@@ -330,12 +330,12 @@ public class NewmanSuiteSubmitter {
         try {
             Suite suite = new Suite();
             suite.setName("map-db");
-            suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=false -Dblobstore.entriespercentage=0 -Dcom.gigaspaces.quality.tf.mapdb-blobstore.enabled=true");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=2,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=false -Dblobstore.entriespercentage=0 -Dcom.gigaspaces.quality.tf.mapdb-blobstore.enabled=true");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
             String Requirements = "LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "tgrid";
-            String mapdbExcludePermutationFile = "file:///home/yaeln/IdeaProjects/xap/xap-tests/xap-tests-datagrid/sanity/mapdb_excluded_permutations.txt";
+            String mapdbExcludePermutationFile = "file:///home/kobi/dev/github/xap-premium/xap-tests/xap-tests-datagrid/sanity/mapdb_excluded_permutations.txt";
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
                     CriteriaBuilder.exclude(
