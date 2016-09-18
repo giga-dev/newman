@@ -497,7 +497,7 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.AndOrScanTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanScanningInfoTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanIndexInfoTest"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanQueryTreeTest ")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanQueryTreeTest")
                     )
             );
             suite.setCriteria(criteria);
