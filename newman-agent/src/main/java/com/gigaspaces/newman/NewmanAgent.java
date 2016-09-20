@@ -116,6 +116,7 @@ public class NewmanAgent {
             throw new RuntimeException("failed to execute job setup");
         }
         FileUtils.createFolder(append(jobExecutor.getJobFolder(), "test"));
+        FileUtils.createFolder(append(append(jobExecutor.getJobFolder(), "test"), "output"));
         logger.info("##############################################################");
         logger.info("Created job setup environment in " + jobExecutor.getJobFolder());
         logger.info("Example of running a test: cd " + jobExecutor.getJobFolder() + "/test; ../run-sgtest.sh <test-name>");
