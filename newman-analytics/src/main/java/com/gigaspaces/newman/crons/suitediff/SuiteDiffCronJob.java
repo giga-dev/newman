@@ -227,8 +227,13 @@ public class SuiteDiffCronJob implements CronJob {
                     for (String singleTag : splitTags) {
                         if (history.getTags().contains(singleTag.trim())) {
                             latestMatch = history;
+                        }
+                        else {
                             break;
                         }
+                    }
+                    if (latestMatch != null) {
+                        break;
                     }
                 } else {
                     latestMatch = history;
@@ -240,7 +245,7 @@ public class SuiteDiffCronJob implements CronJob {
             logger.info("Latest build-id: {}", latestMatch.getId());
             return latestMatch;
         }
-        throw new IllegalStateException("No build matching branch: " + branch);
+        throw new IllegalStateException("No build matching branch: " + branch + "and tags: "+ tag);
     }
 
     /**
