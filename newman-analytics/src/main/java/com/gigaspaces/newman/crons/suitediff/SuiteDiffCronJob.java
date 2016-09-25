@@ -223,16 +223,9 @@ public class SuiteDiffCronJob implements CronJob {
             history = newmanClient.getBuild(history.getId()).toCompletableFuture().get();
             if (history.getBranch().equals(branch)) {
                 if (StringUtils.notEmpty(tag)) {
-                    String[] splitTags = tag.split(",");
-                    for (String singleTag : splitTags) {
-                        if (history.getTags().contains(singleTag.trim())) {
-                            latestMatch = history;
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                    if (latestMatch != null) {
+                    Set<String> tagsToMatch = new HashSet<>(Arrays.asList(tag.split(",")));
+                    if (history.getTags().containsAll(tagsToMatch)) {
+                        latestMatch = history;
                         break;
                     }
                 } else {
@@ -245,7 +238,7 @@ public class SuiteDiffCronJob implements CronJob {
             logger.info("Latest build-id: {}", latestMatch.getId());
             return latestMatch;
         }
-        throw new IllegalStateException("No build matching branch: " + branch + "and tags: "+ tag);
+        throw new IllegalStateException("No build matching branch: " + branch + " and tags: "+ tag);
     }
 
     /**
