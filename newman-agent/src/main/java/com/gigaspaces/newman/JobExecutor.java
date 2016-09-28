@@ -195,7 +195,9 @@ public class JobExecutor {
 
     private Map<String, String> getCustomVariablesFromSuite() {
         String customVariableString = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
-        return Suite.parseCustomVariables(customVariableString);
+        Map<String, String> customVariables = Suite.parseCustomVariables(customVariableString);
+        customVariables.putIfAbsent("GIT_BRANCH", job.getBuild().getBranch());
+        return customVariables;
     }
 
     public void teardown() {
