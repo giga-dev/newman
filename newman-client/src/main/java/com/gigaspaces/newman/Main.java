@@ -147,7 +147,7 @@ public class Main {
                 test.setArguments(Arrays.asList(Test.class.getName()/*, "arg1", "arg2" */));
                 test = newmanClient.createTest(test).toCompletableFuture().get();
                 logger.info("added test {}", test);
-                test = newmanClient.uploadLog( jobId, test.getId(), new File("mongo.txt")).toCompletableFuture().get();
+                test = newmanClient.uploadTestLog( jobId, test.getId(), new File("mongo.txt")).toCompletableFuture().get();
                 logger.info("**** Test is {} ", test);
             }
             Batch<Test> tests = newmanClient.getTests(job.getId(), 0, NUMBER_OF_TESTS_PER_JOB).toCompletableFuture().get();

@@ -81,7 +81,8 @@ public class NewmanResource {
     private final FutureJobDAO futureJobDAO;
     private final BuildsCacheDAO buildsCacheDAO;
     private final Config config;
-    private static final String SERVER_UPLOAD_LOCATION_FOLDER = "tests-logs";
+    private static final String SERVER_TESTS_UPLOAD_LOCATION_FOLDER = "tests-logs";
+    private static final String SERVER_JOBS_UPLOAD_LOCATION_FOLDER = "job-setup-logs";
     private static final String SERVER_CACHE_BUILDS_FOLDER = "builds";
 
     @SuppressWarnings("FieldCanBeLocal")
@@ -936,7 +937,6 @@ public class NewmanResource {
         }
         catch (Exception e){
             logger.error("failed to finish test because: ", e);
-            e.printStackTrace();
             throw e;
         }
     }
@@ -1009,12 +1009,12 @@ public class NewmanResource {
     @Path("test/{jobId}/{id}/log")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Test uploadLog(FormDataMultiPart form,
-                          @PathParam("jobId") String jobId,
-                          @PathParam("id") String id,
-                          @Context UriInfo uriInfo) {
+    public Test uploadTestLog(FormDataMultiPart form,
+                              @PathParam("jobId") String jobId,
+                              @PathParam("id") String id,
+                              @Context UriInfo uriInfo) {
         if(getJob(jobId) == null){
-            logger.warn("uploadLog - the job of the test is not on database. testId:[{}], jobId:[{}].", id, jobId);
+            logger.warn("uploadTestLog - the job of the test is not on database. testId:[{}], jobId:[{}].", id, jobId);
             return null;
         }
         FormDataBodyPart filePart = form.getField("file");
@@ -1023,21 +1023,57 @@ public class NewmanResource {
         String fileName = contentDispositionHeader.getFileName();
 
         if (fileName.toLowerCase().endsWith(".zip")) {
-            handleLogBundle(id, jobId, uriInfo, fileInputStream, fileName);
+            handleTestLogBundle(id, jobId, uriInfo, fileInputStream, fileName);
         } else {
-            handleLogFile(id, jobId, uriInfo, fileInputStream, fileName);
+            handleTestLogFile(id, jobId, uriInfo, fileInputStream, fileName);
         }
 
         return null;
     }
 
-    private void handleLogFile(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
+    @POST
+    @Path("job/{jobId}/{agentName}/log")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Job uploadJobSetupLog(FormDataMultiPart form,
+                              @PathParam("jobId") String jobId, @PathParam("agentName") String agentName,
+                              @Context UriInfo uriInfo) {
+        if(getJob(jobId) == null){
+            logger.warn("uploadJobSetupLog - the job is not in the database. jobId:[{}].", jobId);
+            return null;
+        }
+        if(getAgent(agentName) == null){
+            logger.warn("uploadJobSetupLog - the agent is not in the database. agent:[{}].", agentName);
+            return null;
+        }
+        FormDataBodyPart filePart = form.getField("file");
+        ContentDisposition contentDispositionHeader = filePart.getContentDisposition();
+        InputStream fileInputStream = filePart.getValueAs(InputStream.class);
+        String fileName = contentDispositionHeader.getFileName();
+        handleJobSetupLogFile(jobId, agentName, uriInfo, fileInputStream, fileName);
+
+        return null;
+    }
+
+    private void handleJobSetupLogFile(String jobId, String agentName, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
+        String filePath = calculateJobSetupLogFilePath(jobId, agentName) + fileName;
+        try {
+            saveFile(fileInputStream, filePath);
+            URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
+            UpdateOperations<Job> updateOps = jobDAO.createUpdateOperations().set("jobSetupLogs." + getLogName(agentName.replace(".", "_")), uri.toASCIIString());
+            Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateOps);
+            broadcastMessage(MODIFIED_JOB, job);
+        } catch (IOException e) {
+            logger.error("Failed to save log at {} for jobId {}", filePath, jobId, e);
+        }
+    }
+
+    private void handleTestLogFile(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
         String filePath = calculateTestLogFilePath(jobId, testId) + fileName;
         try {
             saveFile(fileInputStream, filePath);
             URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
-            String name = getLogName(fileName);
-            UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("logs." + name, uri.toASCIIString());
+            UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("logs." + getLogName(fileName), uri.toASCIIString());
             Test test = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(testId), updateOps);
             broadcastMessage(MODIFIED_TEST, test);
         } catch (IOException e) {
@@ -1046,10 +1082,14 @@ public class NewmanResource {
     }
 
     private static String calculateTestLogFilePath(String jobId, String testId) {
-        return SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + testId + "/";
+        return SERVER_TESTS_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + testId + "/";
     }
 
-    private void handleLogBundle(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
+    private static String calculateJobSetupLogFilePath(String jobId, String agentName) {
+        return SERVER_JOBS_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + agentName + "/";
+    }
+
+    private void handleTestLogBundle(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
 
         String filePath = calculateTestLogFilePath(jobId, testId) + fileName;
         try {
@@ -1086,8 +1126,8 @@ public class NewmanResource {
     @GET
     @Path("test/{jobId}/{id}/log/{name}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response downloadLog(@PathParam("jobId") String jobId, @PathParam("id") String id, @PathParam("name") String name,
-                                @DefaultValue("false") @QueryParam("download") boolean download) {
+    public Response downloadTestLog(@PathParam("jobId") String jobId, @PathParam("id") String id, @PathParam("name") String name,
+                                    @DefaultValue("false") @QueryParam("download") boolean download) {
         MediaType mediaType;
         if (download) {
             mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
@@ -1095,6 +1135,22 @@ public class NewmanResource {
             mediaType = MediaType.TEXT_PLAIN_TYPE;
         }
         String filePath = calculateTestLogFilePath(jobId, id) + name;
+
+        return Response.ok(new File(filePath), mediaType).build();
+    }
+
+    @GET
+    @Path("job/{jobId}/{agentName}/log/{name}")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response downloadJobSetupLog(@PathParam("jobId") String jobId, @PathParam("agentName") String agentName, @PathParam("name") String name,
+                                    @DefaultValue("false") @QueryParam("download") boolean download) {
+        MediaType mediaType;
+        if (download) {
+            mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+        } else {
+            mediaType = MediaType.TEXT_PLAIN_TYPE;
+        }
+        String filePath = calculateJobSetupLogFilePath(jobId, agentName) + name;
 
         return Response.ok(new File(filePath), mediaType).build();
     }
@@ -1305,11 +1361,12 @@ public class NewmanResource {
     @Path("log/size")
     public Response computeLogDirSize() {
         try {
-            if (!new File(SERVER_UPLOAD_LOCATION_FOLDER).exists()) {
+            if (!new File(SERVER_TESTS_UPLOAD_LOCATION_FOLDER).exists() || !new File(SERVER_JOBS_UPLOAD_LOCATION_FOLDER).exists()) {
                 return Response.ok("0").build();
             }
-            long sum1 = Files.walk(Paths.get(SERVER_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum();
-            String sum = String.valueOf(sum1);
+            long testLogsSize = Files.walk(Paths.get(SERVER_TESTS_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum();
+            long jobsSetupLogSize = Files.walk(Paths.get(SERVER_JOBS_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum();
+            String sum = String.valueOf(testLogsSize + jobsSetupLogSize);
             return Response.ok(sum, MediaType.TEXT_PLAIN_TYPE).build();
         } catch (Exception e) {
             logger.error(e.toString(), e);
@@ -1331,7 +1388,7 @@ public class NewmanResource {
     @RolesAllowed("admin")
     public Response deleteLogs() {
         try {
-            java.nio.file.Path path = Paths.get(SERVER_UPLOAD_LOCATION_FOLDER);
+            java.nio.file.Path path = Paths.get(SERVER_TESTS_UPLOAD_LOCATION_FOLDER);
             FileUtils.delete(path);
             FileUtils.createFolder(path);
             return Response.ok(String.valueOf(Files.walk(path).mapToLong(p -> p.toFile().length()).sum()), MediaType.TEXT_PLAIN_TYPE).build();
@@ -1850,13 +1907,24 @@ public class NewmanResource {
     public Response deleteJob(final @PathParam("jobId") String jobId) {
         Job deletedJob = performDeleteJob(jobId);
         performDeleteTestsLogs(jobId);
+        performDeleteJobSetupLogs(jobId);
         updateBuildWithDeletedJob(deletedJob);
         performDeleteTests(jobId);
         return Response.ok(Entity.json(jobId)).build();
     }
 
     private void performDeleteTestsLogs(String jobId) {
-        java.nio.file.Path path = Paths.get(SERVER_UPLOAD_LOCATION_FOLDER + "/" + jobId);
+        java.nio.file.Path path = Paths.get(SERVER_TESTS_UPLOAD_LOCATION_FOLDER + "/" + jobId);
+        try {
+            FileUtils.delete(path);
+            logger.info("Log file {} was deleted", path);
+        } catch (IOException e) {
+            logger.error(e.toString(), e);
+        }
+    }
+
+    private void performDeleteJobSetupLogs(String jobId) {
+        java.nio.file.Path path = Paths.get(SERVER_JOBS_UPLOAD_LOCATION_FOLDER + "/" + jobId);
         try {
             FileUtils.delete(path);
             logger.info("Log file {} was deleted", path);
@@ -2266,11 +2334,9 @@ public class NewmanResource {
                 long time2 = System.currentTimeMillis();
                 broadcaster.broadcast(event);
                 long time3 = System.currentTimeMillis();
-
                 logger.info( "Broadcasting message [" + type + "] with value [" + value + "] took " + ( time3 - time1 ) + " msec., creating took " + (time2 - time1) + " msec." );
             } catch (Throwable ignored) {
-                logger.error("Invoking of broadcastMessage() failed due the [{}], type={}, value:{}", ignored.toString(), type, value, ignored);
-                ignored.printStackTrace();
+                logger.error("Invoking of broadcastMessage() failed");
             }
         }
     }

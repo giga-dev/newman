@@ -65,28 +65,6 @@
                     }
                 }
             },
-            onDetailsClick: function(event, detail, sender){
-
-                var markerClassName = 'newman-build-optional-marker';
-                var hiddenClassName = 'newman-build-optional-property-hidden';
-                var optionalPropertiesElements = this.shadowRoot.querySelectorAll('.' + markerClassName);
-
-                var button = this.shadowRoot.querySelector('#detailButton');
-                if( button.getAttribute('class').indexOf( 'glyphicon-menu-up' ) >=0 ) {
-                    button.setAttribute('class', 'glyphicon glyphicon-menu-down');
-                    for( i = 0; i < optionalPropertiesElements.length; i++ ){
-                        var optionalElement = optionalPropertiesElements[ i ];
-                        optionalElement.classList.add( hiddenClassName );
-                    }
-                }
-                else if( button.getAttribute('class').indexOf( 'glyphicon-menu-down' ) >=0 ) {
-                    button.setAttribute('class', 'glyphicon glyphicon-menu-up');
-                    for( i = 0; i < optionalPropertiesElements.length; i++ ){
-                        var optionalElement = optionalPropertiesElements[ i ];
-                        optionalElement.classList.remove( hiddenClassName );
-                    }
-                }
-            }
     }, window.sharedMixin));
     </script>
 </polymer-element>

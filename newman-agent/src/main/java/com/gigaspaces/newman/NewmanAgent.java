@@ -158,6 +158,7 @@ public class NewmanAgent {
             keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
             boolean setupFinished = jobExecutor.setup();
+            reportJobSetup(job.getId(), name, jobExecutor.getJobFolder());
             if (!setupFinished) {
                 logger.error("Setup of job {} failed, will wait for a new job", job.getId());
                 jobExecutor.teardown();
@@ -373,7 +374,7 @@ public class NewmanAgent {
                 logger.info("finished test [{}].", finishedTest);
                 Path logs = append(config.getNewmanHome(), "logs");
                 Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
-                Test testLog = c.uploadLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS*4, TimeUnit.SECONDS);
+                Test testLog = c.uploadTestLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS*4, TimeUnit.SECONDS);
                 logger.info("update log testLog [{}].", testLog);
                 break;
             }
@@ -384,6 +385,17 @@ public class NewmanAgent {
                 logger.warn("Worker failed to update test result: {} caught: {}", testResult, e);
                 c = onClientFailure(c);
             }
+        }
+    }
+
+    private void reportJobSetup(String jobId, String agentName,  Path jobFolder) {
+        NewmanClient c = getClient();
+        logger.info("Reporting job setup log {}", jobId);
+        Path logFile = append(jobFolder, "job-setup.log");
+        try {
+            c.uploadJobSetupLog(jobId,agentName, logFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS*4, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            logger.error("Failed to upload job setup log", e);
         }
     }
 

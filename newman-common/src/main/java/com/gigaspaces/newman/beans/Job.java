@@ -11,6 +11,7 @@ import org.mongodb.morphia.annotations.Transient;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -47,6 +48,8 @@ public class Job {
     private Set<String> preparingAgents = Collections.emptySet();
     @Transient
     private Set<String> agents = Collections.emptySet();
+    @Embedded
+    private Map<String, String> jobSetupLogs;
 
     public Job() {
         state = State.READY;
@@ -178,6 +181,14 @@ public class Job {
 
     public void setLastTimeZombie(Date lastTimeZombie) {
         this.lastTimeZombie = lastTimeZombie;
+    }
+
+    public Map<String, String> getJobSetupLogs() {
+        return jobSetupLogs;
+    }
+
+    public void setJobSetupLogs(Map<String, String> jobSetupLogs) {
+        this.jobSetupLogs = jobSetupLogs;
     }
 
     @Override

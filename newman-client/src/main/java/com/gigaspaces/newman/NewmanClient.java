@@ -207,14 +207,24 @@ public class NewmanClient {
     }
 
 
-    public CompletionStage<Test> uploadLog(String jobId, String testId, File log) {
+    public CompletionStage<Job> uploadJobSetupLog(String jobId, String agentName, File log) {
         final FileDataBodyPart filePart = new FileDataBodyPart("file", log);
 
         final MultiPart multipart = new FormDataMultiPart()
-//                .field("foo", "bar")
                 .bodyPart(filePart);
 
-//        @Path("test/{id}/log")
+        RxWebTarget<RxCompletionStageInvoker> target = restClient.target(uri).path("job").path(jobId).path(agentName).path("log");
+        return target.request().rx()
+                .post(Entity.entity(multipart, multipart.getMediaType()), Job.class);
+
+    }
+
+    public CompletionStage<Test> uploadTestLog(String jobId, String testId, File log) {
+        final FileDataBodyPart filePart = new FileDataBodyPart("file", log);
+
+        final MultiPart multipart = new FormDataMultiPart()
+                .bodyPart(filePart);
+
         RxWebTarget<RxCompletionStageInvoker> target = restClient.target(uri).path("test").path(jobId).path(testId).path("log");
         return target.request().rx()
                 .post(Entity.entity(multipart, multipart.getMediaType()), Test.class);
