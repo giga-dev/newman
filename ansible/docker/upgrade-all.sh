@@ -6,6 +6,7 @@ cd /newman/ansible/docker
 ./subs-password.sh $pass1 /newman/ansible/group_vars/newNewmanDockerAgents
 ./subs-password.sh $pass1 /newman/ansible/group_vars/newmanAnalytics
 ./subs-password.sh $pass1 /newman/ansible/group_vars/newmanDockerAgents
+./subs-password.sh $pass1 /newman/ansible/group_vars/newmanInsightEdgeDockerAgents
 ./subs-password.sh $pass1 /newman/ansible/group_vars/newmanServer
 ./subs-password.sh $pass1 /newman/ansible/group_vars/newmanSubmitter
 ./subs-password.sh $pass1 /newman/ansible/group_vars/newmanWindowsAgents
