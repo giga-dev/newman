@@ -196,8 +196,14 @@ public class JobExecutor {
     private Map<String, String> getCustomVariablesFromSuite() {
         String customVariableString = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
         Map<String, String> customVariables = Suite.parseCustomVariables(customVariableString);
-        customVariables.putIfAbsent("GIT_BRANCH", job.getBuild().getBranch());
+        injectBuildBranch(customVariables);
         return customVariables;
+    }
+
+    private void injectBuildBranch(Map<String, String> customVariables) {
+        if (job.getBuild() != null && job.getBuild().getBranch() != null) {
+            customVariables.putIfAbsent("GIT_BRANCH", job.getBuild().getBranch());
+        }
     }
 
     public void teardown() {
