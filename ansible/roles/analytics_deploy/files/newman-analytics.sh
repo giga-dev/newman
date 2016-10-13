@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export NEWMAN_SERVER_HOST=192.168.50.66
+export NEWMAN_SERVER_HOST=xap-newman
 export NEWMAN_SERVER_PORT=8443
 export NEWMAN_SERVER_REST_USER=root
 export NEWMAN_SERVER_REST_PASSWORD=root

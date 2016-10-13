@@ -4,7 +4,7 @@
 NEWMAN_USERNAME=root
 NEWMAN_PASSWORD=root
 # newman server host address
-NEWMAN_SERVER_HOST=192.168.50.66
+NEWMAN_SERVER_HOST=xap-newman
 # newman server port
 NEWMAN_SERVER_PORT=8443
 # newman agent home directory
