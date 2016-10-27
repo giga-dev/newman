@@ -1,7 +1,10 @@
 #!/bin/bash
-echo "*********************************************"
-echo "*********************************************"
-echo "Don't forget to modify the password in group_vars/newNewmanDockerAgents"
-echo "*********************************************"
-echo "*********************************************"
-ansible-playbook new_agents_deploy.yml -i hosts -u xap
+read -r -p "Did you modify the password in group_vars/newNewmanDockerAgents? [y/N] " response
+case $response in
+    [yY][eE][sS]|[yY])
+        ansible-playbook new_agents_deploy.yml -i hosts -u xap
+        ;;
+    *)
+        echo "Please modifiy the password in group_vars/newNewmanDockerAgents and re-run the script"
+        ;;
+esac

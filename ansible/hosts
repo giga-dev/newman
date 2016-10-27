@@ -40,6 +40,8 @@ xap-newman-agent-41
 192.168.10.246
 #xap-newman-agent-46
 192.168.10.247
+#xap-newman-agent-47
+192.168.10.248
 
 [newmanInsightEdgeDockerAgents]
 #xap-newman-agent-42
