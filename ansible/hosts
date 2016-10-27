@@ -7,7 +7,6 @@
 # Ungrouped hosts, specify before any group headers.
 
 [newmanDockerAgents]
-xap-newman-agent-13
 xap-newman-agent-14
 xap-newman-agent-19
 xap-newman-agent-20
