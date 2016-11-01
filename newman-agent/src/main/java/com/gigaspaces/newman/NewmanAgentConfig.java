@@ -1,8 +1,14 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.utils.FileUtils;
+import com.gigaspaces.newman.utils.ProcessResult;
+import com.gigaspaces.newman.utils.ProcessUtils;
 
-import java.net.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.UUID;
@@ -56,6 +62,24 @@ public class NewmanAgentConfig {
         }
     }
 
+    static String getNetworkAddressFallback(String fallback) {
+        if (System.getProperty("os.name").equals("Linux")) {
+            try {
+                StringBuilder sb = new StringBuilder();
+                ProcessResult processResult = ProcessUtils.executeCommandAndWait("ip route get 8.8.8.8 | grep src| sed 's/.*src \\(.*\\)$/\\1/g'", 20 * 1000, sb);
+                if (processResult.getExitCode() == null || processResult.getExitCode() != 0) {
+                    return fallback;
+                }
+                return sb.toString().trim();
+            } catch (Exception e) {
+                return fallback;
+            }
+        }
+        else {
+            return fallback;
+        }
+    }
+
     public String loadHostAddress() {
         String res = "unknownHostAddress";
         System.out.println("trying to get hostname ");
@@ -99,7 +123,7 @@ public class NewmanAgentConfig {
                 e.printStackTrace();
             }
         }
-        return res;
+        return getNetworkAddressFallback(res);
     }
 
 

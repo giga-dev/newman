@@ -21,6 +21,10 @@ public class ProcessUtils {
     }
 
     public static ProcessResult executeCommandAndWait(String cmd, long timeout) throws IOException, InterruptedException {
+        return executeCommandAndWait(cmd, timeout, null);
+    }
+
+    public static ProcessResult executeCommandAndWait(String cmd, long timeout, StringBuilder sb) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c", cmd);
         ProcessResult result = new ProcessResult();
         result.setStartTime(System.currentTimeMillis());
@@ -36,6 +40,13 @@ public class ProcessUtils {
             }
         }
         result.setEndTime(System.currentTimeMillis());
+        if (sb != null) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line = "";
+            while ((line = reader.readLine())!= null) {
+                sb.append(line + "\n");
+            }
+        }
         return result;
     }
 
