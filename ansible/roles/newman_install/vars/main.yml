@@ -1,4 +1,4 @@
 ---
 # vars for newman_install role
 local_maven_repo: "~/.m2/repository"
-maven_cmd: "/usr/bin/mvn"
+maven_cmd: "mvn"

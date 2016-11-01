@@ -17,5 +17,5 @@
   #remove server_suspend if willing to initial deploy (not redeploy)
   roles:
     #- { role: server_suspend, when: "redeploy == 'Y'" }
-    - server_deploy
     - server_crontabs
+    - server_deploy

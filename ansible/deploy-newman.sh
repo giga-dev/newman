@@ -9,6 +9,7 @@ case $response in
     [yY][eE][sS]|[yY])
         export AWS_ACCESS_KEY_ID=$1
         export AWS_SECRET_ACCESS_KEY=$2
+        sudo sed -i "s/#host_key_checking = False/host_key_checking = False/g" /etc/ansible/ansible.cfg
         ansible-playbook site.yml -i hosts -u xap
         ;;
     *)
