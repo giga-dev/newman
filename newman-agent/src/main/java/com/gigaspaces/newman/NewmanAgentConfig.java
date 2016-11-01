@@ -57,38 +57,48 @@ public class NewmanAgentConfig {
     }
 
     public String loadHostAddress() {
-            String res = "unknownHostAddress";
-            try {
-                Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
-                while (e.hasMoreElements()) {
-                    NetworkInterface ni = e.nextElement();
-                    if(ni.isLoopback()) {
-                        continue;
-                    }
-                    if(ni.isPointToPoint()) {
-                        continue;
-                    }
-                    if(ni.getDisplayName() != null && ni.getDisplayName().contains("docker")) {
-                        continue;
-                    }
-                    if(ni.getName().contains("docker")) {
-                        continue;
-                    }
-                    Enumeration<InetAddress> addresses = ni.getInetAddresses();
-                    while(addresses.hasMoreElements()) {
-                        InetAddress address = addresses.nextElement();
-                        System.out.println("INet Address: " + address);
-                        if(address instanceof Inet4Address) {
-                            String ip = address.getHostAddress();
-                            System.out.println((res = ip));
-                        }
+        String res = "unknownHostAddress";
+        System.out.println("trying to get hostname ");
+        Enumeration<NetworkInterface> networkInterfaceEnumeration = null;
+        try {
+            networkInterfaceEnumeration = NetworkInterface.getNetworkInterfaces();
+            System.out.println("networkInterfaceEnumeration is: " + networkInterfaceEnumeration);
+        } catch (SocketException e1) {
+            e1.printStackTrace();
+        }
+        while (networkInterfaceEnumeration != null && networkInterfaceEnumeration.hasMoreElements()) {
+            try{
+                NetworkInterface ni = networkInterfaceEnumeration.nextElement();
+                System.out.println("Searching at network Interface: " + ni.toString() );
+                if(ni.isLoopback()) {
+                    continue;
+                }
+                if(ni.isPointToPoint()) {
+                    continue;
+                }
+                if(ni.getDisplayName() != null && ni.getDisplayName().contains("docker")) {
+                    continue;
+                }
+                if(ni.getName().contains("docker")) {
+                    continue;
+                }
+                Enumeration<InetAddress> addresses = ni.getInetAddresses();
+                while(addresses.hasMoreElements()) {
+                    InetAddress address = addresses.nextElement();
+                    System.out.println("INet Address: " + address);
+                    if(address instanceof Inet4Address) {
+                        String ip = address.getHostAddress();
+                        System.out.println("found ip: " + ip);
+                        return ip;
                     }
                 }
-            } catch (Exception e) {
-                return "unknownHostAddress";
             }
-            return res;
+            catch (SocketException e){
+                e.printStackTrace();
+            }
         }
+        return res;
+    }
 
 
     public int getPingInterval() {
