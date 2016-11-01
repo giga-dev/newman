@@ -67,8 +67,9 @@ public class NewmanAgentConfig {
             e1.printStackTrace();
         }
         while (networkInterfaceEnumeration != null && networkInterfaceEnumeration.hasMoreElements()) {
+            NetworkInterface ni = null;
             try{
-                NetworkInterface ni = networkInterfaceEnumeration.nextElement();
+                ni = networkInterfaceEnumeration.nextElement();
                 System.out.println("Searching at network Interface: " + ni.toString() );
                 if(ni.isLoopback()) {
                     continue;
@@ -93,7 +94,8 @@ public class NewmanAgentConfig {
                     }
                 }
             }
-            catch (SocketException e){
+            catch (Exception e){
+                System.out.println("Got exception when checked NetworkInterface: " + ni);
                 e.printStackTrace();
             }
         }
