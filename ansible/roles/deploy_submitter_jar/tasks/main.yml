@@ -1,8 +1,7 @@
 ---
 # This role copy submitter jar to s3
-# TODO add permission=public-read when we upgrade to ansible > 2.0
 - name: "deploy new submitter jar to s3"
-  s3: bucket=xap-test object=/qa/newman/newman-submitter-1.0.jar src={{newman_local_dir}}/newman-submitter/target/newman-submitter-1.0.jar mode=put overwrite=true
+  s3: bucket=xap-test object=/qa/newman/newman-submitter-1.0.jar src={{newman_local_dir}}/newman-submitter/target/newman-submitter-1.0.jar mode=put overwrite=true permission=public-read
 
 
 
