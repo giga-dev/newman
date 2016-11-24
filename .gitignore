@@ -251,4 +251,12 @@ atlassian-ide-plugin.xml
 com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
-ansible/group_vars/
+
+/ansible/new_agents_deployTEST.yml
+/newman-submitter/target/
+/newman-server/target/
+/newman-common/target/
+/newman-client/target/
+/newman-analytics/target/
+/newman-agent/target/
+/ansible/deploy-new-agents-to-run.sh

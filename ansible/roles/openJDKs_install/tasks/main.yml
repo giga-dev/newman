@@ -1,0 +1,22 @@
+---
+
+- name: install open JDK 6
+  sudo: yes
+  yum: name=java-1.6.0-openjdk-devel state=latest
+  #ignore_errors: yes
+  #shell: yum install java-1.6.0-openjdk-devel
+
+- name: install open JDK 7
+  sudo: yes
+  yum: name=java-1.7.0-openjdk-devel state=latest
+  ignore_errors: yes
+  #shell: yum install java-1.7.0-openjdk-devel
+
+- name: install open JDK 8
+  sudo: yes
+  yum: name=java-1.8.0-openjdk-devel state=latest
+  #ignore_errors: yes
+  #shell: yum install java-1.8.0-openjdk-devel
+
+
+

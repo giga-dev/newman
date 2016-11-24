@@ -6,6 +6,9 @@
 
 # Ungrouped hosts, specify before any group headers.
 
+[local]
+localhost
+
 [newmanDockerAgents]
 xap-newman-agent-14
 xap-newman-agent-19
@@ -47,6 +50,9 @@ xap-newman-agent-41
 192.168.10.20
 
 [newNewmanDockerAgents]
+
+#[newNewmanDockerAgentsEC2]
+
 
 [newmanWindowsAgents]
 xap-newman-agent-win1

@@ -1,0 +1,26 @@
+---
+# install java vars
+#download_url: http://download.oracle.com/otn-pub/java/jdk/8u5-b13/jdk-8u5-linux-x64.tar.gz
+#download_folder: /home/centos
+#java_name: "{{download_folder}}/java"
+#java_archive: "{{download_folder}}/jdk-8u5-linux-x64.tar.gz"
+
+# jdk1.6.0_43
+# jdk1.7.0_79
+# jdk1.8.0_45
+download_folder: /opt
+
+
+#download_url_java_6: http://download.oracle.com/otn/java/jdk/6u45-b06/jdk-6u45-linux-x64.bin
+#java_name_java_6: "{{download_folder}}/java-6"
+#java_archive_java_6: "{{download_folder}}/java_6.bin"
+
+
+download_url_java_8: http://download.oracle.com/otn-pub/java/jdk/8u111-b14/jdk-8u111-linux-x64.tar.gz
+#java_name_java_8: "{{download_folder}}/java-8"
+java_archive_java_8: "{{download_folder}}/java_8.tar.gz"
+
+download_url_java_7: http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz
+#java_name_java_7: "{{download_folder}}/java_7"
+java_archive_java_7: "{{download_folder}}/java_7.tar.gz"
+

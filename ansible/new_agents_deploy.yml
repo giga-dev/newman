@@ -1,15 +1,48 @@
 ---
+---
 # This playbook deploys new newman agents
-- name: "Install newman locally"
-  hosts: 127.0.0.1
+
+- name: "Install newman locally+create ec2 instances + config file creation for ec2 machines"
+  hosts: localhost
   connection: local
   roles:
     - newman_install
+    - agent_instance_creation_ec2
+      #creates files for agent_crontabs role
+    - { role: create_runAgentViazSupervisord.sh, username: "{{ec2_newman_username}}" }
+      #create files for agent_deploys role
+    - { role: create_newman-agent.sh, username: "{{ec2_newman_username}}" }
+    - { role: create_newman-agent.conf, username: "{{ec2_newman_username}}" }
 
-- name: "deploy newman docker agents"
-  hosts: newNewmanDockerAgents
-  remote_user: xap
+- name: "deploy EC2 docker agents"
+  hosts: newNewmanDockerAgentsEC2
+  remote_user: "{{ec2_newman_username}}"
 
   roles:
-    - agent_crontabs
-    - agent_deploy
+   - agent_instance_configuration_ec2
+   - openJDKs_install
+   - java_install
+   - maven_install
+   - { role: agent_crontabs, username: "{{ec2_newman_username}}" }
+   - { role: agent_deploy, username: "{{ec2_newman_username}}" }
+
+
+- name: "config file creation for VM machines"
+  hosts: localhost
+  connection: local
+  roles:
+
+      #creates files for agent_crontabs role
+    - { role: create_runAgentViazSupervisord.sh, username: "{{ec2_newman_username}}" }
+      #create files for agent_deploys role
+    - { role: create_newman-agent.sh, username: "{{newman_username}}" }
+    - { role: create_newman-agent.conf, username: "{{newman_username}}" }
+
+- name: "deploy VM docker agents"
+  hosts: newNewmanDockerAgentsEC2
+  remote_user: "{{newman_username}}"
+
+  roles:
+   - { role: agent_crontabs, username: "{{ec2_newman_username}}" }
+   - { role: agent_deploy, username: "{{ec2_newman_username}}" }
+

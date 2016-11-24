@@ -1,0 +1,25 @@
+
+
+- name: create folder for maven downloading
+  sudo: yes
+  file: path={{download_folder}} state=directory mode=0755
+
+- name: download maven
+  sudo: yes
+  command: "wget -q -O {{maven_archive}} --no-check-certificate --no-cookies --header 'Cookie: oraclelicense=accept-securebackup-cookie' {{download_url}} creates={{maven_archive}}"
+
+
+- name: Unpack maven archive
+  sudo: yes
+  command: "tar -xzvf {{maven_archive}} -C {{download_folder}} "
+
+
+- name: set M2_HOME
+  sudo: yes
+  lineinfile: dest=/etc/bashrc line="export M2_HOME=/opt/apache-maven-3.3.9"
+
+- name: add M2_HOME to PATH
+  sudo: yes
+  lineinfile: dest=/etc/bashrc line="PATH=/opt/apache-maven-3.3.9/bin:$PATH"
+
+

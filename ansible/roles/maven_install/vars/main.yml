@@ -1,0 +1,13 @@
+---
+# install java vars
+#download_url: http://download.oracle.com/otn-pub/java/jdk/8u5-b13/jdk-8u5-linux-x64.tar.gz
+#download_folder: /home/centos
+#java_name: "{{download_folder}}/java"
+#java_archive: "{{download_folder}}/jdk-8u5-linux-x64.tar.gz"
+
+
+download_folder: /opt
+download_url: http://apache.spd.co.il/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+#java_name_java_8: "{{download_folder}}/java-8"
+maven_archive: "{{download_folder}}/maven-3.3.9-bin.tar.gz"
+

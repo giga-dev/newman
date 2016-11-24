@@ -1,0 +1,90 @@
+---
+#- name: Install wget
+#  sudo: yes
+#  apt: name=wget state=latest
+#  yum: name=wget state=latest
+#- name: Install unzip
+#  sudo: yes
+#  apt: name=wget state=latest
+#  yum: name=unzip state=latest
+#- name: Install libselinux-python
+#  sudo: yes
+#  apt: name=wget state=latest
+#  yum: name=libselinux-python state=latest
+
+#############java versions on VMs######
+# jdk1.6.0_43
+# jdk1.7.0_79
+# jdk1.8.0_45
+
+- name: install wget
+  sudo: yes
+  yum: name=wget state=latest
+
+- name: create folder for JAVA 7 downloading
+  sudo: yes
+  file: path={{download_folder}} state=directory mode=0755
+
+- name: download JAVA 7
+  sudo: yes
+  command: "wget -q -O {{java_archive_java_7}} --no-check-certificate --no-cookies --header 'Cookie: oraclelicense=accept-securebackup-cookie' {{download_url_java_7}} creates={{java_archive_java_7}}"
+
+
+- name: Unpack JAVA 7 archive
+  sudo: yes
+  command: "tar -zxf {{java_archive_java_7}} -C {{download_folder}} "
+
+
+- name: create folder for JAVA 8 downloading
+  sudo: yes
+  file: path={{download_folder}} state=directory mode=0755
+
+- name: download JAVA 8
+  sudo: yes
+  command: "wget -q -O {{java_archive_java_8}} --no-check-certificate --no-cookies --header 'Cookie: oraclelicense=accept-securebackup-cookie' {{download_url_java_8}} creates={{java_archive_java_8}}"
+
+
+- name: Unpack JAVA 8archive
+  sudo: yes
+  command: "tar -zxf {{java_archive_java_8}} -C {{download_folder}} "
+  #creates={{java_name}}
+
+- name: set JAVA_HOME
+  sudo: yes
+  lineinfile: dest=/etc/bashrc line="export JAVA_HOME=/opt/jdk1.8.0_111"
+
+- name: add JAVA_HOME to PATH
+  sudo: yes
+  lineinfile: dest=/etc/bashrc line="export PATH=${JAVA_HOME}/bin:${PATH}"
+
+
+
+
+#- name: Rename JAVA folder
+#  sudo: yes
+#  command: mv jdk1.8.0_05 java chdir={{download_folder}}
+
+
+#- name: Fix ownership
+#  sudo: yes
+#  file: state=directory path={{java_name}} owner=root group=root recurse=yes
+
+# - name: copy jdk.sh file
+ # sudo: yes
+#  copy: src=jdk.sh dest=/etc/profile.d owner=root mode=0777
+
+#- name: copy jdk.csh file
+#  sudo: yes
+#  copy: src=jdk.csh dest=/etc/profile.d owner=root mode=0777
+
+
+#- name: Make Java available for system
+#  sudo: yes
+#  shell: "source /etc/profile.d/jdk.sh"
+#  args:
+#      executable: /bin/bash
+
+
+#- name: Clean up
+#  sudo: yes
+#  file: state=absent path={{java_archive}}

@@ -1,0 +1,60 @@
+---
+- name: remove runAgentViaSupervisord.sh if exists
+  command: rm -f ./roles/agent_crontabs/files/runAgentViaSupervisord.sh
+  ignore_errors: yes
+
+- name: Create file
+  command: touch ./roles/agent_crontabs/files/runAgentViaSupervisord.sh
+  args:
+    creates: ./roles/agent_crontabs/files/runAgentViaSupervisord.sh
+
+- name: line 0
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line="#!/usr/bin/env bash"
+
+- name: space
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line=''
+
+- name: line 1
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line='echo "creating directory /home/{{username}}/newman-agent/supervisord_logs"'
+
+- name: line 2
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line="mkdir -p /home/{{username}}/newman-agent/supervisord_logs"
+
+- name: line 3
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line='echo "remove all files of supervisord_logs"'
+
+- name: line 4
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line="rm -f /home/{{username}}/newman-agent/supervisord_logs/*"
+
+- name: line 5
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line='echo "create file /home/{{username}}/newman-agent/supervisord_logs/err.log"'
+
+- name: line 6
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line="touch /home/{{username}}/newman-agent/supervisord_logs/err.log"
+
+- name: line 7
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line='echo "create file /home/{{username}}/newman-agent/supervisord_logs/out.log"'
+
+- name: line 8
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line="touch /home/{{username}}/newman-agent/supervisord_logs/out.log"
+
+- name: line 9
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line='echo "start supervisord and newman agent"'
+
+- name: line 10
+  lineinfile: dest=./roles/agent_crontabs/files/runAgentViaSupervisord.sh line="supervisord -c /home/{{username}}/newman-agent/supervisord.conf"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

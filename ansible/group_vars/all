@@ -1,0 +1,16 @@
+key_name: ec2-xap-newman                                    #Amazon EC2 key name - uses public–key cryptography to encrypt and decrypt login information
+region: eu-central-1                                        #Amazon EC2 your hosted location
+security_group: sg-f1c12399                                 #Amazon EC2 security group for your test machines. A security group acts as a virtual firewall that controls the traffic for one or more instances
+image: ami-58c60237                                         #An Amazon Machine Image (AMI) for your tests servers/clients
+
+instance_type_of_servers: m4.xlarge                         #Amazon EC2 Instance Type - your machine "hardware" description - combinations of CPU, memory, storage, and networking capacity
+vpc_id: vpc-549ec93d                                        # id of Amazon logically isolated virtual network in the AWS cloud for your hosting
+vpc_subnet_id: subnet-93521de8                              # subnet id of Amazon logically isolated virtual network in the AWS cloud for your hosting
+security_group_name: default
+newman_instance_count: 1                                    # number of servers that will be created as a part Many Clients test by "mc_run.sh" command
+
+newmanAgent_name: newmanAgent
+pem_location: <full path to your pem key>  # Location of Amazon EC2 public–key on a machine that starts Many Clients test executing
+
+newman_username: xap
+ec2_newman_username: ec2-user

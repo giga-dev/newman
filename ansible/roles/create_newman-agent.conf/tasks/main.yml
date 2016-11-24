@@ -1,0 +1,64 @@
+---
+- name: remove runAgentViaSupervisord.sh if exists
+  command: rm -f ./roles/agent_deploy/files/newman_agent.conf
+  ignore_errors: yes
+
+- name: Create file
+  command: touch ./roles/agent_deploy/files/newman_agent.conf
+  args:
+    creates: ./roles/agent_deploy/files/newman_agent.conf
+
+- name: line 0
+  lineinfile: dest=./roles/agent_deploy/files/newman_agent.conf line="[program:newman_agent]"
+
+- name: line 1
+  lineinfile: dest=./roles/agent_deploy/files/newman_agent.conf line='command=/home/{{username}}/newman-agent/newman-agent.sh'
+
+- name: line 2
+  lineinfile: dest=./roles/agent_deploy/files/newman_agent.conf line='directory=/home/{{username}}/newman-agent'
+
+- name: line 3
+  lineinfile: dest=./roles/agent_deploy/files/newman_agent.conf line='autorestart=true'
+
+- name: line 4
+  lineinfile: dest=./roles/agent_deploy/files/newman_agent.conf line='startretries=5'
+
+- name: line 5
+  lineinfile: dest=./roles/agent_deploy/files/newman_agent.conf line='stderr_logfile=/home/{{username}}/newman-agent/supervisord_logs/err.log'
+
+- name: line 6
+  lineinfile: dest=./roles/agent_deploy/files/newman_agent.conf line='stdout_logfile=/home/{{username}}/newman-agent/supervisord_logs/out.log'
+
+- name: line 7
+  lineinfile: dest=./roles/agent_deploy/files/newman_agent.conf line='user={{username}}'
+
+- name: line 8
+  lineinfile: dest=./roles/agent_deploy/files/newman_agent.conf line='stopasgroup=true'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

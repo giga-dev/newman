@@ -1,0 +1,101 @@
+---
+- name: remove runAgentViaSupervisord.sh if exists
+  command: rm -f ./roles/agent_deploy/files/newman-agent.sh
+  ignore_errors: yes
+
+- name: Create file
+  command: touch ./roles/agent_deploy/files/newman-agent.sh
+  args:
+    creates: ./roles/agent_deploy/files/newman-agent.sh
+
+- name: line 0
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line="#!/bin/bash"
+
+- name: line 1
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='# System environment variables'
+
+- name: line 2
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='# username and password to connect to newman server'
+
+- name: line 3
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='NEWMAN_USERNAME=root'
+
+- name: line 4
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='NEWMAN_PASSWORD=root'
+
+- name: line 5
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='# newman server host address'
+
+- name: line 6
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='NEWMAN_SERVER_HOST=xap-newman'
+
+- name: line 7
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='# newman server port'
+
+- name: line 8
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='NEWMAN_SERVER_PORT=8443'
+
+- name: line 9
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='# newman agent home directory'
+
+- name: line 10
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='NEMAN_AGENT_HOME=/home/{{username}}/xap-newman-agent'
+
+- name: line 11
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='#newman agent capabilities'
+
+- name: line 12
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='NEWMAN_AGENT_CAPABILITIES="DOCKER,LINUX"'
+
+- name: line 13
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='# newman agent workers, if not set default to 1'
+
+- name: line 14
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='if [ -z "${NEWMAN_AGENT_WORKERS}" ]; then'
+
+- name: line 15
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='   NEWMAN_AGENT_WORKERS=3'
+
+- name: line 16
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='fi'
+
+- name: line 1
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='echo "starting agent, date is `date`"'
+
+- name: line 17
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='echo "JAVA_HOME=${JAVA_HOME}"'
+
+- name: line 18
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='echo "env -> " '
+
+- name: line 19
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='env'
+
+- name: line 20
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='java -Dnewman.agent.workers=${NEWMAN_AGENT_WORKERS} -Dnewman.agent.home=${NEMAN_AGENT_HOME} -Dnewman.agent.hostname=`hostname`  -Dnewman.agent.server-host=${NEWMAN_SERVER_HOST} -Dnewman.agent.server-port=${NEWMAN_SERVER_PORT} -Dnewman.agent.server-rest-user=${NEWMAN_USERNAME} -Dnewman.agent.server-rest-pw=${NEWMAN_PASSWORD} -Dnewman.agent.capabilities=${NEWMAN_AGENT_CAPABILITIES} -jar newman-agent-1.0.jar > "nohup_agent1.out"'
+
+- name: line 21
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='echo ""'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

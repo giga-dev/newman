@@ -1,4 +1,4 @@
 ---
 # agent_deploy vars
 newman_local_dir: "../"
-agent_home_dir: "/home/xap/newman-agent"
+agent_home_dir: "/home/{{username}}/newman-agent"

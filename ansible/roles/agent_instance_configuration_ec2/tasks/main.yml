@@ -1,0 +1,78 @@
+---
+- name: run yum updater
+  sudo: yes
+  yum: name=* state=latest
+
+
+- name: install wget
+  sudo: yes
+  yum: name=wget state=latest
+
+
+- name: install unzip
+  sudo: yes
+  yum: name=unzip state=latest
+
+- name: Install nano
+  sudo: yes
+  yum: name=nano state=latest
+
+- name: add xap-newman IP to /etc/host
+  sudo: yes
+  lineinfile: dest=/etc/hosts line="192.168.10.2 xap-newman"
+
+- name: add hercules IP to /etc/host
+  sudo: yes
+  lineinfile: dest=/etc/hosts line="192.168.10.50 hercules"
+
+- name: copy limits.conf
+  sudo: yes
+  copy: src=./roles/agent_instance_configuration_ec2/files/limits.conf dest=/etc/security/limits.conf owner=root mode=0644
+
+
+- name: remove docker.repo if exists
+  sudo: yes
+  file: path=./etc/yum.repos.d/docker.repo state=absent
+
+- name: copy docker.repo
+  sudo: yes
+  copy: src=./roles/agent_instance_configuration_ec2/files/docker.repo dest=/etc/yum.repos.d/ owner=root mode=0777
+
+- name: install docker-engine
+  sudo: yes
+  yum: name=docker-engine state=latest
+
+- name: enable docker service
+  sudo: yes
+  service: name=docker.service enabled=yes
+
+- name: start docker
+  sudo: yes
+  shell: systemctl start docker
+
+- name: Add docker user group
+  sudo: yes
+  shell: groupadd docker
+  #if group exists ignore
+  ignore_errors: yes
+
+- name: add user to docker group
+  sudo: yes
+  shell: usermod -aG docker ec2-user
+
+- name: restart the Docker daemon
+  sudo: yes
+  service: name=docker state=restarted
+
+#Config daemon to listen to TCP
+- name: remove docker.service if exists
+  sudo: yes
+  file: path=./etc/yum.repos.d/docker.service state=absent
+
+- name: copy docker.repo
+  sudo: yes
+  copy: src=./roles/agent_instance_configuration_ec2/files/docker.service dest=/usr/lib/systemd/system/ owner=root mode=0777
+
+- name: restart the Docker daemon
+  sudo: yes
+  service: name=docker state=restarted

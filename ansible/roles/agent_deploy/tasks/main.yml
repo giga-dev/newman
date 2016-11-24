@@ -7,9 +7,10 @@
   ignore_errors: yes
 
 - name: "copy  newman agent script"
-  copy: src={{newman_local_dir}}/ansible/roles/agent_deploy/files/newman-agent.sh dest={{agent_home_dir}} owner=xap mode=0777
+  copy: src={{newman_local_dir}}/ansible/roles/agent_deploy/files/newman-agent.sh dest={{agent_home_dir}} owner={{username}} mode=0777
 
 - name: "install python-setuptools"
+  sudo: yes
   yum: name=python-setuptools-0.9.8
 
 - name: "easy install pip"
@@ -25,13 +26,13 @@
   shell: echo_supervisord_conf > {{agent_home_dir}}/supervisord.conf
 
 - name: "copy newman_agent program to tmp file"
-  copy: src={{newman_local_dir}}/ansible/roles/agent_deploy/files/newman_agent.conf dest={{agent_home_dir}} owner=xap mode=0777
+  copy: src={{newman_local_dir}}/ansible/roles/agent_deploy/files/newman_agent.conf dest={{agent_home_dir}} owner={{username}} mode=0777
 
 - name: "append newman_agent program to supervisord.conf"
-  shell: cat /home/xap/newman-agent/newman_agent.conf >> /home/xap/newman-agent/supervisord.conf
+  shell: cat /home/{{username}}/newman-agent/newman_agent.conf >> /home/{{username}}/newman-agent/supervisord.conf
 
 - name: "rm newman_agent file"
-  shell: rm -f /home/xap/newman-agent/newman_agent.conf
+  shell: rm -f /home/{{username}}/newman-agent/newman_agent.conf
 
 - name: "create directory for supervisord logs"
   shell: mkdir -p {{agent_home_dir}}/supervisord_logs
@@ -47,25 +48,38 @@
   shell: touch {{agent_home_dir}}/supervisord_logs/out.log
 
 - name: "deploy new agent jar"
-  copy: src={{newman_local_dir}}/newman-agent/target/newman-agent-1.0.jar dest={{agent_home_dir}} owner=xap mode=0777
+  copy: src={{newman_local_dir}}/newman-agent/target/newman-agent-1.0.jar dest={{agent_home_dir}} owner={{username}} mode=0777
   tags:
     - deploy
 
-- name: "restart agent machine"
-  command: init 6
-  async: 0
+###### ansible 2.1.1 give a fatal error and stop the script here if we try to restart machine in such way ##########
+#- name: "restart agent machine"
+#  command: init 6
+#  async: 0
+#  poll: 0
+#  sudo: true
+#  ignore_errors: true
+#####################################################################################################################
+
+
+- name: restart agent machine {{ inventory_hostname }}
+  shell: sleep 2 && shutdown -r now "Ansible updates triggered"
+  async: 1
   poll: 0
   sudo: true
   ignore_errors: true
 
-- name: "waiting for agent machine to come back"
-  local_action: wait_for host={{ inventory_hostname }} port=22 delay=15 state=started
+
+- name: waiting for {{ inventory_hostname }} to come back
+  local_action: wait_for host={{ inventory_hostname }} port=22 delay=60 timeout=600 state=started
   sudo: false
 
+
 - name: "ensure agent started"
-  command: cat /home/xap/newman-agent/nohup_agent1.out
+  command: cat /home/{{username}}/newman-agent/nohup_agent1.out
   register: log_output
   until: log_output.stdout.find("Agent is initializing") > -1
   retries: 5
   delay: 10
+
 
