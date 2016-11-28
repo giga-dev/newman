@@ -212,7 +212,8 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("security")),
                     CriteriaBuilder.exclude(
                             PatternCriteria.recursivePackageNameCriteria("test.gsm.security"),
-                            PatternCriteria.recursivePackageNameCriteria("test.gateway.security")),
+                            PatternCriteria.recursivePackageNameCriteria("test.gateway.security"),
+                            PatternCriteria.recursivePackageNameCriteria("test.webui.security")),
                     TestCriteria.createCriteriaByTestType("sgtest")
 
             );
