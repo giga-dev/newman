@@ -260,3 +260,5 @@ crashlytics-build.properties
 /newman-analytics/target/
 /newman-agent/target/
 /ansible/deploy-new-agents-to-run.sh
+/ansible/new_agents_deployTEST.retry
+/ansible/new_agents_deployTEST2.yml

@@ -29,10 +29,13 @@
   sudo: yes
   copy: src=./roles/agent_instance_configuration_ec2/files/limits.conf dest=/etc/security/limits.conf owner=root mode=0644
 
+- name: disable sudo tty mode via sudoers file
+  sudo: yes
+  lineinfile: dest=/etc/sudoers state=present regexp='^Defaults\s+requiretty(.*)$' line="#Defaults    requiretty"
 
 - name: remove docker.repo if exists
   sudo: yes
-  file: path=./etc/yum.repos.d/docker.repo state=absent
+  file: path=/etc/yum.repos.d/docker.repo state=absent
 
 - name: copy docker.repo
   sudo: yes
@@ -40,6 +43,7 @@
 
 - name: install docker-engine
   sudo: yes
+  #yum: name=docker-engine-1.7.1 state=present
   yum: name=docker-engine state=latest
 
 - name: enable docker service
@@ -67,7 +71,7 @@
 #Config daemon to listen to TCP
 - name: remove docker.service if exists
   sudo: yes
-  file: path=./etc/yum.repos.d/docker.service state=absent
+  file: path=/usr/lib/systemd/system/docker.service state=absent
 
 - name: copy docker.repo
   sudo: yes
