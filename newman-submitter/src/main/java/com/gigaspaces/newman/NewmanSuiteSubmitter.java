@@ -716,7 +716,12 @@ public class NewmanSuiteSubmitter {
             String Requirements = "DOCKER,LINUX,MVN";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "insightedge-integration";
-            Criteria criteria = CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType));
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                    CriteriaBuilder.exclude(
+                            PatternCriteria.containsCriteria("org.insightedge.spark.failover")
+                    )
+            );
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
