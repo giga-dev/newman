@@ -151,8 +151,13 @@
             },
             applyFilter: function(filter, values){
                 if(values && filter != null && filter != undefined){
-                    return values.filter(function(value){
-                        return value.name != undefined && value.name != null && -1 < value.name.toLowerCase().indexOf(filter.toLowerCase());
+                    return values.filter(function(obj){
+                        return Object.getOwnPropertyNames(obj).find(function(key){
+                            var val = obj[key];
+                            return ( val &&  typeof val === "string" && -1 < val.toLowerCase().indexOf(filter.toLowerCase()) ) ||
+                                   ( obj.suiteName != null &&  -1 < obj.suiteName.toLowerCase().indexOf( filter.toLowerCase() ) );
+                        });
+                        return false
                     });
                 }else{
                     return values;
