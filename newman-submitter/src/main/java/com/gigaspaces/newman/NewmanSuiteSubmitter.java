@@ -80,7 +80,7 @@ public class NewmanSuiteSubmitter {
         try {
             Suite suite = new Suite();
             suite.setName("jetty9");
-            suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1,JETTY_VERSION=9");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1,JETTY_VERSION=9,WEBUI_CUSTOM_SYSTEM_PROPS=-Dselenium.browser=Firefox -Dcom.gs.test.use.newman=true");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
             String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
@@ -94,7 +94,9 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria(".PureSpringMVCWebAppTest#"),
                             PatternCriteria.containsCriteria(".PureSpringMVCWithEmbeddedSpaceWebAppTest#"),
                             PatternCriteria.containsCriteria(".PureSpringMVCWithRemoteSpaceWebAppTest#"),
-                            PatternCriteria.containsCriteria(".JettyUnitTest#")),
+                            PatternCriteria.containsCriteria(".JettyUnitTest#"),
+                            PatternCriteria.containsCriteria("test.webui.security.BasicSslWebuiTest#"),
+                            PatternCriteria.containsCriteria("test.webui.WebSSLJetty9Test#")),
                     TestCriteria.createCriteriaByTestType(testType)
 
             );
