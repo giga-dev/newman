@@ -29,6 +29,7 @@
                         <th>State</th>
                         <th>Host</th>
                         <th>PID</th>
+                        <th>Setup Retries</th>
                         <th>Job</th>
                         <th>Build</th>
                         <th>Suite</th>
@@ -49,6 +50,7 @@
                             <td>{{item.state}}</td>
                             <td>{{item.host}}</td>
                             <td>{{item.pid}}</td>
+                            <td>{{item.setupRetries}}</td>
 
                             <!--job-->
                             <template if="{{item.jobId}}">

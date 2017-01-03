@@ -157,16 +157,17 @@ public class NewmanAgent {
             // ping server during job setup and execution
             keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
-            boolean setupFinished = jobExecutor.setup();
+            boolean setupFinished = false;
             reportJobSetup(job.getId(), name, jobExecutor.getJobFolder());
+            Agent agent;
             if (!setupFinished) {
                 logger.error("Setup of job {} failed, will wait for a new job", job.getId());
                 jobExecutor.teardown();
                 //inform the server that agent is not working on this job
-                Agent agent;
                 try {
                     agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                     c.unsubscribe(agent).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    c.setSetupRetries(agent, agent.getSetupRetries() + 1).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 }
                 catch (IllegalStateException e){
                     c = getClient();
@@ -179,6 +180,13 @@ public class NewmanAgent {
                 } catch (InterruptedException ignored) {
                 }
                 continue;
+            }
+            try{
+                agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                c.setSetupRetries(agent, 0).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            }
+            catch (Exception e){
+                logger.warn("Failed to find agent: " + name);
             }
 
             // Submit workers:

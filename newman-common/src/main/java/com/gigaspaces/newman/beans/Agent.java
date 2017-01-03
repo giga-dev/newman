@@ -34,6 +34,7 @@ public class Agent {
     private Set<String> capabilities;
     @Transient
     private Job job;
+    private int setupRetries = 0;
 
     public Agent() {
         currentTests = new HashSet<>();
@@ -66,6 +67,14 @@ public class Agent {
 
     public String getJobId() {
         return jobId;
+    }
+
+    public int getSetupRetries() {
+        return setupRetries;
+    }
+
+    public void setSetupRetries(int setupRetries) {
+        this.setupRetries = setupRetries;
     }
 
     public void setJobId(String jobId) {
@@ -110,6 +119,7 @@ public class Agent {
                 .append("jobId", jobId)
                 .append("currentTests", currentTests)
                 .append("lastTouchTime", lastTouchTime)
+                .append("setupRetries", setupRetries)
                 .toString();
     }
 

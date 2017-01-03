@@ -2319,6 +2319,18 @@ public class NewmanResource {
         return path;
     }
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("agent/{setupRetries}")
+    public Agent setNumberOfRetries( @PathParam("setupRetries") final int numberOfRetries,final Agent agent) {
+
+        UpdateOperations<Agent> agentUpdateOps = agentDAO.createUpdateOperations();
+        agentUpdateOps.set("setupRetries",numberOfRetries);
+        agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false,false );
+        return agent;
+    }
+
 
     // events
 

@@ -165,6 +165,10 @@ public class NewmanClient {
         return restClient.target(uri).path("agent").path(agentName).request().rx().get(Agent.class);
     }
 
+    public CompletionStage<Agent> setSetupRetries(Agent agent, int setupRetries) {
+        return restClient.target(uri).path("agent").path(Integer.toString(setupRetries)).request().rx().post(Entity.json(agent), Agent.class);
+    }
+
     public CompletionStage<Test> getReadyTest(String agentName, String jobId) {
         return restClient.target(uri).path("agent").path(agentName).path(jobId).request().rx().post(Entity.text(""), Test.class);
     }
