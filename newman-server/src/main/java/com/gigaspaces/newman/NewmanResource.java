@@ -2290,13 +2290,18 @@ public class NewmanResource {
             updateStateQuery.or(updateStateQuery.criteria("state").equal(State.RUNNING), updateStateQuery.criteria("state").equal(State.READY));
             jobDAO.getDatastore().update(updateStateQuery, jobUpdateOps);
 
-            final Query<Job> stillRunningJobsQuery = jobDAO.createQuery().filter("runningTests >", 0);
+            final Query<Job> jobQuery = jobDAO.createQuery();
+            jobQuery.criteria("state").equal(State.PAUSED);
+            final Query<Job> stillRunningJobsQuery = jobQuery.filter("runningTests >", 0);
+
             QueryResults<Job> runningJobsResult = jobDAO.find(stillRunningJobsQuery);
 
             while( !runningJobsResult.asList().isEmpty() ) {
                 List<Job> jobList = runningJobsResult.asList();
                 logger.info("waiting for all agents to finish running tests, {} jobs are still running:", jobList.size());
-                logger.info(Arrays.toString( jobList.toArray()));
+                for (Job job : jobList) {
+                    logger.info("{},", job.getId() );
+                }
                 Thread.sleep(10000);
                 runningJobsResult = jobDAO.find(stillRunningJobsQuery);
             }
