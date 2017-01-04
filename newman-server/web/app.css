@@ -77,6 +77,10 @@ body{
     padding: 2px 0px 3px 0px;
 }
 
+.newman-agent-table-cell{
+    padding: 2px 0px 3px 0px;
+}
+
 .succeed-row{
     background-color: #E0FFC4 !important;
 }

@@ -29,7 +29,7 @@
                         <th>State</th>
                         <th>Host</th>
                         <th>PID</th>
-                        <th>Setup Retries</th>
+                        <th width="6%">Setup Retries</th>
                         <th>Job</th>
                         <th>Build</th>
                         <th>Suite</th>
@@ -41,7 +41,8 @@
                     <tbody>
                     <template repeat="{{item in pages[currentPage]}}">
                         <tr>
-                            <td>{{item.name}}</td>
+<!--                            <td>{{item.name}}</td>-->
+                            <td style="word-wrap:break-word"><a href="{{urlFor('agent-tests-route', {agentName:item.name} )}}">{{item.name}}</a></td>
                             <td>
                                 <template repeat="{{capa in item.capabilities}}">
                                     {{capa}}

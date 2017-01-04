@@ -7,7 +7,7 @@
 <link rel="import" href="../components/core-label/core-label.html">
 <link rel="import" href="../components/paper-checkbox/paper-checkbox.html">
 
-<polymer-element name="tests-table" attributes="url onlyFailed jobId"  on-created-test="{{onCreatedTest}}"
+<polymer-element name="tests-within-agent-table" attributes="url onlyFailed jobId"  on-created-test="{{onCreatedTest}}"
                  on-modified-test="{{onModifiedTest}}">
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
@@ -65,7 +65,7 @@
                         <th width="105px">History-Stats</th>
                         <th width="65px">History</th>
                         <th width="210px">Error Message</th>
-                        <th width="210px">Assigned Agent</th>
+                        <th width="210px">Job</th>
                         <th width="100px">Duration</th>
                     </tr>
                     </thead>
@@ -93,7 +93,7 @@
                                 <a href="{{urlFor('test-history', {id:item.id} )}}">History</a>
                             </td>
                             <td style="word-wrap:break-word">{{item.errorMessage | shortErrorMsgDisplay}}</td>
-                            <td style="word-wrap:break-word"><a href="  {{urlFor('agent-tests-route', {agentName:item.assignedAgent} )}}">{{item.assignedAgent}}</a></td>
+                            <td style="word-wrap:break-word"><a href="{{urlFor('job', {id: item.id, filterByStatus: 'ALL'})}}">{{item.jobId}}</a></td>
                             <td>{{item | formatTotalTime}}</td>
                         </tr>
                     </template>
@@ -159,10 +159,10 @@
                         var r = true;
                         if(filter != null && filter != undefined){
                             var status = value.status;
-                            var assignedAgent = value.assignedAgent;
+                            var jobId = value.jobId;
                             r = ( value.name != undefined && value.name != null && -1 < value.name.indexOf(filter) ) ||
                                  ( status !== null && -1 < status.toLowerCase().indexOf( filter.toLowerCase() ) ) ||
-                                 ( assignedAgent !== null && -1 < assignedAgent.toLowerCase().indexOf( filter.toLowerCase() ) );
+                                 ( jobId !== null && -1 < jobId.toLowerCase().indexOf( filter.toLowerCase() ) );
                         }
                         if(r && onlyFailed){
                             r = value.status == 'FAIL';

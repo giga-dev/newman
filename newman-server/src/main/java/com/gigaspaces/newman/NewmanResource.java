@@ -895,7 +895,7 @@ public class NewmanResource {
 
             testUpdateOps.set("testScore", reliabilityTestScore);
             testUpdateOps.set("historyStats", historyStatsString);
-            logger.info("got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}]", historyStatsString, test.getId(), test.getName(), jobId);
+            logger.info("got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}], running tests before decrement:[{}]", historyStatsString, test.getId(), test.getName(), jobId, testJob.getRunningTests());
 
             Test result = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(test.getId()), testUpdateOps, false, false);
             Query<Test> query = testDAO.createQuery();
@@ -907,6 +907,9 @@ public class NewmanResource {
                 updateBuild.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
             }
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
+
+            logger.info("After modifying job ( after runningTests decrement ), runningTests:[{}]", job.getRunningTests());
+
             Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
 
             if (result.getAssignedAgent() != null) {
@@ -971,7 +974,23 @@ public class NewmanResource {
                                    @QueryParam("jobId") String jobId,
                                    @Context UriInfo uriInfo) {
 
-        List<Test> tests = retrieveJobTests(jobId, orderBy, all, offset, limit);
+        List<Test> tests = jobId != null && jobId.trim().length() > 0 ?
+                retrieveJobTests(jobId, orderBy, all, offset, limit) : Collections.emptyList();
+        return new Batch<>(tests, offset, limit, all, orderBy, uriInfo);
+    }
+
+    @GET
+    @Path("agent-tests")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<Test> getAgentTests(@DefaultValue("0") @QueryParam("offset") int offset,
+                                   @DefaultValue("30") @QueryParam("limit") int limit,
+                                   @DefaultValue("false") @QueryParam("all") boolean all,
+                                   @QueryParam("orderBy") List<String> orderBy,
+                                   @QueryParam("agentName") String agentName,
+                                   @Context UriInfo uriInfo) {
+
+        List<Test> tests = agentName != null && agentName.trim().length() > 0 ?
+                retrieveAgentTests(agentName, orderBy, all, offset, limit) : Collections.emptyList();
         return new Batch<>(tests, offset, limit, all, orderBy, uriInfo);
     }
 
@@ -981,19 +1000,33 @@ public class NewmanResource {
         if (jobId != null) {
             query.field("jobId").equal(jobId);
         }
+
+        return applySelectTestsPropertiesAndGet(query, orderBy, all, offset, limit, new String[]{"sha", "properties", "jobId", "testType", "timeout", "logs", "scheduledAt"});
+    }
+
+    private List<Test> retrieveAgentTests( String agentName, List<String> orderBy, boolean all, int offset, int limit ){
+
+        Query<Test> query = testDAO.createQuery();
+        if (agentName != null) {
+            query.field("assignedAgent").equal(agentName);
+        }
+
+        return applySelectTestsPropertiesAndGet(query, orderBy, all, offset, limit, new String[]{"sha", "properties", "assignedAgent", "testType", "timeout", "logs", "scheduledAt"});
+    }
+
+    private List<Test> applySelectTestsPropertiesAndGet( Query<Test> query, List<String> orderBy, boolean all, int offset, int limit, String[] strings ){
+
         if (orderBy != null) {
             if (orderBy.isEmpty()) {
-                orderBy.add("testScore");
+                orderBy.add("startTime");
             }
             orderBy.forEach(query::order);
         }
         if (!all) {
             query.offset(offset).limit(limit);
         }
-
         //redundant test properties for job tests view
-        query.retrievedFields( false, "sha", "properties", "jobId", "testType", "timeout", "logs", "scheduledAt" );
-
+        query.retrievedFields( false, strings );
         return testDAO.find(query).asList();
     }
 
@@ -1496,8 +1529,15 @@ public class NewmanResource {
     @GET
     @Path("agent/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Agent getAgent(@PathParam("name") final String name) {
-        return agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
+    public Agent getAgent(final @PathParam("name") String name) {
+        Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
+        //if such agent not found (already does not exist), then create Agent instance and
+        //provide only its name
+        if( agent == null ){
+            agent = new Agent();
+            agent.setName(name);
+        }
+        return agent;
     }
 
     @GET
@@ -1568,6 +1608,7 @@ public class NewmanResource {
         if (result != null) {
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
+            logger.info("After incrementing runningTests for jobId [{}] runningTests [{}]", jobId, job.getRunningTests());
             if (job != null) {
                 UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.runningTests");
                 UpdateOperations<Job> jobUpdateOperations = jobDAO.createUpdateOperations();
@@ -2411,7 +2452,10 @@ public class NewmanResource {
                 jobUpdateOps.removeAll("preparingAgents", agent.getName());
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);
             } else if (agent.getState() == Agent.State.RUNNING && !tests.isEmpty()) {
-                jobUpdateOps.inc("runningTests", 0 - tests.size());
+                int runningTests = 0 - tests.size();
+                logger.info("returnTests for agent [{}], jobId [{}], running tests size [{}]",
+                        agent.getName(), agent.getJobId(), runningTests);
+                jobUpdateOps.inc("runningTests", runningTests );
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);
             }
         }
