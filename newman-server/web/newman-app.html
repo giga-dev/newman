@@ -37,6 +37,8 @@
                    withCredentials="true"></core-ajax>
         <core-ajax auto url="api/newman/agents/count" handleAs="text" on-core-response="{{agentsCountResponse}}"
                    withCredentials="true"></core-ajax>
+        <core-ajax auto url="api/newman/agents/failing" handleAs="text" on-core-response="{{failingAgentsResponse}}"
+                   withCredentials="true"></core-ajax>
 
         <sse-sender>
             <core-drawer-panel id="drawerPanel" drawerWidth="140px">
@@ -79,7 +81,7 @@
                     <core-toolbar>
                         <paper-icon-button core-drawer-toggle icon="menu"></paper-icon-button>
                         <div>{{heading}},</div>
-                        <div>{{logsDiskUsage}}</div><span>{{agentsCount}}</span>
+                        <div>{{logsDiskUsage}}</div><span>{{agentsCount}}</span><span>{{failingAgents}}</span>
                         <span flex></span>
                         <paper-icon-button icon="search"></paper-icon-button>
                     </core-toolbar>
@@ -156,6 +158,7 @@
             heading : "",
             logsDiskUsage: "",
             agentsCount: "",
+            failingAgents:"",
             selected:0,
             heading : "Hello Newman users!",
             created: function() {
@@ -176,6 +179,9 @@
             agentsCountResponse: function( event, resp ){
                 this.agentsCount = "Agents count: " + resp.response;
             },
+            failingAgentsResponse: function( event, resp ){
+                this.failingAgents = "Failing agents: " + resp.response;
+            }
         });
     </script>
 </polymer-element>

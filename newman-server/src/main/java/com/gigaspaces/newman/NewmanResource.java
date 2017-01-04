@@ -1382,6 +1382,14 @@ public class NewmanResource {
         return Response.ok(count, MediaType.TEXT_PLAIN_TYPE).build();
     }
 
+    @GET
+    @Path("agents/failing")
+    public Response getFailingAgents() {
+        long count = agentDAO.createQuery().filter("setupRetries >",0).countAll();
+        logger.info( "agents failed setup count=" + count );
+        return Response.ok(count, MediaType.TEXT_PLAIN_TYPE).build();
+    }
+
 
     @DELETE
     @Path("log")
