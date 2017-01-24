@@ -282,6 +282,28 @@ public class NewmanSuiteSubmitter {
     }
 
 
+    public void manualSubmitManager() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("manager");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,SUITE_SUB_TYPE=manager,THREADS_LIMIT=1,CUSTOM_SETUP_TIMEOUT=1800000");
+            // TODO note - if set is empty, mongodb will NOT write that filed to DB
+            String Requirements = "DOCKER,LINUX";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            Criteria criteria = CriteriaBuilder.join(TestCriteria.createCriteriaByTestType("sgtest"),
+                    include(PatternCriteria.containsCriteria(".manager."))
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
     public void manualSubmitServiceGrid() throws Exception {
         NewmanClient newmanClient = getNewmanClient();
         try {
@@ -299,6 +321,7 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria(".wan."),
                             PatternCriteria.containsCriteria(".gateway."),
                             PatternCriteria.containsCriteria(".xen."),
+                            PatternCriteria.containsCriteria(".manager."),
                             PatternCriteria.containsCriteria(".usm."),
                             PatternCriteria.containsCriteria(".cpp."),
                             PatternCriteria.containsCriteria(".disconnect."),
