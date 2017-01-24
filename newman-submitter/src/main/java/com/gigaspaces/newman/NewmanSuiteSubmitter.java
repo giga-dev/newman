@@ -328,7 +328,8 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria(".lookup.locators.dynamic."),
                             PatternCriteria.containsCriteria(".DBShutdownTest#"),
                             PatternCriteria.containsCriteria(".ClusterAndMirrorDeploymentWhileDBisDownTest#"),
-                            PatternCriteria.containsCriteria(".EdsDocClassNotInCLientTest#")
+                            PatternCriteria.containsCriteria(".EdsDocClassNotInCLientTest#"),
+                            PatternCriteria.containsCriteria(".web.jboss.")
                             //---------------------------------- SSHUtils ------------------------------
                             //                      containsCriteria(".examples."),
                             //                      containsCriteria(".groovy."),
@@ -338,7 +339,6 @@ public class NewmanSuiteSubmitter {
                             //                      containsCriteria(".scripts."),
                             //                      containsCriteria(".servicegrid.initialLoadQuery."),
                             //                      containsCriteria(".servicegrid.metrics."),
-                            //                      containsCriteria(".web.jboss.")
                     )
 
 
