@@ -157,7 +157,7 @@ public class NewmanAgent {
             // ping server during job setup and execution
             keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
-            boolean setupFinished = false;
+            boolean setupFinished = jobExecutor.setup();
             reportJobSetup(job.getId(), name, jobExecutor.getJobFolder());
             Agent agent;
             if (!setupFinished) {
