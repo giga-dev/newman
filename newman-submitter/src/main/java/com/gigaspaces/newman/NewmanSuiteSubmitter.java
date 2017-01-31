@@ -104,8 +104,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -141,8 +140,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -250,8 +248,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -275,8 +272,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -293,6 +289,28 @@ public class NewmanSuiteSubmitter {
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             Criteria criteria = CriteriaBuilder.join(TestCriteria.createCriteriaByTestType("sgtest"),
                     include(PatternCriteria.containsCriteria(".manager."))
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitManagerSecurity() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("manager-security");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,SUITE_SUB_TYPE=manager-security,THREADS_LIMIT=1,CUSTOM_SETUP_TIMEOUT=1800000");
+            // TODO note - if set is empty, mongodb will NOT write that filed to DB
+            String Requirements = "DOCKER,LINUX";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            Criteria criteria = CriteriaBuilder.join(TestCriteria.createCriteriaByTestType("sgtest"),
+                    include(PatternCriteria.containsCriteria(".manager.security."))
             );
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
@@ -347,8 +365,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -395,8 +412,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -420,8 +436,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -530,8 +545,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -551,11 +565,11 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
+
     public void manualSubmitMongoDb() throws Exception {
         NewmanClient newmanClient = getNewmanClient();
         try {
@@ -571,8 +585,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -594,18 +607,17 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
 
-    private Criteria[] getCriteriasFromExcludedFile(String path){
+    private Criteria[] getCriteriasFromExcludedFile(String path) {
         ArrayList<Criteria> criteria = new ArrayList<>();
         File file = new File(path);
         try {
             Scanner scanner = new Scanner(file);
-            while (scanner.hasNextLine()){
+            while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 criteria.add(PatternCriteria.containsCriteria(line));
             }
@@ -656,8 +668,7 @@ public class NewmanSuiteSubmitter {
                 TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(permutation.split(" "));
                 criterias.add(criteria);
             }
-        }
-        finally {
+        } finally {
             if (is != null) {
                 is.close();
             }
@@ -689,6 +700,7 @@ public class NewmanSuiteSubmitter {
         }
         return CriteriaBuilder.join(criterias.toArray(new Criteria[criterias.size()]));
     }
+
     public void manualSubmitXapCoreZookeeper() throws Exception {
         NewmanClient newmanClient = getNewmanClient();
         try {
@@ -726,8 +738,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
