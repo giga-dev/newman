@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration status="DEBUG">
+<configuration status="WARN">
     <appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss} [%t] %-5level %logger{36} - %msg%n" />
-        </Console>
+        <RollingFile name="RollingFile" fileName="logs/newman.log"
+                     filePattern="logs/newman-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout>
+                <Pattern>d{HH:mm:ss} [%t] %-5level %logger{36} - %msg%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <OnStartupTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="3"/>
+        </RollingFile>
     </appenders>
     <Loggers>
         <Logger name="com.gigaspaces.newman" level="INFO"/>
-        <Root level="error">
-            <AppenderRef ref="Console" />
+        <Root level="all">
+            <AppenderRef ref="RollingFile" />
         </Root>
     </Loggers>
 </configuration>

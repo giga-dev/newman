@@ -262,3 +262,4 @@ crashlytics-build.properties
 /ansible/deploy-new-agents-to-run.sh
 /ansible/new_agents_deployTEST.retry
 /ansible/new_agents_deployTEST2.yml
+newman-server/logs
