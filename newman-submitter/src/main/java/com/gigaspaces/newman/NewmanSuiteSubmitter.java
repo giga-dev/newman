@@ -289,7 +289,7 @@ public class NewmanSuiteSubmitter {
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             Criteria criteria = CriteriaBuilder.join(TestCriteria.createCriteriaByTestType("sgtest"),
                     include(PatternCriteria.containsCriteria(".manager.")),
-                    exclude(PatternCriteria.containsCriteria(".manager.security."))
+                    exclude(PatternCriteria.containsCriteria(".manager.rest.security."))
             );
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
@@ -311,7 +311,7 @@ public class NewmanSuiteSubmitter {
             String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             Criteria criteria = CriteriaBuilder.join(TestCriteria.createCriteriaByTestType("sgtest"),
-                    include(PatternCriteria.containsCriteria(".manager.security."))
+                    include(PatternCriteria.containsCriteria(".manager.rest.security."))
             );
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
