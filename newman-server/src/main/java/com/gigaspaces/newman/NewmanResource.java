@@ -509,7 +509,7 @@ public class NewmanResource {
 
     @DELETE
     @Path("jobs/{nubmerOfDaysToNotDelete}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     public String deleteJobUntilDesiredSpace(final @PathParam("nubmerOfDaysToNotDelete") String nubmerOfDaysToNotDelete) throws InterruptedException {
         int numberOfDays = Integer.parseInt(nubmerOfDaysToNotDelete);
