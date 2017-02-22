@@ -15,11 +15,15 @@
 #0 8-21/1 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.trackLatest=true crons.suitediff.branch=xap-experimental > /home/xap/newman-analytics/logs/branch-interday-suite-diff.log 2>&1
 
 
-
 # ---------------------------------------------------------
 # run clean jobs every Tuesday at 12 am
 # ---------------------------------------------------------
 0 0 * * 2 cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/cleanse/cleanse.properties > /home/xap/newman-analytics/logs/cleanse.log 2>&1
+
+# ---------------------------------------------------------
+# run disk space usage alert at 7am,10am,3pm
+# ---------------------------------------------------------
+0 7,10,15 * * * cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/alert/alert.properties > /home/xap/newman-analytics/logs/alert.log 2>&1
 
 #Ansible: cronRunServer
 @reboot . /etc/environment; cd /home/xap/newman-server; ./run.sh
