@@ -185,8 +185,8 @@ public class NewmanSuiteSubmitter {
                     CriteriaBuilder.include(
                             PatternCriteria.containsCriteria("test.disconnect"),
                             PatternCriteria.containsCriteria("test.gateway.network_manipulation.latency")),
-                    TestCriteria.createCriteriaByTestType("sgtest")
-
+                    TestCriteria.createCriteriaByTestType("sgtest"),
+                    exclude(PatternCriteria.containsCriteria(".manager."))
             );
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
