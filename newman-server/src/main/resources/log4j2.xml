@@ -8,14 +8,14 @@
             </PatternLayout>
             <Policies>
                 <OnStartupTriggeringPolicy />
-                <SizeBasedTriggeringPolicy size="20 MB"/>
+                <SizeBasedTriggeringPolicy size="200 MB"/>
             </Policies>
-            <DefaultRolloverStrategy max="3"/>
+            <DefaultRolloverStrategy max="5"/>
         </RollingFile>
     </appenders>
     <Loggers>
         <Logger name="com.gigaspaces.newman" level="INFO"/>
-        <Root level="all">
+        <Root level="INFO">
             <AppenderRef ref="RollingFile" />
         </Root>
     </Loggers>
