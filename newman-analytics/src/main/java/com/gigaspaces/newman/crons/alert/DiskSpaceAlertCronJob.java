@@ -28,7 +28,7 @@ public class DiskSpaceAlertCronJob implements CronJob {
     }
 
     private void checkDiskSpace(Properties properties) throws MessagingException {
-        File file = new File("/");
+        File file = new File("/home");
         long freeSpace = file.getFreeSpace();
         long totalSpace = file.getTotalSpace();
         double percentageFree = (100.*freeSpace/totalSpace);
