@@ -47,6 +47,7 @@ then
     else
     	echo "executing $cmdToDo on $module"
     	ansible newmanDockerAgents -s -m shell -a "$cmdToDo" -i hosts -u xap
+    	ansible newmanInsightEdgeDockerAgents -s -m shell -a "$cmdToDo" -i hosts -u xap
     fi
 elif [ "$module" == "server" ]
 then
