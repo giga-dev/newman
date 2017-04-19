@@ -25,27 +25,27 @@ public class NewmanFutureJobSubmitter {
 
     private static final String NEWMAN_BUILD_ID = "NEWMAN_BUILD_ID"; // for example: 56277de629f67f791db25554
     private static final String NEWMAN_SUITE_ID = "NEWMAN_SUITE_ID"; // for example: 55b0affe29f67f34809c6c7b
-    private static final String MY_NAME = "MY_NAME"; // for example: tamirs
+    private static final String AUTHOR = "AUTHOR"; // for example: tamirs
 
 
     public static void main(String[] args) throws NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException, TimeoutException {
 
         // NOTE - need to pass system argument!
 
-        NewmanClient newmanClient = null;
-        String build_id = null;
-        String suite_id = null;
-        String name = null;
+        NewmanClient newmanClient;
+        String build_id;
+        String suite_id;
+        String author;
 
         newmanClient = getNewmanClient();
-        build_id = EnvUtils.getEnvironment(NEWMAN_BUILD_ID, true /*required*/, logger);
-        suite_id = EnvUtils.getEnvironment(NEWMAN_SUITE_ID, true /*required*/, logger);
-        name = EnvUtils.getEnvironment(MY_NAME, true /*required*/, logger);
+        build_id = EnvUtils.getEnvironment(NEWMAN_BUILD_ID, true, logger);
+        suite_id = EnvUtils.getEnvironment(NEWMAN_SUITE_ID, true, logger);
+        author = EnvUtils.getEnvironment(AUTHOR, true, logger);
 
-        valid(newmanClient, build_id, suite_id, name);
-        FutureJob futureJob = null;
+        validBuildAndSuite(newmanClient, build_id, suite_id);
+        FutureJob futureJob;
         try {
-            futureJob = newmanClient.createFutureJob(build_id, suite_id).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            futureJob = newmanClient.createFutureJob(build_id, suite_id, author).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             logger.error("can't create future job. execption: {}", e);
             throw e;
@@ -54,13 +54,7 @@ public class NewmanFutureJobSubmitter {
     }
 
 
-    private static void valid(NewmanClient newmanClient, String build_id, String suite_id, String name){
-        if(build_id == null || build_id.isEmpty()){
-            throw new RuntimeException("build id is empty string or null");
-        }
-        if(suite_id == null || suite_id.isEmpty()){
-            throw new RuntimeException("suite id is empty string or null");
-        }
+    private static void validBuildAndSuite(NewmanClient newmanClient, String build_id, String suite_id){
         try{
             newmanClient.getBuild(build_id).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }catch (Exception e){
@@ -71,14 +65,11 @@ public class NewmanFutureJobSubmitter {
         }catch (Exception e){
             throw new RuntimeException("suite id: "+ suite_id +" does not exist");
         }
-        if(name == null || name.isEmpty()){
-            throw new RuntimeException("YOUR_NAME is empty string or null");
-        }
     }
 
     private static NewmanClient getNewmanClient() {
         // connection arguments
-        NewmanClient nc = null;
+        NewmanClient nc;
         String host = EnvUtils.getEnvironment(NEWMAN_HOST, true /*required*/, logger);
         String port = EnvUtils.getEnvironment(NEWMAN_PORT, true /*required*/, logger);
         String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, true /*required*/, logger);

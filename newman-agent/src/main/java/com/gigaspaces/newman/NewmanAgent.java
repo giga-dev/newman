@@ -173,7 +173,7 @@ public class NewmanAgent {
                     c = getClient();
                 }
                 catch (Exception e) {
-                    logger.warn("Failed to unsubscribe agent {} due to failure in job setup of job {}", name, job.getId());
+                    logger.warn("Failed to unsubscribe agent {} due to failure in job setup of job {}: {}", name, job.getId(), e);
                 }
                 try {
                     Thread.sleep(config.getJobPollInterval());

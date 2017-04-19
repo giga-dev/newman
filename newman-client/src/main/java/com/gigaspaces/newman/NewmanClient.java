@@ -77,10 +77,15 @@ public class NewmanClient {
     public CompletionStage<Job> createJob(JobRequest jobRequest) {
         return restClient.target(uri).path("job").request().rx().put(Entity.json(jobRequest), Job.class);
     }
-    public CompletionStage<FutureJob> createFutureJob(String buildId, String suiteId){
-        return restClient.target(uri).path("futureJob").
+
+    public CompletionStage<FutureJob> createFutureJob(String buildId, String suiteId, String authorOpt) {
+        RxWebTarget<RxCompletionStageInvoker> req = restClient.target(uri).path("futureJob").
                 path(buildId).
-                path(suiteId).
+                path(suiteId);
+        if (authorOpt != null) {
+            req = req.queryParam("author", authorOpt);
+        }
+        return req.
                 request().rx().post(Entity.text(""), FutureJob.class);
     }
 

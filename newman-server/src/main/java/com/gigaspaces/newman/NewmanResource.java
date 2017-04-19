@@ -578,8 +578,9 @@ public class NewmanResource {
     public FutureJob createFutureJob(
             @PathParam("buildId") String buildId,
             @PathParam("suiteId") String suiteId,
+            @QueryParam("author") String authorOpt,
             @Context SecurityContext sc){
-        String author = sc.getUserPrincipal().getName();
+        String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
         Build build = null;
         Suite suite = null;
 
