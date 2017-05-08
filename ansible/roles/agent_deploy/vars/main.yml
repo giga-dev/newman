@@ -2,4 +2,5 @@
 # agent_deploy vars
 newman_local_dir: "../"
 #agent_home_dir: "/home/{{username}}/newman-agent"
-agent_home_dir: "/home/{{ lookup('env','USER') }}/newman-agent"
+#agent_home_dir: "/home/{{ lookup('env','USER') }}/newman-agent"
+agent_home_dir: "/home/{{ansible_user}}/newman-agent"
