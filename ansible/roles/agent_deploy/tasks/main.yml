@@ -7,7 +7,7 @@
   ignore_errors: yes
 
 - name: "copy  newman agent script"
-  copy: src={{newman_local_dir}}/ansible/roles/agent_deploy/files/newman-agent.sh dest={{agent_home_dir}} owner={{username}} mode=0777
+  copy: src={{newman_local_dir}}/ansible/roles/agent_deploy/files/newman-agent.sh dest={{agent_home_dir}} owner={{ansible_user}} mode=0777
 
 - name: "install python-setuptools"
   sudo: yes
@@ -26,13 +26,13 @@
   shell: echo_supervisord_conf > {{agent_home_dir}}/supervisord.conf
 
 - name: "copy newman_agent program to tmp file"
-  copy: src={{newman_local_dir}}/ansible/roles/agent_deploy/files/newman_agent.conf dest={{agent_home_dir}} owner={{username}} mode=0777
+  copy: src={{newman_local_dir}}/ansible/roles/agent_deploy/files/newman_agent.conf dest={{agent_home_dir}} owner={{ansible_user}} mode=0777
 
 - name: "append newman_agent program to supervisord.conf"
-  shell: cat /home/{{username}}/newman-agent/newman_agent.conf >> /home/{{username}}/newman-agent/supervisord.conf
+  shell: cat /home/{{ansible_user}}/newman-agent/newman_agent.conf >> /home/{{ansible_user}}/newman-agent/supervisord.conf
 
 - name: "rm newman_agent file"
-  shell: rm -f /home/{{username}}/newman-agent/newman_agent.conf
+  shell: rm -f /home/{{ansible_user}}/newman-agent/newman_agent.conf
 
 - name: "create directory for supervisord logs"
   shell: mkdir -p {{agent_home_dir}}/supervisord_logs
@@ -48,7 +48,7 @@
   shell: touch {{agent_home_dir}}/supervisord_logs/out.log
 
 - name: "deploy new agent jar"
-  copy: src={{newman_local_dir}}/newman-agent/target/newman-agent-1.0.jar dest={{agent_home_dir}} owner={{username}} mode=0777
+  copy: src={{newman_local_dir}}/newman-agent/target/newman-agent-1.0.jar dest={{agent_home_dir}} owner={{ansible_user}} mode=0777
   tags:
     - deploy
 
@@ -76,7 +76,7 @@
 
 
 - name: "ensure agent started"
-  command: cat /home/{{username}}/newman-agent/nohup_agent1.out
+  command: cat /home/{{ansible_user}}/newman-agent/nohup_agent1.out
   register: log_output
   until: log_output.stdout.find("Agent is initializing") > -1
   retries: 5
