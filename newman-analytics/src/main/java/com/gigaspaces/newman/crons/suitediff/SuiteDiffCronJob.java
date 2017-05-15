@@ -163,9 +163,9 @@ public class SuiteDiffCronJob implements CronJob {
                     String historyStats = test.getHistoryStats();
                     //branch history has delimiter
                     if (!job.getBuild().getBranch().equals("master")) {
-                        historyStats = historyStats.replace("_","");  //remove branch-master delimiter (see TestScoreUtils)
-                        if (historyStats.startsWith("| . . . . .")    //match: newly failed on branch
-                                || historyStats.startsWith("| | |")) {//match: strike 3!
+                        if (historyStats.startsWith("| _. . . . .")    //match: newly failed on branch
+                                || historyStats.startsWith("| _| |")   //match: strike 3! including master
+                                || historyStats.startsWith("| | |")) { //match: strike 3! all on branch
                             failingTests.add(new HistoryTestData(test, job.getSuite(), newmanClient.getBaseURI()+"/#!/test/"+test.getId()));
                         }
                     } else if (historyStats.startsWith("| | |")) { //match: strike 3!
