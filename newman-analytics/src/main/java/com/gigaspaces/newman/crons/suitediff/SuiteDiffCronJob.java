@@ -130,6 +130,9 @@ public class SuiteDiffCronJob implements CronJob {
         htmlTemplate.setAttribute("xapOpenChangeset", getChangeSet("xap-open", previousBuild, latestBuild));
         htmlTemplate.setAttribute("xapChangeset", getChangeSet("xap", previousBuild, latestBuild));
 
+        List<HistoryTestData> testsThatHaveAHistoryOfFailing = getTestsThatHaveAHistoryOfFailing(latest_mapSuite2Job, newmanClient);
+        htmlTemplate.setAttribute("hiss", testsThatHaveAHistoryOfFailing);
+
         //send mail
         String subject = subjectTemplate.toString();
         String body = htmlTemplate.toString();
@@ -149,6 +152,29 @@ public class SuiteDiffCronJob implements CronJob {
         }
 
         saveToAuditLogFile(properties, latestBuild);
+    }
+
+    private List<HistoryTestData> getTestsThatHaveAHistoryOfFailing(Map<String, Job> latest_mapSuite2Job, NewmanClient newmanClient) throws Exception {
+        List<HistoryTestData> failingTests = new ArrayList<>();
+        for (Job job : latest_mapSuite2Job.values()) {
+            Batch<Test> testBatch = newmanClient.getTests(job.getId(), 0, job.getTotalTests()).toCompletableFuture().get();
+            for (Test test : testBatch.getValues()) {
+                if (test.getStatus().equals(Test.Status.FAIL)) {
+                    String historyStats = test.getHistoryStats();
+                    //branch history has delimiter
+                    if (!job.getBuild().getBranch().equals("master")) {
+                        historyStats = historyStats.replace("_","");  //remove branch-master delimiter (see TestScoreUtils)
+                        if (historyStats.startsWith("| . . . . .")    //match: newly failed on branch
+                                || historyStats.startsWith("| | |")) {//match: strike 3!
+                            failingTests.add(new HistoryTestData(test, job.getSuite(), newmanClient.getBaseURI()+"/#!/test/"+test.getId()));
+                        }
+                    } else if (historyStats.startsWith("| | |")) { //match: strike 3!
+                        failingTests.add(new HistoryTestData(test, job.getSuite(), newmanClient.getBaseURI()+"/#!/test/"+test.getId()));
+                    }
+                }
+            }
+        }
+        return failingTests;
     }
 
     private String getChangeSet(String repository, Build previousBuild, Build latestBuild) {

@@ -1,5 +1,13 @@
 <html>
     <body>
+        $if(hiss)$
+        <div>
+          <p>Failing Tests that need your attention:</p>
+          $hiss:{
+          * $it.suiteName$ - <a href="$it.testURL$">$it.testName$</a><br>
+          }$
+        </div>
+        $endif$
         <div><p>
           Summary:
           $if(summary.increasingDiff)$<font color=red>(+$summary.totalIncreasingDiff$ &uarr;)</font>$endif$
