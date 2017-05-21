@@ -10,12 +10,28 @@ while true; do
         # loop over all branches
         for branch in "${branch_array[@]}"
         do
-                export NEWMAN_BUILD_TAGS="INSIGHTEDGE"
-                export NEWMAN_BUILD_BRANCH=${branch}
+                # current hour
+                HOURS=$(date +%H)
+
+                # check if nightly or daily mode - every branch
+                if [ $HOURS -ge 20 -a $HOURS -le 23 ]; then
+                        echo "running in nightly mode, will trigger new jobs even if no changes where made, date is `date`"
+                        export NEWMAN_SUITES="${NEWMAN_SUITES},${NEWMAN_NIGHTLY_SUITES}"
+                        export NEWMAN_MODE="NIGHTLY"
+                        export NEWMAN_BUILD_TAGS="XAP,DOTNET"
+                else
+                        echo "running in daily mode, will trigger new jobs only if changes in build were made, date is `date`"
+                        export NEWMAN_MODE="DAILY"
+                        export NEWMAN_BUILD_TAGS="XAP"
+                fi
+
+                 export NEWMAN_BUILD_BRANCH=${branch}
+
                 echo "NEWMAN_SUITES=${NEWMAN_SUITES}"
                 echo "NEWMAN_BUILD_BRANCH=${NEWMAN_BUILD_BRANCH}"
                 echo "NEWMAN_BUILD_TAGS=${NEWMAN_BUILD_TAGS}"
                 echo "NEWMAN_MODE=${NEWMAN_MODE}"
+
                 #checking future job
                 java -jar newman-submitter-1.0.jar
                 HAS_FUTURE_JOBS=$?
@@ -27,5 +43,6 @@ while true; do
                         sleep 120
                 done
                 echo "finish submitter work!"
+
         done
 done
