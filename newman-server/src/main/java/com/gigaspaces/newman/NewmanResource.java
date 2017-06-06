@@ -243,6 +243,11 @@ public class NewmanResource {
         basicDummyQuery.or(basicDummyQuery.criteria("state").equal(State.READY), basicDummyQuery.criteria("state").equal(State.RUNNING));
         basicDummyQuery.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
         basicDummyQuery.order("submitTime");
+        basicDummyQuery.or(
+                basicDummyQuery.and(basicDummyQuery.criteria("preparingAgents").exists(),
+                        new WhereCriteria("this.preparingAgents.length < (this.totalTests - this.passedTests - this.failedTests - this.runningTests)")),
+                basicDummyQuery.criteria("preparingAgents").doesNotExist()
+        );
         return basicDummyQuery;
     }
 
@@ -2421,6 +2426,8 @@ public class NewmanResource {
         final Agent toDelete = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agent.getName()));
         if (toDelete != null) {
             agentDAO.getDatastore().findAndDelete(agentDAO.createIdQuery(toDelete.getId()));
+            //Delete agent from preparing agents in jobs
+            jobDAO.createUpdateOperations().removeAll("preparingAgents", toDelete.getName());
         }
     }
 
