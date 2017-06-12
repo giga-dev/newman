@@ -46,6 +46,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -102,6 +103,8 @@ public class NewmanResource {
     private static String HTTPS_WEB_ROOT_PATH;
 
     private static final Object takenTestLock = new Object();
+    private final AtomicLong latestLogSize = new AtomicLong(0);
+    private final AtomicLong lastLogSizeCheckTime = new AtomicLong(0);
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
@@ -1399,13 +1402,20 @@ public class NewmanResource {
     @GET
     @Path("log/size")
     public Response computeLogDirSize() {
+        synchronized (lastLogSizeCheckTime) {
+            if (System.currentTimeMillis() - lastLogSizeCheckTime.get() < TimeUnit.MINUTES.toMillis(60)) {
+                return Response.ok(String.valueOf(latestLogSize)).build();
+            }
+            lastLogSizeCheckTime.set(System.currentTimeMillis());
+        }
         try {
             if (!new File(SERVER_TESTS_UPLOAD_LOCATION_FOLDER).exists() || !new File(SERVER_JOBS_UPLOAD_LOCATION_FOLDER).exists()) {
                 return Response.ok("0").build();
             }
             long testLogsSize = Files.walk(Paths.get(SERVER_TESTS_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum();
             long jobsSetupLogSize = Files.walk(Paths.get(SERVER_JOBS_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum();
-            String sum = String.valueOf(testLogsSize + jobsSetupLogSize);
+            latestLogSize.set(testLogsSize+jobsSetupLogSize);
+            String sum = String.valueOf(latestLogSize.get());
             return Response.ok(sum, MediaType.TEXT_PLAIN_TYPE).build();
         } catch (Exception e) {
             logger.error(e.toString(), e);
