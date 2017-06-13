@@ -77,7 +77,7 @@ public class NewmanAgent {
                 this.client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                         config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
                 //try to connect to fail fast when server is down
-                client.getJobs().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                client.getJobs(1).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 FileUtils.createFolder(append(config.getNewmanHome(), "logs"));
                 break;
             } catch (Exception e) {
