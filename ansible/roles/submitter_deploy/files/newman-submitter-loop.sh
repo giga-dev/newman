@@ -10,6 +10,7 @@ while true; do
         # loop over all branches
         for branch in "${branch_array[@]}"
         do
+                echo "Start submitting XAP jobs. Date is [`date`]"
                 # current hour
                 HOURS=$(date +%H)
 
@@ -35,14 +36,15 @@ while true; do
                 #checking future job
                 java -jar newman-submitter-1.0.jar
                 HAS_FUTURE_JOBS=$?
-                echo "HAS_FUTURE_JOBS=${HAS_FUTURE_JOBS}"
-                while [ $HAS_FUTURE_JOBS -ne 0 ]; do
-                        echo "Has future jobs, trying again..."
-                        java -jar newman-submitter-1.0.jar
-                        HAS_FUTURE_JOBS=$?
-                        sleep 120
-                done
-                echo "finish submitter work!"
+                echo "Finished submitting jobs. HAS_FUTURE_JOBS? [$HAS_FUTURE_JOBS]. Date is [`date`] "
+                echo "Bye bye..."
+#                while [ $HAS_FUTURE_JOBS -ne 0 ]; do
+#                        echo "Has future jobs, trying again..."
+#                        java -jar newman-submitter-1.0.jar
+#                        HAS_FUTURE_JOBS=$?
+#                        sleep 120
+#                done
+#                echo "finish submitter work!"
 
         done
 done
