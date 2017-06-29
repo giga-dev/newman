@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration status="WARN">
     <appenders>
-        <RollingFile name="RollingFile" fileName="logs/newman.log"
-                     filePattern="logs/newman-%d{yyyy-MM-dd}-%i.log.gz">
+        <RollingFile name="RollingFile" fileName="logs/newman-server.log" filePattern="logs/newman-server-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout>
                 <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n</Pattern>
             </PatternLayout>
@@ -10,7 +9,7 @@
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="200 MB"/>
             </Policies>
-            <DefaultRolloverStrategy max="5"/>
+            <DefaultRolloverStrategy max="20"/>
         </RollingFile>
     </appenders>
     <Loggers>
