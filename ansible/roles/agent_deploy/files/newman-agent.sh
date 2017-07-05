@@ -10,7 +10,7 @@ NEWMAN_SERVER_PORT=8443
 # newman agent home directory
 NEMAN_AGENT_HOME=/home/xap/xap-newman-agent
 #newman agent capabilities
-NEWMAN_AGENT_CAPABILITIES="DOCKER,LINUX"
+NEWMAN_AGENT_CAPABILITIES="DOCKER,LINUX,MVN"
 # newman agent workers, if not set default to 1
 if [ -z "${NEWMAN_AGENT_WORKERS}" ]; then
    NEWMAN_AGENT_WORKERS=3

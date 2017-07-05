@@ -13,13 +13,13 @@
   roles:
     - agent_crontabs
     - agent_deploy
-- name: "deploy newman insightedge docker agents"
-  hosts: newmanInsightEdgeDockerAgents
-  remote_user: xap
-
-  roles:
-    - agent_crontabs
-    - ie_agent_deploy
+#- name: "deploy newman insightedge docker agents"
+#  hosts: newmanInsightEdgeDockerAgents
+#  remote_user: xap
+#
+#  roles:
+#    - agent_crontabs
+#    - ie_agent_deploy
 
 #- name: "deploy newman tarzan ssd agents"
 #  hosts: newmanTarzanServers
