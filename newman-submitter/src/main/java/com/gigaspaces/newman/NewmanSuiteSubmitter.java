@@ -133,7 +133,23 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.ssdspacemock"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.mapdb"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.dcache.Extends"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewUnIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewUnIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewUnIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewUnIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryIndexedTakeQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryUnIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryUnIndexedTakeQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryIndexedTakeQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryUnIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryUnIndexedTakeQueryOptimizationTest")
                     )
             );
             suite.setCriteria(criteria);
@@ -405,7 +421,23 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.internal"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.transaction.ConcurrentTxnTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.support.avnza.case10089.ValueOfSqlQueryTest"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.avnza.case10089.ValueOfQueryTest")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.support.avnza.case10089.ValueOfQueryTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewUnIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewUnIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewUnIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewUnIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryIndexedTakeQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryUnIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryUnIndexedTakeQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryIndexedTakeQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryUnIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryUnIndexedTakeQueryOptimizationTest")
                     ),
                     CriteriaBuilder.exclude(getTestCriteriasFromPermutationURI(mapdbExcludePermutationFile))
             );
@@ -539,7 +571,23 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.AndOrScanTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanScanningInfoTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanIndexInfoTest"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanQueryTreeTest")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.database.sql.ExplainPlanQueryTreeTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewUnIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewUnIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewUnIndexedQueryTakeOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedLocalViewUnIndexedQueryClearOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryIndexedTakeQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryUnIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedNotifyQueryUnIndexedTakeQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryIndexedTakeQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryUnIndexedClearQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryUnIndexedTakeQueryOptimizationTest")
                     )
             );
             suite.setCriteria(criteria);
