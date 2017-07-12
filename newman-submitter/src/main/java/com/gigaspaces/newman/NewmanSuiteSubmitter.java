@@ -293,7 +293,6 @@ public class NewmanSuiteSubmitter {
         }
     }
 
-
     public void manualSubmitManager() throws Exception {
         NewmanClient newmanClient = getNewmanClient();
         try {
@@ -460,10 +459,10 @@ public class NewmanSuiteSubmitter {
             String Requirements = "LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             String testType = "tgrid";
-            String allTestsPermutation = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests";
+            String fullPath = new File(NewmanSuiteSubmitter.class.getClassLoader().getResource("rocksDbPermutations.txt").getFile()).getAbsolutePath();
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
-                    CriteriaBuilder.include(getTestCriteriasFromPermutationURI(allTestsPermutation))
+                    CriteriaBuilder.include(getTestCriteriasFromPermutationURI("file://"+fullPath))
             );
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
