@@ -130,7 +130,7 @@ public class SuiteDiffCronJob implements CronJob {
         htmlTemplate.setAttribute("xapOpenChangeset", getChangeSet("xap-open", previousBuild, latestBuild));
         htmlTemplate.setAttribute("xapChangeset", getChangeSet("xap", previousBuild, latestBuild));
 
-        List<HistoryTestData> testsThatHaveAHistoryOfFailing = getTestsThatHaveAHistoryOfFailing(latest_mapSuite2Job, newmanClient);
+        List<HistoryTestData> testsThatHaveAHistoryOfFailing = getTestsThatHaveAHistoryOfFailing(latest_mapSuite2Job, previousBuild.getBranch(), newmanClient);
         htmlTemplate.setAttribute("hiss", testsThatHaveAHistoryOfFailing);
 
         //send mail
@@ -154,7 +154,7 @@ public class SuiteDiffCronJob implements CronJob {
         saveToAuditLogFile(properties, latestBuild);
     }
 
-    private List<HistoryTestData> getTestsThatHaveAHistoryOfFailing(Map<String, Job> latest_mapSuite2Job, NewmanClient newmanClient) throws Exception {
+    private List<HistoryTestData> getTestsThatHaveAHistoryOfFailing(Map<String, Job> latest_mapSuite2Job, String prevBuildBranch, NewmanClient newmanClient) throws Exception {
         List<HistoryTestData> failingTests = new ArrayList<>();
         for (Job job : latest_mapSuite2Job.values()) {
             Batch<Test> testBatch = newmanClient.getTests(job.getId(), 0, job.getTotalTests()).toCompletableFuture().get();
@@ -162,7 +162,7 @@ public class SuiteDiffCronJob implements CronJob {
                 if (test.getStatus().equals(Test.Status.FAIL)) {
                     String historyStats = test.getHistoryStats();
                     //branch history has delimiter
-                    if (!job.getBuild().getBranch().equals("master")) {
+                    if (!job.getBuild().getBranch().equals("master") && !prevBuildBranch.equals("master")) {
                         if (historyStats.startsWith("| _. . . . .")    //match: newly failed on branch
                                 || historyStats.startsWith("| _| |")   //match: strike 3! including master
                                 || historyStats.startsWith("| | |")) { //match: strike 3! all on branch
