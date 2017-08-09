@@ -795,6 +795,9 @@ public class NewmanResource {
             modeStr = "DAILY";
         }
 
+        logger.info("choosing build with params - branchStr ["+branchStr+"], tagsStr ["+tagsStr+"], modeStr ["+modeStr+"]");
+
+        Build buildsRes;
         Set<String> tagsSet = null;
         if (branchStr == null || branchStr.isEmpty()){
             throw new IllegalArgumentException("branch can not be null or empty when asking for pending build to submit");
@@ -803,45 +806,73 @@ public class NewmanResource {
         if(tagsStr != null && !tagsStr.isEmpty()){
             tagsSet = new HashSet<>(Arrays.asList(tagsStr.split("\\s*,\\s*")));
         }
-        Build buildsRes = null;
-        Set<String> relaesTag = new HashSet<>();
-        relaesTag.add("RELEASE");
-        Query<Build> query = buildDAO.createQuery().order("-buildTime").field("branch").equal(branchStr).field("tags").hasNoneOf(relaesTag);
 
-        if(tagsSet != null && !tagsSet.isEmpty()){ // build should be with specifics tags
-            query.field("tags").hasAllOf(tagsSet);
-        }
+        if("DAILY".equals(modeStr)){
 
-        Build build = buildDAO.findOne(query);
-        if (build != null && build.getBuildStatus().getTotalJobs() == 0) {
-            buildsRes = build;
+            Set<String> excludeTags = new HashSet<>();
+            excludeTags.add("RELEASE");
+            Query<Build> query = buildDAO.createQuery().order("-buildTime").field("branch").equal(branchStr).field("tags").hasNoneOf(excludeTags);
+
+            if(tagsSet != null && !tagsSet.isEmpty()){ // build should be with specifics tags
+                query.field("tags").hasAllOf(tagsSet);
+            }
+
+            Build build = buildDAO.findOne(query);
+            if (build != null && build.getBuildStatus().getTotalJobs() == 0) {
+                buildsRes =  build;
+            }
+            else {
+                String errorStr = "Did not find build with params - branchStr [" + branchStr + "], tagsStr [" + tagsStr + "], modeStr [" + modeStr + "]";
+                logger.error(errorStr);
+                throw new RuntimeException(errorStr);
+            }
         }
-        if(modeStr.equalsIgnoreCase("NIGHTLY")){
+        else if ("NIGHTLY".equals(modeStr)){
             //get latest nightly build that didn't run, if exist
             buildsRes = getLatestReleaseBuild();
+            logger.info("try find build - used getLatestReleaseBuild - build is ["+buildsRes+"]");
             // if nightly mode and there aren't new builds - take last build anyway
             if(buildsRes == null){
                 buildsRes = getLatestBuild(branchStr);
+                logger.info("Did not find build trying for second time - used getLatestBuild - build is ["+buildsRes+"]");
             }
             buildsRes.addTag("NIGHTLY");
             updateBuild(buildsRes.getId(), buildsRes);
         }
-
+        else {
+            String errorStr = "Got unsupported build MODE [" + modeStr + "]";
+            logger.error(errorStr);
+            throw new RuntimeException(errorStr);
+        }
         return buildsRes;
     }
 
     private Build getLatestReleaseBuild() {
         Build res = null;
         Query<Build> query;
-        query = buildDAO.createQuery().order("-buildTime").field("tags").contains("RELEASE");
+        Set<String> xapReleaseTags = new HashSet<>();
+        xapReleaseTags.add("RELEASE");
+        xapReleaseTags.add("XAP");
+        query = buildDAO.createQuery().order("-buildTime").field("tags").hasAllOf(xapReleaseTags);
         QueryResults<Build> queryResults = buildDAO.find(query);
         List<Build> builds = queryResults.asList();
+        logger.info("choosing build in getLatestReleaseBuild method. found ["+builds.size()+"] builds, need to pick one.\n builds:");
         for (Build nightly : builds) {
+            logger.info("build is id: ["+nightly.getId()+"], name: ["+nightly.getName()+"], branch: ["+nightly.getBranch()+"], " +
+                    "tags: ["+nightly.getTags()+"]");
             if(nightly.getBuildStatus().getTotalJobs() == 0){
                 res = nightly;
                 break;
             }
         }
+        if(res != null){
+            logger.info("Chosen build(!) is id: ["+res.getId()+"], name: ["+res.getName()+"], branch: ["+res.getBranch()+"], " +
+                    "tags: ["+res.getTags()+"]");
+        }
+        else {
+            logger.info("Did not choose build in getLatestReleaseBuild [res is null]");
+        }
+
         return res;
     }
 
