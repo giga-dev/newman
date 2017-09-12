@@ -28,10 +28,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class SuiteDiffCronJob implements CronJob {
 
-    public static final String CRONS_SUITEDIFF_TAG = "crons.suitediff.tag";
-    public static final String CRONS_SUITEDIFF_LATEST_BUILD_ID = "crons.suitediff.latestBuildId";
-    public static final String CRONS_SUITEDIFF_PREVIOUS_BUILD_ID = "crons.suitediff.previousBuildId";
-    public static final String CRONS_SUITEDIFF_TRACK_LATEST = "crons.suitediff.trackLatest";
+    private static final String CRONS_SUITEDIFF_TAG = "crons.suitediff.tag";
+    private static final String CRONS_SUITEDIFF_LATEST_BUILD_ID = "crons.suitediff.latestBuildId";
+    private static final String CRONS_SUITEDIFF_PREVIOUS_BUILD_ID = "crons.suitediff.previousBuildId";
+    private static final String CRONS_SUITEDIFF_TRACK_LATEST = "crons.suitediff.trackLatest";
     private static final Logger logger = LoggerFactory.getLogger(SuiteDiffCronJob.class);
     private static final String DEFAULT_BRANCH = "master";
     private static final String BID_FILE_SUFFIX = ".bid";
@@ -130,7 +130,7 @@ public class SuiteDiffCronJob implements CronJob {
         htmlTemplate.setAttribute("xapOpenChangeset", getChangeSet("xap-open", previousBuild, latestBuild));
         htmlTemplate.setAttribute("xapChangeset", getChangeSet("xap", previousBuild, latestBuild));
 
-        List<HistoryTestData> testsThatHaveAHistoryOfFailing = getTestsThatHaveAHistoryOfFailing(latest_mapSuite2Job, previousBuild.getBranch(), newmanClient);
+        List<HistoryTestData> testsThatHaveAHistoryOfFailing = getTestsThatHaveAHistoryOfFailing(latest_mapSuite2Job, newmanClient);
         htmlTemplate.setAttribute("hiss", testsThatHaveAHistoryOfFailing);
 
         //send mail
@@ -154,22 +154,22 @@ public class SuiteDiffCronJob implements CronJob {
         saveToAuditLogFile(properties, latestBuild);
     }
 
-    private List<HistoryTestData> getTestsThatHaveAHistoryOfFailing(Map<String, Job> latest_mapSuite2Job, String prevBuildBranch, NewmanClient newmanClient) throws Exception {
+    private List<HistoryTestData> getTestsThatHaveAHistoryOfFailing(Map<String, Job> latest_mapSuite2Job, NewmanClient newmanClient) throws Exception {
         List<HistoryTestData> failingTests = new ArrayList<>();
         for (Job job : latest_mapSuite2Job.values()) {
             Batch<Test> testBatch = newmanClient.getTests(job.getId(), 0, job.getTotalTests()).toCompletableFuture().get();
             for (Test test : testBatch.getValues()) {
                 if (test.getStatus().equals(Test.Status.FAIL)) {
                     String historyStats = test.getHistoryStats();
-                    //branch history has delimiter
-                    if (!job.getBuild().getBranch().equals("master") && !prevBuildBranch.equals("master")) {
-                        if (historyStats.startsWith("| _. . . . .")    //match: newly failed on branch
-                                || historyStats.startsWith("| _| |")   //match: strike 3! including master
-                                || historyStats.startsWith("| | |")) { //match: strike 3! all on branch
-                            failingTests.add(new HistoryTestData(test, job.getSuite(), newmanClient.getBaseURI()+"/#!/test/"+test.getId()));
+                    //apply different rules for branch and master
+                    if (!job.getBuild().getBranch().equals("master")) {
+                        //branch history has delimiter of '_'
+                        if (historyStats.startsWith("| _| |") /* match: strike 3! (one on branch and two on master)*/
+                                || historyStats.startsWith("| | |") /* match: strike 3! all on branch*/) {
+                            addTestToListOfFailingTestsWithHistory(newmanClient, failingTests, job, test);
                         }
-                    } else if (historyStats.startsWith("| | |")) { //match: strike 3!
-                        failingTests.add(new HistoryTestData(test, job.getSuite(), newmanClient.getBaseURI()+"/#!/test/"+test.getId()));
+                    } else if (historyStats.startsWith("| | |") /* match: strike 3! */) {
+                        addTestToListOfFailingTestsWithHistory(newmanClient, failingTests, job, test);
                     }
                 }
             }
@@ -177,11 +177,14 @@ public class SuiteDiffCronJob implements CronJob {
         return failingTests;
     }
 
+    private void addTestToListOfFailingTestsWithHistory(NewmanClient newmanClient, List<HistoryTestData> failingTests, Job job, Test test) {
+        failingTests.add(new HistoryTestData(test, job.getSuite(), newmanClient.getBaseURI() + "/#!/test/" + test.getId()));
+    }
+
     private String getChangeSet(String repository, Build previousBuild, Build latestBuild) {
         String changeSet;
         if (previousBuild.getId().equals(latestBuild.getId())) {
-            String latestCommit = latestBuild.getShas().get(repository);
-            changeSet = latestCommit;
+            changeSet = latestBuild.getShas().get(repository); //latest commit
         } else {
             String previousCommit = previousBuild.getShas().get(repository);
             String latestCommit = latestBuild.getShas().get(repository);
@@ -189,9 +192,9 @@ public class SuiteDiffCronJob implements CronJob {
                 changeSet = latestCommit;
             } else {
                 String gitUrl = null;
-                if (latestCommit.indexOf("/commit") != -1) {
+                if (latestCommit.contains("/commit")) {
                     gitUrl = latestCommit.substring(0, latestCommit.lastIndexOf("/commit"));
-                } else if (latestCommit.indexOf("/tree") != -1) {
+                } else if (latestCommit.contains("/tree")) {
                     gitUrl = latestCommit.substring(0, latestCommit.lastIndexOf("/tree"));
                 }
                 String latestSha = latestCommit.substring(latestCommit.lastIndexOf('/')+1);
@@ -273,7 +276,7 @@ public class SuiteDiffCronJob implements CronJob {
      * Otherwise, returns previous build id
      */
     private Build getPreviousBuildOrLatest(Properties properties, Build latestBuild, NewmanClient newmanClient) throws Exception {
-        Build previousBuild = null;
+        Build previousBuild;
         try {
             previousBuild = getPreviousBuildFromFile(properties, latestBuild, newmanClient);
         } catch (Exception ignore1) {
