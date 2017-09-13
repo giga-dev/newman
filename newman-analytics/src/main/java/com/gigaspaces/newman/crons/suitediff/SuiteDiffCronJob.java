@@ -127,8 +127,13 @@ public class SuiteDiffCronJob implements CronJob {
         htmlTemplate.setAttribute("previousBuildDate", simpleDateFormat.format(previousBuild.getBuildTime()));
         htmlTemplate.setAttribute("previousBuildDuration", toHumanReadableDuration(calculateBuildDurationInMillis(previous_mapSuite2Job)));
 
-        htmlTemplate.setAttribute("xapOpenChangeset", getChangeSet("xap-open", previousBuild, latestBuild));
-        htmlTemplate.setAttribute("xapChangeset", getChangeSet("xap", previousBuild, latestBuild));
+        final String productName = getProductNameFromTags(latestBuild.getTags());
+        if (productName.equals("xap")) {
+            htmlTemplate.setAttribute("xapOpenChangeset", getChangeSet("xap-open", previousBuild, latestBuild));
+            htmlTemplate.setAttribute("xapChangeset", getChangeSet("xap", previousBuild, latestBuild));
+        } else if (productName.equals("insightEdge")) {
+            htmlTemplate.setAttribute("insightEdgeChangeset", getChangeSet("InsightEdge", previousBuild, latestBuild));
+        }
 
         List<HistoryTestData> testsThatHaveAHistoryOfFailing = getTestsThatHaveAHistoryOfFailing(latest_mapSuite2Job, newmanClient);
         htmlTemplate.setAttribute("hiss", testsThatHaveAHistoryOfFailing);
@@ -308,6 +313,20 @@ public class SuiteDiffCronJob implements CronJob {
         return previousBuild;
     }
 
+    private String getTrackedBuildFileName(final Build build, final String suffix) {
+        final Set<String> tags = build.getTags();
+        String productName = getProductNameFromTags(tags);
+        if (productName.length() > 0) {
+            return productName + "-" + build.getBranch() + suffix;
+        } else {
+            return build.getBranch() + suffix;
+        }
+    }
+
+    private String getProductNameFromTags(Set<String> tags) {
+        return tags.contains("XAP") ? "xap" : tags.contains("INSIGHTEDGE") ? "insightEdge" : "";
+    }
+
     private Build getPreviousBuildFromFile(Properties properties, Build latestBuild, NewmanClient newmanClient) throws Exception {
         String previousBuildIdOverride = properties.getProperty(CRONS_SUITEDIFF_PREVIOUS_BUILD_ID);
         if (previousBuildIdOverride != null) {
@@ -320,7 +339,7 @@ public class SuiteDiffCronJob implements CronJob {
         }
 
         String path = getResourcesPath(properties);
-        String buildIdFile = latestBuild.getBranch() + BID_FILE_SUFFIX; //e.g. master.bid (master previous build id)
+        String buildIdFile = getTrackedBuildFileName(latestBuild, BID_FILE_SUFFIX); //e.g. xap-master.bid (master previous build id)
         File file = new File(path, buildIdFile);
         try {
             String buildId = org.apache.commons.io.FileUtils.readFileToString(file).trim();
@@ -334,7 +353,7 @@ public class SuiteDiffCronJob implements CronJob {
 
     private void saveLatestBuildToFile(Properties properties, Build latestBuild) {
         String path = getResourcesPath(properties);
-        String buildIdFile = latestBuild.getBranch() + BID_FILE_SUFFIX; //e.g. master.bid (master last build id)
+        String buildIdFile = getTrackedBuildFileName(latestBuild, BID_FILE_SUFFIX); //e.g. xap-master.bid (master last build id)
         File file = new File(path, buildIdFile);
         try {
             logger.info("Save latest build-id: {} to file: {}", latestBuild.getId(), file.getAbsolutePath());
@@ -346,7 +365,7 @@ public class SuiteDiffCronJob implements CronJob {
 
     private String getPreviousBuildFromAuditFile(Properties properties, Build latestBuild) throws Exception {
         String path = getResourcesPath(properties);
-        String auditFile = latestBuild.getBranch() + AUDIT_FILE_SUFFIX; //e.g. master.audit
+        String auditFile = getTrackedBuildFileName(latestBuild, AUDIT_FILE_SUFFIX); //e.g. xap-master.audit
         File file = new File(path, auditFile);
         try {
             String buildId = org.apache.commons.io.FileUtils.readFileToString(file).trim();
@@ -360,7 +379,7 @@ public class SuiteDiffCronJob implements CronJob {
 
     private void saveToAuditLogFile(Properties properties, Build latestBuild) {
         String path = getResourcesPath(properties);
-        String auditFile = latestBuild.getBranch() + AUDIT_FILE_SUFFIX; //e.g. master.audit
+        String auditFile = getTrackedBuildFileName(latestBuild, AUDIT_FILE_SUFFIX); //e.g. xap-master.audit
         File file = new File(path, auditFile);
         try {
             logger.info("Save audit build-id: {} to file: {}", latestBuild.getId(), file.getAbsolutePath());

@@ -44,7 +44,11 @@
         <table border=0>
             <tr><td>latest ($latestBuildBranch$)</td><td><a href="$latestUrl$">$latestBuildName$</a></td><td>$latestBuildDate$</td><td>&#9716; $latestBuildDuration$</td></tr>
             <tr><td>previous ($previousBuildBranch$)</td><td><a href="$previousUrl$">$previousBuildName$</a></td><td>$previousBuildDate$</td><td>&#9719; $previousBuildDuration$</td></tr>
-            <tr><td>changes</td><td><a href="$xapOpenChangeset$">xap-open</a></td><td><a href="$xapChangeset$">xap</a></td><td></td></tr>
+            <tr><td>changes</td>
+                $if(insightEdgeChangeset)$<td><a href="$insightEdgeChangeset$">insightEdge</a></td><td></td><td></td>
+                $else$<td><a href="$xapOpenChangeset$">xap-open</a></td><td><a href="$xapChangeset$">xap</a></td><td></td>
+                $endif$
+            </tr>
         </table>
         </div>
    </body>
