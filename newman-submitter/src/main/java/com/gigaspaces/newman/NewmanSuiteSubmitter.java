@@ -336,7 +336,7 @@ public class NewmanSuiteSubmitter {
                     exclude(PatternCriteria.containsCriteria(".cloudify."),
                             PatternCriteria.containsCriteria(".security."),
                             PatternCriteria.containsCriteria(".webui."),
-                            PatternCriteria.containsCriteria(".gsm."),
+                            PatternCriteria.containsCriteria("test.gsm."),
                             PatternCriteria.containsCriteria(".wan."),
                             PatternCriteria.containsCriteria(".gateway."),
                             PatternCriteria.containsCriteria(".xen."),
@@ -348,7 +348,8 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria(".DBShutdownTest#"),
                             PatternCriteria.containsCriteria(".ClusterAndMirrorDeploymentWhileDBisDownTest#"),
                             PatternCriteria.containsCriteria(".EdsDocClassNotInCLientTest#"),
-                            PatternCriteria.containsCriteria(".web.jboss.")
+                            PatternCriteria.containsCriteria(".web.jboss."),
+                            PatternCriteria.containsCriteria("test.i9e.")
                             //---------------------------------- SSHUtils ------------------------------
                             //                      containsCriteria(".examples."),
                             //                      containsCriteria(".groovy."),
@@ -448,7 +449,7 @@ public class NewmanSuiteSubmitter {
         try {
             Suite suite = new Suite();
             suite.setName("rocksdb");
-            suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=true -Dblobstore.entriespercentage=0 -Dcom.gigaspaces.quality.tf.rocksdb-blobstore.enabled=true");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=1,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=true -Dblobstore.entriespercentage=0 -Dcom.gigaspaces.quality.tf.rocksdb-blobstore.enabled=true");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
             String Requirements = "LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
@@ -472,7 +473,7 @@ public class NewmanSuiteSubmitter {
         try {
             Suite suite = new Suite();
             suite.setName("off-heap");
-            suite.setCustomVariables("SUITE_TYPE=tgrid,TGRID_CUSTOM_SYSTEM_PROPS=-Dcom.gs.OffHeapData=true -Dcom.gs.OffHeapDataNewInterface=true -Dcom.gs.DirectPersistencyLastPrimaryStatePath=./output/lastprimary.properties");
+            suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=1,TGRID_CUSTOM_SYSTEM_PROPS=-Dcom.gs.OffHeapData=true -Dcom.gs.OffHeapDataNewInterface=true -Dcom.gs.DirectPersistencyLastPrimaryStatePath=./output/lastprimary.properties");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
             String Requirements = "LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
