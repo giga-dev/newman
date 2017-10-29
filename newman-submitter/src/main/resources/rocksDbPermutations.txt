@@ -1838,6 +1838,8 @@ com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewUnIndexedQueryClear
 com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewUnIndexedQueryTakeOptimizationTest /./mySpace?cluster_schema=partitioned-sync2backup&total_members=1,1 remote
 com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewIndexedQueryClearOptimizationTest /./mySpace?cluster_schema=partitioned-sync2backup&total_members=1,1 remote
 com.gigaspaces.test.blobstore.rocksdb.RocksDBIndexedLocalViewIndexedQueryTakeOptimizationTest /./mySpace?cluster_schema=partitioned-sync2backup&total_members=1,1 remote
+com.gigaspaces.test.blobstore.rocksdb.RocksDBGSIteratorReadOptimizationTest /./mySpace?cluster_schema=partitioned-sync2backup&total_members=1,1 remote
+com.gigaspaces.test.blobstore.rocksdb.RocksDBBasicProjectionReadOptimizationTest /./mySpace?cluster_schema=partitioned-sync2backup&total_members=1,1 remote
 com.gigaspaces.test.cluster.failover.FailOverPrimaryWithMirrorLeaseTest /./qaSpace?cluster_schema=partitioned-sync2backup&total_members=1,1&mirror remote POJO
 com.gigaspaces.test.cluster.failover.TransactionFailOverLoadWithDBTest /./qaSpace?cluster_schema=partitioned-sync2backup&total_members=2,1&mirror=true remote
 com.gigaspaces.test.cluster.failover.FailOverWriteUnderTxn /./qaSpace?cluster_schema=partitioned-sync2backup&total_members=1,1 remote JINI_TXN
