@@ -586,7 +586,10 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryIndexedClearQueryOptimizationTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryIndexedTakeQueryOptimizationTest"),
                             PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryUnIndexedClearQueryOptimizationTest"),
-                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryUnIndexedTakeQueryOptimizationTest")
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBUnIndexedNotifyQueryUnIndexedTakeQueryOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBProjectionUnIndexedReadOptimizationTest"),
+                            PatternCriteria.containsCriteria("com.gigaspaces.test.blobstore.rocksdb.RocksDBGSIteratorReadOptimizationTest"),
+                            PatternCriteria.containsCriteria("test com.gigaspaces.test.support.ubs.case00011147.MultiIndexExplanPlanTest")
                     )
             );
             suite.setCriteria(criteria);
