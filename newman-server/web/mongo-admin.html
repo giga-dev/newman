@@ -34,19 +34,13 @@
                 <table class="table table-hover table-striped table-bordered table-condensed">
                     <thead>
                     <tr>
-                        <th>Collection Name</th>
-                        <th>Drop</th>
+                        <th colspan="2">Collection Name</th>
                     </tr>
                     </thead>
                     <tbody>
                     <template repeat="{{item in data}}">
                         <tr>
-                            <td>{{item}}</td>
-                            <td>
-                                <button class="btn btn-success" on-click="{{toggleDropCollectionConfirmationDialog}}" class="btn btn-danger"  data-collection="{{item}}">
-                                    <span class="glyphicon glyphicon glyphicon-remove"></span>
-                                </button>
-                            </td>
+                            <td colspan="2">{{item}}</td>
                         </tr>
                     </template>
                         <tr>
@@ -60,22 +54,6 @@
                     </tbody>
                 </table>
             </div>
-
-            <paper-action-dialog backdrop autoCloseDisabled id="confirmdialogdropall" heading="Drop All?" transition="paper-dialog-transition-bottom" style="position: fixed; outline: none; display: none;">
-                <p>Are you sure you want to delete all collections?</p>
-                <paper-button affirmative raised class="colored" on-click="{{dropAll}}">OK</paper-button>
-                <paper-button raised affirmative default>Cancel</paper-button>
-            </paper-action-dialog>
-
-            <paper-action-dialog backdrop autoCloseDisabled  id="confirmdialogdropcollection" heading="Drop {{dropCollectionName}}?" transition="paper-dialog-transition-bottom" style="position: fixed; outline: none; display: none;">
-                <p>Are you sure you want to delete collection [{{dropCollectionName}}]?</p>
-                <paper-button affirmative raised class="colored" on-click="{{dropOne}}">OK</paper-button>
-                <paper-button raised affirmative default>Cancel</paper-button>
-            </paper-action-dialog>
-
-            <button on-click="{{toggleDropAllConfirmationDialog}}" class="btn btn-danger" data-collection="{{item}}">
-                Drop all
-            </button>
         </div>
     </template>
 
@@ -104,22 +82,6 @@
       },
       configResponse : function(event,resp){
         this.config = JSON.parse(resp.response.entity);
-      },
-      dropAll: function(){
-            this.$.del.url=this.url;
-            this.$.del.go();
-      },
-      toggleDropAllConfirmationDialog: function() {
-           this.$.confirmdialogdropall.toggle();
-      },
-      toggleDropCollectionConfirmationDialog: function(event, detail,target) {
-          var collectionName = target.attributes['data-collection'].textContent;
-          this.dropCollectionName=collectionName;
-          this.$.confirmdialogdropcollection.toggle();
-      },
-      dropOne: function(event, detail,target){
-           this.$.del.url=this.url + "/" + this.dropCollectionName;
-           this.$.del.go();
       },
       logSizeResponse: function(event, resp){
             this.du = window.app.humanFileSize(resp.response, false);
