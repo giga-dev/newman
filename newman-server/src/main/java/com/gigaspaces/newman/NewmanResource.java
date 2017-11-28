@@ -1820,7 +1820,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
 //    @RolesAllowed("admin")
     public Batch<Build> getBuilds(@DefaultValue("0") @QueryParam("offset") int offset,
-                                  @DefaultValue("30") @QueryParam("limit") int limit,
+                                  @DefaultValue("50") @QueryParam("limit") int limit,
                                   @DefaultValue("false") @QueryParam("all") boolean all
             , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {Query<Build> query = buildDAO.createQuery();
