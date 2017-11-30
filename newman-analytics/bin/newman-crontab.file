@@ -3,7 +3,7 @@
 # --------------------------------------------------------
 */15 7-8 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=XAP,NIGHTLY,RELEASE > /home/xap/newman-analytics/logs/xap-daily-suite-diff.log 2>&1
 
-*/15 7-8 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=INSIGHTEDGE,I9E_RELEASE,I9E_NIGHTLY > /home/xap/newman-analytics/logs/i9e-daily-suite-diff.log 2>&1
+#*/15 7-8 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=INSIGHTEDGE,I9E_RELEASE,I9E_NIGHTLY > /home/xap/newman-analytics/logs/i9e-daily-suite-diff.log 2>&1
 
 #--branch--
 #0 7 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=NIGHTLY,RELEASE crons.suitediff.branch=barakb-opencore > /home/xap/newman-analytics/logs/daily-suite-diff.log 2>&1
