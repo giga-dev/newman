@@ -291,6 +291,7 @@ public class SuiteDiffCronJob implements CronJob {
                 try {
                     Build masterBranch = new Build();
                     masterBranch.setBranch("master");
+                    masterBranch.setTags(latestBuild.getTags());
                     previousBuild = getPreviousBuildFromFile(properties, masterBranch, newmanClient);
                 } catch (Exception ignore2) {
                     return latestBuild;
