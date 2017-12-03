@@ -38,12 +38,28 @@
             </form>
 
             <form class="form-inline">
-                    <div class="form-group">
-                        <input type="text" id="oldBuildId" placeholder="Old Build" class="form-control" style="width: 300px">
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="newBuildId" placeholder="New Build" class="form-control" style="width: 300px">
-                    </div>
+                    <!--<div class="form-group">-->
+                        <!--<input type="text" id="oldBuildId" placeholder="Old Build" class="form-control" style="width: 300px">-->
+                    <!--</div>-->
+
+                    <select class="input form-control" id="oldBuildId" style="width: 300px">
+                        <option value="">Select Old Build</option>
+                        <template repeat="{{build in allValues}}">
+                            <option value="{{build.id}}">{{getBuildDescription(build)}}</option>
+                        </template>
+                    </select>
+
+                    <!--<div class="form-group">-->
+                        <!--<input type="text" id="newBuildId" placeholder="New Build" class="form-control" style="width: 300px">-->
+                    <!--</div>-->
+
+                    <select class="input form-control" id="newBuildId" style="width: 300px">
+                        <option value="">Select New Build</option>
+                        <template repeat="{{build in allValues}}">
+                            <option value="{{build.id}}">{{getBuildDescription(build)}}</option>
+                        </template>
+                    </select>
+
                     <button data-toggle="tooltip" class="btn btn-default" on-click="{{compareBuilds}}">Compare Changes</button>
             </form><br>
 
@@ -193,6 +209,13 @@
                this.allValues = resp.response.values;
                this.allValues.forEach(window.app.jobProgressPercent);
                this.runFilter();
+          },
+          getBuildDescription: function(build){
+
+                if(build.tags && build.tags.length > 0 && build.tags[0].length){
+                    return build.name + ' (' + build.branch + ')';
+                }
+                return build.name + ' (' + build.branch + ')';
           },
           applyFilter: function(filter, values){
                 if(values && filter != null && filter != undefined && filter != ""){
