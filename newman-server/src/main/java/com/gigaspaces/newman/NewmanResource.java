@@ -895,7 +895,7 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public synchronized Test finishTest(final Test test) {
         try{
-            logger.info("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
+            logger.debug("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
@@ -935,7 +935,7 @@ public class NewmanResource {
 
             testUpdateOps.set("testScore", reliabilityTestScore);
             testUpdateOps.set("historyStats", historyStatsString);
-            logger.info("got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}], running tests before decrement:[{}]", historyStatsString, test.getId(), test.getName(), jobId, testJob.getRunningTests());
+            logger.debug("got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}], running tests before decrement:[{}]", historyStatsString, test.getId(), test.getName(), jobId, testJob.getRunningTests());
 
             Test result = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(test.getId()), testUpdateOps, false, false);
             Query<Test> query = testDAO.createQuery();
@@ -948,7 +948,7 @@ public class NewmanResource {
             }
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
 
-            logger.info("After modifying job ( after runningTests decrement ), runningTests:[{}]", job.getRunningTests());
+            logger.debug("After modifying job ( after runningTests decrement ), runningTests:[{}]", job.getRunningTests());
 
             Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
 
@@ -1655,7 +1655,7 @@ public class NewmanResource {
         if (result != null) {
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
-            logger.info("After incrementing runningTests for jobId [{}] runningTests [{}]", jobId, job.getRunningTests());
+            logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]", jobId, job.getRunningTests());
             if (job != null) {
                 UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.runningTests");
                 UpdateOperations<Job> jobUpdateOperations = jobDAO.createUpdateOperations();
@@ -2247,7 +2247,7 @@ public class NewmanResource {
         filterBranches.add(MASTER_BRANCH_NAME);
         filterBranches.add(branch);
 
-        logger.info( "--getTests() history, testId=" + id + ",jobId=" + jobId + ", buildId=" + build.getId() + ", branch=" + branch + ", endTime=" + endTime);
+        logger.debug( "--getTests() history, testId=" + id + ",jobId=" + jobId + ", buildId=" + build.getId() + ", branch=" + branch + ", endTime=" + endTime);
 
         Query<Test> testsQuery = testDAO.createQuery();
         testsQuery.or(testsQuery.criteria("status").equal(Test.Status.FAIL), testsQuery.criteria("status").equal(Test.Status.SUCCESS)); // get only success or fail test
@@ -2262,11 +2262,11 @@ public class NewmanResource {
         testsQuery.limit(limit);
 
         List<Test> tests = testDAO.find(testsQuery).asList();
-        logger.info( "--getTests() history, testId=" + id + ", tests size:" + tests.size() );
+        logger.debug( "--getTests() history, testId=" + id + ", tests size:" + tests.size() );
         //logger.info("DEBUG (getTests) get test history of testId: [{}], (thisTest: [{}])", id, thisTest);
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
-            logger.info( "--getTests() history, test.getEndTime()=" + test.getEndTime() + ", tests size:" + tests.size() );
+            logger.debug( "--getTests() history, test.getEndTime()=" + test.getEndTime() + ", tests size:" + tests.size() );
             String jobIdLocal = test.getJobId();
             //don't bring tests that were ran after this test on any branch
             if( suiteJobs.contains( jobIdLocal ) && ( endTime == null || (test.getEndTime() != null && test.getEndTime().compareTo( endTime ) <= 0 ))) {
