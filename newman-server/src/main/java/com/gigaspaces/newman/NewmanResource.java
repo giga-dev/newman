@@ -965,7 +965,7 @@ public class NewmanResource {
                                         .where("this.currentTests.length == 0"),
                                 agentDAO.createUpdateOperations().set("state", Agent.State.IDLING));
                         if(idling != null){
-                            logger.warn("agent [{}] become idling because it finish all his tests",idling.getName());
+                            logger.debug("agent [{}] become idling because it finish all his tests",idling.getName());
                         }
                     }
                     broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
