@@ -1458,7 +1458,7 @@ public class NewmanResource {
     @Path("agents/count")
     public Response getAgentsCount() {
         long count = agentDAO.count();
-        logger.info( "agents count=" + count );
+        logger.debug( "agents count=" + count );
         return Response.ok(count, MediaType.TEXT_PLAIN_TYPE).build();
     }
 
@@ -1466,7 +1466,7 @@ public class NewmanResource {
     @Path("agents/failing")
     public Response getFailingAgents() {
         long count = agentDAO.createQuery().filter("setupRetries >",0).countAll();
-        logger.info( "agents failed setup count=" + count );
+        logger.debug( "agents failed setup count=" + count );
         return Response.ok(count, MediaType.TEXT_PLAIN_TYPE).build();
     }
 
@@ -2352,7 +2352,7 @@ public class NewmanResource {
         final EventOutput eventOutput = new EventOutput();
         this.broadcaster.add(eventOutput);
         long time2 = System.currentTimeMillis();
-        logger.info( "Handling of listenToBroadcast took [" + ( time2 - time1 ) + "] msec." );
+        logger.debug( "Handling of listenToBroadcast took [" + ( time2 - time1 ) + "] msec." );
         return eventOutput;
     }
 
