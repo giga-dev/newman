@@ -1608,7 +1608,7 @@ public class NewmanResource {
             String jobId = agent.getJobId();
             if( jobId != null ) {
                 Job job = findOneThinJobById(jobId);
-                logger.info("within for on agents, jobID=" + jobId + ", job=" + job);
+                logger.debug("within for on agents, jobID=" + jobId + ", job=" + job);
                 agent.setJob(job);
             }
         }
@@ -1768,7 +1768,7 @@ public class NewmanResource {
 
         Agent readyAgent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, false, true);
         if(readyAgent != null && readyAgent.getState().equals(Agent.State.IDLING)){
-            logger.warn("agent [{}] is idling at subscribe because didn't find job", readyAgent.getName());
+            logger.debug("agent [{}] is idling at subscribe because didn't find job", readyAgent.getName());
         }
 
         broadcastMessage(MODIFIED_AGENT, readyAgent);
@@ -2447,7 +2447,7 @@ public class NewmanResource {
                 long time2 = System.currentTimeMillis();
                 broadcaster.broadcast(event);
                 long time3 = System.currentTimeMillis();
-                logger.info( "Broadcasting message [" + type + "] with value [" + value + "] took " + ( time3 - time1 ) + " msec., creating took " + (time2 - time1) + " msec." );
+                logger.debug( "Broadcasting message [" + type + "] with value [" + value + "] took " + ( time3 - time1 ) + " msec., creating took " + (time2 - time1) + " msec." );
             } catch (Throwable ignored) {
                 logger.error("Invoking of broadcastMessage() failed");
             }

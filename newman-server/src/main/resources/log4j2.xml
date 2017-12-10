@@ -15,7 +15,7 @@
     </appenders>
     <Loggers>
         <Logger name="com.gigaspaces.newman" level="INFO"/>
-        <Root level="INFO">
+        <Root level="ERROR">
             <AppenderRef ref="RollingFile" />
         </Root>
     </Loggers>
