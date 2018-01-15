@@ -38,6 +38,7 @@ public class NewmanAgentConfig {
 
     private static final int NUM_OF_WORKERS = Integer.getInteger("newman.agent.workers", 5);
     private static final int JOB_POLL_INTERVAL = Integer.getInteger("newman.agent.job-poll-interval", 1000 * 10);
+    private static final int RETRY_INTERVAL_ON_SUSPENDED = Integer.getInteger("newman.agent.retry-interval-on-suspended", 1000 * 60);
     private static final int PING_INTERVAL = Integer.getInteger("newman.agent.ping-interval", 1000 * 30);
 
     private Properties properties;
@@ -149,6 +150,10 @@ public class NewmanAgentConfig {
 
     public int getJobPollInterval() {
         return JOB_POLL_INTERVAL;
+    }
+
+    public int getRetryIntervalOnSuspended() {
+        return RETRY_INTERVAL_ON_SUSPENDED;
     }
 
     public String getNewmanServerHost() {

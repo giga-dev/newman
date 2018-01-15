@@ -1,5 +1,5 @@
 ---
 # server_suspend vars
-server_url: "https://xap-newman:8443/api/newman/suspend"
+server_url: "https://xap-newman:8443/api/newman/pauseJobsAndWait"
 user: "root"
 password: "root"

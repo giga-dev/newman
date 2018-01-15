@@ -131,6 +131,7 @@ public class NewmanServer {
             logger.info("server started!");
             server.join();
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage(), e);
         } finally {
             server.destroy();

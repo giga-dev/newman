@@ -23,7 +23,8 @@
         'modified-test' : "tests-table",
         'modified-build' : "dashboard-view",
         'created-build' : "dashboard-view",
-        'modified-suite' : "suites-dashboard, suites-view"
+        'modified-suite' : "suites-dashboard, suites-view",
+        'modified-server-status': "manage-newman"
     };
     Polymer('sse-sender', {
       ready: function(){
@@ -86,6 +87,7 @@
                 source.addEventListener("modified-build", handler.bind(this), false);
                 source.addEventListener("created-build", handler.bind(this), false);
                 source.addEventListener("modified-suite", handler.bind(this), false);
+                source.addEventListener("modified-server-status", handler.bind(this), false);
             }
       }
     });
