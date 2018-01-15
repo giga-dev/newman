@@ -306,7 +306,7 @@ public class SuiteDiffCronJob implements CronJob {
         }
 
         //read previous from audit log
-        String auditBuildId = getPreviousBuildFromAuditFile(properties, latestBuild);
+        String auditBuildId = getPreviousBuildFromAuditFile(properties, previousBuild);
         if (latestBuild.getId().equals(auditBuildId)) {
             throw new IllegalStateException("Latest and previous audit build Ids are equal (id=" + latestBuild.getId() + ") - No report will be generated.");
         }
