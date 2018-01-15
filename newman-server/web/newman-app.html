@@ -30,7 +30,7 @@
 <link rel="import" href="future-job.html">
 <link rel="import" href="manage-newman.html">
 
-<polymer-element name="newman-app">
+<polymer-element name="newman-app" on-modified-server-status="{{onModifiedServerStatus}}">
     <template>
         <link rel="stylesheet" href="app.css">
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
@@ -42,11 +42,24 @@
                    withCredentials="true"></core-ajax>
         <core-ajax auto url="api/newman/agents/failing" handleAs="text" on-core-response="{{failingAgentsResponse}}"
                    withCredentials="true"></core-ajax>
+        <core-ajax auto url="api/newman/status" handleAs="json" on-core-response="{{serverStatusResponse}}"
+                   withCredentials="true"></core-ajax>
 
         <sse-sender>
+
             <core-drawer-panel id="drawerPanel" drawerWidth="140px">
                 <core-header-panel drawer>
-                    <core-toolbar>Menu</core-toolbar>
+                    <core-toolbar>Menu
+                        <div class="bottom fit" style="height: 20px;">
+                            <template if="{{serverStatus != 'RUNNING'}}">
+                                <div class="progress" style="margin-bottom: 0px; border-radius: 0px">
+                                    <div class="progress-bar progress-bar-striped progress-bar-warning active" role="progressbar"
+                                         style="width:100%">
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </core-toolbar>
                     <more-route-selector>
                         <core-menu>
                             <core-item label="Home" route="home">
@@ -90,15 +103,18 @@
                         <div>{{logsDiskUsage}}</div><span>{{agentsCount}}</span><span>{{failingAgents}}</span>
                         <span flex></span>
                         <paper-icon-button icon="search"></paper-icon-button>
-                    </core-toolbar>
-                    <template>
-                        <div class="progress">
-                            <div class="progress-bar progress-bar-striped progress-bar-warning active" role="progressbar"
-                                 style="width:100%">
-                                Newman server is being restarted. <a on-click="{{cancelRestart}}">(cancel)</a>
-                            </div>
+                        <div class="bottom fit" style="height: 20px;">
+                            <template if="{{serverStatus != 'RUNNING'}}">
+                                <div class="progress" style="margin-bottom: 0px; border-radius: 0px">
+                                    <div class="progress-bar progress-bar-striped progress-bar-warning active" role="progressbar"
+                                         style="width:100%">
+                                        Newman server is suspended.
+                                    </div>
+                                </div>
+                            </template>
                         </div>
-                    </template>
+                    </core-toolbar>
+
                     <main>
                         <more-route-selector>
                             <core-pages>
@@ -184,7 +200,7 @@
             agentsCount: "",
             failingAgents:"",
             selected:0,
-            serverStatus: null,
+            serverStatus: "RUNNING",
             heading : "Hello Newman users!",
             created: function() {
                 this.user = {};
@@ -206,6 +222,12 @@
             },
             failingAgentsResponse: function( event, resp ){
                 this.failingAgents = "Failing agents: " + resp.response;
+            },
+            serverStatusResponse: function (e, resp) {
+                this.serverStatus = resp.response.status;
+            },
+            onModifiedServerStatus: function(event, data) {
+                this.serverStatus = data.status;
             }
         });
     </script>
