@@ -1,0 +1,65 @@
+
+<link rel="import" href="routes.html">
+<link rel="import" href="../components/core-ajax/core-ajax.html">
+<link rel="import" href="../components/paper-button/paper-button.html">
+<link rel="import" href="../components/paper-dialog/paper-action-dialog.html">
+
+<polymer-element name="manage-newman" attributes="url suspendurl unsuspendurl" on-modified-server-status="{{onModifiedServerStatus}}">
+    <template>
+        <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
+
+
+        <core-ajax id="serverStatus" auto url="{{url}}" handleAs="json" method="GET" on-core-response="{{ajaxResponse}}"
+                   withCredentials="true"></core-ajax>
+
+        <core-ajax id="suspendServer" handleAs="text" url="{{suspendurl}}" method="POST" on-core-response="{{suspendServerResponse}}"
+                   withCredentials="true"></core-ajax>
+
+        <core-ajax id="unsuspendServer" handleAs="text" url="{{unsuspendurl}}" method="POST" on-core-response="{{suspendServerResponse}}"
+                   withCredentials="true"></core-ajax>
+
+
+        <div class="content" flex>
+            <span>Server status: {{serverStatus}}</span>
+            <br/>
+            <template if="{{serverStatus == 'RUNNING'}}">
+                <button on-click="{{suspend}}" class="btn btn-danger" >
+                    Suspend
+                </button>
+            </template>
+            <template if="{{serverStatus != 'RUNNING'}}">
+                <button on-click="{{unsuspend}}" class="btn btn-warning" >
+                    Unsuspend
+                </button>
+            </template>
+        </div>
+    </template>
+
+    <script>
+    Polymer({
+      serverStatus: null,
+      applyAuthorStyles: true,
+      filter: null,
+      ajaxResponse: function(event,resp){
+           this.serverStatus = resp.response.status;
+      },
+      suspend : function(){
+            this.$.suspendServer.go();
+      },
+      unsuspend : function(){
+            this.$.unsuspendServer.go();
+      },
+      suspendServerResponse: function(event,resp) {
+      },
+      suspendServerError: function(event, resp) {
+        console.log("suspendServerError: ", resp.response);
+      },
+      onModifiedServerStatus: function(event, data) {
+        this.serverStatus = data.status;
+      }
+    });
+
+
+
+    </script>
+</polymer-element>

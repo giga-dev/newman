@@ -292,6 +292,14 @@ public class NewmanAgent {
         NewmanClient c = getClient();
         while (true) {
             try {
+                ServerStatus serverStatus = c.getServerStatus().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                if (serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
+                    logger.info("Server is suspended, will retry in " +config.getRetryIntervalOnSuspended()/1000+ " seconds");
+                    Thread.sleep(config.getRetryIntervalOnSuspended());
+                    continue;
+                }
+
+
                 Job job = c.subscribe(agent).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 2, TimeUnit.SECONDS);
                 if (job != null)
                     return job;
@@ -346,7 +354,7 @@ public class NewmanAgent {
                 client = NewmanClient.create(config.getNewmanServerHost(), config.getNewmanServerPort(),
                         config.getNewmanServerRestUser(), config.getNewmanServerRestPw());
                 //try to connect to fail fast when server is down
-                client.ping(name, "").toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                client.ping(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 break;
             } catch (Exception e) {
                 logger.warn("failure while recreation of newman client, will retry...", e);

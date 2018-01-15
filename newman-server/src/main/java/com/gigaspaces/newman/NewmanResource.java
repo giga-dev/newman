@@ -71,6 +71,7 @@ public class NewmanResource {
     public static final String CREATED_SUITE = "created-suite";
     public static final String MODIFIED_SUITE = "modified-suite";
     public static final String CREATE_FUTURE_JOB = "create-future-job";
+    private static final String MODIFY_SERVER_STATUS = "modified-server-status";
 
     private final SseBroadcaster broadcaster;
     private final MongoClient mongoClient;
@@ -105,6 +106,10 @@ public class NewmanResource {
     private static final Object takenTestLock = new Object();
     private final AtomicLong latestLogSize = new AtomicLong(0);
     private final AtomicLong lastLogSizeCheckTime = new AtomicLong(0);
+
+
+    private final Object serverStatusLock = new Object();
+    private ServerStatus serverStatus = new ServerStatus(ServerStatus.Status.RUNNING);
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
@@ -142,6 +147,7 @@ public class NewmanResource {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+                logger.info("Checking for not seen agents");
                 getAgentsNotSeenInLastMillis(1000 * 60 * 3).forEach(NewmanResource.this::handleUnseenAgent);
             }
         }, 1000 * 30, 1000 * 30);
@@ -149,6 +155,7 @@ public class NewmanResource {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+                logger.info("Checking for zombie agents");
                 getZombieAgents(1000 * 60 * 20).forEach(NewmanResource.this::handleZombieAgent);
             }
         }, 1000 * 30, 1000 * 30);
@@ -548,14 +555,20 @@ public class NewmanResource {
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Job createJob(JobRequest jobRequest, @Context SecurityContext sc) {
+    public Response createJob(JobRequest jobRequest, @Context SecurityContext sc) {
+        synchronized (this.serverStatusLock) {
+            if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Server is currently suspended. Please try again later").build();
+            }
+        }
+
         Build build = buildDAO.findOne(buildDAO.createIdQuery(jobRequest.getBuildId()));
         Suite suite = null;
         if (jobRequest.getSuiteId() != null) {
             suite = suiteDAO.findOne(suiteDAO.createIdQuery(jobRequest.getSuiteId()));
         }
         if (suite == null) {
-            throw new BadRequestException("invalid suite id for Job request: " + jobRequest);
+            return Response.status(Response.Status.BAD_REQUEST).entity("invalid suite id for Job request: " + jobRequest).build();
         }
 
         if (build != null) {
@@ -574,9 +587,9 @@ public class NewmanResource {
             broadcastMessage(CREATED_JOB, job);
             broadcastMessage(MODIFIED_BUILD, build);
             broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(suite));
-            return job;
+            return Response.ok(job).build();
         } else {
-            return null;
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
 
@@ -1533,27 +1546,6 @@ public class NewmanResource {
                 false, orderBy, uriInfo);
     }
 
-
-    @GET
-    @Path("ping/{name}/{jobId}/{testId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String ping(@PathParam("name") final String name, @PathParam("jobId") final String jobId
-            , @PathParam("testId") final String testId) {
-        UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date());
-        Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(name), updateOps, false, false);
-        if (agent == null) {
-            logger.error("Unknown agent " + name);
-            return null;
-        }
-        if (agent.getJobId() == null) {
-            logger.error("Agent {} not working on job {} test {}", agent, jobId, testId);
-            return null;
-        } else {
-            broadcastMessage(MODIFIED_AGENT, agent);
-            return agent.getJobId();
-        }
-    }
-
     @GET
     @Path("ping/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -1715,7 +1707,12 @@ public class NewmanResource {
     @Path("subscribe")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Job subscribe(final Agent agent) {
+    public Response subscribe(final Agent agent) {
+        synchronized (this.serverStatusLock) {
+            if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Server is suspended. Please try again later").build();
+            }
+        }
         agentLocks.putIfAbsent(agent.getName(), new Object());
         Agent found = agentDAO.findOne("name", agent.getName());
         if (found != null) {
@@ -1772,7 +1769,7 @@ public class NewmanResource {
         }
 
         broadcastMessage(MODIFIED_AGENT, readyAgent);
-        return job;
+        return Response.ok(job).build();
     }
 
     private Job findJob(Set<String> capabilities, Query<Job> basicQuery) {
@@ -2375,8 +2372,9 @@ public class NewmanResource {
     }
 
     @POST
-    @Path("suspend")
+    @Path("pauseJobsAndWait")
     @Produces(MediaType.APPLICATION_JSON)
+    @Deprecated
     public Response suspend() throws InterruptedException {
         UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations();
         jobUpdateOps.set("state", State.PAUSED);
@@ -2406,6 +2404,46 @@ public class NewmanResource {
             logger.warn("failed to suspend server", e);
             return Response.serverError().build();
         }
+        return Response.ok().build();
+    }
+
+
+    @GET
+    @Path("status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getServerStatus() {
+        synchronized (this.serverStatusLock) {
+            return Response.ok().entity(this.serverStatus).build();
+        }
+    }
+
+    @POST
+    @Path("unsuspend")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response unsuspendServer() {
+        synchronized (this.serverStatusLock) {
+            if (this.serverStatus.getStatus().equals(ServerStatus.Status.RUNNING)) {
+                return Response.status(Response.Status.FORBIDDEN).entity("Server is already running").build();
+            }
+            this.serverStatus.setStatus(ServerStatus.Status.RUNNING);
+            broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
+        }
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("suspend")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response suspendServer() {
+        synchronized (this.serverStatusLock) {
+            if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity("Server is already suspended").build();
+            }
+            this.serverStatus.setStatus(ServerStatus.Status.SUSPENDED);
+            broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
+        }
+
         return Response.ok().build();
     }
 

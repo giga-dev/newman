@@ -28,6 +28,7 @@
 <link rel="import" href="suite-view.html">
 <link rel="import" href="suites-dashboard.html">
 <link rel="import" href="future-job.html">
+<link rel="import" href="manage-newman.html">
 
 <polymer-element name="newman-app">
     <template>
@@ -75,6 +76,9 @@
                             <core-item label="Mongo Admin" route="mongo-admin">
                                 <a href="{{urlFor('mongo-admin')}}" core-drawer-toggle></a>
                             </core-item>
+                            <core-item label="Manage Newman" route="manage-newman">
+                                <a href="{{urlFor('manage-newman')}}" core-drawer-toggle></a>
+                            </core-item>
                         </core-menu>
                     </more-route-selector>
                 </core-header-panel>
@@ -87,6 +91,14 @@
                         <span flex></span>
                         <paper-icon-button icon="search"></paper-icon-button>
                     </core-toolbar>
+                    <template>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-warning active" role="progressbar"
+                                 style="width:100%">
+                                Newman server is being restarted. <a on-click="{{cancelRestart}}">(cancel)</a>
+                            </div>
+                        </div>
+                    </template>
                     <main>
                         <more-route-selector>
                             <core-pages>
@@ -153,6 +165,10 @@
                                     <h3>A very simple Mongo admin {{route('mongo-admin').params.id}}</h3>
                                     <mongo-admin url="api/newman/db"></mongo-admin>
                                 </section>
+                                <section route="manage-newman">
+                                    <h3>Manage Newman</h3>
+                                    <manage-newman id="manageNewman" url="api/newman/status" suspendurl="api/newman/suspend" unsuspendurl="api/newman/unsuspend"></manage-newman>
+                                </section>
                             </core-pages>
                         </more-route-selector>
                     </main>
@@ -168,6 +184,7 @@
             agentsCount: "",
             failingAgents:"",
             selected:0,
+            serverStatus: null,
             heading : "Hello Newman users!",
             created: function() {
                 this.user = {};

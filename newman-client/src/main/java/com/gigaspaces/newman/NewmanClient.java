@@ -97,6 +97,10 @@ public class NewmanClient {
         return restClient.target(uri).path("tests").request().rx().put(Entity.json(new Batch<>(tests, 0, tests.size(), false, null, null)));
     }
 
+    public CompletionStage<ServerStatus> getServerStatus() {
+        return restClient.target(uri).path("status").request().rx().get(ServerStatus.class);
+    }
+
     public CompletionStage<Build> getBuildToSubmit(String branch, String tags, String mode) {
         return restClient.target(uri).path("build").
                 queryParam("branch", branch).
@@ -158,8 +162,8 @@ public class NewmanClient {
                 });
     }
 
-    public CompletionStage<String> ping(String agentName, String jobId, String testId) {
-        return restClient.target(uri).path("ping").path(agentName).path(jobId).path(testId).request().rx().get(String.class);
+    public CompletionStage<String> ping(String agentName) {
+        return restClient.target(uri).path("ping").path(agentName).path("-").request().rx().get(String.class);
     }
 
     public CompletionStage<String> ping(String agentName, String jobId) {
