@@ -32,6 +32,8 @@ public class NewmanSubmitter {
     private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
     private static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
     public static final int DEFAULT_TIMEOUT_SECONDS = 60;
+    private static final String RETRY_MINS_INTERVAL_ON_SUSPENDED = "RETRY_MINS_INTERVAL_ON_SUSPENDED";
+    private static final int DEFAULT_RETRY_MINS_INTERVAL_ON_SUSPENDED = 1;
     // modes = FORCE, REGULAR
     private static final String NEWMAN_MODE = "NEWMAN_MODE";
 
@@ -44,6 +46,7 @@ public class NewmanSubmitter {
     private String username;
     private String password;
     private ThreadPoolExecutor workers;
+    private int intervalOnSuspendMinutes;
 
     private NewmanSubmitter(String host, String port, String username, String password) {
 
@@ -54,6 +57,8 @@ public class NewmanSubmitter {
         this.workers = new ThreadPoolExecutor(MAX_THREADS, MAX_THREADS,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>());
+
+        intervalOnSuspendMinutes = Integer.valueOf(System.getenv().getOrDefault(RETRY_MINS_INTERVAL_ON_SUSPENDED, String.valueOf(DEFAULT_RETRY_MINS_INTERVAL_ON_SUSPENDED)));
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         try {
@@ -74,40 +79,56 @@ public class NewmanSubmitter {
         properties = new Ini(new File(EnvUtils.getEnvironment(NEWMAN_SUITES_FILE_LOCATION, logger)));
 
         NewmanSubmitter newmanSubmitter = new NewmanSubmitter(host, port, username, password);
-        String branch = "master";//EnvUtils.getEnvironment(NEWMAN_BUILD_BRANCH, false, logger);
-        String tags = "XAP"; //EnvUtils.getEnvironment(NEWMAN_BUILD_TAGS, false, logger);
-        String mode = "NIGHTLY"; //EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
-
-        if (mode.equals("NIGHTLY") && isNightlyRequired()) {
-            newmanSubmitter.submitJobs(newmanSubmitter.getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(), mode);
-            properties.get("main").put("LAST_NIGHTLY_RUN", DateTimeFormatter.ofPattern("yyy/MM/dd").format(LocalDate.now()));
-            properties.store();
-            System.exit(0);
+        String branch = EnvUtils.getEnvironment(NEWMAN_BUILD_BRANCH, false, logger);
+        String tags = EnvUtils.getEnvironment(NEWMAN_BUILD_TAGS, false, logger);
+        String mode = EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
+        if (mode == null || mode.length() == 0) {
+            mode = "DAILY";
         }
 
-        logger.info("submitting future jobs if there are any");
-        boolean hasFutureJobs = newmanSubmitter.submitFutureJobsIfAny();
-        logger.info("hasFutureJobs: {}", hasFutureJobs);
+        int status = newmanSubmitter.start(branch, tags, mode);
 
-        // NOTE exit code = -1 if there are future jobs
-        if (hasFutureJobs) {
-            newmanSubmitter.tearDown();
-            System.exit(-1);
-        }
+        System.exit(status);
+    }
 
-        if (mode.equals("DAILY")) {
-            Build buildToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
-            if (buildToRun != null) {
-
-                int numOfRunningJobs = Integer.parseInt(newmanSubmitter.newmanClient.hasRunningJobs().toCompletableFuture().get());
-
-                if (numOfRunningJobs == 0) {
-                    newmanSubmitter.submitJobs(buildToRun, getDailySuiteToSubmit(), mode);
-                }
+    private int start(String branch, String tags, String mode) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+        while (true) {
+            ServerStatus serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if (!serverStatus.getStatus().equals(ServerStatus.Status.RUNNING)) {
+                logger.warn("Server is suspended, retrying in " + intervalOnSuspendMinutes + " minutes");
+                Thread.sleep(TimeUnit.MINUTES.toMillis(intervalOnSuspendMinutes));
+                continue;
             }
-        }
 
-        System.exit(0);
+            if (mode.equals("NIGHTLY") && isNightlyRequired()) {
+                submitJobs(getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(), mode);
+                properties.get("main").put("LAST_NIGHTLY_RUN", DateTimeFormatter.ofPattern("yyy/MM/dd").format(LocalDate.now()));
+                properties.store();
+                return 0;
+            }
+
+            logger.info("submitting future jobs if there are any");
+            boolean hasFutureJobs = submitFutureJobsIfAny();
+            logger.info("hasFutureJobs: {}", hasFutureJobs);
+
+            // NOTE exit code = -1 if there are future jobs
+            if (hasFutureJobs) {
+                tearDown();
+                return -1;
+            }
+
+            if (mode.equals("DAILY")) {
+                Build buildToRun = getBuildToRun(branch, tags, mode);
+                if (buildToRun != null) {
+                    int numOfRunningJobs = Integer.parseInt(newmanClient.hasRunningJobs().toCompletableFuture().get());
+                    if (numOfRunningJobs == 0) {
+                        submitJobs(buildToRun, getDailySuiteToSubmit(), mode);
+                    }
+                }
+                return 0;
+            }
+            return -2;
+        }
     }
 
     private boolean submitFutureJobsIfAny() throws InterruptedException, ExecutionException, TimeoutException {

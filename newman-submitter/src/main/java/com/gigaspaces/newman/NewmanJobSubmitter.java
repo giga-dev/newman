@@ -55,6 +55,19 @@ public class NewmanJobSubmitter {
 
     public String submitJob(String author) throws ExecutionException, InterruptedException, IOException, ParseException, TimeoutException {
         try {
+
+            ServerStatus serverStatus;
+            try {
+                serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                logger.error("can't get server status. exception: {}" , e);
+                throw  e;
+            }
+            if (!serverStatus.getStatus().equals(ServerStatus.Status.RUNNING)) {
+                logger.error("Server is "+serverStatus.getStatus()+". Please try again later");
+                throw new IllegalStateException("Server is "+serverStatus.getStatus()+". Please try again later");
+            }
+
             Suite suite = null;
             try {
                 suite = newmanClient.getSuite(suiteId).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
