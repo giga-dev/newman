@@ -3,19 +3,20 @@ package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.utils.EnvUtils;
+import org.ini4j.Ini;
+import org.ini4j.Profile;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.*;
 
 /**
- @author Boris
- @since 1.0
+ * @author Boris
+ * @since 1.0
  */
 
 public class NewmanSubmitter {
@@ -24,7 +25,7 @@ public class NewmanSubmitter {
     private static final String NEWMAN_PORT = "NEWMAN_PORT";
     private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
     private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
-    private static final String NEWMAN_SUITES = "NEWMAN_SUITES";
+    private static final String NEWMAN_SUITES_FILE_LOCATION = "NEWMAN_SUITES_FILE_LOCATION";
     private static final int MAX_THREADS = 20;
     private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
     private static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
@@ -33,6 +34,7 @@ public class NewmanSubmitter {
     private static final String NEWMAN_MODE = "NEWMAN_MODE";
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanSubmitter.class);
+    private static Ini properties;
 
     private NewmanClient newmanClient;
     private String host;
@@ -41,7 +43,7 @@ public class NewmanSubmitter {
     private String password;
     private ThreadPoolExecutor workers;
 
-    public NewmanSubmitter(String host, String port, String username, String password){
+    private NewmanSubmitter(String host, String port, String username, String password) {
 
         this.host = host;
         this.port = port;
@@ -60,17 +62,17 @@ public class NewmanSubmitter {
         }
     }
 
-    public boolean submitFutureJobsIfAny() throws InterruptedException, ExecutionException, TimeoutException {
+    private boolean submitFutureJobsIfAny() throws InterruptedException, ExecutionException, TimeoutException {
         // Submit future jobs if exists
         List<Future<String>> jobs = submitFutureJobs();
-        if(jobs.isEmpty()){ // if there are no future jobs
+        if (jobs.isEmpty()) { // if there are no future jobs
             return false;
-        }else{
+        } else {
             // wait for every running future job to finish.
             for (Future<String> job : jobs) {
                 try {
                     job.get();
-                }catch (Exception e){
+                } catch (Exception e) {
                     logger.warn("main thread catch exception of worker: ", e);
                 }
             }
@@ -96,26 +98,20 @@ public class NewmanSubmitter {
         }
     }
 
-    public void submitAndWait(String buildId, String suitesIDStr) throws InterruptedException, ExecutionException, IOException, TimeoutException {
-        List<Future<String>> jobs = new ArrayList<>();
-        // Submit jobs for suites and wait for them
-        logger.info("Using build with id: {}", buildId);
-        List<String> suitesId = Arrays.asList(suitesIDStr.split(","));
+    private void submitJobs(Build buildToRun, List<String> suitesId, String mode) throws ExecutionException, InterruptedException {
+        List<Future<String>> submitted = new ArrayList<>();
+        logger.info("build to run - name:[{}], id:[{}], branch:[{}], tags:[{}], mode:[{}].", buildToRun.getName(), buildToRun.getId(), buildToRun.getBranch(), buildToRun.getTags(), mode);
+        // Submit jobs for suites
         try {
-            for (String suiteId : filterSuites(suitesId, buildId)) {
-                Future<String> worker = submitJobsByThreads(suiteId, buildId, username);
-                jobs.add(worker);
+            for (String suiteId : filterSuites(suitesId, buildToRun.getId())) {
+                submitted.add(submitJobsByThreads(suiteId, buildToRun.getId(), username));
             }
-            // wait for every running job to finish.
-            for (Future<String> job : jobs) {
-                try {
-                    job.get();
-                } catch (Exception e) {
-                    logger.warn("main thread catch exception of worker: ", e);
-                }
+        } catch (Exception ignored) {
+            logger.error("could not submit job. build id- [" + buildToRun + "] on branch :[" + buildToRun.getBranch() + "]", ignored);
+        } finally {
+            for (Future<String> job : submitted) {
+                job.get();
             }
-        }
-        finally {
             tearDown();
         }
     }
@@ -127,14 +123,14 @@ public class NewmanSubmitter {
 
             List<String> filteredSuites = new ArrayList<>();
             for (Suite staticSuite : staticMiniSuites) {
-                if (suitesId.contains(staticSuite.getId())){
+                if (suitesId.contains(staticSuite.getId())) {
                     Map<String, String> CustomVariablesMap = Suite.parseCustomVariables(staticSuite.getCustomVariables());
                     String requireBuildStr = CustomVariablesMap.get("REQUIRE_BUILD_TAG");
                     Set<String> requireTags = new HashSet<>();
-                    if(requireBuildStr != null){
+                    if (requireBuildStr != null) {
                         requireTags = new HashSet<>(Arrays.asList(requireBuildStr.split(",")));
                     }
-                    if(build.getTags().containsAll(requireTags)){
+                    if (build.getTags().containsAll(requireTags)) {
                         filteredSuites.add(staticSuite.getId());
                     }
                 }
@@ -142,7 +138,7 @@ public class NewmanSubmitter {
             return filteredSuites;
         } catch (Exception e) {
             logger.error("can't filter suites. exception: {}", e);
-            throw  e;
+            throw e;
         }
     }
 
@@ -153,7 +149,7 @@ public class NewmanSubmitter {
         List<Future<String>> futureJobIds = new ArrayList<>();
         FutureJob futureJob = getAndDeleteFutureJob();
         logger.info("submitting future job - " + futureJob);
-        while(futureJob != null){
+        while (futureJob != null) {
             Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID(), futureJob.getAuthor());
             futureJobIds.add(futureJobWorker);
             futureJob = getAndDeleteFutureJob();
@@ -161,9 +157,9 @@ public class NewmanSubmitter {
         return futureJobIds;
     }
 
-    private Future<String> submitJobsByThreads(String suiteId, String buildId, String author){
+    private Future<String> submitJobsByThreads(String suiteId, String buildId, String author) {
         return workers.submit(() -> {
-            Suite suite = null;
+            Suite suite;
             try {
                 suite = newmanClient.getSuite(suiteId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 if (suite == null) {
@@ -172,11 +168,7 @@ public class NewmanSubmitter {
                 final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
 
                 String jobId = jobSubmitter.submitJob(author);
-
-                while (!isJobFinished(jobId)) {
-                    logger.info("waiting for job {} to end", jobId);
-                    Thread.sleep(60 * 1000);
-                }
+                logger.info("submitted job ");
                 return jobId;
             } catch (InterruptedException | ExecutionException | ParseException | IOException e) {
                 throw new RuntimeException("job terminating submission due to exception", e);
@@ -184,9 +176,8 @@ public class NewmanSubmitter {
         });
     }
 
-
     private FutureJob getAndDeleteFutureJob() throws InterruptedException, ExecutionException, TimeoutException {
-        FutureJob futureJob = null;
+        FutureJob futureJob;
         try {
             futureJob = newmanClient.getAndDeleteOldestFutureJob().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -199,65 +190,97 @@ public class NewmanSubmitter {
     private boolean isJobFinished(String jobId) {
         try {
             final Job job = newmanClient.getJob(jobId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            if (job == null){
+            if (job == null) {
                 throw new IllegalArgumentException("No such job with id: " + jobId);
             }
             return job.getState() == State.DONE || job.getState() == State.BROKEN;
 
-        }
-        catch (InterruptedException | ExecutionException | TimeoutException e) {
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
             logger.error("failed to check if job is finished. exception: {}", e);
             return false;
         }
     }
 
-    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException, TimeoutException {
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, TimeoutException {
         // connection arguments
         String host = EnvUtils.getEnvironment(NEWMAN_HOST, logger);
         String port = EnvUtils.getEnvironment(NEWMAN_PORT, logger);
         String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, logger);
         String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, logger);
-        // suites to run separated by comma
-        String suitesId = EnvUtils.getEnvironment(NEWMAN_SUITES, logger);
+
+        properties = new Ini(new File(EnvUtils.getEnvironment(NEWMAN_SUITES_FILE_LOCATION, logger)));
 
         NewmanSubmitter newmanSubmitter = new NewmanSubmitter(host, port, username, password);
         String branch = EnvUtils.getEnvironment(NEWMAN_BUILD_BRANCH, false, logger);
         String tags = EnvUtils.getEnvironment(NEWMAN_BUILD_TAGS, false, logger);
         String mode = EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
 
+        if (mode.equals("NIGHTLY")) {
+            newmanSubmitter.submitJobs(newmanSubmitter.getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(), mode);
+            System.exit(0);
+        }
+
         logger.info("submitting future jobs if there are any");
         boolean hasFutureJobs = newmanSubmitter.submitFutureJobsIfAny();
         logger.info("hasFutureJobs: {}", hasFutureJobs);
+
         // NOTE exit code = -1 if there are future jobs
         if (hasFutureJobs) {
             newmanSubmitter.tearDown();
             System.exit(-1);
         }
 
-        String buildIdToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
-        if(buildIdToRun != null){
-            try{
-                Build cachedBuild = newmanSubmitter.newmanClient.cacheBuildInServer(buildIdToRun).toCompletableFuture().get();
-                logger.info("build to run - name:[{}], id:[{}], branch:[{}], tags:[{}], mode:[{}].",cachedBuild.getName(), cachedBuild.getId(), cachedBuild.getBranch(), cachedBuild.getTags(), mode);
-                newmanSubmitter.submitAndWait(cachedBuild.getId(), suitesId);
-            }
-            catch (Exception ignored){
-                // TODO if build is not valid tag it as BROKEN
-                logger.error("Not succeeding cache or submit job. build id- ["+ buildIdToRun +"] on branch :[" + branch +"]");
+        if (mode.equals("DAILY")) {
+            Build buildToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
+            if (buildToRun != null) {
+
+                int numOfRunningJobs = Integer.parseInt(newmanSubmitter.newmanClient.hasRunningJobs().toCompletableFuture().get());
+
+                if (numOfRunningJobs == 0) {
+                    newmanSubmitter.submitJobs(buildToRun, getDailySuiteToSubmit(), mode);
+                }
             }
         }
+
         System.exit(0);
     }
 
-    public String getBuildToRun(String branch, String tags, String mode){
+    private static ArrayList<String> getDailySuiteToSubmit() throws IOException {
+        Profile.Section main = properties.get("main");
+        List<String> suitesList = Arrays.asList((main.fetch("DAILY_SUITES_LIST")).split(","));
+        String prevSuiteId = main.fetch("LAST_DAILY_SUITE");
+        if(prevSuiteId == null || prevSuiteId.equals("")){
+         prevSuiteId = suitesList.get(suitesList.size()-1);
+         logger.warn("corrupted env - LAST_DAILY_SUITE was empty - running from beginning of DAILY_SUITES_LIST");
+        }
+
+        if(suitesList.contains(prevSuiteId)){
+            String nextSuiteId = suitesList.get((suitesList.indexOf(prevSuiteId) + 1) % suitesList.size());
+            main.put("LAST_DAILY_SUITE", nextSuiteId);
+            properties.store();
+            ArrayList<String> result = new ArrayList<>();
+            result.add(nextSuiteId);
+            return result;
+        } else {
+            logger.error("corrupted env - LAST_DAILY_SUITE isnt found in DAILY_SUITES_LIST");
+            throw new IllegalStateException("corrupted env - LAST_DAILY_SUITE isnt found in DAILY_SUITES_LIST");
+        }
+    }
+
+    private static List<String> getNightlySuitesToSubmit() {
+        Profile.Section main = properties.get("main");
+        return Arrays.asList((main.fetch("NIGHTLY_SUITES_LIST")).split(","));
+    }
+
+    private Build getBuildToRun(String branch, String tags, String mode) {
         try {
-            if(mode == null || mode.isEmpty()){
+            if (mode == null || mode.isEmpty()) {
                 mode = "DAILY";
             }
             // tags should be separated by comma (,)
             Build build = newmanClient.getBuildToSubmit(branch, tags, mode).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            if(build != null) {
-                return build.getId();
+            if (build != null) {
+                return build;
             }
             logger.warn("failed to find build on branch: {}, tags: {}, mode: {}", branch, tags, mode);
             return null;

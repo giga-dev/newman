@@ -74,6 +74,10 @@ public class NewmanClient {
         });
     }
 
+    public CompletionStage<String> hasRunningJobs() {
+        return restClient.target(uri).path("job").path("running").request().rx().get(String.class);
+    }
+
     public CompletionStage<Job> createJob(JobRequest jobRequest) {
         return restClient.target(uri).path("job").request().rx().put(Entity.json(jobRequest), Job.class);
     }
