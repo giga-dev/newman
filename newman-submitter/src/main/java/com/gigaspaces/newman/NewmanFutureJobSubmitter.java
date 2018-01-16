@@ -42,6 +42,12 @@ public class NewmanFutureJobSubmitter {
         suite_id = EnvUtils.getEnvironment(NEWMAN_SUITE_ID, true, logger);
         author = EnvUtils.getEnvironment(AUTHOR, true, logger);
 
+        ServerStatus serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        if (serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
+            logger.error("Server is suspended. Please try again later");
+            System.exit(1);
+        }
+
         validBuildAndSuite(newmanClient, build_id, suite_id);
         FutureJob futureJob;
         try {
