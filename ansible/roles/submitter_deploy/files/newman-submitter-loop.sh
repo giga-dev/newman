@@ -36,10 +36,10 @@ while true; do
                 java -jar newman-submitter-1.0.jar
                 HAS_FUTURE_JOBS=$?
                 echo "FINISHED SUBMIT LOOP!! [HAS_FUTURE_JOBS=${HAS_FUTURE_JOBS}]. Date is [`date`]"
-                if [ $HAS_FUTURE_JOBS -eq 0 ]; then
+#                if [ $HAS_FUTURE_JOBS -eq 0 ]; then
                     #echo "No future jobs, sleeping 1m"
                     sleep 60
-                fi
+#                fi
 #                while [ $HAS_FUTURE_JOBS -ne 0 ]; do
 #                        echo "Has future jobs, trying again..."
 #                        java -jar newman-submitter-1.0.jar
