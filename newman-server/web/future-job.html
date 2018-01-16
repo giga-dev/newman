@@ -11,7 +11,7 @@
     <template>
         <link rel="stylesheet" href="../components/bootstrap/dist/css/bootstrap.css">
         <core-ajax auto url="{{url}}" handleAs="json" on-core-response="{{ajaxResponse}}" withCredentials="true"></core-ajax>
-        <core-ajax id="postFutureJob" method="POST" handleAs="json" on-core-response="{{jobSubmitResponse}}" withCredentials="true"></core-ajax>
+        <core-ajax id="postFutureJob" method="POST" handleAs="json" on-core-response="{{jobSubmitResponse}}" on-core-error="{{onJobSubmitError}}" withCredentials="true"></core-ajax>
 
         <div class="content" flex>
             <form>
@@ -43,7 +43,7 @@
         </div>
         <label id="status" class="success" style="margin-top: 15px"></label>
 
-        <paper-action-dialog backdrop autoCloseDisabled  id="alertDialog" heading="Submitting new Job" transition="paper-dialog-transition-bottom" style="position: fixed; outline: none; display: none;">
+        <paper-action-dialog backdrop autoCloseDisabled  id="alertDialog" heading="Error submitting new job" transition="paper-dialog-transition-bottom" style="position: fixed; outline: none; display: none;">
             <p>{{messageTxt}}</p>
             <paper-button affirmative raised class="colored">OK</paper-button>
         </paper-action-dialog>
@@ -84,6 +84,10 @@
                 }
 
                 return build.name + ' (' + build.branch + ')';
+            },
+            onJobSubmitError: function(e, resp) {
+                this.messageTxt = resp.response.response;
+                this.$.alertDialog.toggle();
             },
             submitFutureJob : function(){
                 var suiteId = this.$.suiteId.value;
