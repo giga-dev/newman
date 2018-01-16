@@ -6,6 +6,7 @@ import com.gigaspaces.newman.utils.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.WebApplicationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -315,6 +316,16 @@ public class NewmanAgent {
             catch (IllegalStateException e) {
                 logger.warn("Agent failed while polling newman-server at {} for a job (retry in {} ms): " + e, config.getNewmanServerHost(), config.getJobPollInterval());
                 c = getClient();
+            }
+            catch (ExecutionException e) {
+                if (e.getCause() instanceof WebApplicationException){
+                    WebApplicationException ex = (WebApplicationException) e.getCause();
+                    String responseText = ex.getResponse().readEntity(String.class);
+                    logger.warn("Agent failed while polling newman-server. Got status: " + ex.getResponse().getStatus()+", message: " + responseText);
+                    c = getClient();
+                } else {
+                    c = onClientFailure(c);
+                }
             }
             catch (Exception e) {
                 logger.warn("Agent failed while polling newman-server at {} for a job (retry in {} ms): " + e, config.getNewmanServerHost(), config.getJobPollInterval());
