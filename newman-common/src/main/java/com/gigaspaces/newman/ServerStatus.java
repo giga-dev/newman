@@ -2,7 +2,7 @@ package com.gigaspaces.newman;
 
 public class ServerStatus {
     public enum Status {
-        RUNNING, SUSPENDED
+        RUNNING, SUSPENDING, SUSPENDED, SUSPEND_FAILED
     }
 
     private Status status;

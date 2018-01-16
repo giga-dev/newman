@@ -8,6 +8,7 @@ import com.gigaspaces.newman.config.Config;
 import com.gigaspaces.newman.dao.*;
 import com.gigaspaces.newman.utils.FileUtils;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoInterruptedException;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -110,6 +111,7 @@ public class NewmanResource {
 
     private final Object serverStatusLock = new Object();
     private ServerStatus serverStatus = new ServerStatus(ServerStatus.Status.RUNNING);
+    private Thread serverSuspendThread;
 
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
@@ -2433,6 +2435,7 @@ public class NewmanResource {
             if (this.serverStatus.getStatus().equals(ServerStatus.Status.RUNNING)) {
                 return Response.status(Response.Status.FORBIDDEN).entity("Server is already running").build();
             }
+            serverSuspendThread.interrupt();
             this.serverStatus.setStatus(ServerStatus.Status.RUNNING);
             broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
         }
@@ -2444,13 +2447,86 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response suspendServer() {
         synchronized (this.serverStatusLock) {
-            if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
+            if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDING)) {
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity("Server is currently suspending").build();
+            }
+            else if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
                 return Response.status(Response.Status.FORBIDDEN)
                         .entity("Server is already suspended").build();
             }
-            this.serverStatus.setStatus(ServerStatus.Status.SUSPENDED);
+            this.serverStatus.setStatus(ServerStatus.Status.SUSPENDING);
             broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
         }
+
+        /*
+
+            UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations();
+            jobUpdateOps.set("state", State.PAUSED);
+
+            try {
+                Query<Job> updateStateQuery = jobDAO.createQuery();
+                updateStateQuery.or(updateStateQuery.criteria("state").equal(State.RUNNING), updateStateQuery.criteria("state").equal(State.READY));
+                jobDAO.getDatastore().update(updateStateQuery, jobUpdateOps);
+
+                final Query<Job> jobQuery = jobDAO.createQuery();
+                jobQuery.criteria("state").equal(State.PAUSED);
+                final Query<Job> stillRunningJobsQuery = jobQuery.filter("runningTests >", 0);
+
+                QueryResults<Job> runningJobsResult = jobDAO.find(stillRunningJobsQuery);
+
+                while( !runningJobsResult.asList().isEmpty() ) {
+                    List<Job> jobList = runningJobsResult.asList();
+                    logger.info("waiting for all agents to finish running tests, {} jobs are still running:", jobList.size());
+                    for (Job job : jobList) {
+                        logger.info("{},", job.getId() );
+                    }
+                    Thread.sleep(10000);
+                    runningJobsResult = jobDAO.find(stillRunningJobsQuery);
+                }
+                synchronized (this.serverStatusLock) {
+                    serverStatus.setStatus(ServerStatus.Status.SUSPENDED);
+                    broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
+                }
+            }
+            catch (InterruptedException e) {
+
+            }
+            catch (Exception e){
+                logger.warn("failed to suspend server", e);
+                synchronized (this.serverStatusLock) {
+                    serverStatus.setStatus(ServerStatus.Status.SUSPEND_FAILED);
+                    broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
+                }
+//                    return Response.serverError().build();
+            }
+
+
+         */
+        serverSuspendThread = new Thread(() -> {
+            try {
+                while (true) {
+                    List<FutureJob> futureJobs = futureJobDAO.createQuery().asList();
+                    if (futureJobs.size() == 0) {
+                        synchronized (this.serverStatusLock) {
+                            serverStatus.setStatus(ServerStatus.Status.SUSPENDED);
+                            broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
+                            break;
+                        }
+                    } else {
+                        Thread.sleep(10000);
+                    }
+                }
+            } catch (InterruptedException | MongoInterruptedException e) {
+            } catch (Exception e) {
+                logger.warn("failed to suspend server", e);
+                synchronized (this.serverStatusLock) {
+                    serverStatus.setStatus(ServerStatus.Status.SUSPEND_FAILED);
+                    broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
+                }
+            }
+        });
+        serverSuspendThread.start();
 
         return Response.ok().build();
     }
