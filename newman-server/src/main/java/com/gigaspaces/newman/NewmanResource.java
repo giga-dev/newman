@@ -461,6 +461,7 @@ public class NewmanResource {
     @Path("futureJob")
     @Produces(MediaType.APPLICATION_JSON)
     public FutureJob getAndDeleteFutureJob(@Context UriInfo uriInfo) {
+        checkServerStatus();
 
         Query<FutureJob> query = futureJobDAO.createQuery();
         query.order("-submitTime");
@@ -556,11 +557,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createJob(JobRequest jobRequest, @Context SecurityContext sc) {
-        synchronized (this.serverStatusLock) {
-            if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Server is currently suspended. Please try again later").build();
-            }
-        }
+        checkServerStatus();
 
         Build build = buildDAO.findOne(buildDAO.createIdQuery(jobRequest.getBuildId()));
         Suite suite = null;
@@ -601,6 +598,8 @@ public class NewmanResource {
             @PathParam("suiteId") String suiteId,
             @QueryParam("author") String authorOpt,
             @Context SecurityContext sc){
+        checkServerStatus();
+
         String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
         Build build = null;
         Suite suite = null;
@@ -1612,6 +1611,8 @@ public class NewmanResource {
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
+        checkServerStatus();
+
         Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
         if (agent == null) {
             logger.error("bad request unknown agent {}", name);
@@ -1708,11 +1709,8 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response subscribe(final Agent agent) {
-        synchronized (this.serverStatusLock) {
-            if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Server is suspended. Please try again later").build();
-            }
-        }
+        checkServerStatus();
+
         agentLocks.putIfAbsent(agent.getName(), new Object());
         Agent found = agentDAO.findOne("name", agent.getName());
         if (found != null) {
@@ -2564,5 +2562,12 @@ public class NewmanResource {
         }
     }
 
+    private void checkServerStatus() {
+        synchronized (this.serverStatusLock) {
+            if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
+                throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN_TYPE).entity("Server is suspended, please try again later.").build());
+            }
+        }
+    }
 
 }
