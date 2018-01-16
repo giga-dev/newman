@@ -464,7 +464,7 @@ public class NewmanResource {
         checkServerStatus();
 
         Query<FutureJob> query = futureJobDAO.createQuery();
-        query.order("-submitTime");
+        query.order("submitTime");
         FutureJob futureJob = futureJobDAO.findOne(query);
         if(futureJob != null){
             Datastore datastore = futureJobDAO.getDatastore();
