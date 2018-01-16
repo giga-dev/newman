@@ -425,6 +425,15 @@ public class NewmanResource {
         return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
     }
 
+    @GET
+    @Path("job/running")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getRunningJobs(){
+        Query<Job> query = jobDAO.createQuery();
+        query.or(query.criteria("state").equal("READY"), query.criteria("state").equal("RUNNING"));
+        return String.valueOf(jobDAO.find(query).asList().size());
+    }
+
     private List<Job> retrieveJobs( String buildId, List<String> orderBy, boolean all, int offset, int limit, boolean returnThinObjects ) {
 
         Query<Job> query = jobDAO.createQuery();

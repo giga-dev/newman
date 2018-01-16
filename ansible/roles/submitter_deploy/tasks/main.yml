@@ -16,6 +16,8 @@
   copy: src={{newman_local_dir}}/ansible/roles/submitter_deploy/files/newman-submitter-loop.sh dest={{submitter_home_dir}} owner=xap mode=0777
 - name: "copy env script"
   copy: src={{newman_local_dir}}/ansible/roles/submitter_deploy/files/submitter-env.sh dest={{submitter_home_dir}} owner=xap mode=0777
+- name: "copy env ini file"
+  copy: src={{newman_local_dir}}/ansible/roles/submitter_deploy/files/submitter-env.ini dest={{submitter_home_dir}} owner=xap mode=0777
 - name: "start submitter"
   command: ./nohup-newman-submitter-loop.sh chdir="{{submitter_home_dir}}"
 - name: "wait for submitter to start"

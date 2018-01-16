@@ -18,7 +18,6 @@ while true; do
 #                if [ $HOURS -ge 20 -a $HOURS -le 23 ]; then
                 if [ $HOURS -ge 23 -o $HOURS -le 1 ]; then
                         echo "running in nightly mode, will trigger new jobs even if no changes where made, date is `date`"
-                        export NEWMAN_SUITES="${NEWMAN_SUITES},${NEWMAN_NIGHTLY_SUITES}"
                         export NEWMAN_MODE="NIGHTLY"
                         export NEWMAN_BUILD_TAGS="XAP,DOTNET"
                 else
@@ -27,9 +26,8 @@ while true; do
                         export NEWMAN_BUILD_TAGS="XAP"
                 fi
 
-                 export NEWMAN_BUILD_BRANCH=${branch}
+                export NEWMAN_BUILD_BRANCH=${branch}
 
-                echo "NEWMAN_SUITES=${NEWMAN_SUITES}"
                 echo "NEWMAN_BUILD_BRANCH=${NEWMAN_BUILD_BRANCH}"
                 echo "NEWMAN_BUILD_TAGS=${NEWMAN_BUILD_TAGS}"
                 echo "NEWMAN_MODE=${NEWMAN_MODE}"
