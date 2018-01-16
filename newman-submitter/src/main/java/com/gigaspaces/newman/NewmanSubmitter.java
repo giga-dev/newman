@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -60,6 +62,52 @@ public class NewmanSubmitter {
             logger.error("Failed to init client, exiting...", e);
             System.exit(1);
         }
+    }
+
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        // connection arguments
+        String host = EnvUtils.getEnvironment(NEWMAN_HOST, logger);
+        String port = EnvUtils.getEnvironment(NEWMAN_PORT, logger);
+        String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, logger);
+        String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, logger);
+
+        properties = new Ini(new File(EnvUtils.getEnvironment(NEWMAN_SUITES_FILE_LOCATION, logger)));
+
+        NewmanSubmitter newmanSubmitter = new NewmanSubmitter(host, port, username, password);
+        String branch = "master";//EnvUtils.getEnvironment(NEWMAN_BUILD_BRANCH, false, logger);
+        String tags = "XAP"; //EnvUtils.getEnvironment(NEWMAN_BUILD_TAGS, false, logger);
+        String mode = "NIGHTLY"; //EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
+
+        if (mode.equals("NIGHTLY") && isNightlyRequired()) {
+            newmanSubmitter.submitJobs(newmanSubmitter.getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(), mode);
+            properties.get("main").put("LAST_NIGHTLY_RUN", DateTimeFormatter.ofPattern("yyy/MM/dd").format(LocalDate.now()));
+            properties.store();
+            System.exit(0);
+        }
+
+        logger.info("submitting future jobs if there are any");
+        boolean hasFutureJobs = newmanSubmitter.submitFutureJobsIfAny();
+        logger.info("hasFutureJobs: {}", hasFutureJobs);
+
+        // NOTE exit code = -1 if there are future jobs
+        if (hasFutureJobs) {
+            newmanSubmitter.tearDown();
+            System.exit(-1);
+        }
+
+        if (mode.equals("DAILY")) {
+            Build buildToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
+            if (buildToRun != null) {
+
+                int numOfRunningJobs = Integer.parseInt(newmanSubmitter.newmanClient.hasRunningJobs().toCompletableFuture().get());
+
+                if (numOfRunningJobs == 0) {
+                    newmanSubmitter.submitJobs(buildToRun, getDailySuiteToSubmit(), mode);
+                }
+            }
+        }
+
+        System.exit(0);
     }
 
     private boolean submitFutureJobsIfAny() throws InterruptedException, ExecutionException, TimeoutException {
@@ -201,60 +249,16 @@ public class NewmanSubmitter {
         }
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        // connection arguments
-        String host = EnvUtils.getEnvironment(NEWMAN_HOST, logger);
-        String port = EnvUtils.getEnvironment(NEWMAN_PORT, logger);
-        String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, logger);
-        String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, logger);
-
-        properties = new Ini(new File(EnvUtils.getEnvironment(NEWMAN_SUITES_FILE_LOCATION, logger)));
-
-        NewmanSubmitter newmanSubmitter = new NewmanSubmitter(host, port, username, password);
-        String branch = EnvUtils.getEnvironment(NEWMAN_BUILD_BRANCH, false, logger);
-        String tags = EnvUtils.getEnvironment(NEWMAN_BUILD_TAGS, false, logger);
-        String mode = EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
-
-        if (mode.equals("NIGHTLY")) {
-            newmanSubmitter.submitJobs(newmanSubmitter.getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(), mode);
-            System.exit(0);
-        }
-
-        logger.info("submitting future jobs if there are any");
-        boolean hasFutureJobs = newmanSubmitter.submitFutureJobsIfAny();
-        logger.info("hasFutureJobs: {}", hasFutureJobs);
-
-        // NOTE exit code = -1 if there are future jobs
-        if (hasFutureJobs) {
-            newmanSubmitter.tearDown();
-            System.exit(-1);
-        }
-
-        if (mode.equals("DAILY")) {
-            Build buildToRun = newmanSubmitter.getBuildToRun(branch, tags, mode);
-            if (buildToRun != null) {
-
-                int numOfRunningJobs = Integer.parseInt(newmanSubmitter.newmanClient.hasRunningJobs().toCompletableFuture().get());
-
-                if (numOfRunningJobs == 0) {
-                    newmanSubmitter.submitJobs(buildToRun, getDailySuiteToSubmit(), mode);
-                }
-            }
-        }
-
-        System.exit(0);
-    }
-
-    private static ArrayList<String> getDailySuiteToSubmit() throws IOException {
+    private static List<String> getDailySuiteToSubmit() throws IOException {
         Profile.Section main = properties.get("main");
         List<String> suitesList = Arrays.asList((main.fetch("DAILY_SUITES_LIST")).split(","));
         String prevSuiteId = main.fetch("LAST_DAILY_SUITE");
-        if(prevSuiteId == null || prevSuiteId.equals("")){
-         prevSuiteId = suitesList.get(suitesList.size()-1);
-         logger.warn("corrupted env - LAST_DAILY_SUITE was empty - running from beginning of DAILY_SUITES_LIST");
+        if (prevSuiteId == null || prevSuiteId.equals("")) {
+            prevSuiteId = suitesList.get(suitesList.size() - 1);
+            logger.warn("corrupted env - LAST_DAILY_SUITE was empty - running from beginning of DAILY_SUITES_LIST");
         }
 
-        if(suitesList.contains(prevSuiteId)){
+        if (suitesList.contains(prevSuiteId)) {
             String nextSuiteId = suitesList.get((suitesList.indexOf(prevSuiteId) + 1) % suitesList.size());
             main.put("LAST_DAILY_SUITE", nextSuiteId);
             properties.store();
@@ -270,6 +274,17 @@ public class NewmanSubmitter {
     private static List<String> getNightlySuitesToSubmit() {
         Profile.Section main = properties.get("main");
         return Arrays.asList((main.fetch("NIGHTLY_SUITES_LIST")).split(","));
+    }
+
+    private static boolean isNightlyRequired() {
+        Profile.Section main = properties.get("main");
+        String last_nightly_run = main.fetch("LAST_NIGHTLY_RUN");
+        if(last_nightly_run == null || last_nightly_run.equals("")){
+            return true;
+        }
+        LocalDate prevRun = LocalDate.parse(last_nightly_run, DateTimeFormatter.ofPattern("yyy/MM/dd"));
+        LocalDate now = LocalDate.now();
+        return !prevRun.isEqual(now);
     }
 
     private Build getBuildToRun(String branch, String tags, String mode) {
