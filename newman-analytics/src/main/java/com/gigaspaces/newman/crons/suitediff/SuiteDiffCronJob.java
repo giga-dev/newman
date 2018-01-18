@@ -119,7 +119,6 @@ public class SuiteDiffCronJob implements CronJob {
         htmlTemplate.setAttribute("latestBuildName", latestBuild.getName());
         htmlTemplate.setAttribute("latestBuildDate", simpleDateFormat.format(latestBuild.getBuildTime()));
         htmlTemplate.setAttribute("latestBuildDuration", toHumanReadableDuration(calculateBuildDurationInMillis(latest_mapSuite2Job)));
-        calculateBuildDurationInMillis(latest_mapSuite2Job);
 
         htmlTemplate.setAttribute("previousBuildBranch", previousBuild.getBranch());
         htmlTemplate.setAttribute("previousUrl", buildRestUrl + previousBuild.getId());
@@ -211,12 +210,15 @@ public class SuiteDiffCronJob implements CronJob {
     }
 
     private long calculateBuildDurationInMillis(Map<String, Job> mapSuite2Job) {
-        long totalTime = 0;
+        long minStartTime = Long.MAX_VALUE;
+        long maxEndTime = 0;
         for (Job job : mapSuite2Job.values()) {
-            if( job.getState() != State.BROKEN ) {
-                totalTime += (job.getEndTime().getTime() - job.getStartTime().getTime());
+            if( State.DONE.equals(job.getState())) {
+                minStartTime = Math.min(minStartTime, job.getStartTime().getTime());
+                maxEndTime = Math.max(maxEndTime, job.getEndTime().getTime());
             }
         }
+        long totalTime = Math.max(0, maxEndTime - minStartTime);
         return totalTime;
     }
 
