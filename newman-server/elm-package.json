@@ -1,0 +1,26 @@
+{
+    "version": "1.0.0",
+    "summary": "Newman UI",
+    "repository": "https://github.com/Giga-dev/newman/",
+    "license": "BSD3",
+    "source-directories": [
+        "web/elm"
+    ],
+    "exposed-modules": [],
+    "dependencies": {
+        "NoRedInk/elm-decode-pipeline": "3.0.0 <= v < 4.0.0",
+        "elm-lang/core": "5.0.0 <= v < 6.0.0",
+        "elm-lang/html": "2.0.0 <= v < 3.0.0",
+        "elm-lang/http": "1.0.0 <= v < 2.0.0",
+        "elm-lang/navigation": "2.1.0 <= v < 3.0.0",
+        "elm-lang/svg": "2.0.0 <= v < 3.0.0",
+        "elm-lang/websocket": "1.0.2 <= v < 2.0.0",
+        "evancz/elm-markdown": "3.0.1 <= v < 4.0.0",
+        "evancz/url-parser": "2.0.1 <= v < 3.0.0",
+        "jschomay/elm-paginate": "3.0.0 <= v < 4.0.0",
+        "mgold/elm-date-format": "1.4.2 <= v < 2.0.0",
+        "rluiten/elm-date-extra": "9.2.1 <= v < 10.0.0",
+        "rundis/elm-bootstrap": "3.0.0 <= v < 4.0.0"
+    },
+    "elm-version": "0.18.0 <= v < 0.19.0"
+}
