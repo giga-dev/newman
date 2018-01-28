@@ -1,10 +1,10 @@
 {
     "version": "1.0.0",
     "summary": "Newman UI",
-    "repository": "https://github.com/Giga-dev/newman/",
+    "repository": "https://github.com/Giga-dev/newman.git",
     "license": "BSD3",
     "source-directories": [
-        "web/elm"
+        "web/elm/src"
     ],
     "exposed-modules": [],
     "dependencies": {
