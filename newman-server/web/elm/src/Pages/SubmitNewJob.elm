@@ -1,8 +1,8 @@
 module Pages.SubmitNewJob exposing (..)
 
-import Http exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Http exposing (..)
 import Json.Decode exposing (Decoder, int)
 import Json.Decode.Pipeline exposing (decode, required)
 
@@ -62,7 +62,7 @@ getBuildsAndSuitesCmd =
 
 getBuildsAndSuites : Http.Request BuildsAndSuites
 getBuildsAndSuites =
-    Http.get ("/api/newman/all-builds-and-suites") buildsAndSuitesDecoder
+    Http.get "/api/newman/all-builds-and-suites" buildsAndSuitesDecoder
 
 
 
@@ -85,29 +85,29 @@ view model =
         toOption data =
             option [ value data.id ] [ text data.name ]
     in
-        div [ id "page-wrapper" ]
-            [ div [ class "container-fluid" ]
-                [ div [ class "row" ]
-                    [ div [ class "col-lg-12" ]
-                        [ h1 [ class "page-header" ]
-                            [ text "Submit New Job" ]
-                        ]
-                    ]
-                , div [ class "row" ]
-                    [ select []
-                        ([ option [ value "1" ] [ text "Select a Suite" ]
-                         ]
-                            ++ List.map toOption model.buildsAndSuites.suites
-                        )
-                    , br [] []
-                    , select []
-                        ([ option [ value "1" ] [ text "Select a Build" ]
-                         ]
-                            ++ List.map toOption model.buildsAndSuites.builds
-                        )
+    div [ id "page-wrapper" ]
+        [ div [ class "container-fluid" ]
+            [ div [ class "row" ]
+                [ div [ class "col-lg-12" ]
+                    [ h1 [ class "page-header" ]
+                        [ text "Submit New Job" ]
                     ]
                 ]
+            , div [ class "row" ]
+                [ select []
+                    ([ option [ value "1" ] [ text "Select a Suite" ]
+                     ]
+                        ++ List.map toOption model.buildsAndSuites.suites
+                    )
+                , br [] []
+                , select []
+                    ([ option [ value "1" ] [ text "Select a Build" ]
+                     ]
+                        ++ List.map toOption model.buildsAndSuites.builds
+                    )
+                ]
             ]
+        ]
 
 
 decodeBuild : Json.Decode.Decoder Build

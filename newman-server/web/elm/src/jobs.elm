@@ -1,19 +1,19 @@
 port module Main exposing (..)
 
+import Date exposing (Date)
+import Date.Extra.Config.Config_en_au exposing (config)
+import Date.Extra.Duration as Duration
+import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
+import Date.Format
 import Html exposing (..)
-import Html.Events exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Http
 import Json.Decode exposing (Decoder, int)
 import Json.Decode.Pipeline exposing (decode, required)
-import Date exposing (Date)
-import Date.Format
-import Date.Extra.Config.Config_en_au exposing (config)
-import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
-import Date.Extra.Duration as Duration
+import Paginate exposing (..)
 import Task
 import Time exposing (Time)
-import Paginate exposing (..)
 
 
 main : Program Never Model Msg
@@ -46,8 +46,11 @@ type alias Model =
 init : ( Model, Cmd Msg )
 init =
     let
-        maxEntries = 40
-        pageSize = 10
+        maxEntries =
+            40
+
+        pageSize =
+            10
     in
     ( Model [] (Paginate.fromList pageSize []) pageSize maxEntries 0, Cmd.batch [ getJobsCmd maxEntries, getTime ] )
 
@@ -74,16 +77,16 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case (Debug.log "msg" msg) of
+    case Debug.log "msg" msg of
         UpdateMaxEntries newValue ->
             let
                 maxEntries =
-                    (String.toInt newValue |> Result.toMaybe |> Maybe.withDefault 1)
+                    String.toInt newValue |> Result.toMaybe |> Maybe.withDefault 1
 
                 a =
                     Debug.log "aa" maxEntries
             in
-                ( { model | maxEntries = maxEntries }, getJobsCmd maxEntries )
+            ( { model | maxEntries = maxEntries }, getJobsCmd maxEntries )
 
         GetJobsCompleted result ->
             onGetJobsCompleted model result
@@ -92,19 +95,19 @@ update msg model =
             ( { model | currTime = time }, Cmd.none )
 
         First ->
-            ( { model | pag = Paginate.first model.pag } , Cmd.none )
+            ( { model | pag = Paginate.first model.pag }, Cmd.none )
 
         Prev ->
-            ( { model | pag = Paginate.prev model.pag } , Cmd.none )
+            ( { model | pag = Paginate.prev model.pag }, Cmd.none )
 
         Next ->
-            ( { model | pag = Paginate.next model.pag } , Cmd.none )
+            ( { model | pag = Paginate.next model.pag }, Cmd.none )
 
         Last ->
-            ( { model | pag = Paginate.last model.pag } , Cmd.none )
+            ( { model | pag = Paginate.last model.pag }, Cmd.none )
 
         GoTo i ->
-            ( { model | pag = Paginate.goTo i model.pag } , Cmd.none )
+            ( { model | pag = Paginate.goTo i model.pag }, Cmd.none )
 
 
 
@@ -123,7 +126,7 @@ viewItem job =
         progress =
             div [ class "progress" ]
                 [ div [ class "progress-bar" ]
-                    [ text ((toString progressPercent) ++ "%")
+                    [ text (toString progressPercent ++ "%")
                     ]
                 ]
 
@@ -136,22 +139,22 @@ viewItem job =
             Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat job.submitTime))
 
         submittedTimeDiff =
-            (Duration.diff (Date.fromTime (toFloat job.submitTime)) (Date.fromTime (toFloat job.submitTime - 10000000)))
+            Duration.diff (Date.fromTime (toFloat job.submitTime)) (Date.fromTime (toFloat job.submitTime - 10000000))
 
         submittedTimeText =
-            (toString submittedTimeDiff.hour) ++ "h, " ++ (toString submittedTimeDiff.minute) ++ "m"
+            toString submittedTimeDiff.hour ++ "h, " ++ toString submittedTimeDiff.minute ++ "m"
     in
-        tr []
-            [ td [] [ text job.state ]
-            , td [] [ progress ]
-            , td [] [ text job.id ]
-            , td [] [ text job.suiteName ]
-            , td [] [ text "duration0" ]
-            , td [ title submittedTimeHour ] [ text submittedTimeText ]
-            , td [] [ a [ href job.buildId ] [ text job.buildName ] ]
-            , td [] [ text job.submittedBy ]
-            , td [] [ text (toString (List.length job.preparingAgents)) ]
-            ]
+    tr []
+        [ td [] [ text job.state ]
+        , td [] [ progress ]
+        , td [] [ text job.id ]
+        , td [] [ text job.suiteName ]
+        , td [] [ text "duration0" ]
+        , td [ title submittedTimeHour ] [ text submittedTimeText ]
+        , td [] [ a [ href job.buildId ] [ text job.buildName ] ]
+        , td [] [ text job.submittedBy ]
+        , td [] [ text (toString (List.length job.preparingAgents)) ]
+        ]
 
 
 view : Model -> Html Msg
@@ -181,30 +184,30 @@ view model =
                 ]
                 [ text <| toString index ]
     in
-        div [ class "container" ] <|
-            [ h2 [ class "text-center" ] [ text "Jobs" ]
-            , h3 [] [ text ("Time: " ++ (toString model.currTime)) ]
-            , input [ onInput UpdateMaxEntries, type_ "number", value (toString model.maxEntries) ] []
-            , table [ width 1200 ]
-                (List.append
-                    [ tr []
-                        [ td [] [ text "State" ]
-                        , td [] [ text "Progess" ]
-                        , td [] [ text "Job Id" ]
-                        , td [] [ text "Suite" ]
-                        , td [] [ text "Duration" ]
-                        , td [] [ text "Submitted At" ]
-                        , td [] [ text "Build" ]
-                        , td [] [ text "Submitted By" ]
-                        , td [] [ text "# preparing agents" ]
-                        ]
+    div [ class "container" ] <|
+        [ h2 [ class "text-center" ] [ text "Jobs" ]
+        , h3 [] [ text ("Time: " ++ toString model.currTime) ]
+        , input [ onInput UpdateMaxEntries, type_ "number", value (toString model.maxEntries) ] []
+        , table [ width 1200 ]
+            (List.append
+                [ tr []
+                    [ td [] [ text "State" ]
+                    , td [] [ text "Progess" ]
+                    , td [] [ text "Job Id" ]
+                    , td [] [ text "Suite" ]
+                    , td [] [ text "Duration" ]
+                    , td [] [ text "Submitted At" ]
+                    , td [] [ text "Build" ]
+                    , td [] [ text "Submitted By" ]
+                    , td [] [ text "# preparing agents" ]
                     ]
-                    (List.map viewItem <| Paginate.page model.pag)
-                )
-            ]
-                ++ prevButtons
-                ++ [ span [] <| Paginate.pager pagerButtonView model.pag ]
-                ++ nextButtons
+                ]
+                (List.map viewItem <| Paginate.page model.pag)
+            )
+        ]
+            ++ prevButtons
+            ++ [ span [] <| Paginate.pager pagerButtonView model.pag ]
+            ++ nextButtons
 
 
 
@@ -258,7 +261,7 @@ getJobsCmd limit =
 
 getJobs : Int -> Http.Request Jobs
 getJobs limit =
-    Http.get ("http://localhost:8080/api/newman/job?limit=" ++ (toString limit) ++ "&orderBy=-submitTime") decodeJobs
+    Http.get ("http://localhost:8080/api/newman/job?limit=" ++ toString limit ++ "&orderBy=-submitTime") decodeJobs
 
 
 
@@ -286,7 +289,7 @@ onGetJobsCompleted model result =
                 a =
                     Debug.log "onGetJobsCompleted" err
             in
-                ( model, Cmd.none )
+            ( model, Cmd.none )
 
 
 
