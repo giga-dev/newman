@@ -5,6 +5,8 @@ import Html.Attributes exposing (..)
 import Http
 import Navigation exposing (..)
 import UrlParser exposing (..)
+import Pages.SubmitNewJob as SubmitNewJob exposing (..)
+import Pages.Jobs as Jobs exposing (..)
 
 
 main : Program Never Model Msg
@@ -18,13 +20,17 @@ main =
 
 
 type Route
-    = SubmitNewJobRoute
+    = HomeRoute
+    | SubmitNewJobRoute
+    | JobsRoute
 
 
 route : Parser (Route -> a) a
 route =
     oneOf
-        [ UrlParser.map SubmitNewJobRoute (UrlParser.s "submit-new-job")
+        [ UrlParser.map HomeRoute (UrlParser.s "home")
+        , UrlParser.map JobsRoute (UrlParser.s "jobs")
+        , UrlParser.map SubmitNewJobRoute (UrlParser.s "submit-new-job")
         ]
 
 
@@ -36,12 +42,15 @@ locFor location =
 
 type alias Model =
     { currentRoute : Route
+    , submitNewJobModel : SubmitNewJob.Model
+    , jobsModel : Jobs.Model
     }
 
 
 type Msg
     = GoTo (Maybe Route)
-    | GetBuildsAndSuitesCompleted (Result Http.Error BuildsAndSuites)
+    | SubmitNewJobMsg SubmitNewJob.Msg
+    | JobsMsg Jobs.Msg
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -53,31 +62,47 @@ init location =
                     route
 
                 Nothing ->
-                    SubmitNewJobRoute
+                    HomeRoute
 
+        ( submitNewJobModel, submitNewJobCmd ) =
+            SubmitNewJob.init
+
+        ( jobsModel, jobsCmd ) =
+            Jobs.init
     in
-        ( Model tempRoute, getBuildsAndSuitesCmd )
+        ( Model tempRoute submitNewJobModel jobsModel
+        , Cmd.batch
+            [ submitNewJobCmd |> Cmd.map SubmitNewJobMsg
+            , jobsCmd |> Cmd.map JobsMsg
+            ]
+        )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        GoTo maybeRoute ->
-            case maybeRoute of
-                Just route ->
-                    ( { model | currentRoute = route }, Cmd.none )
+        case ( msg, model.currentRoute ) of
+            ( GoTo maybeRoute, _ ) ->
+                case maybeRoute of
+                    Just route ->
+                        ( { model | currentRoute = route }, Cmd.none )
 
-                Nothing ->
-                    ( model, Cmd.none )
+                    Nothing ->
+                        ( model, Cmd.none )
 
-        GetBuildsAndSuitesCompleted result ->
-            case result of
-                Ok data ->
-                    ( { model | buildsAndSuites = data }, Cmd.none )
+            ( SubmitNewJobMsg subMsg, _ ) ->
+                let
+                    (updatedSubModel, subCmd) = SubmitNewJob.update subMsg model.submitNewJobModel
+                in
+                    ( { model | submitNewJobModel = updatedSubModel } , Cmd.map SubmitNewJobMsg subCmd)
 
-                Err err ->
-                    -- log error
-                    ( model, Cmd.none )
+
+
+            ( JobsMsg subMsg, _ ) ->
+                let
+                    (updatedSubModel, subCmd) = Jobs.update subMsg model.jobsModel
+                in
+                    ( { model | jobsModel = updatedSubModel } , Cmd.map JobsMsg subCmd)
+
 
 
 topNavBar : Html Msg
@@ -98,22 +123,22 @@ topNavBar =
 
 leftNavBar : Html Msg
 leftNavBar =
-    div [ class "collapse navbar-collapse navbar-ex1-collapse" ]
-        [ ul [ class "nav navbar-nav side-nav" ]
-            [ li [ class "active" ]
-                [ a [ href "#first" ]
-                    [ text "First Page" ]
-                ]
-            , li [ class "" ]
-                [ a [ href "#second" ]
-                    [ text "Second Page" ]
-                ]
-            , li [ class "" ]
-                [ a [ href "#admin" ]
-                    [ text "admin" ]
-                ]
+    let
+        pages =
+            [ ( "Home", "#home" ), ( "Submit New Job", "#submit-new-job" ), ( "Jobs", "#jobs" ) ]
+    in
+        div [ class "collapse navbar-collapse navbar-ex1-collapse" ]
+            [ ul [ class "nav navbar-nav side-nav" ]
+                (List.map
+                    (\( name, ref ) ->
+                        li [ class "" ]
+                            [ a [ href ref ]
+                                [ text name ]
+                            ]
+                    )
+                    pages
+                )
             ]
-        ]
 
 
 bodyWrapper : Html Msg -> Html Msg
@@ -137,11 +162,22 @@ viewBody : Model -> Html Msg
 viewBody model =
     case model.currentRoute of
         SubmitNewJobRoute ->
-            viewSubmitNewJob model
+            SubmitNewJob.view model.submitNewJobModel |> Html.map SubmitNewJobMsg
 
+        JobsRoute ->
+            Jobs.view model.jobsModel |> Html.map JobsMsg
 
-
---            bodyWrapper (text ("Hello there 2" ++ (toString model.currentRoute)))
+        HomeRoute ->
+            div [ id "page-wrapper" ]
+                [ div [ class "container-fluid" ]
+                    [ div [ class "row" ]
+                        [ div [ class "col-lg-12" ]
+                            [ h1 [ class "page-header" ]
+                                [ text "Home Page" ]
+                            ]
+                        ]
+                    ]
+                ]
 
 
 view : Model -> Html Msg
@@ -153,68 +189,3 @@ view model =
             ]
         , viewBody model
         ]
-
-
-viewSubmitNewJob : Model -> Html Msg
-viewSubmitNewJob model =
-    let
-        toOption data =
-            option [ value data.id ] [ text data.name ]
-    in
-        div [ id "page-wrapper" ]
-            [ div [ class "container-fluid" ]
-                [ div [ class "row" ]
-                    [ div [ class "col-lg-12" ]
-                        [ h1 [ class "page-header" ]
-                            [ text "Submit New Job" ]
-                        ]
-                    ]
-                , div [ class "row" ]
-                    [ select []
-                        ([ option [ value "1" ] [ text "Select a Suite" ]
-                         ]
-                            ++ List.map toOption model.buildsAndSuites.suites
-                        )
-                    , br [] []
-                    , select []
-                        ([ option [ value "1" ] [ text "Select a Build" ]
-                         ]
-                            ++ List.map toOption model.buildsAndSuites.builds
-                        )
-                    ]
-                ]
-            ]
-
-
-
----
-
-type alias Build =
-    { id : String
-    , name : String
-    , branch : String
-    , tags : List String
-    }
-
-
-type alias Suite =
-    { id : String
-    , name : String
-    , customVariables : String
-    }
-
-
-type alias BuildsAndSuites =
-    { suites : List Suite
-    , builds : List Build
-    }
-
-
-getBuildsAndSuitesCmd : Cmd Msg
-getBuildsAndSuitesCmd =
-    Http.send GetBuildsAndSuitesCompleted getBuildsAndSuites
-
-
-getBuildsAndSuites : Http.Request BuildsAndSuites
-getBuildsAndSuites =
-    Http.get ("http://localhost:8080/api/newman/all-builds-and-suites") buildsAndSuitesDecoder
