@@ -41,7 +41,7 @@ type alias Model =
 
 type Msg
     = GoTo (Maybe Route)
-    | GetBuildsAndSuitesCompleted (Result Http.Error Jobs)
+    | GetBuildsAndSuitesCompleted (Result Http.Error BuildsAndSuites)
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -54,8 +54,9 @@ init location =
 
                 Nothing ->
                     SubmitNewJobRoute
+
     in
-        ( Model tempRoute, Cmd.none )
+        ( Model tempRoute, getBuildsAndSuitesCmd )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -67,6 +68,15 @@ update msg model =
                     ( { model | currentRoute = route }, Cmd.none )
 
                 Nothing ->
+                    ( model, Cmd.none )
+
+        GetBuildsAndSuitesCompleted result ->
+            case result of
+                Ok data ->
+                    ( { model | buildsAndSuites = data }, Cmd.none )
+
+                Err err ->
+                    -- log error
                     ( model, Cmd.none )
 
 
@@ -147,34 +157,37 @@ view model =
 
 viewSubmitNewJob : Model -> Html Msg
 viewSubmitNewJob model =
-    div [ id "page-wrapper" ]
-        [ div [ class "container-fluid" ]
-            [ div [ class "row" ]
-                [ div [ class "col-lg-12" ]
-                    [ h1 [ class "page-header" ]
-                        [ text "Submit New Job" ]
+    let
+        toOption data =
+            option [ value data.id ] [ text data.name ]
+    in
+        div [ id "page-wrapper" ]
+            [ div [ class "container-fluid" ]
+                [ div [ class "row" ]
+                    [ div [ class "col-lg-12" ]
+                        [ h1 [ class "page-header" ]
+                            [ text "Submit New Job" ]
+                        ]
                     ]
-                ]
-            , div [ class "row" ]
-                [ select []
-                    [ option [ value "1" ] [ text "Select a Suite" ]
-                    , option [ value "1" ] [ text "first" ]
-                    , option [ value "1" ] [ text "first" ]
-                    ]
-                , br [] []
-                , select []
-                    [ option [ value "1" ] [ text "Select a Build" ]
-                    , option [ value "1" ] [ text "first" ]
-                    , option [ value "1" ] [ text "first" ]
+                , div [ class "row" ]
+                    [ select []
+                        ([ option [ value "1" ] [ text "Select a Suite" ]
+                         ]
+                            ++ List.map toOption model.buildsAndSuites.suites
+                        )
+                    , br [] []
+                    , select []
+                        ([ option [ value "1" ] [ text "Select a Build" ]
+                         ]
+                            ++ List.map toOption model.buildsAndSuites.builds
+                        )
                     ]
                 ]
             ]
-        ]
 
 
 
-----
-
+---
 
 type alias Build =
     { id : String
@@ -184,11 +197,24 @@ type alias Build =
     }
 
 
+type alias Suite =
+    { id : String
+    , name : String
+    , customVariables : String
+    }
+
+
+type alias BuildsAndSuites =
+    { suites : List Suite
+    , builds : List Build
+    }
+
+
 getBuildsAndSuitesCmd : Cmd Msg
 getBuildsAndSuitesCmd =
     Http.send GetBuildsAndSuitesCompleted getBuildsAndSuites
 
 
-getBuildsAndSuites : Int -> Http.Request Jobs
-getBuildsAndSuites limit =
-    Http.get ("http://localhost:8080/api/newman/job?limit=" ++ (toString limit) ++ "&orderBy=-submitTime") buildsAndSuitesDecoder
+getBuildsAndSuites : Http.Request BuildsAndSuites
+getBuildsAndSuites =
+    Http.get ("http://localhost:8080/api/newman/all-builds-and-suites") buildsAndSuitesDecoder
