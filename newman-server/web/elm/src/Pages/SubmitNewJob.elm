@@ -2,17 +2,26 @@ module Pages.SubmitNewJob exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick, onInput)
 import Http exposing (..)
 import Json.Decode exposing (Decoder, int)
 import Json.Decode.Pipeline exposing (decode, required)
+import Maybe exposing (withDefault)
 
 
 type Msg
     = GetBuildsAndSuitesCompleted (Result Http.Error BuildsAndSuites)
+    | UpdateSelectedSuite String
+    | UpdateSelectedBuild String
+    | SubmitNewJob (Result Http.Error FutureJob)
+    | SubmitRequested
 
 
 type alias Model =
     { buildsAndSuites : BuildsAndSuites
+    , selectedBuild : String
+    , selectedSuite : String
+    , submittedFutureJobId : FutureJob
     }
 
 
@@ -37,9 +46,13 @@ type alias BuildsAndSuites =
     }
 
 
+type alias FutureJob =
+    { id : Maybe String }
+
+
 init : ( Model, Cmd Msg )
 init =
-    ( Model (BuildsAndSuites [] []), getBuildsAndSuitesCmd )
+    ( Model (BuildsAndSuites [] []) "" "" (FutureJob Nothing), getBuildsAndSuitesCmd )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -54,6 +67,23 @@ update msg model =
                     -- log error
                     ( model, Cmd.none )
 
+        UpdateSelectedBuild build ->
+            ( { model | selectedBuild = build }, Cmd.none )
+
+        UpdateSelectedSuite suite ->
+            ( { model | selectedSuite = suite }, Cmd.none )
+
+        SubmitRequested ->
+            ( model, submitFutureJobCmd model )
+
+        SubmitNewJob result ->
+            case result of
+                Ok data ->
+                    ( { model | submittedFutureJobId = data }, Cmd.none )
+
+                Err err ->
+                    ( model, Cmd.none )
+
 
 getBuildsAndSuitesCmd : Cmd Msg
 getBuildsAndSuitesCmd =
@@ -65,18 +95,18 @@ getBuildsAndSuites =
     Http.get "/api/newman/all-builds-and-suites" buildsAndSuitesDecoder
 
 
+submitFutureJobCmd : Model -> Cmd Msg
+submitFutureJobCmd model =
+    let
+        postReq =
+            postFutureJob model.selectedBuild model.selectedSuite
+    in
+    Http.send SubmitNewJob postReq
 
-{-
-   GetBuildsAndSuitesCompleted result ->
-            case result of
-                Ok data ->
-                    ( { model | buildsAndSuites = data }, Cmd.none )
 
-                Err err ->
-                    -- log error
-                    ( model, Cmd.none )
-
--}
+postFutureJob : String -> String -> Http.Request FutureJob
+postFutureJob buildId suiteId =
+    Http.post ("../api/newman/futureJob/" ++ buildId ++ "/" ++ suiteId) Http.emptyBody futureJobDecoder
 
 
 view : Model -> Html Msg
@@ -84,6 +114,9 @@ view model =
     let
         toOption data =
             option [ value data.id ] [ text data.name ]
+
+        submittedFutureJobFormat jobId =
+            [ text ("submitted future job eith id " ++ jobId) ]
     in
     div [ id "page-wrapper" ]
         [ div [ class "container-fluid" ]
@@ -94,18 +127,21 @@ view model =
                     ]
                 ]
             , div [ class "row" ]
-                [ select []
+                [ select [ onInput UpdateSelectedSuite ]
                     ([ option [ value "1" ] [ text "Select a Suite" ]
                      ]
                         ++ List.map toOption model.buildsAndSuites.suites
                     )
                 , br [] []
-                , select []
+                , select [ onInput UpdateSelectedBuild ]
                     ([ option [ value "1" ] [ text "Select a Build" ]
                      ]
                         ++ List.map toOption model.buildsAndSuites.builds
                     )
                 ]
+            , button [ onClick SubmitRequested ] [ text "Submit Future Job" ]
+            , br [] []
+            , div [] (withDefault [ text "" ] (Maybe.map submittedFutureJobFormat model.submittedFutureJobId.id))
             ]
         ]
 
@@ -125,6 +161,12 @@ decodeSuite =
         |> Json.Decode.Pipeline.required "id" Json.Decode.string
         |> Json.Decode.Pipeline.required "name" Json.Decode.string
         |> Json.Decode.Pipeline.required "customVariables" Json.Decode.string
+
+
+futureJobDecoder : Json.Decode.Decoder FutureJob
+futureJobDecoder =
+    decode FutureJob
+        |> Json.Decode.Pipeline.required "id" (Json.Decode.maybe Json.Decode.string)
 
 
 buildsAndSuitesDecoder : Json.Decode.Decoder BuildsAndSuites
