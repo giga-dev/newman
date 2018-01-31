@@ -15,6 +15,12 @@ type Msg
     | UpdateSelectedBuild String
     | SubmitNewJob (Result Http.Error FutureJob)
     | SubmitRequested
+    | UpdatedBuildSelection BuildSelection
+
+
+type BuildSelection
+    = SelectOption
+    | FillInManually
 
 
 type alias Model =
@@ -22,6 +28,7 @@ type alias Model =
     , selectedBuild : String
     , selectedSuite : String
     , submittedFutureJobId : FutureJob
+    , buildSelection : BuildSelection
     }
 
 
@@ -52,7 +59,7 @@ type alias FutureJob =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model (BuildsAndSuites [] []) "" "" (FutureJob Nothing), getBuildsAndSuitesCmd )
+    ( Model (BuildsAndSuites [] []) "" "" (FutureJob Nothing) SelectOption, getBuildsAndSuitesCmd )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -83,6 +90,9 @@ update msg model =
 
                 Err err ->
                     ( model, Cmd.none )
+
+        UpdatedBuildSelection option ->
+            ( { model | buildSelection = option }, Cmd.none )
 
 
 getBuildsAndSuitesCmd : Cmd Msg
@@ -132,17 +142,58 @@ view model =
                      ]
                         ++ List.map toOption model.buildsAndSuites.suites
                     )
-                , br [] []
-                , select [ onInput UpdateSelectedBuild ]
-                    ([ option [ value "1" ] [ text "Select a Build" ]
-                     ]
-                        ++ List.map toOption model.buildsAndSuites.builds
-                    )
                 ]
-            , button [ onClick SubmitRequested ] [ text "Submit Future Job" ]
             , br [] []
-            , div [] (withDefault [ text "" ] (Maybe.map submittedFutureJobFormat model.submittedFutureJobId.id))
+            , selectBuildView model
             ]
+        , button [ onClick SubmitRequested ] [ text "Submit Future Job" ]
+        , br [] []
+        , div [] (withDefault [ text "" ] (Maybe.map submittedFutureJobFormat model.submittedFutureJobId.id))
+        ]
+
+
+selectBuildView : Model -> Html Msg
+selectBuildView model =
+    let
+        toOption data =
+            option [ value data.id ] [ text data.name ]
+
+        ( isSelect, isManual ) =
+            case model.buildSelection of
+                SelectOption ->
+                    ( True, False )
+
+                _ ->
+                    ( False, True )
+    in
+    div []
+        [ div
+            [ class "row" ]
+            [ radio "Select build :" (UpdatedBuildSelection SelectOption) ]
+        , div
+            [ class "row" ]
+            [ select [disabled isManual, onInput UpdateSelectedBuild ]
+                ([ option [ value "1" ] [ text "Select a Build" ]
+                 ]
+                    ++ List.map toOption model.buildsAndSuites.builds
+                )
+            ]
+        , div
+            [ class "row" ]
+            [ radio "Enter build id :" (UpdatedBuildSelection FillInManually) ]
+        , div
+            [ class "row" ]
+            [ input [disabled isSelect, onInput UpdateSelectedBuild, type_ "string"] []
+            ]
+        ]
+
+
+radio : String -> msg -> Html msg
+radio textVal msg =
+    label
+        []
+        [ input [ type_ "radio", name "font-size", onClick msg ] []
+        , text textVal
         ]
 
 
