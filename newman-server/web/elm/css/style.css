@@ -85,3 +85,7 @@ table {
 .progress-bar {
     text-align: left;
 }
+
+.pagination {
+    margin-bottom: 0px;
+}

@@ -1,5 +1,8 @@
 module Pages.Jobs exposing (..)
 
+import Bootstrap.Badge as Badge exposing (..)
+import Bootstrap.Form
+import Bootstrap.Form.Input
 import Bootstrap.Progress as Progress exposing (..)
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
@@ -155,57 +158,91 @@ view : Model -> Html Msg
 view model =
     let
         prevButtons =
-            [ button [ onClick First, disabled <| Paginate.isFirst model.jobs ] [ text "<<" ]
-            , button [ onClick Prev, disabled <| Paginate.isFirst model.jobs ] [ text "<" ]
+            [ li [ class "page-item", classList [ ( "disabled", Paginate.isFirst model.jobs ) ], onClick First ]
+                [ button [ class "page-link" ] [ text "«" ]
+                ]
+            , li [ class "page-item", classList [ ( "disabled", Paginate.isFirst model.jobs ) ], onClick Prev ]
+                [ button [ class "page-link" ] [ text "‹" ]
+                ]
             ]
 
         nextButtons =
-            [ button [ onClick Next, disabled <| Paginate.isLast model.jobs ] [ text ">" ]
-            , button [ onClick Last, disabled <| Paginate.isLast model.jobs ] [ text ">>" ]
+            [ li [ class "page-item", classList [ ( "disabled", Paginate.isLast model.jobs ) ], onClick Next ]
+                [ button [ class "page-link" ] [ text "›" ]
+                ]
+            , li [ class "page-item", classList [ ( "disabled", Paginate.isLast model.jobs ) ], onClick Last ]
+                [ button [ class "page-link" ] [ text "»" ]
+                ]
             ]
 
         pagerButtonView index isActive =
-            button
-                [ style
-                    [ ( "font-weight"
-                      , if isActive then
-                            "bold"
-                        else
-                            "normal"
-                      )
-                    ]
-                , onClick <| GoTo index
-                ]
-                [ text <| toString index ]
-    in
-    div [ class "container" ] <|
-        [ h2 [ class "text-center" ] [ text "Jobs" ]
-        , h3 [] [ text ("Time: " ++ toString model.currTime) ]
-        , input [ onInput FilterQuery, placeholder "Filter" ] []
-        ]
-            ++ prevButtons
-            ++ [ span [] <| Paginate.pager pagerButtonView model.jobs ]
-            ++ nextButtons
-            ++ [ table [ width 1200 ]
-                    (List.append
-                        [ tr []
-                            [ td [] [ text "State" ]
-                            , td [] [ text "Progess" ]
-                            , td [] [ text "Job Id" ]
-                            , td [] [ text "Suite" ]
-                            , td [] [ text "Duration" ]
-                            , td [] [ text "Submitted At" ]
-                            , td [] [ text "Build" ]
-                            , td [] [ text "Submitted By" ]
-                            , td [] [ text "# preparing agents" ]
+            case isActive of
+                True ->
+                    li [ class "page-item active" ]
+                        [ button [ class "page-link" ]
+                            [ text <| toString index
+                            , span [ class "sr-only" ] [ text "(current)" ]
                             ]
                         ]
-                        (List.map viewItem <| Paginate.page model.jobs)
+
+                --                        <li class="page-item"><a class="page-link" href="#">1</a></li>
+                False ->
+                    li [ class "page-item", onClick <| GoTo index ]
+                        [ button [ class "page-link" ] [ text <| toString index ]
+                        ]
+
+        pagination =
+            nav []
+                [ ul [ class "pagination " ]
+                    (prevButtons
+                        ++ Paginate.pager pagerButtonView model.jobs
+                        ++ nextButtons
                     )
-               ]
-            ++ prevButtons
-            ++ [ span [] <| Paginate.pager pagerButtonView model.jobs ]
-            ++ nextButtons
+                ]
+
+    in
+    div [ class "container-fluid" ] <|
+        [ h2 [ class "text" ] [ text "Jobs" ]
+        , h3 [] [ text ("Time: " ++ toString model.currTime) ]
+        , Bootstrap.Form.formInline []
+            [ Bootstrap.Form.group [] [ Bootstrap.Form.Input.text [ Bootstrap.Form.Input.onInput FilterQuery, Bootstrap.Form.Input.placeholder "Filter" ] ]
+            , Bootstrap.Form.group [] [ pagination ]
+            ]
+        , table []
+            (List.append
+                [ tr []
+                    [ td [] [ text "State" ]
+                    , td [] [ text "Progess" ]
+                    , td [] [ text "Job Id" ]
+                    , td [] [ text "Suite" ]
+                    , td [] [ text "Duration" ]
+                    , td [] [ text "Submitted At" ]
+                    , td [] [ text "Build" ]
+                    , td [] [ text "Submitted By" ]
+                    , td [] [ text "# preparing agents" ]
+                    , td [] [ Badge.badgeInfo [] [ text "A" ] ]
+                    ]
+
+                {-
+                   <span class="label label-info">
+                                                       <a href="{{urlFor('job', {id: item.id, filterByStatus: 'RUNNING'})}}" class="tests-num-link">{{item.runningTests}}</a>
+                                                   </span> /
+                                                   <span class="label label-success">
+                                                       <a href="{{urlFor('job', {id: item.id, filterByStatus: 'SUCCESS'})}}" class="tests-num-link">{{item.passedTests}}</a>
+                                                   </span> /
+                                                   <span class="label label-danger">
+                                                       <a href="{{urlFor('job', {id: item.id, filterByStatus: 'FAIL'})}}" class="tests-num-link">{{item.failedTests}}</a>
+                                                   </span> /
+                                                   <span class="label label-default">
+                                                       <a href="{{urlFor('job', {id: item.id, filterByStatus: 'ALL'})}}" class="tests-num-link">{{item.totalTests}}</a>
+                                                   </span>
+
+                -}
+                ]
+                (List.map viewItem <| Paginate.page model.jobs)
+            )
+        , pagination
+        ]
 
 
 
