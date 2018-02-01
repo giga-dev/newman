@@ -181,8 +181,6 @@ view model =
     div [ class "container" ] <|
         [ h2 [ class "text-center" ] [ text "Jobs" ]
         , h3 [] [ text ("Time: " ++ toString model.currTime) ]
-
-        --        , input [ onInput UpdateMaxEntries, type_ "number", HtmlAttr.value (toString model.maxEntries) ] []
         , input [ onInput FilterQuery, placeholder "Filter" ] []
         ]
             ++ prevButtons
@@ -282,10 +280,6 @@ onGetJobsCompleted : Model -> Result Http.Error Jobs -> ( Model, Cmd Msg )
 onGetJobsCompleted model result =
     case result of
         Ok jobs ->
-            let
-                dd =
-                    Debug.log "AA" model.pageSize
-            in
             ( { model
                 | allJobs = jobs
                 , jobs = Paginate.fromList model.pageSize jobs
