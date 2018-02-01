@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import Navigation exposing (..)
+import Pages.Agents as Agents exposing (..)
 import Pages.Builds as Builds exposing (..)
 import Pages.Jobs as Jobs exposing (..)
 import Pages.SubmitNewJob as SubmitNewJob exposing (..)
@@ -25,6 +26,7 @@ type Route
     | SubmitNewJobRoute
     | JobsRoute
     | BuildsRoute
+    | AgentsRoute
 
 
 route : Parser (Route -> a) a
@@ -34,6 +36,7 @@ route =
         , UrlParser.map JobsRoute (UrlParser.s "jobs")
         , UrlParser.map SubmitNewJobRoute (UrlParser.s "submit-new-job")
         , UrlParser.map BuildsRoute (UrlParser.s "builds")
+        , UrlParser.map AgentsRoute (UrlParser.s "agents")
         ]
 
 
@@ -48,6 +51,7 @@ type alias Model =
     , submitNewJobModel : SubmitNewJob.Model
     , jobsModel : Jobs.Model
     , buildsModel : Builds.Model
+    , agentsModel : Agents.Model
     }
 
 
@@ -56,6 +60,7 @@ type Msg
     | SubmitNewJobMsg SubmitNewJob.Msg
     | JobsMsg Jobs.Msg
     | BuildsMsg Builds.Msg
+    | AgentsMsg Agents.Msg
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -77,12 +82,16 @@ init location =
 
         ( buildsModel, buildsCmd ) =
             Builds.init
+
+        ( agentsModel, agentsCmd ) =
+            Agents.init
     in
-    ( Model tempRoute submitNewJobModel jobsModel buildsModel
+    ( Model tempRoute submitNewJobModel jobsModel buildsModel agentsModel
     , Cmd.batch
         [ submitNewJobCmd |> Cmd.map SubmitNewJobMsg
         , jobsCmd |> Cmd.map JobsMsg
         , buildsCmd |> Cmd.map BuildsMsg
+        , agentsCmd |> Cmd.map AgentsMsg
         ]
     )
 
@@ -119,6 +128,13 @@ update msg model =
             in
             ( { model | buildsModel = updatedBuildsModel }, Cmd.map BuildsMsg buildsCmd )
 
+        ( AgentsMsg agentMsg, _ ) ->
+            let
+                ( updatedAgentsModel, agentsCmd ) =
+                    Agents.update agentMsg model.agentsModel
+            in
+            ( { model | agentsModel = updatedAgentsModel }, Cmd.map AgentsMsg agentsCmd )
+
 
 topNavBar : Html Msg
 topNavBar =
@@ -140,7 +156,7 @@ leftNavBar : Html Msg
 leftNavBar =
     let
         pages =
-            [ ( "Home", "#home" ), ( "Submit New Job", "#submit-new-job" ), ( "Jobs", "#jobs" ), ( "Builds", "#builds" ) ]
+            [ ( "Home", "#home" ), ( "Submit New Job", "#submit-new-job" ), ( "Jobs", "#jobs" ), ( "Builds", "#builds" ), ( "Agents", "#agents" ) ]
     in
     div [ class "collapse navbar-collapse navbar-ex1-collapse" ]
         [ ul [ class "nav navbar-nav side-nav" ]
@@ -184,6 +200,9 @@ viewBody model =
 
         BuildsRoute ->
             Builds.view model.buildsModel |> Html.map BuildsMsg
+
+        AgentsRoute ->
+            Agents.view model.agentsModel |> Html.map AgentsMsg
 
         HomeRoute ->
             div [ id "page-wrapper" ]
