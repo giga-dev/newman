@@ -2,6 +2,7 @@ module Pages.Jobs exposing (..)
 
 import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Form
+import Bootstrap.Button
 import Bootstrap.Form.Input
 import Bootstrap.Progress as Progress exposing (..)
 import Date exposing (Date)
@@ -151,6 +152,20 @@ viewItem job =
         , td [] [ a [ href job.buildId ] [ text job.buildName ] ]
         , td [] [ text job.submittedBy ]
         , td [] [ text (toString (List.length job.preparingAgents)) ]
+        , td []
+            [ Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.info ] [ text <| toString job.runningTests ]
+            , text "/ "
+            , Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.success ] [ text <| toString job.passedTests ]
+            , text "/ "
+            , Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.danger] [ text <| toString job.failedTests ]
+            , text "/ "
+            , Bootstrap.Button.button [ Bootstrap.Button.small ] [ text <| toString job.totalTests ]
+            ]
+        , td [] [
+            Bootstrap.Button.button [ Bootstrap.Button.success, Bootstrap.Button.small ] [
+                span [ class "ion-close-circled" ] []
+                ]
+            ]
         ]
 
 
@@ -199,7 +214,6 @@ view model =
                         ++ nextButtons
                     )
                 ]
-
     in
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text "Jobs" ]
@@ -220,7 +234,17 @@ view model =
                     , td [] [ text "Build" ]
                     , td [] [ text "Submitted By" ]
                     , td [] [ text "# preparing agents" ]
-                    , td [] [ Badge.badgeInfo [] [ text "A" ] ]
+                    , td []
+                        [ Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.info ] [ text "# Running" ]
+                        , text " "
+                        , Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.success ] [ text "# Passed" ]
+                        , text " "
+                        , Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.danger] [ text "# Failed" ]
+                        , text " "
+                        , Bootstrap.Button.button [ Bootstrap.Button.small ] [ text "# Total" ]
+                        ]
+                    , td []
+                        [ text "Drop" ]
                     ]
 
                 {-
@@ -263,6 +287,7 @@ decodeJob =
         |> Json.Decode.Pipeline.required "totalTests" Json.Decode.int
         |> Json.Decode.Pipeline.required "failedTests" Json.Decode.int
         |> Json.Decode.Pipeline.required "passedTests" Json.Decode.int
+        |> Json.Decode.Pipeline.required "runningTests" Json.Decode.int
 
 
 decodeJobs : Json.Decode.Decoder Jobs
@@ -282,6 +307,7 @@ type alias Job =
     , totalTests : Int
     , failedTests : Int
     , passedTests : Int
+    , runningTests : Int
     }
 
 
