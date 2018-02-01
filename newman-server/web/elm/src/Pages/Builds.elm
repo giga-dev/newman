@@ -62,10 +62,6 @@ update msg model =
                     ( { model | builds = Paginate.fromList model.pageSize buildsFromResult }, Cmd.none )
 
                 Err err ->
-                    let
-                        a =
-                            Debug.log "onGetJobsCompleted" err
-                    in
                     ( model, Cmd.none )
 
         First ->
