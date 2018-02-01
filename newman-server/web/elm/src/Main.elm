@@ -327,10 +327,10 @@ view model =
         |> Navbar.inverse
         |> Navbar.fixTop
             |> Navbar.brand [ href "#" ] [ text "Newman" ]
-            |> Navbar.items
-                [ Navbar.itemLinkActive [ href "#" ] [ text "Home" ]
-                , Navbar.itemLink [ href "#" ] [ text "Home22" ]
-                ]
+--            |> Navbar.items
+--                [ Navbar.itemLinkActive [ href "#" ] [ text "Home" ]
+--                , Navbar.itemLink [ href "#" ] [ text "Home22" ]
+--                ]
             |> Navbar.customItems
                 [ Navbar.customItem
                     (ul
