@@ -1,5 +1,7 @@
 module Main exposing (..)
 
+import Bootstrap.CDN exposing (..)
+import Bootstrap.Navbar as Navbar exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
@@ -19,7 +21,7 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         }
 
 
@@ -89,6 +91,7 @@ locFor location =
 
 type alias Model =
     { currentPage : Page
+    , navbarState : Navbar.State
     , submitNewJobModel : SubmitNewJob.Model
     , jobsModel : Jobs.Model
     , buildsModel : Builds.Model
@@ -105,6 +108,7 @@ type Msg
     | AgentsMsg Agents.Msg
     | SuitesMsg Suites.Msg
     | JobMsg Job.Msg
+    | NavbarMsg Navbar.State
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -143,8 +147,11 @@ init location =
 
                 _ ->
                     Cmd.none
+
+        ( navbarState, navbarCmd ) =
+            Navbar.initialState NavbarMsg
     in
-    ( Model currentPage submitNewJobModel jobsModel buildsModel agentsModel suitesModel
+    ( Model currentPage navbarState submitNewJobModel jobsModel buildsModel agentsModel suitesModel
     , Cmd.batch
         [ submitNewJobCmd |> Cmd.map SubmitNewJobMsg
         , jobsCmd |> Cmd.map JobsMsg
@@ -159,6 +166,9 @@ init location =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.currentPage ) of
+        ( NavbarMsg state, _ ) ->
+            ( { model | navbarState = state }, Cmd.none )
+
         ( GoTo maybeRoute, _ ) ->
             case maybeRoute of
                 Just route ->
@@ -307,10 +317,63 @@ viewBody model =
 
 view : Model -> Html Msg
 view model =
+    let
+        pages =
+            [ ( "Home", "#home" ), ( "Submit New Job", "#submit-new-job" ), ( "Jobs", "#jobs" ), ( "Builds", "#builds" ), ( "Agents", "#agents" ), ( "Suites", "#suites" ) ]
+    in
     div [ id "wrapper" ]
-        [ nav [ class "navbar navbar-inverse navbar-fixed-top", attribute "role" "navigation" ]
-            [ topNavBar
-            , leftNavBar
-            ]
+        [ Bootstrap.CDN.stylesheet
+        , Navbar.config NavbarMsg
+        |> Navbar.inverse
+        |> Navbar.fixTop
+            |> Navbar.brand [ href "#" ] [ text "Newman" ]
+            |> Navbar.items
+                [ Navbar.itemLinkActive [ href "#" ] [ text "Home" ]
+                , Navbar.itemLink [ href "#" ] [ text "Home22" ]
+                ]
+            |> Navbar.customItems
+                [ Navbar.customItem
+                    (ul
+                        [ class "nav navbar-nav side-nav" ]
+                        (List.map
+                            (\( name, ref ) ->
+                                li [ class "nav-item" ]
+                                    [ a [ class "nav-link" , href ref ]
+                                        [ text name ]
+                                    ]
+                            )
+                            pages
+                        )
+                    )
+                ]
+            |> Navbar.view model.navbarState
+
+        {-
+
+           [ ul [ class "nav navbar-nav side-nav" ]
+                       (List.map
+                           (\( name, ref ) ->
+                               li [ class "" ]
+                                   [ a [ href ref ]
+                                       [ text name ]
+                                   ]
+                           )
+                           pages
+                       )
+                   ]
+        -}
+        --                [ Navbar.itemLink [ href "#" ] [ text "Item 1" ]
+        --                , Navbar.itemLink [ href "#" ] [ text "Item 2" ]
+        --                ]
+        {- , nav [ class "navbar navbar-inverse navbar-fixed-top", attribute "role" "navigation" ]
+           [ topNavBar
+           , leftNavBar
+           ]
+        -}
         , viewBody model
         ]
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Navbar.subscriptions model.navbarState NavbarMsg

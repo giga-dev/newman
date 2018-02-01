@@ -1,6 +1,6 @@
 
 body {
-    margin-top: 100px;
+    margin-top: 100px !important;
     background-color: white;
 }
 
@@ -8,6 +8,10 @@ body {
     body {
         margin-top: 50px;
     }
+}
+
+table {
+    width: 100%
 }
 
 #page-wrapper {
@@ -31,7 +35,7 @@ body {
 @media(min-width:768px) {
     .side-nav {
         position: fixed;
-        top: 51px;
+        top: 54px;
         left: 225px;
         width: 225px;
         margin-left: -225px;
@@ -55,18 +59,22 @@ body {
     }
 }
 
-.side-nav>li>ul {
+.nav {
+    display: block !important;
+}
+
+.side-nav {
     padding: 0;
 }
 
-.side-nav>li>ul>li>a {
+.side-nav>li>a {
     display: block;
     padding: 10px 15px 10px 38px;
     text-decoration: none;
-    color: #999;
+    color: #999
 }
 
-.side-nav>li>ul>li>a:hover {
+.side-nav>li>a:hover {
     color: #fff;
 }
 
