@@ -18,7 +18,8 @@ import Time exposing (Time)
 
 
 type alias Model =
-    { jobs : PaginatedList Job
+    { allJobs : List Job
+    , jobs : PaginatedList Job
     , maxEntries : Int
     , pageSize : Int
     , currTime : Time
@@ -34,7 +35,7 @@ init =
         pageSize =
             10
     in
-    ( Model (Paginate.fromList pageSize []) pageSize maxEntries 0, Cmd.batch [ getJobsCmd maxEntries, getTime ] )
+    ( Model [] (Paginate.fromList pageSize []) maxEntries pageSize 0, Cmd.batch [ getJobsCmd maxEntries, getTime ] )
 
 
 
@@ -55,6 +56,7 @@ type Msg
     | Next
     | Prev
     | GoTo Int
+    | FilterQuery String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -88,12 +90,31 @@ update msg model =
         GoTo i ->
             ( { model | jobs = Paginate.goTo i model.jobs }, Cmd.none )
 
+        FilterQuery query ->
+            ( { model | jobs = Paginate.fromList model.pageSize (List.filter (filterQuery query) model.allJobs) }
+            , Cmd.none
+            )
+
 
 
 -----
 {-
    VIEW
 -}
+
+
+filterQuery : String -> Job -> Bool
+filterQuery query job =
+    if
+        String.length query
+            == 0
+            || String.startsWith query job.id
+            || String.startsWith query job.buildName
+            || String.startsWith query job.suiteName
+    then
+        True
+    else
+        False
 
 
 viewItem : Job -> Html msg
@@ -160,24 +181,30 @@ view model =
     div [ class "container" ] <|
         [ h2 [ class "text-center" ] [ text "Jobs" ]
         , h3 [] [ text ("Time: " ++ toString model.currTime) ]
-        , input [ onInput UpdateMaxEntries, type_ "number", HtmlAttr.value (toString model.maxEntries) ] []
-        , table [ width 1200 ]
-            (List.append
-                [ tr []
-                    [ td [] [ text "State" ]
-                    , td [] [ text "Progess" ]
-                    , td [] [ text "Job Id" ]
-                    , td [] [ text "Suite" ]
-                    , td [] [ text "Duration" ]
-                    , td [] [ text "Submitted At" ]
-                    , td [] [ text "Build" ]
-                    , td [] [ text "Submitted By" ]
-                    , td [] [ text "# preparing agents" ]
-                    ]
-                ]
-                (List.map viewItem <| Paginate.page model.jobs)
-            )
+
+        --        , input [ onInput UpdateMaxEntries, type_ "number", HtmlAttr.value (toString model.maxEntries) ] []
+        , input [ onInput FilterQuery, placeholder "Filter" ] []
         ]
+            ++ prevButtons
+            ++ [ span [] <| Paginate.pager pagerButtonView model.jobs ]
+            ++ nextButtons
+            ++ [ table [ width 1200 ]
+                    (List.append
+                        [ tr []
+                            [ td [] [ text "State" ]
+                            , td [] [ text "Progess" ]
+                            , td [] [ text "Job Id" ]
+                            , td [] [ text "Suite" ]
+                            , td [] [ text "Duration" ]
+                            , td [] [ text "Submitted At" ]
+                            , td [] [ text "Build" ]
+                            , td [] [ text "Submitted By" ]
+                            , td [] [ text "# preparing agents" ]
+                            ]
+                        ]
+                        (List.map viewItem <| Paginate.page model.jobs)
+                    )
+               ]
             ++ prevButtons
             ++ [ span [] <| Paginate.pager pagerButtonView model.jobs ]
             ++ nextButtons
@@ -255,7 +282,16 @@ onGetJobsCompleted : Model -> Result Http.Error Jobs -> ( Model, Cmd Msg )
 onGetJobsCompleted model result =
     case result of
         Ok jobs ->
-            ( { model | jobs = Paginate.fromList 10 jobs }, Cmd.none )
+            let
+                dd =
+                    Debug.log "AA" model.pageSize
+            in
+            ( { model
+                | allJobs = jobs
+                , jobs = Paginate.fromList model.pageSize jobs
+              }
+            , Cmd.none
+            )
 
         Err err ->
             let
