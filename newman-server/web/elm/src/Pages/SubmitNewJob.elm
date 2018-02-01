@@ -172,7 +172,7 @@ selectBuildView model =
             [ radio "Select build :" (UpdatedBuildSelection SelectOption) ]
         , div
             [ class "row" ]
-            [ select [disabled isManual, onInput UpdateSelectedBuild ]
+            [ select [ disabled isManual, onInput UpdateSelectedBuild ]
                 ([ option [ value "1" ] [ text "Select a Build" ]
                  ]
                     ++ List.map toOption model.buildsAndSuites.builds
@@ -183,7 +183,7 @@ selectBuildView model =
             [ radio "Enter build id :" (UpdatedBuildSelection FillInManually) ]
         , div
             [ class "row" ]
-            [ input [disabled isSelect, onInput UpdateSelectedBuild, type_ "string"] []
+            [ input [ disabled isSelect, onInput UpdateSelectedBuild, type_ "string" ] []
             ]
         ]
 

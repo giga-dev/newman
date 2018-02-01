@@ -6,11 +6,11 @@ import Http
 import Navigation exposing (..)
 import Pages.Agents as Agents exposing (..)
 import Pages.Builds as Builds exposing (..)
+import Pages.Job as Job exposing (..)
 import Pages.Jobs as Jobs exposing (..)
 import Pages.SubmitNewJob as SubmitNewJob exposing (..)
 import Pages.Suites as Suites exposing (..)
 import UrlParser exposing (..)
-import Pages.Job as Job exposing (..)
 
 
 main : Program Never Model Msg
@@ -144,16 +144,16 @@ init location =
                 _ ->
                     Cmd.none
     in
-        ( Model currentPage submitNewJobModel jobsModel buildsModel agentsModel suitesModel
-        , Cmd.batch
-            [ submitNewJobCmd |> Cmd.map SubmitNewJobMsg
-            , jobsCmd |> Cmd.map JobsMsg
-            , buildsCmd |> Cmd.map BuildsMsg
-            , agentsCmd |> Cmd.map AgentsMsg
-            , suitesCmd |> Cmd.map SuitesMsg
-            , moreCmd
-            ]
-        )
+    ( Model currentPage submitNewJobModel jobsModel buildsModel agentsModel suitesModel
+    , Cmd.batch
+        [ submitNewJobCmd |> Cmd.map SubmitNewJobMsg
+        , jobsCmd |> Cmd.map JobsMsg
+        , buildsCmd |> Cmd.map BuildsMsg
+        , agentsCmd |> Cmd.map AgentsMsg
+        , suitesCmd |> Cmd.map SuitesMsg
+        , moreCmd
+        ]
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -177,21 +177,21 @@ update msg model =
                 ( updatedSubModel, subCmd ) =
                     SubmitNewJob.update subMsg model.submitNewJobModel
             in
-                ( { model | submitNewJobModel = updatedSubModel }, Cmd.map SubmitNewJobMsg subCmd )
+            ( { model | submitNewJobModel = updatedSubModel }, Cmd.map SubmitNewJobMsg subCmd )
 
         ( JobsMsg subMsg, _ ) ->
             let
                 ( updatedSubModel, subCmd ) =
                     Jobs.update subMsg model.jobsModel
             in
-                ( { model | jobsModel = updatedSubModel }, Cmd.map JobsMsg subCmd )
+            ( { model | jobsModel = updatedSubModel }, Cmd.map JobsMsg subCmd )
 
         ( JobMsg subMsg, JobPage subModel ) ->
             let
                 ( updatedSubModel, subCmd ) =
                     Job.update subMsg subModel
             in
-                ( { model | currentPage = JobPage updatedSubModel }, Cmd.map JobMsg subCmd )
+            ( { model | currentPage = JobPage updatedSubModel }, Cmd.map JobMsg subCmd )
 
         ( JobMsg subMsg, _ ) ->
             ( model, Cmd.none )
@@ -201,21 +201,21 @@ update msg model =
                 ( updatedBuildsModel, buildsCmd ) =
                     Builds.update buildMsg model.buildsModel
             in
-                ( { model | buildsModel = updatedBuildsModel }, Cmd.map BuildsMsg buildsCmd )
+            ( { model | buildsModel = updatedBuildsModel }, Cmd.map BuildsMsg buildsCmd )
 
         ( AgentsMsg agentMsg, _ ) ->
             let
                 ( updatedAgentsModel, agentsCmd ) =
                     Agents.update agentMsg model.agentsModel
             in
-                ( { model | agentsModel = updatedAgentsModel }, Cmd.map AgentsMsg agentsCmd )
+            ( { model | agentsModel = updatedAgentsModel }, Cmd.map AgentsMsg agentsCmd )
 
         ( SuitesMsg suiteMsg, _ ) ->
             let
                 ( updatedSuitesModel, suitesCmd ) =
                     Suites.update suiteMsg model.suitesModel
             in
-                ( { model | suitesModel = updatedSuitesModel }, Cmd.map SuitesMsg suitesCmd )
+            ( { model | suitesModel = updatedSuitesModel }, Cmd.map SuitesMsg suitesCmd )
 
 
 topNavBar : Html Msg
@@ -240,18 +240,18 @@ leftNavBar =
         pages =
             [ ( "Home", "#home" ), ( "Submit New Job", "#submit-new-job" ), ( "Jobs", "#jobs" ), ( "Builds", "#builds" ), ( "Agents", "#agents" ), ( "Suites", "#suites" ) ]
     in
-        div [ class "collapse navbar-collapse navbar-ex1-collapse" ]
-            [ ul [ class "nav navbar-nav side-nav" ]
-                (List.map
-                    (\( name, ref ) ->
-                        li [ class "" ]
-                            [ a [ href ref ]
-                                [ text name ]
-                            ]
-                    )
-                    pages
+    div [ class "collapse navbar-collapse navbar-ex1-collapse" ]
+        [ ul [ class "nav navbar-nav side-nav" ]
+            (List.map
+                (\( name, ref ) ->
+                    li [ class "" ]
+                        [ a [ href ref ]
+                            [ text name ]
+                        ]
                 )
-            ]
+                pages
+            )
+        ]
 
 
 bodyWrapper : Html Msg -> Html Msg

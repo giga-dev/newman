@@ -1,13 +1,13 @@
 module Pages.Job exposing (..)
 
+import Bootstrap.Button as Button exposing (..)
+import Bootstrap.Progress as Progress exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import UrlParser exposing (Parser)
 import Http exposing (..)
 import Json.Decode
 import Json.Decode.Pipeline exposing (decode)
-import Bootstrap.Progress as Progress exposing (..)
-import Bootstrap.Button as Button exposing (..)
+import UrlParser exposing (Parser)
 
 
 type alias Model =
@@ -102,19 +102,22 @@ viewHeader job =
                     case job.state of
                         "BROKEN" ->
                             Button.danger
+
                         "DONE" ->
                             Button.success
+
                         "PAUSED" ->
                             Button.warning
+
                         _ ->
                             Button.info
             in
-                viewRow
-                    ( "State"
-                    , Button.button [ buttonColor ]
-                        [ text job.state
-                        ]
-                    )
+            viewRow
+                ( "State"
+                , Button.button [ buttonColor ]
+                    [ text job.state
+                    ]
+                )
 
         headerRows =
             []
@@ -125,14 +128,14 @@ viewHeader job =
                 , td [] [ value ]
                 ]
     in
-        table [ ] <|
-            [ buildRow
-            , progressRow
-            , stateRow
-            ]
-                ++ List.map
-                    viewRow
-                    headerRows
+    table [] <|
+        [ buildRow
+        , progressRow
+        , stateRow
+        ]
+            ++ List.map
+                viewRow
+                headerRows
 
 
 view : Model -> Html Msg
@@ -155,14 +158,14 @@ update msg model =
         d =
             Debug.log "Job.update" "was called"
     in
-        case msg of
-            GetJobInfoCompleted result ->
-                case result of
-                    Ok data ->
-                        ( { model | maybeJob = Just data }, Cmd.none )
+    case msg of
+        GetJobInfoCompleted result ->
+            case result of
+                Ok data ->
+                    ( { model | maybeJob = Just data }, Cmd.none )
 
-                    Err err ->
-                        ( model, Cmd.none )
+                Err err ->
+                    ( model, Cmd.none )
 
 
 getJobInfoCmd : JobId -> Cmd Msg

@@ -1,5 +1,6 @@
 module Pages.Jobs exposing (..)
 
+import Bootstrap.Progress as Progress exposing (..)
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Duration as Duration
@@ -14,7 +15,6 @@ import Json.Decode.Pipeline exposing (decode, required)
 import Paginate exposing (..)
 import Task
 import Time exposing (Time)
-import Bootstrap.Progress as Progress exposing (..)
 
 
 type alias Model =
@@ -34,7 +34,7 @@ init =
         pageSize =
             10
     in
-        ( Model (Paginate.fromList pageSize []) pageSize maxEntries 0, Cmd.batch [ getJobsCmd maxEntries, getTime ] )
+    ( Model (Paginate.fromList pageSize []) pageSize maxEntries 0, Cmd.batch [ getJobsCmd maxEntries, getTime ] )
 
 
 
@@ -65,7 +65,7 @@ update msg model =
                 maxEntries =
                     String.toInt newValue |> Result.toMaybe |> Maybe.withDefault 1
             in
-                ( { model | maxEntries = maxEntries }, getJobsCmd maxEntries )
+            ( { model | maxEntries = maxEntries }, getJobsCmd maxEntries )
 
         GetJobsCompleted result ->
             onGetJobsCompleted model result
@@ -117,17 +117,17 @@ viewItem job =
         submittedTimeText =
             toString submittedTimeDiff.hour ++ "h, " ++ toString submittedTimeDiff.minute ++ "m"
     in
-        tr []
-            [ td [] [ text job.state ]
-            , td [] [ progress ]
-            , td [] [ a [ href <| "#job/" ++ job.id ] [ text job.id ] ]
-            , td [] [ text job.suiteName ]
-            , td [] [ text "duration0" ]
-            , td [ title submittedTimeHour ] [ text submittedTimeText ]
-            , td [] [ a [ href job.buildId ] [ text job.buildName ] ]
-            , td [] [ text job.submittedBy ]
-            , td [] [ text (toString (List.length job.preparingAgents)) ]
-            ]
+    tr []
+        [ td [] [ text job.state ]
+        , td [] [ progress ]
+        , td [] [ a [ href <| "#job/" ++ job.id ] [ text job.id ] ]
+        , td [] [ text job.suiteName ]
+        , td [] [ text "duration0" ]
+        , td [ title submittedTimeHour ] [ text submittedTimeText ]
+        , td [] [ a [ href job.buildId ] [ text job.buildName ] ]
+        , td [] [ text job.submittedBy ]
+        , td [] [ text (toString (List.length job.preparingAgents)) ]
+        ]
 
 
 view : Model -> Html Msg
@@ -157,30 +157,30 @@ view model =
                 ]
                 [ text <| toString index ]
     in
-        div [ class "container" ] <|
-            [ h2 [ class "text-center" ] [ text "Jobs" ]
-            , h3 [] [ text ("Time: " ++ toString model.currTime) ]
-            , input [ onInput UpdateMaxEntries, type_ "number", HtmlAttr.value (toString model.maxEntries) ] []
-            , table [ width 1200 ]
-                (List.append
-                    [ tr []
-                        [ td [] [ text "State" ]
-                        , td [] [ text "Progess" ]
-                        , td [] [ text "Job Id" ]
-                        , td [] [ text "Suite" ]
-                        , td [] [ text "Duration" ]
-                        , td [] [ text "Submitted At" ]
-                        , td [] [ text "Build" ]
-                        , td [] [ text "Submitted By" ]
-                        , td [] [ text "# preparing agents" ]
-                        ]
+    div [ class "container" ] <|
+        [ h2 [ class "text-center" ] [ text "Jobs" ]
+        , h3 [] [ text ("Time: " ++ toString model.currTime) ]
+        , input [ onInput UpdateMaxEntries, type_ "number", HtmlAttr.value (toString model.maxEntries) ] []
+        , table [ width 1200 ]
+            (List.append
+                [ tr []
+                    [ td [] [ text "State" ]
+                    , td [] [ text "Progess" ]
+                    , td [] [ text "Job Id" ]
+                    , td [] [ text "Suite" ]
+                    , td [] [ text "Duration" ]
+                    , td [] [ text "Submitted At" ]
+                    , td [] [ text "Build" ]
+                    , td [] [ text "Submitted By" ]
+                    , td [] [ text "# preparing agents" ]
                     ]
-                    (List.map viewItem <| Paginate.page model.jobs)
-                )
-            ]
-                ++ prevButtons
-                ++ [ span [] <| Paginate.pager pagerButtonView model.jobs ]
-                ++ nextButtons
+                ]
+                (List.map viewItem <| Paginate.page model.jobs)
+            )
+        ]
+            ++ prevButtons
+            ++ [ span [] <| Paginate.pager pagerButtonView model.jobs ]
+            ++ nextButtons
 
 
 
@@ -262,7 +262,7 @@ onGetJobsCompleted model result =
                 a =
                     Debug.log "onGetJobsCompleted" err
             in
-                ( model, Cmd.none )
+            ( model, Cmd.none )
 
 
 
