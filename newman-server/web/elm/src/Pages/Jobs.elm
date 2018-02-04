@@ -1,9 +1,9 @@
 module Pages.Jobs exposing (..)
 
 import Bootstrap.Badge as Badge exposing (..)
-import Bootstrap.Form
-import Bootstrap.Button
-import Bootstrap.Form.Input
+import Bootstrap.Button as Button
+import Bootstrap.Form as Form
+import Bootstrap.Form.Input as FormInput
 import Bootstrap.Progress as Progress exposing (..)
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
@@ -39,7 +39,41 @@ init =
         pageSize =
             10
     in
-    ( Model [] (Paginate.fromList pageSize []) maxEntries pageSize 0, Cmd.batch [ getJobsCmd maxEntries, getTime ] )
+    ( { allJobs = []
+      , jobs = Paginate.fromList pageSize []
+      , maxEntries = maxEntries
+      , pageSize = pageSize
+      , currTime = 0
+      }
+    , Cmd.batch [ getJobsCmd maxEntries, getTime ]
+    )
+
+
+type JobState
+    = READY
+    | RUNNING
+    | DONE
+    | PAUSED
+    | BROKEN
+
+
+toJobState : String -> JobState
+toJobState str =
+    case str of
+        "RUNNING" ->
+            RUNNING
+
+        "DONE" ->
+            DONE
+
+        "PAUSED" ->
+            PAUSED
+
+        "BROKEN" ->
+            BROKEN
+
+        _ ->
+            BROKEN
 
 
 
@@ -121,8 +155,8 @@ filterQuery query job =
         False
 
 
-viewItem : Job -> Html msg
-viewItem job =
+viewItem : Model -> Job -> Html msg
+viewItem model job =
     let
         progressPercent =
             ((job.failedTests + job.passedTests) * 100) // job.totalTests
@@ -133,38 +167,90 @@ viewItem job =
                 , Progress.value <| toFloat <| progressPercent
                 ]
 
-        submittedTimeHour =
+        jobState =
+            let
+                badge =
+                    case job.state |> toJobState of
+                        BROKEN ->
+                            Badge.badgeDanger
+
+                        DONE ->
+                            Badge.badgeSuccess
+
+                        RUNNING ->
+                            Badge.badgeInfo
+
+                        PAUSED ->
+                            Badge.badgeWarning
+
+                        READY ->
+                            Badge.badge
+            in
+            badge [ class "newman-job-state-label" ] [ text job.state ]
+
+        submittedTimeHourFull =
             Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat job.submitTime))
 
-        submittedTimeDiff =
-            Duration.diff (Date.fromTime (toFloat job.submitTime)) (Date.fromTime (toFloat job.submitTime - 10000000))
+        submittedTimeHour =
+            Date.Format.format "%H:%M:%S" (Date.fromTime (toFloat job.submitTime))
 
-        submittedTimeText =
-            toString submittedTimeDiff.hour ++ "h, " ++ toString submittedTimeDiff.minute ++ "m"
+        durationText =
+            let
+                diffTime =
+                    case ( job.startTime, job.endTime ) of
+                        ( Just startTime, Just endTime ) ->
+                            Just <| Duration.diff (Date.fromTime (toFloat endTime)) (Date.fromTime (toFloat startTime))
+                        ( Just startTime, Nothing ) ->
+                            Just <| Duration.diff (Date.fromTime model.currTime) (Date.fromTime (toFloat startTime))
+                        ( _, _ ) ->
+                            Nothing
+            in
+            case diffTime of
+                Just diff ->
+                    (toString diff.hour) ++ "h, " ++ (toString diff.minute) ++ "m"
+
+                Nothing ->
+                    ""
+
+        --        submittedTimeDiff =
+        --            Duration.diff (Date.fromTime (toFloat job.submitTime)) (Date.fromTime (toFloat job.submitTime - model.currTime))
+        --
+        --        submittedTimeText =
+        --            toString submittedTimeDiff.hour ++ "h, " ++ toString submittedTimeDiff.minute ++ "m"
+        playPauseButton =
+            case toJobState job.state of
+                PAUSED ->
+                    Button.button [ Button.success, Button.small ]
+                        [ span [ class "ion-play" ] [] ]
+
+                _ ->
+                    Button.button [ Button.warning, Button.small ]
+                        [ span [ class "ion-pause" ] [] ]
     in
     tr []
-        [ td [] [ text job.state ]
+        [ td [] [ jobState ]
         , td [] [ progress ]
         , td [] [ a [ href <| "#job/" ++ job.id ] [ text job.id ] ]
         , td [] [ text job.suiteName ]
-        , td [] [ text "duration0" ]
-        , td [ title submittedTimeHour ] [ text submittedTimeText ]
+        , td [] [ text durationText ]
+        , td [ title submittedTimeHourFull ] [ text submittedTimeHour ]
         , td [] [ a [ href job.buildId ] [ text job.buildName ] ]
         , td [] [ text job.submittedBy ]
         , td [] [ text (toString (List.length job.preparingAgents)) ]
         , td []
-            [ Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.info ] [ text <| toString job.runningTests ]
+            [ Badge.badgeInfo [] [ text <| toString job.runningTests ]
             , text "/ "
-            , Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.success ] [ text <| toString job.passedTests ]
+            , Badge.badgeSuccess [] [ text <| toString job.passedTests ]
             , text "/ "
-            , Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.danger] [ text <| toString job.failedTests ]
+            , Badge.badgeDanger [] [ text <| toString job.failedTests ]
             , text "/ "
-            , Bootstrap.Button.button [ Bootstrap.Button.small ] [ text <| toString job.totalTests ]
+            , Badge.badge [] [ text <| toString job.totalTests ]
             ]
-        , td [] [
-            Bootstrap.Button.button [ Bootstrap.Button.success, Bootstrap.Button.small ] [
-                span [ class "ion-close-circled" ] []
-                ]
+        , td []
+            [ Button.button [ Button.success, Button.small ]
+                [ span [ class "ion-close" ] [] ]
+            , text " "
+            , playPauseButton
             ]
         ]
 
@@ -217,34 +303,35 @@ view model =
     in
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text "Jobs" ]
-        , h3 [] [ text ("Time: " ++ toString model.currTime) ]
-        , Bootstrap.Form.formInline []
-            [ Bootstrap.Form.group [] [ Bootstrap.Form.Input.text [ Bootstrap.Form.Input.onInput FilterQuery, Bootstrap.Form.Input.placeholder "Filter" ] ]
-            , Bootstrap.Form.group [] [ pagination ]
+
+        --        , h3 [] [ text ("Time: " ++ toString model.currTime) ]
+        , Form.formInline []
+            [ Form.group [] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+            , Form.group [] [ pagination ]
             ]
-        , table []
-            (List.append
+        , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
+            [ thead []
                 [ tr []
-                    [ td [] [ text "State" ]
-                    , td [] [ text "Progess" ]
-                    , td [] [ text "Job Id" ]
-                    , td [] [ text "Suite" ]
-                    , td [] [ text "Duration" ]
-                    , td [] [ text "Submitted At" ]
-                    , td [] [ text "Build" ]
-                    , td [] [ text "Submitted By" ]
-                    , td [] [ text "# preparing agents" ]
-                    , td []
-                        [ Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.info ] [ text "# Running" ]
+                    [ th [] [ text "State" ]
+                    , th [] [ text "Progess" ]
+                    , th [] [ text "Job Id" ]
+                    , th [] [ text "Suite" ]
+                    , th [] [ text "Duration" ]
+                    , th [] [ text "Submitted At" ]
+                    , th [] [ text "Build" ]
+                    , th [] [ text "Submitted By" ]
+                    , th [ style [ ( "width", "6%" ) ] ] [ text "# p. agents" ]
+                    , th [ style [ ( "width", "15%" ) ] ]
+                        [ Badge.badgeInfo [] [ text "# Running" ]
                         , text " "
-                        , Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.success ] [ text "# Passed" ]
+                        , Badge.badgeSuccess [] [ text "# Passed" ]
                         , text " "
-                        , Bootstrap.Button.button [ Bootstrap.Button.small, Bootstrap.Button.danger] [ text "# Failed" ]
+                        , Badge.badgeDanger [] [ text "# Failed" ]
                         , text " "
-                        , Bootstrap.Button.button [ Bootstrap.Button.small ] [ text "# Total" ]
+                        , Badge.badge [] [ text "# Total" ]
                         ]
-                    , td []
-                        [ text "Drop" ]
+                    , th [ style [ ( "width", "80px" ) ] ]
+                        [ text "Actions" ]
                     ]
 
                 {-
@@ -263,8 +350,8 @@ view model =
 
                 -}
                 ]
-                (List.map viewItem <| Paginate.page model.jobs)
-            )
+            , tbody [] (List.map (viewItem model) <| Paginate.page model.jobs)
+            ]
         , pagination
         ]
 
@@ -288,6 +375,8 @@ decodeJob =
         |> Json.Decode.Pipeline.required "failedTests" Json.Decode.int
         |> Json.Decode.Pipeline.required "passedTests" Json.Decode.int
         |> Json.Decode.Pipeline.required "runningTests" Json.Decode.int
+        |> Json.Decode.Pipeline.required "startTime" (Json.Decode.nullable Json.Decode.int)
+        |> Json.Decode.Pipeline.required "endTime" (Json.Decode.nullable Json.Decode.int)
 
 
 decodeJobs : Json.Decode.Decoder Jobs
@@ -308,6 +397,8 @@ type alias Job =
     , failedTests : Int
     , passedTests : Int
     , runningTests : Int
+    , startTime : Maybe Int
+    , endTime : Maybe Int
     }
 
 
@@ -326,6 +417,9 @@ getJobs limit =
 
 
 
+--dropJobCmd : String -> Cmd Msg
+--dropJobCmd jobId =
+--    Http.send
 --    { method = "GET"
 --    , headers = [ Http.header "Authorization" "Basic eW9oYW5hOnlvaGFuYQ==" ]
 --    , url = "http://localhost:8080/api/newman/job?limit=" ++ (toString limit) ++ "&orderBy=-submitTime"

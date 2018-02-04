@@ -1,4 +1,181 @@
 
+body{
+   font-family: sans-serif;
+   background-color:#CCC;
+}
+
+[main]{
+    background-color: #F9F9F9;
+}
+
+[drawer]{
+    background-color: #FFFFFF;
+}
+
+
+.success {
+  color: #fff;
+  background-color: #5cb85c;
+  border-color: #4cae4c;
+}
+
+.warning {
+  color: #fff;
+  background-color: #f0ad4e;
+  border-color: #eea236;
+}
+
+.primary {
+  color: #fff;
+  background-color: #337ab7;
+  border-color: #2e6da4;
+}
+
+.info {
+   color: #fff;
+   background-color: #5bc0de;
+   border-color: #46b8da;
+}
+
+.danger {
+  color: #fff;
+  background-color: #d9534f;
+  border-color: #d43f3a;
+}
+
+.label.label-header {
+    padding-left: .8em;
+    font-size: 100%;
+    color: #000;
+}
+.label-link{
+    text-decoration: underline;
+}
+
+.table-header{
+    background-color:lightgray;
+}
+
+.suite-name-font{
+    font-weight: bold;
+    color: #004d66;
+}
+
+.switch-td{
+    padding-bottom: 15px !important;
+    padding-top: 0px !important;
+}
+
+.newman-job-state-label{
+    font-size: 12px !important;
+}
+
+.newman-job-table-cell{
+    padding: 2px 0px 3px 0px;
+}
+
+.newman-build-table-cell{
+    padding: 2px 0px 3px 0px;
+}
+
+.newman-agent-table-cell{
+    padding: 2px 0px 3px 0px;
+}
+
+.succeed-row{
+    background-color: #E0FFC4 !important;
+}
+
+.broken-row{
+    background-color: #E29990 !important;
+}
+
+.default-row{
+    background-color: #F5F5F5;
+}
+
+.test-name-label{
+    color: dodgerblue;
+    font-weight: normal;
+}
+
+.newman-job-setup-optional-property-hidden{
+    visibility: hidden;
+    padding: 0px;
+    height: 0px;
+}
+.tests-num-link{
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+.hidden{
+    visibility: hidden;
+}
+.visible{
+    visibility: visible;
+}
+.word-wrap-table{
+    table-layout:fixed;
+}
+.word-wrap-td{
+    word-wrap:break-word;
+}
+.suite-dashboard-button{
+    margin-top: 3px
+}
+.red-column{
+  color:#D3212D;
+}
+.blue-column{
+  color:#0048BA;
+}
+.black-column{
+    color:#0C090A
+}
+.main-table{
+    margin-top: -25px;
+    margin-bottom: -31px;
+}
+
+.top-table-navigation{
+    margin-top: -25px;
+}
+
+.bottom-table-navigation{
+    margin-bottom: 0px;
+}
+
+.font-size-small{
+    font-size: 13px;
+}
+
+.font-size-15{
+    font-size: 15px;
+}
+
+.font-size-14{
+    font-size: 15px;
+}
+
+.failed-check-box-div{
+    margin-top: -23px;
+    margin-bottom: 23px;
+}
+
+.table-nowrap {
+    table-layout:fixed;
+}
+.table > tbody > tr > td{
+    vertical-align: middle;
+}
+.table-nowrap td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
 body {
     margin-top: 100px !important;
     background-color: white;
