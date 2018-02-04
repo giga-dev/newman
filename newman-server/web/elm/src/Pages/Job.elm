@@ -148,7 +148,7 @@ view model =
 
         Nothing ->
             div []
-                [ text "Loading..."
+                [ text "Loading Job..."
                 ]
 
 

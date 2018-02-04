@@ -7,12 +7,15 @@ import Html.Attributes exposing (..)
 import Http
 import Navigation exposing (..)
 import Pages.Agents as Agents exposing (..)
+import Pages.Build as Build exposing (..)
 import Pages.Builds as Builds exposing (..)
 import Pages.Job as Job exposing (..)
 import Pages.Jobs as Jobs exposing (..)
 import Pages.SubmitNewJob as SubmitNewJob exposing (..)
 import Pages.Suites as Suites exposing (..)
 import UrlParser exposing (..)
+import Views.JobsTable exposing (..)
+import Utils.Types exposing (..)
 
 
 main : Program Never Model Msg
@@ -33,6 +36,7 @@ type Route
     | AgentsRoute
     | SuitesRoute
     | JobRoute JobId
+    | BuildRoute BuildId
 
 
 type Page
@@ -43,6 +47,7 @@ type Page
     | AgentsPage
     | SuitesPage
     | JobPage Job.Model
+    | BuildPage Build.Model
 
 
 routeToPage : Route -> Page
@@ -69,6 +74,9 @@ routeToPage route =
         JobRoute id ->
             JobPage (Job.Model Nothing)
 
+        BuildRoute id ->
+            BuildPage (Build.Model Nothing Nothing 10)
+
 
 route : Parser (Route -> a) a
 route =
@@ -80,6 +88,7 @@ route =
         , UrlParser.map AgentsRoute (UrlParser.s "agents")
         , UrlParser.map SuitesRoute (UrlParser.s "suites")
         , UrlParser.map JobRoute (UrlParser.s "job" </> Job.parseJobId)
+        , UrlParser.map BuildRoute (UrlParser.s "build" </> Build.parseBuildId)
         ]
 
 
@@ -109,6 +118,7 @@ type Msg
     | SuitesMsg Suites.Msg
     | JobMsg Job.Msg
     | NavbarMsg Navbar.State
+    | BuildMsg Build.Msg
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -145,6 +155,9 @@ init location =
                 JobRoute id ->
                     Job.getJobInfoCmd id |> Cmd.map JobMsg
 
+                BuildRoute id ->
+                    Build.getBuildInfoCmd id |> Cmd.map BuildMsg
+
                 _ ->
                     Cmd.none
 
@@ -176,6 +189,9 @@ update msg model =
                         JobRoute id ->
                             ( { model | currentPage = routeToPage route }, Job.getJobInfoCmd id |> Cmd.map JobMsg )
 
+                        BuildRoute id ->
+                            ( { model | currentPage = routeToPage route }, Build.getBuildInfoCmd id |> Cmd.map BuildMsg )
+
                         _ ->
                             ( { model | currentPage = routeToPage route }, Cmd.none )
 
@@ -206,12 +222,22 @@ update msg model =
         ( JobMsg subMsg, _ ) ->
             ( model, Cmd.none )
 
-        ( BuildsMsg buildMsg, _ ) ->
+        ( BuildsMsg buildsMsg, _ ) ->
             let
                 ( updatedBuildsModel, buildsCmd ) =
-                    Builds.update buildMsg model.buildsModel
+                    Builds.update buildsMsg model.buildsModel
             in
             ( { model | buildsModel = updatedBuildsModel }, Cmd.map BuildsMsg buildsCmd )
+
+        ( BuildMsg subMsg, BuildPage subModel ) ->
+            let
+                ( updatedSubModel, subCmd ) =
+                    Build.update subMsg subModel
+            in
+            ( { model | currentPage = BuildPage updatedSubModel }, Cmd.map BuildMsg subCmd )
+
+        ( BuildMsg subMsg, _ ) ->
+            ( model, Cmd.none )
 
         ( AgentsMsg agentMsg, _ ) ->
             let
@@ -295,6 +321,9 @@ viewBody model =
 
         JobPage subModel ->
             Job.view subModel |> Html.map JobMsg
+
+        BuildPage subModel ->
+            Build.view subModel |> Html.map BuildMsg
 
         AgentsPage ->
             Agents.view model.agentsModel |> Html.map AgentsMsg

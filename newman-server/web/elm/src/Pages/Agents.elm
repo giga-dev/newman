@@ -115,7 +115,7 @@ view model =
     in
     div [ class "container" ] <|
         [ h2 [ class "text-center" ] [ text "Agents" ]
-        , table [ width 1200 ]
+        , table [ width 1500 ]
             (List.append
                 [ tr []
                     [ td [] [ text "Name" ]

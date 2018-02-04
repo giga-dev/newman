@@ -55,6 +55,10 @@ init =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        d =
+            Debug.log "Builds.update" "was called"
+    in
     case msg of
         GetBuildsCompleted result ->
             case result of
@@ -139,7 +143,7 @@ viewItem build =
             String.join "," build.tags
     in
     tr []
-        [ td [] [ text buildName ]
+        [ td [] [ a [ href <| "#build/" ++ build.id ] [ text buildName ] ]
         , td [] [ text buildTags ]
         , td [] [ text build.id ]
         , td [] [ text buildDate ]
