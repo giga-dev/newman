@@ -40,14 +40,6 @@ type JobState
     | BROKEN
 
 
-type alias BuildId =
-    String
-
-
-type alias Shas =
-    Dict String String
-
-
 type alias Build =
     { id : BuildId
     , name : String
@@ -58,6 +50,21 @@ type alias Build =
     , testsMetadata : List String
     , shas : Shas
     }
+
+
+type alias Builds =
+    List Build
+
+type alias PaginatedBuilds =
+    PaginatedList Build
+
+type alias BuildId =
+    String
+
+
+type alias Shas =
+    Dict String String
+
 
 toJobState : String -> JobState
 toJobState str =
@@ -101,6 +108,7 @@ decodeJobs : Json.Decode.Decoder Jobs
 decodeJobs =
     Json.Decode.field "values" (Json.Decode.list decodeJob)
 
+
 decodeBuild : Json.Decode.Decoder Build
 decodeBuild =
     decode Build
@@ -112,3 +120,7 @@ decodeBuild =
         |> Json.Decode.Pipeline.required "resources" (Json.Decode.list Json.Decode.string)
         |> Json.Decode.Pipeline.required "testsMetadata" (Json.Decode.list Json.Decode.string)
         |> Json.Decode.Pipeline.required "shas" (Json.Decode.dict Json.Decode.string)
+
+decodeBuilds : Json.Decode.Decoder Builds
+decodeBuilds =
+    Json.Decode.field "values" (Json.Decode.list decodeBuild)

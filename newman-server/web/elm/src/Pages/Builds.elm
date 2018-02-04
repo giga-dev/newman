@@ -14,25 +14,13 @@ import Json.Decode.Pipeline exposing (decode, required)
 import Paginate exposing (..)
 import Task
 import Time exposing (Time)
+import Utils.Types exposing (..)
 
 
 type alias Model =
-    { builds : PaginatedList Build
+    { builds : PaginatedBuilds
     , pageSize : Int
     }
-
-
-type alias Build =
-    { id : String
-    , name : String
-    , branch : String
-    , buildTime : Int
-    , tags : List String
-    }
-
-
-type alias Builds =
-    List Build
 
 
 type Msg
@@ -158,18 +146,3 @@ getBuildsCmd =
 getBuilds : Http.Request Builds
 getBuilds =
     Http.get "/api/newman/build" decodeBuilds
-
-
-decodeBuilds : Json.Decode.Decoder Builds
-decodeBuilds =
-    Json.Decode.field "values" (Json.Decode.list decodeBuild)
-
-
-decodeBuild : Json.Decode.Decoder Build
-decodeBuild =
-    decode Build
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
-        |> Json.Decode.Pipeline.required "branch" Json.Decode.string
-        |> Json.Decode.Pipeline.required "buildTime" Json.Decode.int
-        |> Json.Decode.Pipeline.required "tags" (Json.Decode.list Json.Decode.string)
