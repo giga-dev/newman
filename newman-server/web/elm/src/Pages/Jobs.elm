@@ -29,6 +29,7 @@ type alias Model =
     , currTime : Time
     }
 
+
 type Msg
     = UpdateMaxEntries String
     | GetJobsCompleted (Result Http.Error Jobs)
@@ -57,6 +58,7 @@ init =
    * Messages
    * Update case
 -}
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -91,7 +93,10 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    JobsTable.viewTable model.jobsTableModel model.currTime |> Html.map JobsTableMsg
+    div [ class "container-fluid" ] <|
+        [ h2 [ class "text" ] [ text "Jobs" ]
+        , JobsTable.viewTable model.jobsTableModel model.currTime |> Html.map JobsTableMsg
+        ]
 
 
 

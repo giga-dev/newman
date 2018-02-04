@@ -24,6 +24,7 @@ type alias Model =
     , currTime : Time
     }
 
+
 type Msg
     = GetBuildInfoCompleted (Result Http.Error Build)
     | GetJobsInfoCompleted (Result Http.Error Jobs)
@@ -54,7 +55,58 @@ view : Model -> Html Msg
 view model =
     case ( model.maybeBuild, model.maybeJobsTableModel ) of
         ( Just build, Just subModel ) ->
-            JobsTable.viewTable subModel model.currTime |> Html.map JobsTableMsg
+            let
+                jobsTableView =
+                    JobsTable.viewTable subModel model.currTime |> Html.map JobsTableMsg
+
+                buildDate =
+                    Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat build.buildTime))
+
+                resourcesRow =
+                    tr []
+                        [ td [ style [ ( "vertical-align", "top" ) ] ]
+                            [ text "Resources"
+                            ]
+                        , td []
+                            [ ul [] <|
+                                List.map
+                                    viewResource
+                                    build.resources
+                            ]
+                        ]
+
+                viewResource resource =
+                    li [] [ a [ href <| resource ] [ text resource ] ]
+
+                viewRow ( name, value ) =
+                    tr []
+                        [ td [ width 100 ] [ text name ]
+                        , td [] [ value ]
+                        ]
+
+                xapOpenSha =
+                    withDefault "" (Dict.get "xap-open" build.shas)
+
+                xapSha =
+                    withDefault "" (Dict.get "xap" build.shas)
+            in
+            div [ class "container-fluid" ] <|
+                [ h2 [ class "text" ] [ text <| "Details for build " ++ build.name ]
+                , table []
+                    [ viewRow ( "Build Id", text build.id )
+                    , viewRow ( "Branch", text build.branch )
+                    , viewRow ( "Tags", text <| String.join "," build.tags )
+                    , viewRow ( "Build Time", text buildDate )
+                    , resourcesRow
+                    , viewRow ( "Test Metadata", text <| String.join "," build.testsMetadata )
+                    , viewRow ( "Commits:", text "" )
+                    , viewRow ( "xap-open", a [ href <| xapOpenSha ] [ text xapOpenSha ] )
+                    , viewRow ( "xap", a [ href <| xapSha ] [ text xapSha ] )
+                    ]
+                , br [] []
+                , h2 [ class "text" ] [ text "Participate in the following jobs:" ]
+                , jobsTableView
+                ]
 
         _ ->
             div [] []
@@ -113,6 +165,3 @@ getJobsInfoCmd : BuildId -> Cmd Msg
 getJobsInfoCmd buildId =
     Http.send GetJobsInfoCompleted <|
         Http.get ("/api/newman/job?buildId=" ++ buildId ++ "&all=true") decodeJobs
-
-
-
