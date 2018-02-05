@@ -12,10 +12,11 @@ import Pages.Builds as Builds exposing (..)
 import Pages.Job as Job exposing (..)
 import Pages.Jobs as Jobs exposing (..)
 import Pages.SubmitNewJob as SubmitNewJob exposing (..)
+import Pages.Suite as Suite exposing (..)
 import Pages.Suites as Suites exposing (..)
 import UrlParser exposing (..)
-import Views.JobsTable exposing (..)
 import Utils.Types exposing (..)
+import Views.JobsTable exposing (..)
 
 
 main : Program Never Model Msg
@@ -37,6 +38,7 @@ type Route
     | SuitesRoute
     | JobRoute JobId
     | BuildRoute BuildId
+    | SuiteRoute SuiteId
 
 
 type Page
@@ -48,6 +50,7 @@ type Page
     | SuitesPage
     | JobPage Job.Model
     | BuildPage Build.Model
+    | SuitePage Suite.Model
 
 
 routeToPage : Route -> Page
@@ -77,6 +80,9 @@ routeToPage route =
         BuildRoute id ->
             BuildPage (Build.Model Nothing Nothing 10)
 
+        SuiteRoute id ->
+            SuitePage (Suite.Model Nothing)
+
 
 route : Parser (Route -> a) a
 route =
@@ -89,6 +95,7 @@ route =
         , UrlParser.map SuitesRoute (UrlParser.s "suites")
         , UrlParser.map JobRoute (UrlParser.s "job" </> Job.parseJobId)
         , UrlParser.map BuildRoute (UrlParser.s "build" </> Build.parseBuildId)
+        , UrlParser.map SuiteRoute (UrlParser.s "suite" </> Suite.parseSuiteId)
         ]
 
 
@@ -119,6 +126,7 @@ type Msg
     | JobMsg Job.Msg
     | NavbarMsg Navbar.State
     | BuildMsg Build.Msg
+    | SuiteMsg Suite.Msg
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -158,6 +166,9 @@ init location =
                 BuildRoute id ->
                     Build.getBuildInfoCmd id |> Cmd.map BuildMsg
 
+                SuiteRoute id ->
+                    Suite.getSuiteInfoCmd id |> Cmd.map SuiteMsg
+
                 _ ->
                     Cmd.none
 
@@ -191,6 +202,9 @@ update msg model =
 
                         BuildRoute id ->
                             ( { model | currentPage = routeToPage route }, Build.getBuildInfoCmd id |> Cmd.map BuildMsg )
+
+                        SuiteRoute id ->
+                            ( { model | currentPage = routeToPage route }, Suite.getSuiteInfoCmd id |> Cmd.map SuiteMsg )
 
                         _ ->
                             ( { model | currentPage = routeToPage route }, Cmd.none )
@@ -252,6 +266,16 @@ update msg model =
                     Suites.update suiteMsg model.suitesModel
             in
             ( { model | suitesModel = updatedSuitesModel }, Cmd.map SuitesMsg suitesCmd )
+
+        ( SuiteMsg subMsg, SuitePage subModel ) ->
+            let
+                ( updatedSubModel, subCmd ) =
+                    Suite.update subMsg subModel
+            in
+            ( { model | currentPage = SuitePage updatedSubModel }, Cmd.map SuiteMsg subCmd )
+
+        ( SuiteMsg subMsg, _ ) ->
+            ( model, Cmd.none )
 
 
 topNavBar : Html Msg
@@ -316,11 +340,11 @@ viewBody model =
         JobsPage ->
             Jobs.view model.jobsModel |> Html.map JobsMsg
 
-        BuildsPage ->
-            Builds.view model.buildsModel |> Html.map BuildsMsg
-
         JobPage subModel ->
             Job.view subModel |> Html.map JobMsg
+
+        BuildsPage ->
+            Builds.view model.buildsModel |> Html.map BuildsMsg
 
         BuildPage subModel ->
             Build.view subModel |> Html.map BuildMsg
@@ -330,6 +354,9 @@ viewBody model =
 
         SuitesPage ->
             Suites.view model.suitesModel |> Html.map SuitesMsg
+
+        SuitePage subModel ->
+            Suite.view subModel |> Html.map SuiteMsg
 
         HomePage ->
             div [ id "page-wrapper" ]
@@ -353,13 +380,13 @@ view model =
     div [ id "wrapper" ]
         [ Bootstrap.CDN.stylesheet
         , Navbar.config NavbarMsg
-        |> Navbar.inverse
-        |> Navbar.fixTop
+            |> Navbar.inverse
+            |> Navbar.fixTop
             |> Navbar.brand [ href "#" ] [ text "Newman" ]
---            |> Navbar.items
---                [ Navbar.itemLinkActive [ href "#" ] [ text "Home" ]
---                , Navbar.itemLink [ href "#" ] [ text "Home22" ]
---                ]
+            --            |> Navbar.items
+            --                [ Navbar.itemLinkActive [ href "#" ] [ text "Home" ]
+            --                , Navbar.itemLink [ href "#" ] [ text "Home22" ]
+            --                ]
             |> Navbar.customItems
                 [ Navbar.customItem
                     (ul
@@ -367,7 +394,7 @@ view model =
                         (List.map
                             (\( name, ref ) ->
                                 li [ class "nav-item" ]
-                                    [ a [ class "nav-link" , href ref ]
+                                    [ a [ class "nav-link", href ref ]
                                         [ text name ]
                                     ]
                             )

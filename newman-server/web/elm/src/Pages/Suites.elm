@@ -159,7 +159,7 @@ view model =
 viewSuite : Suite -> Html msg
 viewSuite suite =
     tr []
-        [ td [] [ text suite.name ]
+        [ a [ href <| "#suite/" ++ suite.id] [ text suite.name ]
         , td [] [ text suite.id ]
         , td [] [ text suite.customVariables ]
         ]

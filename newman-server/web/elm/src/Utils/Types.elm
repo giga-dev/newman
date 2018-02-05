@@ -1,14 +1,14 @@
 module Utils.Types exposing (..)
 
 import Dict exposing (Dict)
-import Json.Decode
+import Json.Decode exposing (Value)
 import Json.Decode.Pipeline exposing (decode)
+import Json.Encode
 import Paginate exposing (PaginatedList)
 
 
 type alias Jobs =
     List Job
-
 
 
 type alias Job =
@@ -89,18 +89,32 @@ type alias PaginatedAgents =
     PaginatedList Agent
 
 
-
 type alias Suite =
-    { id : String
+    { id : SuiteId
     , name : String
     , customVariables : String
     }
 
+
+type alias SuiteWithCriteria =
+    { id : SuiteId
+    , name : String
+    , customVariables : String
+    , requirements : List String
+    , criteria : String
+    }
+
+
 type alias Suites =
     List Suite
 
+
 type alias PaginatedSuites =
     PaginatedList Suite
+
+
+type alias SuiteId =
+    String
 
 
 toJobState : String -> JobState
@@ -185,6 +199,7 @@ decodeAgent =
         |> Json.Decode.Pipeline.optionalAt [ "job", "build", "name" ] (Json.Decode.maybe Json.Decode.string) Nothing
         |> Json.Decode.Pipeline.optionalAt [ "job", "suite", "name" ] (Json.Decode.maybe Json.Decode.string) Nothing
 
+
 decodeSuites : Json.Decode.Decoder Suites
 decodeSuites =
     Json.Decode.field "values" (Json.Decode.list decodeSuite)
@@ -196,3 +211,13 @@ decodeSuite =
         |> Json.Decode.Pipeline.required "id" Json.Decode.string
         |> Json.Decode.Pipeline.required "name" Json.Decode.string
         |> Json.Decode.Pipeline.required "customVariables" Json.Decode.string
+
+
+decodeSuiteWithCriteria : Json.Decode.Decoder SuiteWithCriteria
+decodeSuiteWithCriteria =
+    decode SuiteWithCriteria
+        |> Json.Decode.Pipeline.required "id" Json.Decode.string
+        |> Json.Decode.Pipeline.required "name" Json.Decode.string
+        |> Json.Decode.Pipeline.required "customVariables" Json.Decode.string
+        |> Json.Decode.Pipeline.required "requirements" (Json.Decode.list Json.Decode.string)
+        |> Json.Decode.Pipeline.required "criteria" (Json.Decode.map (Json.Encode.encode 4) Json.Decode.value)
