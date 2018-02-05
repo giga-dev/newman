@@ -109,8 +109,8 @@ viewTable model currTime =
         , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
             [ thead []
                 [ tr []
-                    [ th [] [ text "State" ]
-                    , th [] [ text "Progess" ]
+                    [ th [ class "job-tests-state" ] [ text "State" ]
+                    , th [ class "job-tests-progress" ] [ text "Progess" ]
                     , th [] [ text "Job Id" ]
                     , th [] [ text "Suite" ]
                     , th [] [ text "Duration" ]
@@ -119,13 +119,13 @@ viewTable model currTime =
                     , th [] [ text "Submitted By" ]
                     , th [ style [ ( "width", "6%" ) ] ] [ text "# p. agents" ]
                     , th [ style [ ( "width", "15%" ) ] ]
-                        [ Badge.badgeInfo [] [ text "# Running" ]
+                        [ Badge.badgeInfo [ class "job-tests-badge" ] [ text "# Running" ]
                         , text " "
-                        , Badge.badgeSuccess [] [ text "# Passed" ]
+                        , Badge.badgeSuccess [class "job-tests-badge"] [ text "# Passed" ]
                         , text " "
-                        , Badge.badgeDanger [] [ text "# Failed" ]
+                        , Badge.badgeDanger [class "job-tests-badge"] [ text "# Failed" ]
                         , text " "
-                        , Badge.badge [] [ text "# Total" ]
+                        , Badge.badge [class "job-tests-badge"] [ text "# Total" ]
                         ]
                     , th [ style [ ( "width", "80px" ) ] ]
                         [ text "Actions" ]
@@ -146,8 +146,9 @@ viewJob currTime job =
 
         progress =
             Progress.progress
-                [ Progress.label <| toString <| progressPercent
+                [ Progress.customLabel [ text <| (toString progressPercent) ++ " %" ]
                 , Progress.value <| toFloat <| progressPercent
+                , Progress.info
                 ]
 
         jobState =
@@ -217,13 +218,13 @@ viewJob currTime job =
         , td [] [ text job.submittedBy ]
         , td [] [ text (toString (List.length job.preparingAgents)) ]
         , td []
-            [ Badge.badgeInfo [] [ text <| toString job.runningTests ]
+            [ Badge.badgeInfo [class "job-tests-badge"] [ text <| toString job.runningTests ]
             , text "/ "
-            , Badge.badgeSuccess [] [ text <| toString job.passedTests ]
+            , Badge.badgeSuccess [class "job-tests-badge"] [ text <| toString job.passedTests ]
             , text "/ "
-            , Badge.badgeDanger [] [ text <| toString job.failedTests ]
+            , Badge.badgeDanger [class "job-tests-badge"] [ text <| toString job.failedTests ]
             , text "/ "
-            , Badge.badge [] [ text <| toString job.totalTests ]
+            , Badge.badge [class "job-tests-badge"] [ text <| toString job.totalTests ]
             ]
         , td []
             [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| (not <| List.member (toJobState job.state) [DONE, PAUSED, BROKEN]) && (job.runningTests /= 0)  ]

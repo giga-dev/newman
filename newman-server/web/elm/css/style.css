@@ -68,6 +68,8 @@ body{
 
 .newman-job-state-label{
     font-size: 12px !important;
+    width: 70%;
+    text-align: center;
 }
 
 .newman-job-table-cell{
@@ -175,6 +177,14 @@ body{
     text-overflow: ellipsis;
 }
 
+div.progress{
+    margin-bottom:0;
+    max-width: 100px;
+}
+div.progress-bar{
+    color:#000
+}
+
 
 body {
     margin-top: 100px !important;
@@ -255,14 +265,17 @@ table {
     color: #fff;
 }
 
-.progress {
-    margin-bottom: 0px;
-}
-
-.progress-bar {
-    text-align: left;
-}
-
 .pagination {
     margin-bottom: 0px;
+}
+
+.job-tests-badge {
+    width: 15%;
+}
+
+.job-tests-state {
+   width: 6%;
+}
+.job-tests-progress {
+   width: 6%;
 }
