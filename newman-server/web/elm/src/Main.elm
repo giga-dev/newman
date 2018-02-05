@@ -76,7 +76,7 @@ routeToPage route =
             AgentsPage
 
         JobRoute id ->
-            JobPage (Job.Model Nothing)
+            JobPage <| Job.initModel id
 
         BuildRoute id ->
             BuildPage (Build.Model Nothing Nothing 10)
@@ -167,7 +167,7 @@ init location =
         moreCmd =
             case currentRoute of
                 JobRoute id ->
-                    Job.getJobInfoCmd id |> Cmd.map JobMsg
+                    Job.initCmd id |> Cmd.map JobMsg
 
                 BuildRoute id ->
                     Build.getBuildInfoCmd id |> Cmd.map BuildMsg
@@ -437,4 +437,6 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Navbar.subscriptions model.navbarState NavbarMsg
+    Sub.batch
+        [ Navbar.subscriptions model.navbarState NavbarMsg
+        ]

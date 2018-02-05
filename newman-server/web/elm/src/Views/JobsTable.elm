@@ -214,7 +214,7 @@ viewJob currTime job =
         , td [] [ text job.suiteName ]
         , td [] [ text durationText ]
         , td [ title submittedTimeHourFull ] [ text submittedTimeHour ]
-        , td [] [ a [ href <| "#build/" ++ job.buildId ] [ text job.buildName ] ]
+        , td [] [ a [ href <| "#build/" ++ job.build.id ] [ text job.build.name ] ]
         , td [] [ text job.submittedBy ]
         , td [] [ text (toString (List.length job.preparingAgents)) ]
         , td []
@@ -305,7 +305,7 @@ filterQuery query job =
         String.length query
             == 0
             || String.startsWith query job.id
-            || String.startsWith query job.buildName
+            || String.startsWith query job.build.name
             || String.startsWith query job.suiteName
     then
         True

@@ -11,14 +11,17 @@ type alias Jobs =
     List Job
 
 
+type alias JobId =
+    String
+
 type alias Job =
     { id : String
     , submitTime : Int
     , submittedBy : String
     , state : String
     , preparingAgents : List String
-    , buildId : String
-    , buildName : String
+    , agents : List String
+    , build : Build
     , suiteName : String
     , totalTests : Int
     , failedTests : Int
@@ -26,6 +29,7 @@ type alias Job =
     , runningTests : Int
     , startTime : Maybe Int
     , endTime : Maybe Int
+    , jobSetupLogs: Dict String String
     }
 
 
@@ -158,8 +162,8 @@ decodeJob =
         |> Json.Decode.Pipeline.required "submittedBy" Json.Decode.string
         |> Json.Decode.Pipeline.required "state" Json.Decode.string
         |> Json.Decode.Pipeline.required "preparingAgents" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.requiredAt [ "build", "id" ] Json.Decode.string
-        |> Json.Decode.Pipeline.requiredAt [ "build", "name" ] Json.Decode.string
+        |> Json.Decode.Pipeline.required "agents" (Json.Decode.list Json.Decode.string)
+        |> Json.Decode.Pipeline.required "build" decodeBuild
         |> Json.Decode.Pipeline.requiredAt [ "suite", "name" ] Json.Decode.string
         |> Json.Decode.Pipeline.required "totalTests" Json.Decode.int
         |> Json.Decode.Pipeline.required "failedTests" Json.Decode.int
@@ -167,6 +171,7 @@ decodeJob =
         |> Json.Decode.Pipeline.required "runningTests" Json.Decode.int
         |> Json.Decode.Pipeline.required "startTime" (Json.Decode.nullable Json.Decode.int)
         |> Json.Decode.Pipeline.required "endTime" (Json.Decode.nullable Json.Decode.int)
+        |> Json.Decode.Pipeline.optional "jobSetupLogs" (Json.Decode.dict Json.Decode.string) Dict.empty
 
 
 decodeJobs : Json.Decode.Decoder Jobs

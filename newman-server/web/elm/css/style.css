@@ -279,3 +279,8 @@ table {
 .job-tests-progress {
    width: 6%;
 }
+
+
+td {
+    vertical-align: top;
+}

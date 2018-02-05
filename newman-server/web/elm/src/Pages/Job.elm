@@ -1,63 +1,34 @@
 module Pages.Job exposing (..)
 
-import Bootstrap.Button as Button exposing (..)
+import Bootstrap.Badge as Badge
+import Bootstrap.Button as Button
 import Bootstrap.Progress as Progress exposing (..)
+import Date
+import Date.Format
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http exposing (..)
 import Json.Decode
 import Json.Decode.Pipeline exposing (decode)
 import UrlParser exposing (Parser)
+import Utils.Types exposing (..)
 
 
 type alias Model =
     { maybeJob : Maybe Job
+    , collapseState : CollapseState
     }
 
 
-type alias JobId =
-    String
-
-
-type alias Build =
-    { id : String
-    , name : String
-    , branch : String
-    }
-
-
-type alias Suite =
-    { id : String
-    , name : String
-    , requirements : List String
-    }
-
-
-type alias Job =
-    { id : String
-    , submitTime : Int
-
-    --    , startTime : Int
-    --    , endTime : Int
-    , submittedBy : String
-    , state : String
-    , totalTests : Int
-    , passedTests : Int
-    , failedTests : Int
-    , runningTests : Int
-
-    --    , startPrepareTime : Int
-    , preparingAgents : List String
-    , agents : List String
-
-    --    , jobSetupLogs : String -- TODO - how to Dict in ELM
-    , build : Build
-    , suite : Suite
-    }
+type CollapseState
+    = Hidden
+    | Shown
 
 
 type Msg
     = GetJobInfoCompleted (Result Http.Error Job)
+    | ToggleButton
 
 
 
@@ -69,13 +40,20 @@ parseJobId =
     UrlParser.string
 
 
-init : JobId -> ( Model, Cmd Msg )
-init jobId =
-    ( Model Nothing, getJobInfoCmd jobId )
+initModel : JobId -> Model
+initModel jobId =
+    { maybeJob = Nothing
+    , collapseState = Hidden
+    }
 
 
-viewHeader : Job -> Html Msg
-viewHeader job =
+initCmd : JobId -> Cmd Msg
+initCmd jobId =
+    getJobInfoCmd jobId
+
+
+viewHeader : Model -> Job -> Html Msg
+viewHeader model job =
     let
         buildRow =
             tr []
@@ -96,42 +74,102 @@ viewHeader job =
                     ]
                 )
 
+        dateFormat maybeDate =
+            case maybeDate of
+                Just date ->
+                    Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat date))
+
+                Nothing ->
+                    "N/A"
+
         stateRow =
             let
-                buttonColor =
-                    case job.state of
-                        "BROKEN" ->
-                            Button.danger
+                badge =
+                    case job.state |> toJobState of
+                        BROKEN ->
+                            Badge.badgeDanger
 
-                        "DONE" ->
-                            Button.success
+                        DONE ->
+                            Badge.badgeSuccess
 
-                        "PAUSED" ->
-                            Button.warning
+                        RUNNING ->
+                            Badge.badgeInfo
 
-                        _ ->
-                            Button.info
+                        PAUSED ->
+                            Badge.badgeWarning
+
+                        READY ->
+                            Badge.badge
             in
             viewRow
                 ( "State"
-                , Button.button [ buttonColor ]
-                    [ text job.state
-                    ]
+                , badge [] [ text job.state ]
                 )
 
+        testsStatus =
+            [ Badge.badgeInfo [] [ text <| toString job.runningTests ]
+            , text "/ "
+            , Badge.badgeSuccess [] [ text <| toString job.passedTests ]
+            , text "/ "
+            , Badge.badgeDanger [] [ text <| toString job.failedTests ]
+            , text "/ "
+            , Badge.badge [] [ text <| toString job.totalTests ]
+            ]
+
+        jobToT ( key, val ) =
+            li []
+                [ a [ href val ] [ text key ]
+                , text " "
+                , a [ href <| val ++ "?download=true" ] [ text "[Download]" ]
+                ]
+
+        jobSetupLogsData =
+            div [ classList [ ( "collapse", model.collapseState == Hidden ), ( "collapse.show", model.collapseState == Shown ) ] ]
+                [ ul [] <|
+                    List.map jobToT
+                        (Dict.toList job.jobSetupLogs)
+                ]
+
+        jobSetupButton =
+            let
+                tt =
+                    case model.collapseState of
+                        Hidden ->
+                            "ion-chevron-down"
+
+                        Shown ->
+                            "ion-chevron-up"
+            in
+            Button.button [ Button.success, Button.small, Button.onClick ToggleButton ] [ span [ class tt ] [] ]
+
+        jobSetupLogs =
+            div []
+                [ jobSetupButton
+                , jobSetupLogsData
+                ]
+
         headerRows =
-            []
+            [ ( "Suite", text job.suiteName )
+            , ( "Submit Time", text <| dateFormat <| Just job.submitTime )
+            , ( "Start Time", text <| dateFormat job.startTime )
+            , ( "End Time", text <| dateFormat job.endTime )
+            , ( "# Agents", text <| toString <| List.length job.agents )
+            , ( "# Prep. Agents", text <| toString <| List.length job.preparingAgents )
+            , ( "Submitted by", text <| job.submittedBy )
+            , ( "Status", div [] testsStatus )
+            , ( "Job Setup Logs", jobSetupLogs )
+            ]
 
         viewRow ( name, value ) =
             tr []
-                [ td [] [ text name ]
+                [ td [ width 130 ] [ text name ]
                 , td [] [ value ]
                 ]
     in
-    table [] <|
+    table [ class "job-view" ] <|
         [ buildRow
-        , progressRow
         , stateRow
+        , progressRow
         ]
             ++ List.map
                 viewRow
@@ -142,8 +180,9 @@ view : Model -> Html Msg
 view model =
     case model.maybeJob of
         Just job ->
-            div []
-                [ viewHeader job
+            div [ class "container-fluid" ] <|
+                [ h2 [ class "text" ] [ text <| "Details for job " ++ job.id ]
+                , viewHeader model job
                 ]
 
         Nothing ->
@@ -167,6 +206,18 @@ update msg model =
                 Err err ->
                     ( model, Cmd.none )
 
+        ToggleButton ->
+            let
+                newState =
+                    case model.collapseState of
+                        Hidden ->
+                            Shown
+
+                        Shown ->
+                            Hidden
+            in
+            ( { model | collapseState = newState }, Cmd.none )
+
 
 getJobInfoCmd : JobId -> Cmd Msg
 getJobInfoCmd jobId =
@@ -174,36 +225,3 @@ getJobInfoCmd jobId =
         Http.get ("/api/newman/job/" ++ jobId) decodeJob
 
 
-decodeBuild : Json.Decode.Decoder Build
-decodeBuild =
-    decode Build
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
-        |> Json.Decode.Pipeline.required "branch" Json.Decode.string
-
-
-decodeSuite : Json.Decode.Decoder Suite
-decodeSuite =
-    decode Suite
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
-        |> Json.Decode.Pipeline.required "requirements" (Json.Decode.list Json.Decode.string)
-
-
-decodeJob : Json.Decode.Decoder Job
-decodeJob =
-    decode Job
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "submitTime" Json.Decode.int
-        --        |> Json.Decode.Pipeline.required "startTime" Json.Decode.int
-        --        |> Json.Decode.Pipeline.required "endTime" Json.Decode.int
-        |> Json.Decode.Pipeline.required "submittedBy" Json.Decode.string
-        |> Json.Decode.Pipeline.required "state" Json.Decode.string
-        |> Json.Decode.Pipeline.required "totalTests" Json.Decode.int
-        |> Json.Decode.Pipeline.required "passedTests" Json.Decode.int
-        |> Json.Decode.Pipeline.required "failedTests" Json.Decode.int
-        |> Json.Decode.Pipeline.required "runningTests" Json.Decode.int
-        |> Json.Decode.Pipeline.required "preparingAgents" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "agents" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "build" decodeBuild
-        |> Json.Decode.Pipeline.required "suite" decodeSuite
