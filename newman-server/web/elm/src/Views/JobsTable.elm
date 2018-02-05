@@ -4,6 +4,7 @@ import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Button as Button
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
+import Bootstrap.Modal as Modal exposing (..)
 import Bootstrap.Progress as Progress exposing (..)
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
@@ -18,6 +19,7 @@ import List.Extra as ListExtra
 import Paginate exposing (PaginatedList)
 import Time exposing (Time)
 import Utils.Types exposing (..)
+import Views.NewmanModal as NewmanModal exposing (..)
 
 
 type Msg
@@ -28,13 +30,19 @@ type Msg
     | GoTo Int
     | FilterQuery String
     | OnClickToggleJob String
-    | ToggleJobCompleted (Result Http.Error Job)
+    | RequestCompletedToggleJob (Result Http.Error Job)
+    | NewmanModalMsg Modal.State
+    | OnClickJobDrop String
+    | OnJobDropConfirmed String
+    | RequestCompletedDropJob String (Result Http.Error String)
 
 
 type alias Model =
     { allJobs : Jobs
     , jobs : PaginatedList Job
     , pageSize : Int
+    , confirmationState : Modal.State
+    , jobToDrop : Maybe String
     }
 
 
@@ -44,7 +52,7 @@ init jobs =
         pageSize =
             10
     in
-    Model jobs (Paginate.fromList pageSize jobs) pageSize
+    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing
 
 
 viewTable : Model -> Time -> Html Msg
@@ -122,26 +130,11 @@ viewTable model currTime =
                     , th [ style [ ( "width", "80px" ) ] ]
                         [ text "Actions" ]
                     ]
-
-                {-
-                   <span class="label label-info">
-                                                       <a href="{{urlFor('job', {id: item.id, filterByStatus: 'RUNNING'})}}" class="tests-num-link">{{item.runningTests}}</a>
-                                                   </span> /
-                                                   <span class="label label-success">
-                                                       <a href="{{urlFor('job', {id: item.id, filterByStatus: 'SUCCESS'})}}" class="tests-num-link">{{item.passedTests}}</a>
-                                                   </span> /
-                                                   <span class="label label-danger">
-                                                       <a href="{{urlFor('job', {id: item.id, filterByStatus: 'FAIL'})}}" class="tests-num-link">{{item.failedTests}}</a>
-                                                   </span> /
-                                                   <span class="label label-default">
-                                                       <a href="{{urlFor('job', {id: item.id, filterByStatus: 'ALL'})}}" class="tests-num-link">{{item.totalTests}}</a>
-                                                   </span>
-
-                -}
                 ]
             , tbody [] (List.map (viewJob currTime) <| Paginate.page model.jobs)
             ]
         , pagination
+        , NewmanModal.confirmJobDrop model.jobToDrop NewmanModalMsg OnJobDropConfirmed model.confirmationState
         ]
 
 
@@ -203,12 +196,6 @@ viewJob currTime job =
 
                 Nothing ->
                     ""
-
-        --        submittedTimeDiff =
-        --            Duration.diff (Date.fromTime (toFloat job.submitTime)) (Date.fromTime (toFloat job.submitTime - model.currTime))
-        --
-        --        submittedTimeText =
-        --            toString submittedTimeDiff.hour ++ "h, " ++ toString submittedTimeDiff.minute ++ "m"
         playPauseButton =
             case toJobState job.state of
                 PAUSED ->
@@ -216,7 +203,7 @@ viewJob currTime job =
                         [ span [ class "ion-play" ] [] ]
 
                 state ->
-                    Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY) , Button.onClick <| OnClickToggleJob job.id ]
+                    Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY), Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
     in
     tr []
@@ -239,7 +226,7 @@ viewJob currTime job =
             , Badge.badge [] [ text <| toString job.totalTests ]
             ]
         , td []
-            [ Button.button [ Button.danger, Button.small ]
+            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| (not <| List.member (toJobState job.state) [DONE, PAUSED, BROKEN]) && (job.runningTests /= 0)  ]
                 [ span [ class "ion-close" ] [] ]
             , text " "
             , playPauseButton
@@ -273,8 +260,20 @@ update msg model =
         OnClickToggleJob jobId ->
             ( model, toggleJobCmd jobId )
 
-        ToggleJobCompleted result ->
-            onToggleJobCompleted model result
+        RequestCompletedToggleJob result ->
+            onRequestCompletedToggleJob model result
+
+        NewmanModalMsg newState ->
+            ( { model | jobToDrop = Nothing, confirmationState = newState }, Cmd.none )
+
+        OnClickJobDrop jobId ->
+            ( { model | confirmationState = Modal.visibleState, jobToDrop = Just jobId }, Cmd.none )
+
+        OnJobDropConfirmed jobId ->
+            ( { model | confirmationState = Modal.hiddenState }, dropJobCmd jobId )
+
+        RequestCompletedDropJob jobId result ->
+            onRequestCompletedDropJob jobId model result
 
 
 toJobState : String -> JobState
@@ -317,8 +316,8 @@ filterQuery query job =
 -- commands
 
 
-onToggleJobCompleted : Model -> Result Http.Error Job -> ( Model, Cmd Msg )
-onToggleJobCompleted model result =
+onRequestCompletedToggleJob : Model -> Result Http.Error Job -> ( Model, Cmd Msg )
+onRequestCompletedToggleJob model result =
     case result of
         Ok job ->
             let
@@ -333,4 +332,35 @@ onToggleJobCompleted model result =
 
 toggleJobCmd : String -> Cmd Msg
 toggleJobCmd jobId =
-    Http.send ToggleJobCompleted <| Http.post ("/api/newman/job/" ++ jobId ++ "/toggle") Http.emptyBody decodeJob
+    Http.send RequestCompletedToggleJob <| Http.post ("/api/newman/job/" ++ jobId ++ "/toggle") Http.emptyBody decodeJob
+
+
+----
+
+
+onRequestCompletedDropJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
+onRequestCompletedDropJob jobId model result =
+    case result of
+            Ok _ ->
+                let
+                    newList =
+                        Paginate.map (ListExtra.filterNot (\item -> item.id == jobId)) model.jobs
+                in
+                ( { model | jobs = newList }, Cmd.none )
+
+            Err err ->
+                ( model, Cmd.none )
+
+
+dropJobCmd : String -> Cmd Msg
+dropJobCmd jobId =
+    Http.send (RequestCompletedDropJob jobId) <|
+        Http.request <|
+            { method = "DELETE"
+            , headers = []
+            , url = "/api/newman/job/" ++ jobId
+            , body = Http.emptyBody
+            , expect = Http.expectString
+            , timeout = Nothing
+            , withCredentials = False
+            }
