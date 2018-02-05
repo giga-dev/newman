@@ -1,5 +1,10 @@
 module Pages.Builds exposing (..)
 
+import Bootstrap.Badge as Badge exposing (..)
+import Bootstrap.Button as Button
+import Bootstrap.Form as Form
+import Bootstrap.Form.Input as FormInput
+import Bootstrap.Progress as Progress exposing (..)
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Duration as Duration
@@ -18,7 +23,8 @@ import Utils.Types exposing (..)
 
 
 type alias Model =
-    { builds : PaginatedBuilds
+    { allBuilds : Builds
+    , builds : PaginatedBuilds
     , pageSize : Int
     }
 
@@ -30,6 +36,7 @@ type Msg
     | Next
     | Prev
     | GoTo Int
+    | FilterQuery String
 
 
 init : ( Model, Cmd Msg )
@@ -38,20 +45,21 @@ init =
         pageSize =
             20
     in
-    ( Model (Paginate.fromList pageSize []) pageSize, getBuildsCmd )
+    ( { allBuilds = []
+      , builds = Paginate.fromList pageSize []
+      , pageSize = pageSize
+      }
+    , getBuildsCmd
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        d =
-            Debug.log "Builds.update" "was called"
-    in
     case msg of
         GetBuildsCompleted result ->
             case result of
                 Ok buildsFromResult ->
-                    ( { model | builds = Paginate.fromList model.pageSize buildsFromResult }, Cmd.none )
+                    ( { model | builds = Paginate.fromList model.pageSize buildsFromResult, allBuilds = buildsFromResult }, Cmd.none )
 
                 Err err ->
                     ( model, Cmd.none )
@@ -71,55 +79,87 @@ update msg model =
         GoTo i ->
             ( { model | builds = Paginate.goTo i model.builds }, Cmd.none )
 
+        FilterQuery query ->
+            let
+                filteredList =
+                    List.filter (filterQuery query) model.allBuilds
+            in
+            ( { model | builds = (Paginate.fromList model.pageSize  filteredList)}
+            , Cmd.none
+            )
+
 
 view : Model -> Html Msg
 view model =
     let
         prevButtons =
-            [ button [ onClick First, disabled <| Paginate.isFirst model.builds ] [ text "<<" ]
-            , button [ onClick Prev, disabled <| Paginate.isFirst model.builds ] [ text "<" ]
+            [ li [ class "page-item", classList [ ( "disabled", Paginate.isFirst model.builds ) ], onClick First ]
+                [ button [ class "page-link" ] [ text "«" ]
+                ]
+            , li [ class "page-item", classList [ ( "disabled", Paginate.isFirst model.builds ) ], onClick Prev ]
+                [ button [ class "page-link" ] [ text "‹" ]
+                ]
             ]
 
         nextButtons =
-            [ button [ onClick Next, disabled <| Paginate.isLast model.builds ] [ text ">" ]
-            , button [ onClick Last, disabled <| Paginate.isLast model.builds ] [ text ">>" ]
+            [ li [ class "page-item", classList [ ( "disabled", Paginate.isLast model.builds ) ], onClick Next ]
+                [ button [ class "page-link" ] [ text "›" ]
+                ]
+            , li [ class "page-item", classList [ ( "disabled", Paginate.isLast model.builds ) ], onClick Last ]
+                [ button [ class "page-link" ] [ text "»" ]
+                ]
             ]
 
         pagerButtonView index isActive =
-            button
-                [ style
-                    [ ( "font-weight"
-                      , if isActive then
-                            "bold"
-                        else
-                            "normal"
-                      )
-                    ]
-                , onClick <| GoTo index
+            case isActive of
+                True ->
+                    li [ class "page-item active" ]
+                        [ button [ class "page-link" ]
+                            [ text <| toString index
+                            , span [ class "sr-only" ] [ text "(current)" ]
+                            ]
+                        ]
+
+                --                        <li class="page-item"><a class="page-link" href="#">1</a></li>
+                False ->
+                    li [ class "page-item", onClick <| GoTo index ]
+                        [ button [ class "page-link" ] [ text <| toString index ]
+                        ]
+
+        pagination =
+            nav []
+                [ ul [ class "pagination " ]
+                    (prevButtons
+                        ++ Paginate.pager pagerButtonView model.builds
+                        ++ nextButtons
+                    )
                 ]
-                [ text <| toString index ]
     in
-    div [ class "container" ] <|
-        [ h2 [ class "text-center" ] [ text "Builds" ]
-        , table [ width 1200 ]
-            (List.append
-                [ tr []
-                    [ td [] [ text "Build" ]
-                    , td [] [ text "Tags" ]
-                    , td [] [ text "Id" ]
-                    , td [] [ text "Build Date" ]
-                    ]
+    div [ class "container-fluid" ] <|
+        [ h2 [ class "text" ] [ text "Builds" ]
+        , div []
+            [ Form.formInline []
+                [ Form.group [] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+                , Form.group [] [ pagination ]
                 ]
-                (List.map viewItem <| Paginate.page model.builds)
-            )
+            , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
+                [ thead []
+                    [ tr []
+                        [ th [] [ text "Build" ]
+                        , th [] [ text "Tags" ]
+                        , th [] [ text "Id" ]
+                        , th [] [ text "Build Date" ]
+                        ]
+                    ]
+                , tbody [] (List.map viewBuild (Paginate.page model.builds))
+                ]
+            , pagination
+            ]
         ]
-            ++ prevButtons
-            ++ [ span [] <| Paginate.pager pagerButtonView model.builds ]
-            ++ nextButtons
 
 
-viewItem : Build -> Html msg
-viewItem build =
+viewBuild : Build -> Html msg
+viewBuild build =
     let
         buildName =
             build.name ++ "(" ++ build.branch ++ ")"
@@ -146,3 +186,17 @@ getBuildsCmd =
 getBuilds : Http.Request Builds
 getBuilds =
     Http.get "/api/newman/build" decodeBuilds
+
+
+filterQuery : String -> Build -> Bool
+filterQuery query build =
+    if
+        String.length query
+            == 0
+            || String.startsWith query build.id
+            || String.startsWith query build.name
+            || String.startsWith query build.branch
+    then
+        True
+    else
+        False

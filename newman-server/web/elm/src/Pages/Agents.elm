@@ -1,24 +1,31 @@
 module Pages.Agents exposing (..)
 
-import Date
+import Bootstrap.Badge as Badge exposing (..)
+import Bootstrap.Button as Button
+import Bootstrap.Form as Form
+import Bootstrap.Form.Input as FormInput
+import Bootstrap.Progress as Progress exposing (..)
+import Date exposing (Date)
+import Date.Extra.Config.Config_en_au exposing (config)
+import Date.Extra.Duration as Duration
+import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
 import Date.Format
-import Html exposing (Html, button, div, h2, span, table, td, text, tr)
-import Html.Attributes exposing (class, disabled, style, width)
-import Html.Events exposing (onClick)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Http
-import Json.Decode exposing (at, decodeString, field, maybe)
-import Json.Decode.Pipeline exposing (decode)
+import Json.Decode exposing (Decoder, int)
+import Json.Decode.Pipeline exposing (decode, required)
 import Paginate exposing (..)
+import Time exposing (Time)
+import Utils.Types exposing (..)
 
 
 type alias Model =
-    { agents : PaginatedList Agent
+    { allAgents : Agents
+    , agents : PaginatedAgents
     , pageSize : Int
     }
-
-
-type alias Agents =
-    List Agent
 
 
 type Msg
@@ -28,22 +35,7 @@ type Msg
     | Next
     | Prev
     | GoTo Int
-
-
-type alias Agent =
-    { id : String
-    , name : String
-    , host : String
-    , lastTouchTime : Int
-    , currentTests : List String
-    , state : String
-    , capabilities : List String
-    , pid : String
-    , setupRetries : Int
-    , jobId : Maybe String
-    , buildName : Maybe String
-    , suiteName : Maybe String
-    }
+    | FilterQuery String
 
 
 init : ( Model, Cmd Msg )
@@ -52,7 +44,12 @@ init =
         pageSize =
             20
     in
-    ( Model (Paginate.fromList pageSize []) pageSize, getAgentsCmd )
+    ( { allAgents = []
+      , agents = Paginate.fromList pageSize []
+      , pageSize = pageSize
+      }
+    , getAgentsCmd
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -61,7 +58,7 @@ update msg model =
         GetAgentsCompleted result ->
             case result of
                 Ok agentsFromResult ->
-                    ( { model | agents = Paginate.fromList model.pageSize agentsFromResult }, Cmd.none )
+                    ( { model | agents = Paginate.fromList model.pageSize agentsFromResult, allAgents = agentsFromResult }, Cmd.none )
 
                 Err err ->
                     let
@@ -85,62 +82,93 @@ update msg model =
         GoTo i ->
             ( { model | agents = Paginate.goTo i model.agents }, Cmd.none )
 
+        FilterQuery query ->
+            let
+                filteredList =
+                    List.filter (filterQuery query) model.allAgents
+            in
+            ( { model | agents = Paginate.fromList model.pageSize filteredList }
+            , Cmd.none
+            )
+
 
 view : Model -> Html Msg
 view model =
     let
         prevButtons =
-            [ button [ onClick First, disabled <| Paginate.isFirst model.agents ] [ text "<<" ]
-            , button [ onClick Prev, disabled <| Paginate.isFirst model.agents ] [ text "<" ]
+            [ li [ class "page-item", classList [ ( "disabled", Paginate.isFirst model.agents ) ], onClick First ]
+                [ button [ class "page-link" ] [ text "«" ]
+                ]
+            , li [ class "page-item", classList [ ( "disabled", Paginate.isFirst model.agents ) ], onClick Prev ]
+                [ button [ class "page-link" ] [ text "‹" ]
+                ]
             ]
 
         nextButtons =
-            [ button [ onClick Next, disabled <| Paginate.isLast model.agents ] [ text ">" ]
-            , button [ onClick Last, disabled <| Paginate.isLast model.agents ] [ text ">>" ]
+            [ li [ class "page-item", classList [ ( "disabled", Paginate.isLast model.agents ) ], onClick Next ]
+                [ button [ class "page-link" ] [ text "›" ]
+                ]
+            , li [ class "page-item", classList [ ( "disabled", Paginate.isLast model.agents ) ], onClick Last ]
+                [ button [ class "page-link" ] [ text "»" ]
+                ]
             ]
 
         pagerButtonView index isActive =
-            button
-                [ style
-                    [ ( "font-weight"
-                      , if isActive then
-                            "bold"
-                        else
-                            "normal"
-                      )
-                    ]
-                , onClick <| GoTo index
+            case isActive of
+                True ->
+                    li [ class "page-item active" ]
+                        [ button [ class "page-link" ]
+                            [ text <| toString index
+                            , span [ class "sr-only" ] [ text "(current)" ]
+                            ]
+                        ]
+
+                False ->
+                    li [ class "page-item", onClick <| GoTo index ]
+                        [ button [ class "page-link" ] [ text <| toString index ]
+                        ]
+
+        pagination =
+            nav []
+                [ ul [ class "pagination " ]
+                    (prevButtons
+                        ++ Paginate.pager pagerButtonView model.agents
+                        ++ nextButtons
+                    )
                 ]
-                [ text <| toString index ]
     in
-    div [ class "container" ] <|
-        [ h2 [ class "text-center" ] [ text "Agents" ]
-        , table [ width 1500 ]
-            (List.append
-                [ tr []
-                    [ td [] [ text "Name" ]
-                    , td [] [ text "Capabilities" ]
-                    , td [] [ text "State" ]
-                    , td [] [ text "Host" ]
-                    , td [] [ text "PID" ]
-                    , td [] [ text "Setup Retries" ]
-                    , td [] [ text "Job" ]
-                    , td [] [ text "Build" ]
-                    , td [] [ text "Suite" ]
-                    , td [] [ text "Current Tests" ]
-                    , td [] [ text "Last seen" ]
-                    ]
+    div [ class "container-fluid" ] <|
+        [ h2 [ class "text" ] [ text "Agents" ]
+        , div []
+            [ Form.formInline []
+                [ Form.group [] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+                , Form.group [] [ pagination ]
                 ]
-                (List.map viewItem <| Paginate.page model.agents)
-            )
+            , table [ class "table table-hover table-striped table-bordered table-condensed" ]
+                [ thead []
+                    [ tr []
+                        [ th [] [ text "Name" ]
+                        , th [] [ text "Capabilities" ]
+                        , th [] [ text "State" ]
+                        , th [] [ text "Host" ]
+                        , th [] [ text "PID" ]
+                        , th [ style [ ( "width", "6%" ) ] ] [ text "Setup Retries" ]
+                        , th [] [ text "Job" ]
+                        , th [] [ text "Build" ]
+                        , th [] [ text "Suite" ]
+                        , th [] [ text "Current Tests" ]
+                        , th [] [ text "Last seen" ]
+                        ]
+                    ]
+                , tbody [] (List.map viewAgent (Paginate.page model.agents))
+                ]
+            , pagination
+            ]
         ]
-            ++ prevButtons
-            ++ [ span [] <| Paginate.pager pagerButtonView model.agents ]
-            ++ nextButtons
 
 
-viewItem : Agent -> Html msg
-viewItem agent =
+viewAgent : Agent -> Html msg
+viewAgent agent =
     let
         agentCapabilities =
             String.join "," agent.capabilities
@@ -200,23 +228,39 @@ getAgents =
     Http.get "/api/newman/agent?all=true" decodeAgents
 
 
-decodeAgents : Json.Decode.Decoder Agents
-decodeAgents =
-    Json.Decode.field "values" (Json.Decode.list decodeAgent)
+filterQuery : String -> Agent -> Bool
+filterQuery query agent =
+    let
+        a =
+            Debug.log ("filtered agents with query " ++ query ++ ":") (toString filteredList ++ " agent: " ++ toString agent)
 
+        b =
+            Debug.log "filtering capabiliteis" (toString agent.capabilities)
 
-decodeAgent : Json.Decode.Decoder Agent
-decodeAgent =
-    decode Agent
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
-        |> Json.Decode.Pipeline.required "host" Json.Decode.string
-        |> Json.Decode.Pipeline.required "lastTouchTime" Json.Decode.int
-        |> Json.Decode.Pipeline.required "currentTests" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "state" Json.Decode.string
-        |> Json.Decode.Pipeline.required "capabilities" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "pid" Json.Decode.string
-        |> Json.Decode.Pipeline.required "setupRetries" Json.Decode.int
-        |> Json.Decode.Pipeline.optionalAt [ "job", "id" ] (Json.Decode.maybe Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optionalAt [ "job", "build", "name" ] (Json.Decode.maybe Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optionalAt [ "job", "suite", "name" ] (Json.Decode.maybe Json.Decode.string) Nothing
+        filteredList =
+            List.filter (String.startsWith query) agent.capabilities
+
+        capabilitiesCheck =
+            List.length filteredList > 0
+
+        jobIdCheck =
+            case agent.jobId of
+                Just jobId ->
+                    True
+
+                Nothing ->
+                    False
+    in
+    if
+        String.length query
+            == 0
+            || String.startsWith query agent.name
+            || capabilitiesCheck
+            || String.startsWith query agent.state
+            || String.startsWith query agent.host
+            || String.startsWith query agent.pid
+            || jobIdCheck
+    then
+        True
+    else
+        False

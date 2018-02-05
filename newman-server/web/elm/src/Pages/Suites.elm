@@ -1,24 +1,32 @@
 module Pages.Suites exposing (..)
 
-import Date
+import Bootstrap.Badge as Badge exposing (..)
+import Bootstrap.Button as Button
+import Bootstrap.Form as Form
+import Bootstrap.Form.Input as FormInput
+import Bootstrap.Progress as Progress exposing (..)
+import Date exposing (Date)
+import Date.Extra.Config.Config_en_au exposing (config)
+import Date.Extra.Duration as Duration
+import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
 import Date.Format
-import Html exposing (Html, button, div, h2, span, table, td, text, tr)
-import Html.Attributes exposing (class, disabled, style, width)
-import Html.Events exposing (onClick)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Http
-import Json.Decode exposing (at, decodeString, field, maybe)
-import Json.Decode.Pipeline exposing (decode)
+import Json.Decode exposing (Decoder, int)
+import Json.Decode.Pipeline exposing (decode, required)
 import Paginate exposing (..)
+import Task
+import Time exposing (Time)
+import Utils.Types exposing (..)
 
 
 type alias Model =
-    { suites : PaginatedList Suite
+    { allSuites : Suites
+    , suites : PaginatedSuites
     , pageSize : Int
     }
-
-
-type alias Suites =
-    List Suite
 
 
 type Msg
@@ -28,13 +36,7 @@ type Msg
     | Next
     | Prev
     | GoTo Int
-
-
-type alias Suite =
-    { id : String
-    , name : String
-    , customVariables : String
-    }
+    | FilterQuery String
 
 
 init : ( Model, Cmd Msg )
@@ -42,11 +44,11 @@ init =
     let
         pageSize =
             20
-
-        a =
-            Debug.log "suites init"
     in
-    ( Model (Paginate.fromList pageSize []) pageSize, getSuitesCmd )
+    ({ allSuites = []
+    , suites = Paginate.fromList pageSize []
+    , pageSize = pageSize
+    }, getSuitesCmd)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -55,7 +57,7 @@ update msg model =
         GetSuitesCompleted result ->
             case result of
                 Ok suitesFromResult ->
-                    ( { model | suites = Paginate.fromList model.pageSize suitesFromResult }, Cmd.none )
+                    ( { model | suites = Paginate.fromList model.pageSize suitesFromResult, allSuites = suitesFromResult }, Cmd.none )
 
                 Err err ->
                     let
@@ -79,54 +81,83 @@ update msg model =
         GoTo i ->
             ( { model | suites = Paginate.goTo i model.suites }, Cmd.none )
 
+        FilterQuery query ->
+            let
+                filteredList =
+                    List.filter (filterQuery query) model.allSuites
+            in
+            ( { model | suites = Paginate.fromList model.pageSize filteredList }
+            , Cmd.none
+            )
+
 
 view : Model -> Html Msg
 view model =
     let
         prevButtons =
-            [ button [ onClick First, disabled <| Paginate.isFirst model.suites ] [ text "<<" ]
-            , button [ onClick Prev, disabled <| Paginate.isFirst model.suites ] [ text "<" ]
+            [ li [ class "page-item", classList [ ( "disabled", Paginate.isFirst model.suites ) ], onClick First ]
+                [ button [ class "page-link" ] [ text "«" ]
+                ]
+            , li [ class "page-item", classList [ ( "disabled", Paginate.isFirst model.suites ) ], onClick Prev ]
+                [ button [ class "page-link" ] [ text "‹" ]
+                ]
             ]
 
         nextButtons =
-            [ button [ onClick Next, disabled <| Paginate.isLast model.suites ] [ text ">" ]
-            , button [ onClick Last, disabled <| Paginate.isLast model.suites ] [ text ">>" ]
+            [ li [ class "page-item", classList [ ( "disabled", Paginate.isLast model.suites ) ], onClick Next ]
+                [ button [ class "page-link" ] [ text "›" ]
+                ]
+            , li [ class "page-item", classList [ ( "disabled", Paginate.isLast model.suites ) ], onClick Last ]
+                [ button [ class "page-link" ] [ text "»" ]
+                ]
             ]
 
         pagerButtonView index isActive =
-            button
-                [ style
-                    [ ( "font-weight"
-                      , if isActive then
-                            "bold"
-                        else
-                            "normal"
-                      )
-                    ]
-                , onClick <| GoTo index
+            case isActive of
+                True ->
+                    li [ class "page-item active" ]
+                        [ button [ class "page-link" ]
+                            [ text <| toString index
+                            , span [ class "sr-only" ] [ text "(current)" ]
+                            ]
+                        ]
+                False ->
+                    li [ class "page-item", onClick <| GoTo index ]
+                        [ button [ class "page-link" ] [ text <| toString index ]
+                        ]
+
+        pagination =
+            nav []
+                [ ul [ class "pagination " ]
+                    (prevButtons
+                        ++ Paginate.pager pagerButtonView model.suites
+                        ++ nextButtons
+                    )
                 ]
-                [ text <| toString index ]
     in
-    div [ class "container" ] <|
-        [ h2 [ class "text-center" ] [ text "suites" ]
-        , table [ width 1500 ]
-            (List.append
-                [ tr []
-                    [ td [] [ text "Name" ]
-                    , td [] [ text "Id" ]
-                    , td [] [ text "Custom Variables" ]
-                    ]
+    div [ class "container-fluid" ] <|
+        [ h2 [ class "text" ] [ text "Suites" ]
+        , div []
+            [ Form.formInline []
+                [ Form.group [] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+                , Form.group [] [ pagination ]
                 ]
-                (List.map viewItem <| Paginate.page model.suites)
-            )
+            , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
+                [ thead []
+                    [ tr []
+                        [ th [] [ text "Name" ]
+                        , th [] [ text "Id" ]
+                        , th [] [ text "Custom" ]
+                        ]
+                    ]
+                , tbody [] (List.map viewSuite (Paginate.page model.suites))
+                ]
+            , pagination
+            ]
         ]
-            ++ prevButtons
-            ++ [ span [] <| Paginate.pager pagerButtonView model.suites ]
-            ++ nextButtons
 
-
-viewItem : Suite -> Html msg
-viewItem suite =
+viewSuite : Suite -> Html msg
+viewSuite suite =
     tr []
         [ td [] [ text suite.name ]
         , td [] [ text suite.id ]
@@ -143,15 +174,14 @@ getSuites : Http.Request Suites
 getSuites =
     Http.get "/api/newman/suite?all=true" decodeSuites
 
-
-decodeSuites : Json.Decode.Decoder Suites
-decodeSuites =
-    Json.Decode.field "values" (Json.Decode.list decodeSuite)
-
-
-decodeSuite : Json.Decode.Decoder Suite
-decodeSuite =
-    decode Suite
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
-        |> Json.Decode.Pipeline.required "customVariables" Json.Decode.string
+filterQuery : String -> Suite -> Bool
+filterQuery query suite =
+    if
+        String.length query
+            == 0
+            || String.startsWith query suite.name
+            || String.startsWith query suite.id
+    then
+        True
+    else
+        False

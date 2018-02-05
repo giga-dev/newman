@@ -52,8 +52,10 @@ type alias Build =
 type alias Builds =
     List Build
 
+
 type alias PaginatedBuilds =
     PaginatedList Build
+
 
 type alias BuildId =
     String
@@ -61,6 +63,44 @@ type alias BuildId =
 
 type alias Shas =
     Dict String String
+
+
+type alias Agent =
+    { id : String
+    , name : String
+    , host : String
+    , lastTouchTime : Int
+    , currentTests : List String
+    , state : String
+    , capabilities : List String
+    , pid : String
+    , setupRetries : Int
+    , jobId : Maybe String
+    , buildName : Maybe String
+    , suiteName : Maybe String
+    }
+
+
+type alias Agents =
+    List Agent
+
+
+type alias PaginatedAgents =
+    PaginatedList Agent
+
+
+
+type alias Suite =
+    { id : String
+    , name : String
+    , customVariables : String
+    }
+
+type alias Suites =
+    List Suite
+
+type alias PaginatedSuites =
+    PaginatedList Suite
 
 
 toJobState : String -> JobState
@@ -118,6 +158,41 @@ decodeBuild =
         |> Json.Decode.Pipeline.required "testsMetadata" (Json.Decode.list Json.Decode.string)
         |> Json.Decode.Pipeline.required "shas" (Json.Decode.dict Json.Decode.string)
 
+
 decodeBuilds : Json.Decode.Decoder Builds
 decodeBuilds =
     Json.Decode.field "values" (Json.Decode.list decodeBuild)
+
+
+decodeAgents : Json.Decode.Decoder Agents
+decodeAgents =
+    Json.Decode.field "values" (Json.Decode.list decodeAgent)
+
+
+decodeAgent : Json.Decode.Decoder Agent
+decodeAgent =
+    decode Agent
+        |> Json.Decode.Pipeline.required "id" Json.Decode.string
+        |> Json.Decode.Pipeline.required "name" Json.Decode.string
+        |> Json.Decode.Pipeline.required "host" Json.Decode.string
+        |> Json.Decode.Pipeline.required "lastTouchTime" Json.Decode.int
+        |> Json.Decode.Pipeline.required "currentTests" (Json.Decode.list Json.Decode.string)
+        |> Json.Decode.Pipeline.required "state" Json.Decode.string
+        |> Json.Decode.Pipeline.required "capabilities" (Json.Decode.list Json.Decode.string)
+        |> Json.Decode.Pipeline.required "pid" Json.Decode.string
+        |> Json.Decode.Pipeline.required "setupRetries" Json.Decode.int
+        |> Json.Decode.Pipeline.optionalAt [ "job", "id" ] (Json.Decode.maybe Json.Decode.string) Nothing
+        |> Json.Decode.Pipeline.optionalAt [ "job", "build", "name" ] (Json.Decode.maybe Json.Decode.string) Nothing
+        |> Json.Decode.Pipeline.optionalAt [ "job", "suite", "name" ] (Json.Decode.maybe Json.Decode.string) Nothing
+
+decodeSuites : Json.Decode.Decoder Suites
+decodeSuites =
+    Json.Decode.field "values" (Json.Decode.list decodeSuite)
+
+
+decodeSuite : Json.Decode.Decoder Suite
+decodeSuite =
+    decode Suite
+        |> Json.Decode.Pipeline.required "id" Json.Decode.string
+        |> Json.Decode.Pipeline.required "name" Json.Decode.string
+        |> Json.Decode.Pipeline.required "customVariables" Json.Decode.string
