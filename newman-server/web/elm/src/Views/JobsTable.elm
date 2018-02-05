@@ -13,7 +13,9 @@ import Date.Format
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (..)
-import Paginate
+import Http
+import List.Extra as ListExtra
+import Paginate exposing (PaginatedList)
 import Time exposing (Time)
 import Utils.Types exposing (..)
 
@@ -25,11 +27,13 @@ type Msg
     | Prev
     | GoTo Int
     | FilterQuery String
+    | OnClickToggleJob String
+    | ToggleJobCompleted (Result Http.Error Job)
 
 
 type alias Model =
     { allJobs : Jobs
-    , jobs : PaginatedJobs
+    , jobs : PaginatedList Job
     , pageSize : Int
     }
 
@@ -141,7 +145,7 @@ viewTable model currTime =
         ]
 
 
-viewJob : Time -> Job -> Html msg
+viewJob : Time -> Job -> Html Msg
 viewJob currTime job =
     let
         progressPercent =
@@ -208,11 +212,11 @@ viewJob currTime job =
         playPauseButton =
             case toJobState job.state of
                 PAUSED ->
-                    Button.button [ Button.success, Button.small ]
+                    Button.button [ Button.success, Button.small, Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-play" ] [] ]
 
-                _ ->
-                    Button.button [ Button.warning, Button.small ]
+                state ->
+                    Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY) , Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
     in
     tr []
@@ -235,7 +239,7 @@ viewJob currTime job =
             , Badge.badge [] [ text <| toString job.totalTests ]
             ]
         , td []
-            [ Button.button [ Button.success, Button.small ]
+            [ Button.button [ Button.danger, Button.small ]
                 [ span [ class "ion-close" ] [] ]
             , text " "
             , playPauseButton
@@ -266,6 +270,12 @@ update msg model =
             , Cmd.none
             )
 
+        OnClickToggleJob jobId ->
+            ( model, toggleJobCmd jobId )
+
+        ToggleJobCompleted result ->
+            onToggleJobCompleted model result
+
 
 toJobState : String -> JobState
 toJobState str =
@@ -281,6 +291,9 @@ toJobState str =
 
         "BROKEN" ->
             BROKEN
+
+        "READY" ->
+            READY
 
         _ ->
             BROKEN
@@ -299,3 +312,25 @@ filterQuery query job =
     else
         False
 
+
+
+-- commands
+
+
+onToggleJobCompleted : Model -> Result Http.Error Job -> ( Model, Cmd Msg )
+onToggleJobCompleted model result =
+    case result of
+        Ok job ->
+            let
+                newList =
+                    Paginate.map (ListExtra.replaceIf (\item -> item.id == job.id) job) model.jobs
+            in
+            ( { model | jobs = newList }, Cmd.none )
+
+        Err err ->
+            ( model, Cmd.none )
+
+
+toggleJobCmd : String -> Cmd Msg
+toggleJobCmd jobId =
+    Http.send ToggleJobCompleted <| Http.post ("/api/newman/job/" ++ jobId ++ "/toggle") Http.emptyBody decodeJob

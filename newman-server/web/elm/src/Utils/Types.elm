@@ -10,9 +10,6 @@ type alias Jobs =
     List Job
 
 
-type alias PaginatedJobs =
-    PaginatedList Job
-
 
 type alias Job =
     { id : String
