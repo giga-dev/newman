@@ -49,6 +49,20 @@ type alias Build =
     }
 
 
+type alias DashboardBuild =
+     { id : BuildId
+     , name : String
+     , branch : String
+     , tags : List String
+     , buildTime : Int
+     , buildStatus : String
+     }
+
+type alias DashboardBuilds =
+    List DashboardBuild
+
+
+
 type alias Builds =
     List Build
 
@@ -171,6 +185,23 @@ decodeBuild =
         |> Json.Decode.Pipeline.required "resources" (Json.Decode.list Json.Decode.string)
         |> Json.Decode.Pipeline.required "testsMetadata" (Json.Decode.list Json.Decode.string)
         |> Json.Decode.Pipeline.required "shas" (Json.Decode.dict Json.Decode.string)
+
+
+decodeDashboardBuild : Json.Decode.Decoder DashboardBuild
+decodeDashboardBuild =
+     decode DashboardBuild
+          |> Json.Decode.Pipeline.required "id" Json.Decode.string
+          |> Json.Decode.Pipeline.required "name" Json.Decode.string
+          |> Json.Decode.Pipeline.required "branch" Json.Decode.string
+          |> Json.Decode.Pipeline.required "tags" (Json.Decode.list Json.Decode.string)
+          |> Json.Decode.Pipeline.required "buildTime" Json.Decode.int
+          |> Json.Decode.Pipeline.required "buildStatus" (Json.Decode.map (Json.Encode.encode 4) Json.Decode.value)
+
+
+decodeDashboardBuilds : Json.Decode.Decoder DashboardBuilds
+decodeDashboardBuilds =
+    Json.Decode.field "historyBuilds" (Json.Decode.list decodeDashboardBuild)
+
 
 
 decodeBuilds : Json.Decode.Decoder Builds

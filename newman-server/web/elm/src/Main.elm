@@ -9,6 +9,7 @@ import Navigation exposing (..)
 import Pages.Agents as Agents exposing (..)
 import Pages.Build as Build exposing (..)
 import Pages.Builds as Builds exposing (..)
+import Pages.Home as Home exposing (..)
 import Pages.Job as Job exposing (..)
 import Pages.Jobs as Jobs exposing (..)
 import Pages.SubmitNewJob as SubmitNewJob exposing (..)
@@ -112,6 +113,7 @@ type alias Model =
     , jobsModel : Jobs.Model
     , buildsModel : Builds.Model
     , agentsModel : Agents.Model
+    , homeModel : Home.Model
     , suitesModel : Suites.Model
     }
 
@@ -123,6 +125,7 @@ type Msg
     | BuildsMsg Builds.Msg
     | AgentsMsg Agents.Msg
     | SuitesMsg Suites.Msg
+    | HomeMsg Home.Msg
     | JobMsg Job.Msg
     | NavbarMsg Navbar.State
     | BuildMsg Build.Msg
@@ -158,6 +161,9 @@ init location =
         ( suitesModel, suitesCmd ) =
             Suites.init
 
+        ( homeModel, homeCmd ) =
+            Home.init
+
         moreCmd =
             case currentRoute of
                 JobRoute id ->
@@ -175,12 +181,13 @@ init location =
         ( navbarState, navbarCmd ) =
             Navbar.initialState NavbarMsg
     in
-    ( Model currentPage navbarState submitNewJobModel jobsModel buildsModel agentsModel suitesModel
+    ( Model currentPage navbarState submitNewJobModel jobsModel buildsModel agentsModel  homeModel suitesModel
     , Cmd.batch
         [ submitNewJobCmd |> Cmd.map SubmitNewJobMsg
         , jobsCmd |> Cmd.map JobsMsg
         , buildsCmd |> Cmd.map BuildsMsg
         , agentsCmd |> Cmd.map AgentsMsg
+        , homeCmd |> Cmd.map HomeMsg
         , suitesCmd |> Cmd.map SuitesMsg
         , moreCmd
         ]
@@ -274,6 +281,13 @@ update msg model =
             in
             ( { model | currentPage = SuitePage updatedSubModel }, Cmd.map SuiteMsg subCmd )
 
+        ( HomeMsg homeMsg, _ ) ->
+            let
+                ( updatedSubModel, subCmd ) =
+                    Home.update homeMsg model.homeModel
+            in
+            ( { model | homeModel = updatedSubModel }, Cmd.map HomeMsg subCmd )
+
         ( SuiteMsg subMsg, _ ) ->
             ( model, Cmd.none )
 
@@ -359,16 +373,7 @@ viewBody model =
             Suite.view subModel |> Html.map SuiteMsg
 
         HomePage ->
-            div [ id "page-wrapper" ]
-                [ div [ class "container-fluid" ]
-                    [ div [ class "row" ]
-                        [ div [ class "col-lg-12" ]
-                            [ h1 [ class "page-header" ]
-                                [ text "Home Page" ]
-                            ]
-                        ]
-                    ]
-                ]
+            Home.view model.homeModel |> Html.map HomeMsg
 
 
 view : Model -> Html Msg
