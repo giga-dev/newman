@@ -284,3 +284,17 @@ table {
 td {
     vertical-align: top;
 }
+
+.filterinput {
+    padding-right: 30px !important;
+}
+.searchclear {
+    position: absolute;
+    right: 5px;
+    top: 2px;
+    height: 5px;
+    margin: auto;
+    font-size: 25px;
+    cursor: pointer;
+    color: #ccc;
+}

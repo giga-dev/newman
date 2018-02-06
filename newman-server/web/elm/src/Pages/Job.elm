@@ -8,6 +8,7 @@ import Date.Format
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Http exposing (..)
 import Json.Decode
 import Json.Decode.Pipeline exposing (decode)
@@ -117,13 +118,13 @@ viewHeader model job =
                 )
 
         testsStatus =
-            [ Badge.badgeInfo [] [ text <| toString job.runningTests ]
+            [ Button.button[ Button.info, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "RUNNING" ] [ text <| toString job.runningTests ]
             , text "/ "
-            , Badge.badgeSuccess [] [ text <| toString job.passedTests ]
+            , Button.button[ Button.success, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "SUCCESS"] [ text <| toString job.passedTests ]
             , text "/ "
-            , Badge.badgeDanger [] [ text <| toString job.failedTests ]
+            , Button.button[ Button.danger, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "FAIL"] [ text <| toString job.failedTests ]
             , text "/ "
-            , Badge.badge [] [ text <| toString job.totalTests ]
+            , Button.button[ Button.info, Button.small , Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery ""] [ text <| toString job.totalTests ]
             ]
 
         jobToT ( key, val ) =

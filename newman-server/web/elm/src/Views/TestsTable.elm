@@ -36,6 +36,7 @@ type alias Model =
     { all : List TestView
     , paginated : PaginatedList TestView
     , pageSize : Int
+    , query : String
     }
 
 
@@ -48,7 +49,11 @@ init list =
         aa =
             Debug.log "TestsTable" "init is called!"
     in
-    Model list (Paginate.fromList pageSize list) pageSize
+    { all = list
+    , paginated = Paginate.fromList pageSize list
+    , pageSize = pageSize
+    , query = ""
+    }
 
 
 viewTable : Model -> Time -> Html Msg
@@ -118,7 +123,18 @@ viewTable model currTime =
     in
     div []
         [ div [ class "form-inline" ]
-            [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+            [ div [ class "form-group" ]
+                [ div [ class "btn-group" ]
+                    [ FormInput.text
+                        [ FormInput.onInput FilterQuery
+                        , FormInput.placeholder "Filter"
+                        , FormInput.value model.query
+                        , FormInput.attrs [ class "filterinput" ]
+                        ]
+                    , span [ title "Clear filter", class "ion-close-circled searchclear", onClick <| FilterQuery "" ]
+                        []
+                    ]
+                ]
             , div [ class "form-group" ] [ pagination ]
             ]
         , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
@@ -216,11 +232,11 @@ viewTest currTime test =
                     [ text "" ]
 
         historyStatsClass =
-            if (toTestStatus test.status) == SUCCESS then
+            if toTestStatus test.status == SUCCESS then
                 "black-column"
-            else if (test.testScore <= 3) then
+            else if test.testScore <= 3 then
                 "red-column"
-            else if (test.testScore > 3) then
+            else if test.testScore > 3 then
                 "blue-column"
             else
                 ""
@@ -255,7 +271,7 @@ update msg model =
             ( { model | paginated = Paginate.goTo i model.paginated }, Cmd.none )
 
         FilterQuery query ->
-            ( { model | paginated = Paginate.fromList model.pageSize (List.filter (filterQuery query) model.all) }
+            ( { model | query = query, paginated = Paginate.fromList model.pageSize (List.filter (filterQuery query) model.all) }
             , Cmd.none
             )
 
