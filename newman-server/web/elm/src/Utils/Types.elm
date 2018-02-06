@@ -1,8 +1,8 @@
 module Utils.Types exposing (..)
 
 import Dict exposing (Dict)
-import Json.Decode exposing (Value)
-import Json.Decode.Pipeline exposing (decode)
+import Json.Decode exposing (..)
+import Json.Decode.Pipeline exposing (..)
 import Json.Encode
 import Paginate exposing (PaginatedList)
 
@@ -13,6 +13,7 @@ type alias Jobs =
 
 type alias JobId =
     String
+
 
 type alias Job =
     { id : String
@@ -29,7 +30,7 @@ type alias Job =
     , runningTests : Int
     , startTime : Maybe Int
     , endTime : Maybe Int
-    , jobSetupLogs: Dict String String
+    , jobSetupLogs : Dict String String
     }
 
 
@@ -154,106 +155,138 @@ toJobState str =
             BROKEN
 
 
-decodeJob : Json.Decode.Decoder Job
+
+decodeJob : Decoder Job
 decodeJob =
     decode Job
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "submitTime" Json.Decode.int
-        |> Json.Decode.Pipeline.required "submittedBy" Json.Decode.string
-        |> Json.Decode.Pipeline.required "state" Json.Decode.string
-        |> Json.Decode.Pipeline.required "preparingAgents" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "agents" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "build" decodeBuild
-        |> Json.Decode.Pipeline.requiredAt [ "suite", "name" ] Json.Decode.string
-        |> Json.Decode.Pipeline.required "totalTests" Json.Decode.int
-        |> Json.Decode.Pipeline.required "failedTests" Json.Decode.int
-        |> Json.Decode.Pipeline.required "passedTests" Json.Decode.int
-        |> Json.Decode.Pipeline.required "runningTests" Json.Decode.int
-        |> Json.Decode.Pipeline.required "startTime" (Json.Decode.nullable Json.Decode.int)
-        |> Json.Decode.Pipeline.required "endTime" (Json.Decode.nullable Json.Decode.int)
-        |> Json.Decode.Pipeline.optional "jobSetupLogs" (Json.Decode.dict Json.Decode.string) Dict.empty
+        |> required "id" string
+        |> required "submitTime" int
+        |> required "submittedBy" string
+        |> required "state" string
+        |> required "preparingAgents" (list string)
+        |> required "agents" (list string)
+        |> required "build" decodeBuild
+        |> requiredAt [ "suite", "name" ] string
+        |> required "totalTests" int
+        |> required "failedTests" int
+        |> required "passedTests" int
+        |> required "runningTests" int
+        |> required "startTime" (nullable int)
+        |> required "endTime" (nullable int)
+        |> optional "jobSetupLogs" (dict string) Dict.empty
 
 
-decodeJobs : Json.Decode.Decoder Jobs
+decodeJobs : Decoder Jobs
 decodeJobs =
-    Json.Decode.field "values" (Json.Decode.list decodeJob)
+    field "values" (list decodeJob)
 
 
-decodeBuild : Json.Decode.Decoder Build
+decodeBuild : Decoder Build
 decodeBuild =
     decode Build
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
-        |> Json.Decode.Pipeline.required "branch" Json.Decode.string
-        |> Json.Decode.Pipeline.required "tags" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "buildTime" Json.Decode.int
-        |> Json.Decode.Pipeline.required "resources" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "testsMetadata" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "shas" (Json.Decode.dict Json.Decode.string)
+        |> required "id" string
+        |> required "name" string
+        |> required "branch" string
+        |> required "tags" (list string)
+        |> required "buildTime" int
+        |> required "resources" (list string)
+        |> required "testsMetadata" (list string)
+        |> required "shas" (dict string)
 
 
-decodeDashboardBuild : Json.Decode.Decoder DashboardBuild
+decodeDashboardBuild : Decoder DashboardBuild
 decodeDashboardBuild =
      decode DashboardBuild
-          |> Json.Decode.Pipeline.required "id" Json.Decode.string
-          |> Json.Decode.Pipeline.required "name" Json.Decode.string
-          |> Json.Decode.Pipeline.required "branch" Json.Decode.string
-          |> Json.Decode.Pipeline.required "tags" (Json.Decode.list Json.Decode.string)
-          |> Json.Decode.Pipeline.required "buildTime" Json.Decode.int
-          |> Json.Decode.Pipeline.required "buildStatus" (Json.Decode.map (Json.Encode.encode 4) Json.Decode.value)
+          |> required "id" string
+          |> required "name" string
+          |> required "branch" string
+          |> required "tags" (list string)
+          |> required "buildTime" int
+          |> required "buildStatus" (map (Json.Encode.encode 4) value)
 
 
-decodeDashboardBuilds : Json.Decode.Decoder DashboardBuilds
+decodeDashboardBuilds : Decoder DashboardBuilds
 decodeDashboardBuilds =
-    Json.Decode.field "historyBuilds" (Json.Decode.list decodeDashboardBuild)
+    field "historyBuilds" (list decodeDashboardBuild)
 
 
 
-decodeBuilds : Json.Decode.Decoder Builds
+decodeBuilds : Decoder Builds
 decodeBuilds =
-    Json.Decode.field "values" (Json.Decode.list decodeBuild)
+    field "values" (list decodeBuild)
 
 
-decodeAgents : Json.Decode.Decoder Agents
+decodeAgents : Decoder Agents
 decodeAgents =
-    Json.Decode.field "values" (Json.Decode.list decodeAgent)
+    field "values" (list decodeAgent)
 
 
-decodeAgent : Json.Decode.Decoder Agent
+decodeAgent : Decoder Agent
 decodeAgent =
     decode Agent
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
-        |> Json.Decode.Pipeline.required "host" Json.Decode.string
-        |> Json.Decode.Pipeline.required "lastTouchTime" Json.Decode.int
-        |> Json.Decode.Pipeline.required "currentTests" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "state" Json.Decode.string
-        |> Json.Decode.Pipeline.required "capabilities" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "pid" Json.Decode.string
-        |> Json.Decode.Pipeline.required "setupRetries" Json.Decode.int
-        |> Json.Decode.Pipeline.optionalAt [ "job", "id" ] (Json.Decode.maybe Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optionalAt [ "job", "build", "name" ] (Json.Decode.maybe Json.Decode.string) Nothing
-        |> Json.Decode.Pipeline.optionalAt [ "job", "suite", "name" ] (Json.Decode.maybe Json.Decode.string) Nothing
+        |> required "id" string
+        |> required "name" string
+        |> required "host" string
+        |> required "lastTouchTime" int
+        |> required "currentTests" (list string)
+        |> required "state" string
+        |> required "capabilities" (list string)
+        |> required "pid" string
+        |> required "setupRetries" int
+        |> optionalAt [ "job", "id" ] (maybe string) Nothing
+        |> optionalAt [ "job", "build", "name" ] (maybe string) Nothing
+        |> optionalAt [ "job", "suite", "name" ] (maybe string) Nothing
 
 
-decodeSuites : Json.Decode.Decoder Suites
+decodeSuites : Decoder Suites
 decodeSuites =
-    Json.Decode.field "values" (Json.Decode.list decodeSuite)
+    field "values" (list decodeSuite)
 
 
-decodeSuite : Json.Decode.Decoder Suite
+decodeSuite : Decoder Suite
 decodeSuite =
     decode Suite
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
-        |> Json.Decode.Pipeline.required "customVariables" Json.Decode.string
+        |> required "id" string
+        |> required "name" string
+        |> required "customVariables" string
 
 
-decodeSuiteWithCriteria : Json.Decode.Decoder SuiteWithCriteria
+decodeSuiteWithCriteria : Decoder SuiteWithCriteria
 decodeSuiteWithCriteria =
     decode SuiteWithCriteria
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
-        |> Json.Decode.Pipeline.required "customVariables" Json.Decode.string
-        |> Json.Decode.Pipeline.required "requirements" (Json.Decode.list Json.Decode.string)
-        |> Json.Decode.Pipeline.required "criteria" (Json.Decode.map (Json.Encode.encode 4) Json.Decode.value)
+        |> required "id" string
+        |> required "name" string
+        |> required "customVariables" string
+        |> required "requirements" (list string)
+        |> required "criteria" (map (Json.Encode.encode 4) value)
+
+
+type alias TestView =
+    { id : String
+    , name : String
+    , arguments : List String
+    , status : String
+    , errorMessage : String
+    , testScore : Int
+    , historyStats : String
+    , assignedAgent : String
+    , startTime : Maybe Int
+    , endTime : Maybe Int
+    , progressPercent : Int
+    }
+
+
+decodeTestView : Decoder TestView
+decodeTestView =
+    decode TestView
+        |> required "id" string
+        |> required "name" string
+        |> required "arguments" (list string)
+        |> required "status" string
+        |> optional "errorMessage" string ""
+        |> required "testScore" int
+        |> required "historyStats" string
+        |> required "assignedAgent" string
+        |> required "startTime" (nullable int)
+        |> required "endTime" (nullable int)
+        |> required "progressPercent" int

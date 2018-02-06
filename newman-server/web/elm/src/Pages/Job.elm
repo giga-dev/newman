@@ -11,13 +11,18 @@ import Html.Attributes exposing (..)
 import Http exposing (..)
 import Json.Decode
 import Json.Decode.Pipeline exposing (decode)
+import Task
+import Time exposing (Time)
 import UrlParser exposing (Parser)
 import Utils.Types exposing (..)
+import Views.TestsTable as TestsTable
 
 
 type alias Model =
     { maybeJob : Maybe Job
     , collapseState : CollapseState
+    , testsTable : TestsTable.Model
+    , currTime : Time
     }
 
 
@@ -29,6 +34,9 @@ type CollapseState
 type Msg
     = GetJobInfoCompleted (Result Http.Error Job)
     | ToggleButton
+    | GetTestsViewCompleted (Result Http.Error (List TestView))
+    | TestsTableMsg TestsTable.Msg
+    | OnTime Time
 
 
 
@@ -44,12 +52,14 @@ initModel : JobId -> Model
 initModel jobId =
     { maybeJob = Nothing
     , collapseState = Hidden
+    , testsTable = TestsTable.init []
+    , currTime = 0
     }
 
 
 initCmd : JobId -> Cmd Msg
 initCmd jobId =
-    getJobInfoCmd jobId
+    Cmd.batch [ getJobInfoCmd jobId, getTime ]
 
 
 viewHeader : Model -> Job -> Html Msg
@@ -176,6 +186,11 @@ viewHeader model job =
                 headerRows
 
 
+viewBody : Model -> Html Msg
+viewBody model =
+    TestsTable.viewTable model.testsTable model.currTime |> Html.map TestsTableMsg
+
+
 view : Model -> Html Msg
 view model =
     case model.maybeJob of
@@ -183,6 +198,7 @@ view model =
             div [ class "container-fluid" ] <|
                 [ h2 [ class "text" ] [ text <| "Details for job " ++ job.id ]
                 , viewHeader model job
+                , viewBody model
                 ]
 
         Nothing ->
@@ -193,18 +209,29 @@ view model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        d =
-            Debug.log "Job.update" "was called"
-    in
     case msg of
         GetJobInfoCompleted result ->
             case result of
                 Ok data ->
-                    ( { model | maybeJob = Just data }, Cmd.none )
+                    ( { model | maybeJob = Just data }, getTestsViewCmd data.id )
 
                 Err err ->
                     ( model, Cmd.none )
+
+        GetTestsViewCompleted result ->
+            case result of
+                Ok data ->
+                    ( { model | testsTable = TestsTable.init data }, Cmd.none )
+
+                Err err ->
+                    ( model, Cmd.none )
+
+        TestsTableMsg subMsg ->
+            let
+                ( newSubModel, newCmd ) =
+                    TestsTable.update subMsg model.testsTable
+            in
+            ( { model | testsTable = newSubModel }, newCmd |> Cmd.map TestsTableMsg )
 
         ToggleButton ->
             let
@@ -218,6 +245,9 @@ update msg model =
             in
             ( { model | collapseState = newState }, Cmd.none )
 
+        OnTime time ->
+            ( { model | currTime = time }, Cmd.none )
+
 
 getJobInfoCmd : JobId -> Cmd Msg
 getJobInfoCmd jobId =
@@ -225,3 +255,13 @@ getJobInfoCmd jobId =
         Http.get ("/api/newman/job/" ++ jobId) decodeJob
 
 
+getTestsViewCmd : JobId -> Cmd Msg
+getTestsViewCmd jobId =
+    Http.send GetTestsViewCompleted <|
+        Http.get ("/api/newman/job-tests-view?jobId=" ++ jobId ++ "&all=true") <|
+            Json.Decode.field "values" (Json.Decode.list decodeTestView)
+
+
+getTime : Cmd Msg
+getTime =
+    Task.perform OnTime Time.now

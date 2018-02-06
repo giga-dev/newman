@@ -102,9 +102,9 @@ viewTable model currTime =
                 ]
     in
     div []
-        [ Form.formInline []
-            [ Form.group [] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
-            , Form.group [] [ pagination ]
+        [ div [ class "form-inline" ]
+            [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+            , div [ class "form-group" ] [ pagination ]
             ]
         , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
             [ thead []
@@ -121,11 +121,11 @@ viewTable model currTime =
                     , th [ style [ ( "width", "15%" ) ] ]
                         [ Badge.badgeInfo [ class "job-tests-badge" ] [ text "# Running" ]
                         , text " "
-                        , Badge.badgeSuccess [class "job-tests-badge"] [ text "# Passed" ]
+                        , Badge.badgeSuccess [ class "job-tests-badge" ] [ text "# Passed" ]
                         , text " "
-                        , Badge.badgeDanger [class "job-tests-badge"] [ text "# Failed" ]
+                        , Badge.badgeDanger [ class "job-tests-badge" ] [ text "# Failed" ]
                         , text " "
-                        , Badge.badge [class "job-tests-badge"] [ text "# Total" ]
+                        , Badge.badge [ class "job-tests-badge" ] [ text "# Total" ]
                         ]
                     , th [ style [ ( "width", "80px" ) ] ]
                         [ text "Actions" ]
@@ -146,7 +146,7 @@ viewJob currTime job =
 
         progress =
             Progress.progress
-                [ Progress.customLabel [ text <| (toString progressPercent) ++ " %" ]
+                [ Progress.customLabel [ text <| toString progressPercent ++ " %" ]
                 , Progress.value <| toFloat <| progressPercent
                 , Progress.info
                 ]
@@ -197,6 +197,7 @@ viewJob currTime job =
 
                 Nothing ->
                     ""
+
         playPauseButton =
             case toJobState job.state of
                 PAUSED ->
@@ -218,16 +219,16 @@ viewJob currTime job =
         , td [] [ text job.submittedBy ]
         , td [] [ text (toString (List.length job.preparingAgents)) ]
         , td []
-            [ Badge.badgeInfo [class "job-tests-badge"] [ text <| toString job.runningTests ]
+            [ Badge.badgeInfo [ class "job-tests-badge" ] [ text <| toString job.runningTests ]
             , text "/ "
-            , Badge.badgeSuccess [class "job-tests-badge"] [ text <| toString job.passedTests ]
+            , Badge.badgeSuccess [ class "job-tests-badge" ] [ text <| toString job.passedTests ]
             , text "/ "
-            , Badge.badgeDanger [class "job-tests-badge"] [ text <| toString job.failedTests ]
+            , Badge.badgeDanger [ class "job-tests-badge" ] [ text <| toString job.failedTests ]
             , text "/ "
-            , Badge.badge [class "job-tests-badge"] [ text <| toString job.totalTests ]
+            , Badge.badge [ class "job-tests-badge" ] [ text <| toString job.totalTests ]
             ]
         , td []
-            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| (not <| List.member (toJobState job.state) [DONE, PAUSED, BROKEN]) && (job.runningTests /= 0)  ]
+            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| (not <| List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ]) && (job.runningTests /= 0) ]
                 [ span [ class "ion-close" ] [] ]
             , text " "
             , playPauseButton
@@ -336,21 +337,22 @@ toggleJobCmd jobId =
     Http.send RequestCompletedToggleJob <| Http.post ("/api/newman/job/" ++ jobId ++ "/toggle") Http.emptyBody decodeJob
 
 
+
 ----
 
 
 onRequestCompletedDropJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
 onRequestCompletedDropJob jobId model result =
     case result of
-            Ok _ ->
-                let
-                    newList =
-                        Paginate.map (ListExtra.filterNot (\item -> item.id == jobId)) model.jobs
-                in
-                ( { model | jobs = newList }, Cmd.none )
+        Ok _ ->
+            let
+                newList =
+                    Paginate.map (ListExtra.filterNot (\item -> item.id == jobId)) model.jobs
+            in
+            ( { model | jobs = newList }, Cmd.none )
 
-            Err err ->
-                ( model, Cmd.none )
+        Err err ->
+            ( model, Cmd.none )
 
 
 dropJobCmd : String -> Cmd Msg
