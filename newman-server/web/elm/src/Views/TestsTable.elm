@@ -158,7 +158,7 @@ viewTest currTime test =
                     Badge.badgeInfo
 
                 PENDING ->
-                    Badge.badgeInfo
+                    Badge.badge
 
                 SUCCESS ->
                     Badge.badgeSuccess
@@ -214,11 +214,21 @@ viewTest currTime test =
 
                 _ ->
                     [ text "" ]
+
+        historyStatsClass =
+            if (toTestStatus test.status) == SUCCESS then
+                "black-column"
+            else if (test.testScore <= 3) then
+                "red-column"
+            else if (test.testScore > 3) then
+                "blue-column"
+            else
+                ""
     in
     tr []
         [ td [] [ a [ href <| "#test/" ++ test.id, title <| String.join "" test.arguments ] [ text <| String.join " " test.arguments ] ]
         , td [] [ status [] [ text test.status ] ]
-        , td [] historyStats
+        , td [ class historyStatsClass ] historyStats
         , td [] [ a [ href <| "#test-history/" ++ test.id ] [ text "History" ] ]
         , td [] [ span [ title test.errorMessage ] [ text test.errorMessage ] ]
         , td [] [ text test.assignedAgent ]

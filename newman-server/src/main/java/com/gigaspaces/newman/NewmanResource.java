@@ -176,7 +176,7 @@ public class NewmanResource {
 
     private void handleHangingJob() {
         Job potentialJob = getPotentialJob();
-        if(potentialJob == null){
+        if(potentialJob == null || potentialJob != null){
             // might happand when there are no Jobs that should run (Ready/Running)
             return;
         }

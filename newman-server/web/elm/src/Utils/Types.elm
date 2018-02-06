@@ -284,9 +284,9 @@ decodeTestView =
         |> required "arguments" (list string)
         |> required "status" string
         |> optional "errorMessage" string ""
-        |> required "testScore" int
-        |> required "historyStats" string
-        |> required "assignedAgent" string
+        |> optional "testScore" int -1
+        |> optional "historyStats" string ""
+        |> optional "assignedAgent" string ""
         |> required "startTime" (nullable int)
         |> required "endTime" (nullable int)
         |> required "progressPercent" int
