@@ -47,7 +47,7 @@ viewSuite suite =
                 [ td []
                     [ text "Criteria" ]
                 , td []
-                    [ textarea [ style [ ( "margin", "0px" ), ("overflow","auto"), ("resize", "both")] ] [ text suite.criteria ]
+                    [ textarea [ readonly True, style [ ( "margin", "0px" ), ("overflow","auto"), ("resize", "both")] ] [ text suite.criteria ]
                     ]
                 ]
     in
