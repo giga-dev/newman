@@ -19,6 +19,8 @@ import UrlParser exposing (..)
 import Utils.Types exposing (..)
 import Views.JobsTable exposing (..)
 import Pages.Test as Test exposing (..)
+import Views.TopBar as TopBar exposing (..)
+
 
 main : Program Never Model Msg
 main =
@@ -121,6 +123,7 @@ type alias Model =
     , agentsModel : Agents.Model
     , homeModel : Home.Model
     , suitesModel : Suites.Model
+    , topBarModel : TopBar.Model
     }
 
 
@@ -137,6 +140,7 @@ type Msg
     | BuildMsg Build.Msg
     | SuiteMsg Suite.Msg
     | TestMsg Test.Msg
+    | TopBarMsg TopBar.Msg
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -171,6 +175,9 @@ init location =
         ( homeModel, homeCmd ) =
             Home.init
 
+        ( topBarModel, topBarCmd ) =
+            TopBar.init
+
         moreCmd =
             case currentRoute of
                 JobRoute id ->
@@ -191,7 +198,7 @@ init location =
         ( navbarState, navbarCmd ) =
             Navbar.initialState NavbarMsg
     in
-    ( Model currentPage navbarState submitNewJobModel jobsModel buildsModel agentsModel  homeModel suitesModel
+    ( Model currentPage navbarState submitNewJobModel jobsModel buildsModel agentsModel homeModel suitesModel topBarModel
     , Cmd.batch
         [ submitNewJobCmd |> Cmd.map SubmitNewJobMsg
         , jobsCmd |> Cmd.map JobsMsg
@@ -199,6 +206,7 @@ init location =
         , agentsCmd |> Cmd.map AgentsMsg
         , homeCmd |> Cmd.map HomeMsg
         , suitesCmd |> Cmd.map SuitesMsg
+        , topBarCmd |> Cmd.map TopBarMsg
         , moreCmd
         ]
     )
@@ -315,6 +323,13 @@ update msg model =
             ( model, Cmd.none )
 
 
+        ( TopBarMsg subMsg, _ ) ->
+            let
+                ( updatedSubModel, subCmd ) =
+                    TopBar.update subMsg model.topBarModel
+            in
+            ( { model | topBarModel = updatedSubModel }, Cmd.map TopBarMsg subCmd )
+
 
 topNavBar : Html Msg
 topNavBar =
@@ -419,7 +434,9 @@ view model =
             --                , Navbar.itemLink [ href "#" ] [ text "Home22" ]
             --                ]
             |> Navbar.customItems
-                [ Navbar.customItem
+                [
+                 Navbar.customItem (TopBar.view model.topBarModel |> Html.map TopBarMsg)
+                ,Navbar.customItem
                     (ul
                         [ class "nav navbar-nav side-nav" ]
                         (List.map

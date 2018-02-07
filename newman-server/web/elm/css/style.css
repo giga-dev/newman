@@ -298,3 +298,6 @@ td {
     cursor: pointer;
     color: #ccc;
 }
+.navbar-brand {
+    width: 100%;
+}

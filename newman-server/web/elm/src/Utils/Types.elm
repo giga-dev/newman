@@ -135,6 +135,9 @@ type alias PaginatedSuites =
 type alias SuiteId =
     String
 
+type alias User =
+    { userName : String
+    }
 
 toJobState : String -> JobState
 toJobState str =
@@ -333,3 +336,7 @@ decodeTest =
         |> required "scheduledAt" int
         |> required "progressPercent" int
         |> required "sha" string
+
+decodeUser =
+    decode User
+        |> required "userName" string

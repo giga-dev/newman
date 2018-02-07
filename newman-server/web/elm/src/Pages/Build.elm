@@ -89,6 +89,9 @@ view model =
 
                 xapSha =
                     withDefault "" (Dict.get "xap" build.shas)
+
+                insightEdgeSha =
+                    withDefault "" (Dict.get "InsightEdge" build.shas)
             in
             div [ class "container-fluid" ] <|
                 [ h2 [ class "text" ] [ text <| "Details for build " ++ build.name ]
@@ -102,6 +105,7 @@ view model =
                     , viewRow ( "Commits:", text "" )
                     , viewRow ( "xap-open", a [ href <| xapOpenSha ] [ text xapOpenSha ] )
                     , viewRow ( "xap", a [ href <| xapSha ] [ text xapSha ] )
+                    , viewRow ( "InsightEdge", a [ href <| insightEdgeSha ] [ text insightEdgeSha ] )
                     ]
                 , br [] []
                 , h2 [ class "text" ] [ text "Participate in the following jobs:" ]
