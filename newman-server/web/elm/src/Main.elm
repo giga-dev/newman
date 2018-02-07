@@ -18,7 +18,7 @@ import Pages.Suites as Suites exposing (..)
 import UrlParser exposing (..)
 import Utils.Types exposing (..)
 import Views.JobsTable exposing (..)
-
+import Pages.Test as Test exposing (..)
 
 main : Program Never Model Msg
 main =
@@ -40,6 +40,7 @@ type Route
     | JobRoute JobId
     | BuildRoute BuildId
     | SuiteRoute SuiteId
+    | TestRoute TestId
 
 
 type Page
@@ -52,6 +53,7 @@ type Page
     | JobPage Job.Model
     | BuildPage Build.Model
     | SuitePage Suite.Model
+    | TestPage Test.Model
 
 
 routeToPage : Route -> Page
@@ -84,6 +86,9 @@ routeToPage route =
         SuiteRoute id ->
             SuitePage (Suite.Model Nothing)
 
+        TestRoute id ->
+            TestPage <| Test.initModel
+
 
 route : Parser (Route -> a) a
 route =
@@ -97,6 +102,7 @@ route =
         , UrlParser.map JobRoute (UrlParser.s "job" </> Job.parseJobId)
         , UrlParser.map BuildRoute (UrlParser.s "build" </> Build.parseBuildId)
         , UrlParser.map SuiteRoute (UrlParser.s "suite" </> Suite.parseSuiteId)
+        , UrlParser.map TestRoute (UrlParser.s "test" </> UrlParser.string)
         ]
 
 
@@ -130,6 +136,7 @@ type Msg
     | NavbarMsg Navbar.State
     | BuildMsg Build.Msg
     | SuiteMsg Suite.Msg
+    | TestMsg Test.Msg
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -175,6 +182,9 @@ init location =
                 SuiteRoute id ->
                     Suite.getSuiteInfoCmd id |> Cmd.map SuiteMsg
 
+                TestRoute id ->
+                    Test.getTestDataCmd id |> Cmd.map TestMsg
+
                 _ ->
                     Cmd.none
 
@@ -212,6 +222,9 @@ update msg model =
 
                         SuiteRoute id ->
                             ( { model | currentPage = routeToPage route }, Suite.getSuiteInfoCmd id |> Cmd.map SuiteMsg )
+
+                        TestRoute id ->
+                            ( { model | currentPage = routeToPage route } , Test.getTestDataCmd id |> Cmd.map TestMsg )
 
                         _ ->
                             ( { model | currentPage = routeToPage route }, Cmd.none )
@@ -290,6 +303,17 @@ update msg model =
 
         ( SuiteMsg subMsg, _ ) ->
             ( model, Cmd.none )
+
+        ( TestMsg subMsg, TestPage subModel ) ->
+            let
+                ( updatedSubModel, subCmd ) =
+                    Test.update subMsg subModel
+            in
+            ( { model | currentPage = TestPage updatedSubModel }, Cmd.map TestMsg subCmd )
+
+        ( TestMsg subMsg, _ ) ->
+            ( model, Cmd.none )
+
 
 
 topNavBar : Html Msg
@@ -375,6 +399,8 @@ viewBody model =
         HomePage ->
             Home.view model.homeModel |> Html.map HomeMsg
 
+        TestPage subModel ->
+            Test.view subModel |> Html.map TestMsg
 
 view : Model -> Html Msg
 view model =

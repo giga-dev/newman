@@ -290,3 +290,46 @@ decodeTestView =
         |> required "startTime" (nullable int)
         |> required "endTime" (nullable int)
         |> required "progressPercent" int
+
+type alias TestId = String
+
+type alias Test =
+    { id : TestId
+    , jobId : String
+    , name : String
+    , arguments : List String
+    , testType : String
+    , timeout : Int
+    , status : String
+    , errorMessage : String
+    , testScore : Int
+    , historyStats : String
+    , logs : Dict String String
+    , assignedAgent : String
+    , startTime : Maybe Int
+    , endTime : Maybe Int
+    , scheduledAt : Int
+    , progressPercent : Int
+    , sha : String
+    }
+
+decodeTest : Json.Decode.Decoder Test
+decodeTest =
+    decode Test
+        |> required "id" string
+        |> required "jobId" string
+        |> required "name" string
+        |> required "arguments" (list string)
+        |> required "testType" string
+        |> required "timeout" int
+        |> required "status" string
+        |> optional "errorMessage" string ""
+        |> optional "testScore" int -1
+        |> optional "historyStats" string ""
+        |> required "logs" (dict string)
+        |> required "assignedAgent" string
+        |> required "startTime" (nullable int)
+        |> required "endTime" (nullable int)
+        |> required "scheduledAt" int
+        |> required "progressPercent" int
+        |> required "sha" string
