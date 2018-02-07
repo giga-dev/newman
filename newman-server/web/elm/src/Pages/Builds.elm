@@ -84,7 +84,7 @@ update msg model =
                 filteredList =
                     List.filter (filterQuery query) model.allBuilds
             in
-            ( { model | builds = (Paginate.fromList model.pageSize  filteredList)}
+            ( { model | builds = Paginate.fromList model.pageSize filteredList }
             , Cmd.none
             )
 
@@ -138,9 +138,9 @@ view model =
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text "Builds" ]
         , div []
-            [ Form.formInline []
-                [ Form.group [] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
-                , Form.group [] [ pagination ]
+            [ div [ class "form-inline" ]
+                [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+                , div [ class "form-group" ] [ pagination ]
                 ]
             , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
                 [ thead []

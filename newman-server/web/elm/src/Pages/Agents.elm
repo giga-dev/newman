@@ -140,9 +140,9 @@ view model =
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text "Agents" ]
         , div []
-            [ Form.formInline []
-                [ Form.group [] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
-                , Form.group [] [ pagination ]
+            [ div [ class "form-inline" ]
+                [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+                , div [ class "form-group" ] [ pagination ]
                 ]
             , table [ class "table table-hover table-striped table-bordered table-condensed" ]
                 [ thead []

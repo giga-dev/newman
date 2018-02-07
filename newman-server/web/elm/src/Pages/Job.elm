@@ -124,7 +124,7 @@ viewHeader model job =
             , text "/ "
             , Button.button[ Button.danger, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "FAIL"] [ text <| toString job.failedTests ]
             , text "/ "
-            , Button.button[ Button.info, Button.small , Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery ""] [ text <| toString job.totalTests ]
+            , Button.button[ Button.small , Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery ""] [ text <| toString job.totalTests ]
             ]
 
         jobToT ( key, val ) =
