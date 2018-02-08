@@ -15,10 +15,11 @@ import Pages.Jobs as Jobs exposing (..)
 import Pages.SubmitNewJob as SubmitNewJob exposing (..)
 import Pages.Suite as Suite exposing (..)
 import Pages.Suites as Suites exposing (..)
+import Pages.Test as Test exposing (..)
+import Pages.TestHistory as TestHistory exposing (..)
 import UrlParser exposing (..)
 import Utils.Types exposing (..)
 import Views.JobsTable exposing (..)
-import Pages.Test as Test exposing (..)
 import Views.TopBar as TopBar exposing (..)
 
 
@@ -43,6 +44,7 @@ type Route
     | BuildRoute BuildId
     | SuiteRoute SuiteId
     | TestRoute TestId
+    | TestHistoryRoute TestId
 
 
 type Page
@@ -56,6 +58,7 @@ type Page
     | BuildPage Build.Model
     | SuitePage Suite.Model
     | TestPage Test.Model
+    | TestHistoryPage TestHistory.Model
 
 
 routeToPage : Route -> Page
@@ -91,6 +94,9 @@ routeToPage route =
         TestRoute id ->
             TestPage <| Test.initModel
 
+        TestHistoryRoute id ->
+            TestHistoryPage <| TestHistory.initModel
+
 
 route : Parser (Route -> a) a
 route =
@@ -105,6 +111,7 @@ route =
         , UrlParser.map BuildRoute (UrlParser.s "build" </> Build.parseBuildId)
         , UrlParser.map SuiteRoute (UrlParser.s "suite" </> Suite.parseSuiteId)
         , UrlParser.map TestRoute (UrlParser.s "test" </> UrlParser.string)
+        , UrlParser.map TestHistoryRoute (UrlParser.s "test-history" </> UrlParser.string)
         ]
 
 
@@ -141,6 +148,7 @@ type Msg
     | SuiteMsg Suite.Msg
     | TestMsg Test.Msg
     | TopBarMsg TopBar.Msg
+    | TestHistoryMsg TestHistory.Msg
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -192,6 +200,9 @@ init location =
                 TestRoute id ->
                     Test.getTestDataCmd id |> Cmd.map TestMsg
 
+                TestHistoryRoute id ->
+                    TestHistory.initCmd id |> Cmd.map TestHistoryMsg
+
                 _ ->
                     Cmd.none
 
@@ -232,7 +243,10 @@ update msg model =
                             ( { model | currentPage = routeToPage route }, Suite.getSuiteInfoCmd id |> Cmd.map SuiteMsg )
 
                         TestRoute id ->
-                            ( { model | currentPage = routeToPage route } , Test.getTestDataCmd id |> Cmd.map TestMsg )
+                            ( { model | currentPage = routeToPage route }, Test.getTestDataCmd id |> Cmd.map TestMsg )
+
+                        TestHistoryRoute id ->
+                            ( { model | currentPage = routeToPage route }, TestHistory.getTestHistory id |> Cmd.map TestHistoryMsg )
 
                         _ ->
                             ( { model | currentPage = routeToPage route }, Cmd.none )
@@ -322,13 +336,22 @@ update msg model =
         ( TestMsg subMsg, _ ) ->
             ( model, Cmd.none )
 
-
         ( TopBarMsg subMsg, _ ) ->
             let
                 ( updatedSubModel, subCmd ) =
                     TopBar.update subMsg model.topBarModel
             in
             ( { model | topBarModel = updatedSubModel }, Cmd.map TopBarMsg subCmd )
+
+        ( TestHistoryMsg subMsg, TestHistoryPage subModel ) ->
+            let
+                ( updatedSubModel, subCmd ) =
+                    TestHistory.update subMsg subModel
+            in
+            ( { model | currentPage = TestHistoryPage updatedSubModel }, Cmd.map TestHistoryMsg subCmd )
+
+        ( TestHistoryMsg subMsg, _ ) ->
+            ( model, Cmd.none )
 
 
 topNavBar : Html Msg
@@ -417,6 +440,10 @@ viewBody model =
         TestPage subModel ->
             Test.view subModel |> Html.map TestMsg
 
+        TestHistoryPage subModel ->
+            TestHistory.view subModel |> Html.map TestHistoryMsg
+
+
 view : Model -> Html Msg
 view model =
     let
@@ -434,9 +461,8 @@ view model =
             --                , Navbar.itemLink [ href "#" ] [ text "Home22" ]
             --                ]
             |> Navbar.customItems
-                [
-                 Navbar.customItem (TopBar.view model.topBarModel |> Html.map TopBarMsg)
-                ,Navbar.customItem
+                [ Navbar.customItem (TopBar.view model.topBarModel |> Html.map TopBarMsg)
+                , Navbar.customItem
                     (ul
                         [ class "nav navbar-nav side-nav" ]
                         (List.map

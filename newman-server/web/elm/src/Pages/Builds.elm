@@ -20,12 +20,14 @@ import Paginate exposing (..)
 import Task
 import Time exposing (Time)
 import Utils.Types exposing (..)
+import Views.CompareBuilds as CompareBuilds exposing (..)
 
 
 type alias Model =
     { allBuilds : Builds
     , builds : PaginatedBuilds
     , pageSize : Int
+    , compareBuildsModel : CompareBuilds.Model
     }
 
 
@@ -37,6 +39,7 @@ type Msg
     | Prev
     | GoTo Int
     | FilterQuery String
+    | CompareBuildsMsg CompareBuilds.Msg
 
 
 init : ( Model, Cmd Msg )
@@ -48,6 +51,11 @@ init =
     ( { allBuilds = []
       , builds = Paginate.fromList pageSize []
       , pageSize = pageSize
+      , compareBuildsModel =
+            { selectTwo = Nothing
+            , test = Nothing
+            , test4 = Nothing
+            }
       }
     , getBuildsCmd
     )
@@ -87,6 +95,15 @@ update msg model =
             ( { model | builds = Paginate.fromList model.pageSize filteredList }
             , Cmd.none
             )
+
+        CompareBuildsMsg subMsg ->
+            let
+                ( updatedModel, cmd ) =
+                    CompareBuilds.update subMsg model.compareBuildsModel
+                a =
+                    Debug.log "builds update call to compare builds" (toString updatedModel.selectTwo)
+            in
+            ( { model | compareBuildsModel = updatedModel }, cmd |> Cmd.map CompareBuildsMsg )
 
 
 view : Model -> Html Msg
@@ -137,6 +154,8 @@ view model =
     in
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text "Builds" ]
+        , CompareBuilds.view model.compareBuildsModel
+            |> Html.map CompareBuildsMsg
         , div []
             [ div [ class "form-inline" ]
                 [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]

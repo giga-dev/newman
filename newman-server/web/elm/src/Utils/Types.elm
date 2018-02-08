@@ -55,17 +55,17 @@ type alias Build =
 
 
 type alias DashboardBuild =
-     { id : BuildId
-     , name : String
-     , branch : String
-     , tags : List String
-     , buildTime : Int
-     , buildStatus : String
-     }
+    { id : BuildId
+    , name : String
+    , branch : String
+    , tags : List String
+    , buildTime : Int
+    , buildStatus : String
+    }
+
 
 type alias DashboardBuilds =
     List DashboardBuild
-
 
 
 type alias Builds =
@@ -135,9 +135,38 @@ type alias PaginatedSuites =
 type alias SuiteId =
     String
 
+
 type alias User =
     { userName : String
     }
+
+type alias TestHistoryItem =
+    { test : TestHistoryTestView
+    , job : TestHistoryJobView
+    }
+
+
+type alias TestHistoryTestView =
+    { id : String
+    , jobId : String
+    , name : String
+    , arguments : List String
+    , status : String
+    , errorMessage : String
+    , startTime : Int
+    , endTime : Int
+    }
+
+
+type alias TestHistoryJobView =
+    { id : String
+    , buildId : String
+    , buildName : String
+    , buildBranch : String
+    }
+
+type alias TestHistoryItems =
+    List TestHistoryItem
 
 toJobState : String -> JobState
 toJobState str =
@@ -156,7 +185,6 @@ toJobState str =
 
         _ ->
             BROKEN
-
 
 
 decodeJob : Decoder Job
@@ -199,19 +227,18 @@ decodeBuild =
 
 decodeDashboardBuild : Decoder DashboardBuild
 decodeDashboardBuild =
-     decode DashboardBuild
-          |> required "id" string
-          |> required "name" string
-          |> required "branch" string
-          |> required "tags" (list string)
-          |> required "buildTime" int
-          |> required "buildStatus" (map (Json.Encode.encode 4) value)
+    decode DashboardBuild
+        |> required "id" string
+        |> required "name" string
+        |> required "branch" string
+        |> required "tags" (list string)
+        |> required "buildTime" int
+        |> required "buildStatus" (map (Json.Encode.encode 4) value)
 
 
 decodeDashboardBuilds : Decoder DashboardBuilds
 decodeDashboardBuilds =
     field "historyBuilds" (list decodeDashboardBuild)
-
 
 
 decodeBuilds : Decoder Builds
@@ -294,7 +321,10 @@ decodeTestView =
         |> required "endTime" (nullable int)
         |> required "progressPercent" int
 
-type alias TestId = String
+
+type alias TestId =
+    String
+
 
 type alias Test =
     { id : TestId
@@ -337,6 +367,37 @@ decodeTest =
         |> required "progressPercent" int
         |> required "sha" string
 
+
 decodeUser =
     decode User
         |> required "userName" string
+
+decodeTestHistoryItem : Json.Decode.Decoder TestHistoryItem
+decodeTestHistoryItem =
+    decode TestHistoryItem
+        |> required "test" decodeTestHistoryTestView
+        |> required "job" decodeTestHistoryJobView
+
+decodeTestHistoryTestView : Json.Decode.Decoder TestHistoryTestView
+decodeTestHistoryTestView =
+    decode TestHistoryTestView
+        |> required "id" string
+        |> required "jobId" string
+        |> required "name" string
+        |> required "arguments" (list string)
+        |> required "status" string
+        |> optional "errorMessage" string ""
+        |> required "startTime" int
+        |> required "endTime" int
+
+decodeTestHistoryJobView : Json.Decode.Decoder TestHistoryJobView
+decodeTestHistoryJobView =
+    decode TestHistoryJobView
+        |> required "id" string
+        |> required "buildId" string
+        |> required "buildName" string
+        |> required "buildBranch" string
+
+decodeTestHistoryItems : Decoder TestHistoryItems
+decodeTestHistoryItems =
+    field "values" (list decodeTestHistoryItem)
