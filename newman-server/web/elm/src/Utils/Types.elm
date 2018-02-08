@@ -225,15 +225,52 @@ decodeBuild =
         |> required "shas" (dict string)
 
 
+type alias DashboardBuild =
+     { id : BuildId
+     , name : String
+     , branch : String
+     , buildTime : Int
+     , buildStatus : DashboardBuildStatus
+     }
+
+type alias DashboardBuildStatus =
+    { totalTests : Int
+    , passedTests : Int
+    , failedTests : Int
+    , runningTests : Int
+    , totalJobs : Int
+    , pendingJobs : Int
+    , runningJobs : Int
+    , doneJobs : Int
+    , brokenJobs : Int
+    , suitesNames : List String
+    , suitesIds : List String
+    }
+
 decodeDashboardBuild : Decoder DashboardBuild
 decodeDashboardBuild =
-    decode DashboardBuild
-        |> required "id" string
-        |> required "name" string
-        |> required "branch" string
-        |> required "tags" (list string)
-        |> required "buildTime" int
-        |> required "buildStatus" (map (Json.Encode.encode 4) value)
+     decode DashboardBuild
+          |> required "id" string
+          |> required "name" string
+          |> required "branch" string
+          |> required "buildTime" int
+          |> required "buildStatus" decodeDashboardBuildStatus
+
+
+decodeDashboardBuildStatus : Decoder DashboardBuildStatus
+decodeDashboardBuildStatus =
+    decode DashboardBuildStatus
+        |> required "totalTests" (int)
+        |> required "passedTests" (int)
+        |> required "failedTests" (int)
+        |> required "runningTests" (int)
+        |> required "totalJobs" (int)
+        |> required "pendingJobs" (int)
+        |> required "runningJobs" (int)
+        |> required "doneJobs" (int)
+        |> required "brokenJobs" (int)
+        |> required "suitesNames" (list string)
+        |> required "suitesIds" (list string)
 
 
 decodeDashboardBuilds : Decoder DashboardBuilds
@@ -346,7 +383,7 @@ type alias Test =
     , sha : String
     }
 
-decodeTest : Json.Decode.Decoder Test
+decodeTest : Decoder Test
 decodeTest =
     decode Test
         |> required "id" string

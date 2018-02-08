@@ -301,3 +301,11 @@ td {
 .navbar-brand {
     width: 100%;
 }
+
+.history-table .badge {
+    width: 40px;
+}
+
+.history-table .jobs {
+    width: 40px;
+}
