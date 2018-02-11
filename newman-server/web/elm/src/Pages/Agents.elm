@@ -138,7 +138,7 @@ view model =
                 ]
     in
     div [ class "container-fluid" ] <|
-        [ h2 [ class "text" ] [ text "Agents" ]
+        [ h2 [ class "text" ] [ text <| "Agents (" ++ (toString <| List.length model.allAgents) ++ ")" ]
         , div []
             [ div [ class "form-inline" ]
                 [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]

@@ -41,7 +41,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         maxEntries =
-            40
+            60
     in
     ( { jobsTableModel = JobsTable.init []
       , maxEntries = maxEntries

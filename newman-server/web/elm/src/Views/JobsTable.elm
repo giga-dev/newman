@@ -50,7 +50,7 @@ init : List Job -> Model
 init jobs =
     let
         pageSize =
-            10
+            15
     in
     Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing
 
