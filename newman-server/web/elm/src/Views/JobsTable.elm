@@ -121,13 +121,13 @@ viewTable model currTime =
                     , th [ widthPct "6%" ] [ text "Submitted By" ]
                     , th [ widthPct "6%" ] [ text "# p. agents" ]
                     , th [ widthPct "15%" ]
-                        [ Badge.badgeInfo [ class "job-tests-badge" ] [ text "# Running" ]
-                        , text " "
-                        , Badge.badgeSuccess [ class "job-tests-badge" ] [ text "# Passed" ]
-                        , text " "
-                        , Badge.badgeDanger [ class "job-tests-badge" ] [ text "# Failed" ]
-                        , text " "
-                        , Badge.badge [ class "job-tests-badge" ] [ text "# Total" ]
+                        [ Badge.badgeInfo [ class "job-tests-badge" ] [ text "Running" ]
+                        , text "/ "
+                        , Badge.badgeSuccess [ class "job-tests-badge" ] [ text "Passed" ]
+                        , text "/ "
+                        , Badge.badgeDanger [ class "job-tests-badge" ] [ text "Failed" ]
+                        , text "/ "
+                        , Badge.badge [ class "job-tests-badge" ] [ text "Total" ]
                         ]
                     , th [ width 80 ]
                         [ text "Actions" ]
