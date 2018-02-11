@@ -30,6 +30,7 @@ type Msg
 type alias Model =
     { historyBuilds : List DashboardBuild
     , futureJobs : List FutureJob
+    , pendingBuilds : List DashboardBuild
     , confirmationState : Modal.State
     , futureJobToDrop : Maybe String
     }
@@ -39,6 +40,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { historyBuilds = []
       , futureJobs = []
+      , pendingBuilds = []
       , confirmationState = Modal.hiddenState
       , futureJobToDrop = Nothing
       }
@@ -55,6 +57,7 @@ update msg model =
                     ( { model
                         | historyBuilds = data.historyBuilds
                         , futureJobs = data.futureJobs
+                        , pendingBuilds = data.pendingBuilds
                       }
                     , Cmd.none
                     )
@@ -87,9 +90,8 @@ onRequestCompletedDropFutureJob jobId model result =
             let
                 newList =
                     ListExtra.filterNot (\item -> item.id == jobId) model.futureJobs
-
             in
-            ( { model | futureJobs = newList}, Cmd.none )
+            ( { model | futureJobs = newList }, Cmd.none )
 
         Err err ->
             ( model, Cmd.none )
@@ -115,7 +117,8 @@ view model =
             [ text ("submitted future job eith id " ++ jobId) ]
     in
     div [ class "container-fluid" ] <|
-        [ viewHistory model.historyBuilds
+        [ viewPendingBuilds model.pendingBuilds
+        , viewHistory model.historyBuilds
         , viewFutureJobs model.futureJobs
         , NewmanModal.confirmFutureJobDrop model.futureJobToDrop NewmanModalMsg OnFutureJobDropConfirmed model.confirmationState
         ]
@@ -131,21 +134,17 @@ viewHistory dashboardBuilds =
                     [ th [] [ text "Build" ]
                     , th [] [ text "Date" ]
                     , th []
-                        [ Badge.badgeInfo [] [ text "Running" ]
+                        [ Badge.badgeSuccess [] [ text "Passed" ]
                         , text " "
-                        , Badge.badgeSuccess [] [ text "Done" ]
-                        , text " "
-                        , Badge.badgeDanger [] [ text "Broken" ]
+                        , Badge.badgeDanger [] [ text "Failed" ]
                         , text " "
                         , Badge.badge [] [ text "Total" ]
                         , text " | Tests"
                         ]
                     , th [ align "center" ]
-                        [ Badge.badgeInfo [] [ text "Running" ]
+                        [ Badge.badgeSuccess [] [ text "Done" ]
                         , text " "
-                        , Badge.badgeSuccess [] [ text "Passed" ]
-                        , text " "
-                        , Badge.badgeDanger [] [ text "Failed" ]
+                        , Badge.badgeDanger [] [ text "Broken" ]
                         , text " "
                         , Badge.badge [] [ text "Total" ]
                         , text " | Jobs"
@@ -206,9 +205,7 @@ viewHistoryBuild build =
             build.buildStatus
 
         testsData =
-            [ Badge.badgeInfo [] [ text <| toString buildStatus.runningTests ]
-            , text " "
-            , Badge.badgeSuccess [] [ text <| toString buildStatus.passedTests ]
+            [ Badge.badgeSuccess [] [ text <| toString buildStatus.passedTests ]
             , text " "
             , Badge.badgeDanger [] [ text <| toString buildStatus.failedTests ]
             , text " "
@@ -216,9 +213,80 @@ viewHistoryBuild build =
             ]
 
         jobsData =
-            [ Badge.badgeInfo [] [ text <| toString buildStatus.runningJobs ]
+            [ Badge.badgeSuccess [] [ text <| toString buildStatus.doneJobs ]
             , text " "
-            , Badge.badgeSuccess [] [ text <| toString buildStatus.doneJobs ]
+            , Badge.badgeDanger [] [ text <| toString buildStatus.brokenJobs ]
+            , text " "
+            , Badge.badge [] [ text <| toString buildStatus.totalJobs ]
+            ]
+    in
+    tr []
+        [ td [] [ a [ href <| "#build/" ++ build.id ] [ text buildName ] ]
+        , td [] [ text buildDate ]
+        , td [ class "tests-data" ] testsData
+        , td [] jobsData
+        , td [] <| List.intersperse (text " ") <| List.map (\( name, id ) -> a [ href <| "#suite/" ++ id ] [ text name ]) <| ListExtra.zip build.buildStatus.suitesNames build.buildStatus.suitesIds
+        ]
+
+
+viewPendingBuilds : DashboardBuilds -> Html Msg
+viewPendingBuilds builds =
+    div []
+        [ h2 [] [ text "Pending Builds" ]
+        , table [ class "table table-sm table-bordered table-striped table-hover history-table" ]
+            [ thead []
+                [ tr []
+                    [ th [widthPcnt "15%"] [ text "Build" ]
+                    , th [widthPcnt "10%"] [ text "Date" ]
+                    , th [widthPcnt "15%"]
+                        [ Badge.badgeSuccess [] [ text "Passed" ]
+                        , text " "
+                        , Badge.badgeDanger [] [ text "Failed" ]
+                        , text " "
+                        , Badge.badgePrimary [] [ text "Pending" ]
+                        , text " | Tests"
+                        ]
+                    , th [ align "center", widthPcnt "15%" ]
+                        [ Badge.badgeSuccess [] [ text "Done" ]
+                        , text " "
+                        , Badge.badgeDanger [] [ text "Broken" ]
+                        , text " "
+                        , Badge.badge [] [ text "Total" ]
+                        , text " | Jobs"
+                        ]
+                    , th [widthPcnt "45%"] [ text "Suites" ]
+                    ]
+                ]
+            , tbody [] (List.map viewPendingBuild builds)
+            ]
+        ]
+
+widthPcnt : String -> Html.Attribute Msg
+widthPcnt pcnt =
+    style [("width", pcnt)]
+
+viewPendingBuild : DashboardBuild -> Html Msg
+viewPendingBuild build =
+    let
+        buildName =
+            build.name ++ "(" ++ build.branch ++ ")"
+
+        buildDate =
+            Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat build.buildTime))
+
+        buildStatus =
+            build.buildStatus
+
+        testsData =
+            [ Badge.badgeSuccess [] [ text <| toString buildStatus.passedTests ]
+            , text " "
+            , Badge.badgeDanger [] [ text <| toString buildStatus.failedTests ]
+            , text " "
+            , Badge.badgePrimary [] [ text <| toString (buildStatus.totalTests - buildStatus.passedTests - buildStatus.failedTests) ]
+            ]
+
+        jobsData =
+            [ Badge.badgeSuccess [] [ text <| toString buildStatus.doneJobs ]
             , text " "
             , Badge.badgeDanger [] [ text <| toString buildStatus.brokenJobs ]
             , text " "

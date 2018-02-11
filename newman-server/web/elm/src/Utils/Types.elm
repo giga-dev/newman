@@ -223,6 +223,7 @@ decodeBuild =
 type alias DashboardData =
     { historyBuilds : List DashboardBuild
     , futureJobs : List FutureJob
+    , pendingBuilds: List DashboardBuild
     }
 
 
@@ -307,6 +308,7 @@ decodeDashboardData =
     decode DashboardData
         |> required "historyBuilds" (list decodeDashboardBuild)
         |> required "futureJobs" (list decodeFutureJob)
+        |> required "pendingBuilds" (list decodeDashboardBuild)
 
 decodeBuilds : Decoder Builds
 decodeBuilds =
