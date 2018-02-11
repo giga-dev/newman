@@ -1,8 +1,10 @@
 module Pages.Home exposing (..)
 
 import Bootstrap.Badge as Badge
+import Bootstrap.Button as Button
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
+import Bootstrap.Modal as Modal
 import Date
 import Date.Format
 import Html exposing (..)
@@ -11,27 +13,34 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (..)
 import Json.Decode exposing (Decoder, int)
 import Json.Decode.Pipeline exposing (decode, required)
+import List.Extra as ListExtra
 import Maybe exposing (withDefault)
 import Utils.Types exposing (..)
-import List.Extra
+import Views.NewmanModal as NewmanModal
 
 
 type Msg
-    = GetDashboardDataCompleted (Result Http.Error DashboardBuilds)
+    = GetDashboardDataCompleted (Result Http.Error DashboardData)
+    | OnClickDropFutureJob String
+    | OnFutureJobDropConfirmed String
+    | NewmanModalMsg Modal.State
+    | RequestCompletedDropFutureJob String (Result Http.Error String)
 
 
 type alias Model =
-    { dashboardDataResponse : DashboardBuilds
+    { historyBuilds : List DashboardBuild
+    , futureJobs : List FutureJob
+    , confirmationState : Modal.State
+    , futureJobToDrop : Maybe String
     }
-
-
-
---NEW
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { dashboardDataResponse = []
+    ( { historyBuilds = []
+      , futureJobs = []
+      , confirmationState = Modal.hiddenState
+      , futureJobToDrop = Nothing
       }
     , getDashboardDataCmd
     )
@@ -43,11 +52,47 @@ update msg model =
         GetDashboardDataCompleted result ->
             case result of
                 Ok data ->
-                    ( { model | dashboardDataResponse = data }, Cmd.none )
+                    ( { model
+                        | historyBuilds = data.historyBuilds
+                        , futureJobs = data.futureJobs
+                      }
+                    , Cmd.none
+                    )
 
                 Err err ->
                     -- log error
+                    let
+                        a =
+                            Debug.log "AA" err
+                    in
                     ( model, Cmd.none )
+
+        NewmanModalMsg newState ->
+            ( { model | futureJobToDrop = Nothing, confirmationState = newState }, Cmd.none )
+
+        OnClickDropFutureJob id ->
+            ( { model | futureJobToDrop = Just id, confirmationState = Modal.visibleState }, Cmd.none )
+
+        OnFutureJobDropConfirmed id ->
+            ( { model | confirmationState = Modal.hiddenState }, dropFutureJobCmd id )
+
+        RequestCompletedDropFutureJob id result ->
+            onRequestCompletedDropFutureJob id model result
+
+
+onRequestCompletedDropFutureJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
+onRequestCompletedDropFutureJob jobId model result =
+    case result of
+        Ok _ ->
+            let
+                newList =
+                    ListExtra.filterNot (\item -> item.id == jobId) model.futureJobs
+
+            in
+            ( { model | futureJobs = newList}, Cmd.none )
+
+        Err err ->
+            ( model, Cmd.none )
 
 
 getDashboardDataCmd : Cmd Msg
@@ -55,24 +100,14 @@ getDashboardDataCmd =
     Http.send GetDashboardDataCompleted getDashboardData
 
 
-getDashboardData : Http.Request DashboardBuilds
+getDashboardData : Http.Request DashboardData
 getDashboardData =
-    Http.get "/api/newman/dashboard" decodeDashboardBuilds
-
-
-
---dashboardDecoder : Json.Decode.Decoder DashboardBuilds
---dashboardDecoder =
---    decode DashboardBuilds
---        |> Json.Decode.Pipeline.required "historyBuild" decodeDashboardBuilds
+    Http.get "/api/newman/dashboard" decodeDashboardData
 
 
 view : Model -> Html Msg
 view model =
     let
-        a =
-            Debug.log "home.view" ("was called " ++ toString model.dashboardDataResponse)
-
         toOption data =
             option [ value data.id ] [ text data.name ]
 
@@ -80,63 +115,86 @@ view model =
             [ text ("submitted future job eith id " ++ jobId) ]
     in
     div [ class "container-fluid" ] <|
-        [ div []
-            [
-            h2 [] [ text "History" ]
-            , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover history-table" ]
-                [ thead []
-                    [ tr []
-                        [ th [] [ text "Build" ]
-                        , th [] [ text "Date" ]
-                        , th []
-                            [
-                              Badge.badgeInfo [] [ text "Running" ]
-                            , text " "
-                            , Badge.badgeSuccess [] [ text "Done" ]
-                            , text " "
-                            , Badge.badgeDanger [] [ text "Broken" ]
-                            , text " "
-                            , Badge.badge [] [ text "Total" ]
-                            , text " | Tests"
-                            ]
-                        , th [ align "center" ]
-                            [
-                            Badge.badgeInfo [] [ text "Running" ]
-                            , text " "
-                            , Badge.badgeSuccess [] [ text "Passed" ]
-                            , text " "
-                            , Badge.badgeDanger [] [ text "Failed" ]
-                            , text " "
-                            , Badge.badge [] [ text "Total" ]
-                            , text " | Jobs"
-                            ]
-                        , th [] [ text "Suites" ]
+        [ viewHistory model.historyBuilds
+        , viewFutureJobs model.futureJobs
+        , NewmanModal.confirmFutureJobDrop model.futureJobToDrop NewmanModalMsg OnFutureJobDropConfirmed model.confirmationState
+        ]
+
+
+viewHistory : DashboardBuilds -> Html Msg
+viewHistory dashboardBuilds =
+    div []
+        [ h2 [] [ text "History" ]
+        , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover history-table" ]
+            [ thead []
+                [ tr []
+                    [ th [] [ text "Build" ]
+                    , th [] [ text "Date" ]
+                    , th []
+                        [ Badge.badgeInfo [] [ text "Running" ]
+                        , text " "
+                        , Badge.badgeSuccess [] [ text "Done" ]
+                        , text " "
+                        , Badge.badgeDanger [] [ text "Broken" ]
+                        , text " "
+                        , Badge.badge [] [ text "Total" ]
+                        , text " | Tests"
                         ]
+                    , th [ align "center" ]
+                        [ Badge.badgeInfo [] [ text "Running" ]
+                        , text " "
+                        , Badge.badgeSuccess [] [ text "Passed" ]
+                        , text " "
+                        , Badge.badgeDanger [] [ text "Failed" ]
+                        , text " "
+                        , Badge.badge [] [ text "Total" ]
+                        , text " | Jobs"
+                        ]
+                    , th [] [ text "Suites" ]
                     ]
-                , tbody [] (List.map viewHistory model.dashboardDataResponse)
                 ]
+            , tbody [] (List.map viewHistoryBuild dashboardBuilds)
             ]
         ]
 
 
+viewFutureJobs : List FutureJob -> Html Msg
+viewFutureJobs futureJobs =
+    let
+        formatTime time =
+            Date.Format.format "%b %d, %H:%M:%S" <| Date.fromTime <| toFloat time
 
---api/newman/dashboard
---viewHistory :  Build -> Html msg
---viewHistory history =
---    let
---       a = "ddd"
---    in
---    tr []
---        [ td [] [ text "gfsdfds" ]
---        , td [] [ text "buildTags" ]
---        , td [] [ text "buildTagssdfsdf" ]
---        , td [] [ text "build.id" ]
---        , td [] [ text "buildDate" ]
---        ]
+        viewFutureJob futureJob =
+            tr []
+                [ td [] [ a [ href <| "#build/" ++ futureJob.buildId ] [ text <| futureJob.buildName ++ " (" ++ futureJob.buildBranch ++ ")" ] ]
+                , td [] [ a [ href <| "#suite/" ++ futureJob.suiteId ] [ text futureJob.suiteName ] ]
+                , td [] [ text futureJob.author ]
+                , td [] [ text <| formatTime futureJob.submitTime ]
+                , td []
+                    [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickDropFutureJob futureJob.id ]
+                        [ span [ class "ion-close" ] [] ]
+                    ]
+                ]
+    in
+    div []
+        [ h2 [] [ text "Future Jobs" ]
+        , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover history-table" ]
+            [ thead []
+                [ tr []
+                    [ th [] [ text "Build" ]
+                    , th [] [ text "Suite Name" ]
+                    , th [] [ text "Author" ]
+                    , th [] [ text "Submit Time" ]
+                    , th [] [ text "Actions" ]
+                    ]
+                ]
+            , tbody [] (List.map viewFutureJob futureJobs)
+            ]
+        ]
 
 
-viewHistory : DashboardBuild -> Html msg
-viewHistory build =
+viewHistoryBuild : DashboardBuild -> Html msg
+viewHistoryBuild build =
     let
         buildName =
             build.name ++ "(" ++ build.branch ++ ")"
@@ -158,8 +216,7 @@ viewHistory build =
             ]
 
         jobsData =
-            [
-              Badge.badgeInfo [] [ text <| toString buildStatus.runningJobs ]
+            [ Badge.badgeInfo [] [ text <| toString buildStatus.runningJobs ]
             , text " "
             , Badge.badgeSuccess [] [ text <| toString buildStatus.doneJobs ]
             , text " "
@@ -173,5 +230,23 @@ viewHistory build =
         , td [] [ text buildDate ]
         , td [ class "tests-data" ] testsData
         , td [] jobsData
-        , td [] <| List.intersperse (text " ") <| List.map (\(name, id) -> a [ href <| "#suite/" ++ id] [ text name ]) <| List.Extra.zip build.buildStatus.suitesNames build.buildStatus.suitesIds
+        , td [] <| List.intersperse (text " ") <| List.map (\( name, id ) -> a [ href <| "#suite/" ++ id ] [ text name ]) <| ListExtra.zip build.buildStatus.suitesNames build.buildStatus.suitesIds
         ]
+
+
+
+--- CMD
+
+
+dropFutureJobCmd : String -> Cmd Msg
+dropFutureJobCmd futureJobId =
+    Http.send (RequestCompletedDropFutureJob futureJobId) <|
+        Http.request <|
+            { method = "DELETE"
+            , headers = []
+            , url = "/api/newman/deleteFutureJob/" ++ futureJobId
+            , body = Http.emptyBody
+            , expect = Http.expectString
+            , timeout = Nothing
+            , withCredentials = False
+            }

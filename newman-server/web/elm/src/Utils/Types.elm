@@ -54,15 +54,6 @@ type alias Build =
     }
 
 
-type alias DashboardBuild =
-    { id : BuildId
-    , name : String
-    , branch : String
-    , tags : List String
-    , buildTime : Int
-    , buildStatus : String
-    }
-
 
 type alias DashboardBuilds =
     List DashboardBuild
@@ -225,13 +216,37 @@ decodeBuild =
         |> required "shas" (dict string)
 
 
+
+---
+
+
+type alias DashboardData =
+    { historyBuilds : List DashboardBuild
+    , futureJobs : List FutureJob
+    }
+
+
+type alias FutureJob =
+    { id : String
+    , buildId : String
+    , buildName : String
+    , buildBranch : String
+    , suiteId : String
+    , suiteName : String
+    , author : String
+    , submitTime : Int
+    }
+
+
+
 type alias DashboardBuild =
-     { id : BuildId
-     , name : String
-     , branch : String
-     , buildTime : Int
-     , buildStatus : DashboardBuildStatus
-     }
+    { id : BuildId
+    , name : String
+    , branch : String
+    , buildTime : Int
+    , buildStatus : DashboardBuildStatus
+    }
+
 
 type alias DashboardBuildStatus =
     { totalTests : Int
@@ -247,36 +262,51 @@ type alias DashboardBuildStatus =
     , suitesIds : List String
     }
 
+
 decodeDashboardBuild : Decoder DashboardBuild
 decodeDashboardBuild =
-     decode DashboardBuild
-          |> required "id" string
-          |> required "name" string
-          |> required "branch" string
-          |> required "buildTime" int
-          |> required "buildStatus" decodeDashboardBuildStatus
+    decode DashboardBuild
+        |> required "id" string
+        |> required "name" string
+        |> required "branch" string
+        |> required "buildTime" int
+        |> required "buildStatus" decodeDashboardBuildStatus
 
 
 decodeDashboardBuildStatus : Decoder DashboardBuildStatus
 decodeDashboardBuildStatus =
     decode DashboardBuildStatus
-        |> required "totalTests" (int)
-        |> required "passedTests" (int)
-        |> required "failedTests" (int)
-        |> required "runningTests" (int)
-        |> required "totalJobs" (int)
-        |> required "pendingJobs" (int)
-        |> required "runningJobs" (int)
-        |> required "doneJobs" (int)
-        |> required "brokenJobs" (int)
+        |> required "totalTests" int
+        |> required "passedTests" int
+        |> required "failedTests" int
+        |> required "runningTests" int
+        |> required "totalJobs" int
+        |> required "pendingJobs" int
+        |> required "runningJobs" int
+        |> required "doneJobs" int
+        |> required "brokenJobs" int
         |> required "suitesNames" (list string)
         |> required "suitesIds" (list string)
 
 
-decodeDashboardBuilds : Decoder DashboardBuilds
-decodeDashboardBuilds =
-    field "historyBuilds" (list decodeDashboardBuild)
 
+decodeFutureJob : Decoder FutureJob
+decodeFutureJob =
+    decode FutureJob
+        |> required "id" string
+        |> required "buildID" string
+        |> required "buildName" string
+        |> required "buildBranch" string
+        |> required "suiteID" string
+        |> required "suiteName" string
+        |> required "author" string
+        |> required "submitTime" int
+
+decodeDashboardData : Decoder DashboardData
+decodeDashboardData =
+    decode DashboardData
+        |> required "historyBuilds" (list decodeDashboardBuild)
+        |> required "futureJobs" (list decodeFutureJob)
 
 decodeBuilds : Decoder Builds
 decodeBuilds =
@@ -382,6 +412,7 @@ type alias Test =
     , progressPercent : Int
     , sha : String
     }
+
 
 decodeTest : Decoder Test
 decodeTest =
