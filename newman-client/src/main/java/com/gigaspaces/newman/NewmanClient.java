@@ -106,7 +106,7 @@ public class NewmanClient {
     }
 
     public CompletionStage<Build> getBuildToSubmit(String branch, String tags, String mode) {
-        return restClient.target(uri).path("build").
+        return restClient.target(uri).path("build-to-submit").
                 queryParam("branch", branch).
                 queryParam("tags", tags).
                 queryParam("mode", mode).

@@ -801,7 +801,7 @@ public class NewmanResource {
     // return all builds that need to be submit, e.g there are NO jobs that run with them
     // each cell on array represent different branch
     @GET
-    @Path("pending-builds")
+    @Path("build-to-submit")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Build getPendingBuildsToSubmit(
