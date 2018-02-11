@@ -219,11 +219,37 @@ decodeBuild =
 
 ---
 
+type alias ActiveJobsDashboard =
+    Dict String (List DashboardJob)
+
+type alias DashboardJob =
+    { id : String
+    , suiteId : String
+    , suiteName : String
+    , totalTests : Int
+    , failedTests : Int
+    , passedTests : Int
+    , runningTests : Int
+    }
+
+decodeDashboardJob : Decoder DashboardJob
+decodeDashboardJob =
+    decode DashboardJob
+        |> required "id" string
+        |> requiredAt [ "suite", "id" ] string
+        |> requiredAt [ "suite", "name" ] string
+        |> required "totalTests" int
+        |> required "failedTests" int
+        |> required "passedTests" int
+        |> required "runningTests" int
+
 
 type alias DashboardData =
     { historyBuilds : List DashboardBuild
     , futureJobs : List FutureJob
     , pendingBuilds: List DashboardBuild
+    , activeBuilds : List DashboardBuild
+    , activeJobs : ActiveJobsDashboard
     }
 
 
@@ -309,6 +335,8 @@ decodeDashboardData =
         |> required "historyBuilds" (list decodeDashboardBuild)
         |> required "futureJobs" (list decodeFutureJob)
         |> required "pendingBuilds" (list decodeDashboardBuild)
+        |> required "activeBuilds" (list decodeDashboardBuild)
+        |> required "activeJobs" (dict (list decodeDashboardJob))
 
 decodeBuilds : Decoder Builds
 decodeBuilds =

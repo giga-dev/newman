@@ -7,6 +7,7 @@ import Bootstrap.Form.Input as FormInput
 import Bootstrap.Modal as Modal
 import Date
 import Date.Format
+import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -31,6 +32,8 @@ type alias Model =
     { historyBuilds : List DashboardBuild
     , futureJobs : List FutureJob
     , pendingBuilds : List DashboardBuild
+    , activeBuilds : List DashboardBuild
+    , activeJobs : ActiveJobsDashboard
     , confirmationState : Modal.State
     , futureJobToDrop : Maybe String
     }
@@ -41,6 +44,8 @@ init =
     ( { historyBuilds = []
       , futureJobs = []
       , pendingBuilds = []
+      , activeBuilds = []
+      , activeJobs = Dict.empty
       , confirmationState = Modal.hiddenState
       , futureJobToDrop = Nothing
       }
@@ -58,6 +63,8 @@ update msg model =
                         | historyBuilds = data.historyBuilds
                         , futureJobs = data.futureJobs
                         , pendingBuilds = data.pendingBuilds
+                        , activeBuilds = data.activeBuilds
+                        , activeJobs = data.activeJobs
                       }
                     , Cmd.none
                     )
@@ -114,10 +121,11 @@ view model =
             option [ value data.id ] [ text data.name ]
 
         submittedFutureJobFormat jobId =
-            [ text ("submitted future job eith id " ++ jobId) ]
+            [ text ("submitted future job with id " ++ jobId) ]
     in
     div [ class "container-fluid" ] <|
-        [ viewPendingBuilds model.pendingBuilds
+        [ viewActiveBuilds model.activeBuilds model.activeJobs
+        , viewPendingBuilds model.pendingBuilds
         , viewHistory model.historyBuilds
         , viewFutureJobs model.futureJobs
         , NewmanModal.confirmFutureJobDrop model.futureJobToDrop NewmanModalMsg OnFutureJobDropConfirmed model.confirmationState
@@ -236,9 +244,9 @@ viewPendingBuilds builds =
         , table [ class "table table-sm table-bordered table-striped table-hover history-table" ]
             [ thead []
                 [ tr []
-                    [ th [widthPcnt "15%"] [ text "Build" ]
-                    , th [widthPcnt "10%"] [ text "Date" ]
-                    , th [widthPcnt "15%"]
+                    [ th [ widthPcnt "18%" ] [ text "Build" ]
+                    , th [ widthPcnt "10%" ] [ text "Date" ]
+                    , th [ widthPcnt "18%" ]
                         [ Badge.badgeSuccess [] [ text "Passed" ]
                         , text " "
                         , Badge.badgeDanger [] [ text "Failed" ]
@@ -254,16 +262,18 @@ viewPendingBuilds builds =
                         , Badge.badge [] [ text "Total" ]
                         , text " | Jobs"
                         ]
-                    , th [widthPcnt "45%"] [ text "Suites" ]
+                    , th [ widthPcnt "42%" ] [ text "Suites" ]
                     ]
                 ]
             , tbody [] (List.map viewPendingBuild builds)
             ]
         ]
 
+
 widthPcnt : String -> Html.Attribute Msg
 widthPcnt pcnt =
-    style [("width", pcnt)]
+    style [ ( "width", pcnt ) ]
+
 
 viewPendingBuild : DashboardBuild -> Html Msg
 viewPendingBuild build =
@@ -300,6 +310,101 @@ viewPendingBuild build =
         , td [] jobsData
         , td [] <| List.intersperse (text " ") <| List.map (\( name, id ) -> a [ href <| "#suite/" ++ id ] [ text name ]) <| ListExtra.zip build.buildStatus.suitesNames build.buildStatus.suitesIds
         ]
+
+
+viewActiveBuilds : DashboardBuilds -> ActiveJobsDashboard -> Html Msg
+viewActiveBuilds builds activeJobs =
+    div []
+        [ h2 [] [ text "Active Builds" ]
+        , table [ class "table table-sm table-bordered table-striped table-hover history-table" ]
+            [ thead []
+                [ tr []
+                    [ th [ widthPcnt "18%" ] [ text "Build" ]
+                    , th [ widthPcnt "10%" ] [ text "Date" ]
+                    , th [ widthPcnt "18%" ]
+                        [ Badge.badgeInfo [] [ text "Running" ]
+                        , text " "
+                        , Badge.badgeSuccess [] [ text "Passed" ]
+                        , text " "
+                        , Badge.badgeDanger [] [ text "Failed" ]
+                        , text " "
+                        , Badge.badgePrimary [] [ text "Pending" ]
+                        , text " | Tests"
+                        ]
+                    , th [ align "center", widthPcnt "15%" ]
+                        [ Badge.badgeSuccess [] [ text "Done" ]
+                        , text " "
+                        , Badge.badgeDanger [] [ text "Broken" ]
+                        , text " "
+                        , Badge.badge [] [ text "Total" ]
+                        , text " | Jobs"
+                        ]
+                    , th [  ] [ text "Suites" ]
+                    ]
+                ]
+            , tbody [] <| List.concat (List.map (viewActiveBuild activeJobs) builds)
+            ]
+        ]
+
+
+viewActiveBuild : ActiveJobsDashboard -> DashboardBuild -> List (Html Msg)
+viewActiveBuild activeJobs build =
+    let
+        buildName =
+            build.name ++ "(" ++ build.branch ++ ")"
+
+        buildDate =
+            formatDate build.buildTime
+
+        formatDate time =
+            Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat time))
+
+        buildStatus =
+            build.buildStatus
+
+        testsData =
+            [ Badge.badgeInfo [] [ text <| toString buildStatus.runningTests ]
+            , text " "
+            , Badge.badgeSuccess [] [ text <| toString buildStatus.passedTests ]
+            , text " "
+            , Badge.badgeDanger [] [ text <| toString buildStatus.failedTests ]
+            , text " "
+            , Badge.badgePrimary [] [ text <| toString (buildStatus.totalTests - buildStatus.passedTests - buildStatus.failedTests) ]
+            ]
+
+        jobsData =
+            [ Badge.badgeSuccess [] [ text <| toString buildStatus.doneJobs ]
+            , text " "
+            , Badge.badgeDanger [] [ text <| toString buildStatus.brokenJobs ]
+            , text " "
+            , Badge.badge [] [ text <| toString buildStatus.totalJobs ]
+            ]
+
+        viewJobForActiveBuild job =
+            tr []
+                [ td [] [ text <| "↳ Job: ", a [ href <| "#job/" ++ job.id ] [ text job.id ] ]
+                , td [] []
+                , td [ colspan 2, class "tests-data" ]
+                    [ Badge.badgeInfo [] [ text <| toString job.runningTests]
+                    , text " "
+                    , Badge.badgeSuccess [] [ text <| toString job.passedTests ]
+                    , text " "
+                    , Badge.badgeDanger [] [ text <| toString job.failedTests ]
+                    , text " "
+                    , Badge.badgePrimary [] [ text <| toString (job.totalTests - job.passedTests - job.failedTests) ]
+                    ]
+                , td [] [ a [ href <| "#suite/" ++ job.suiteId ] [ text job.suiteName ] ]
+                ]
+    in
+    [ tr []
+        [ td [] [ a [ href <| "#build/" ++ build.id ] [ text buildName ] ]
+        , td [] [ text buildDate ]
+        , td [ class "tests-data" ] testsData
+        , td [] jobsData
+        , td [] <| List.intersperse (text " ") <| List.map (\( name, id ) -> a [ href <| "#suite/" ++ id ] [ text name ]) <| ListExtra.zip build.buildStatus.suitesNames build.buildStatus.suitesIds
+        ]
+    ]
+        ++ List.map viewJobForActiveBuild (Maybe.withDefault [] (Dict.get build.id activeJobs))
 
 
 
