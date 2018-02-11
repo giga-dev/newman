@@ -154,8 +154,8 @@ view model =
     in
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text "Builds" ]
-        , CompareBuilds.view model.compareBuildsModel
-            |> Html.map CompareBuildsMsg
+--        , CompareBuilds.view model.compareBuildsModel
+--            |> Html.map CompareBuildsMsg
         , div []
             [ div [ class "form-inline" ]
                 [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
@@ -204,7 +204,7 @@ getBuildsCmd =
 
 getBuilds : Http.Request Builds
 getBuilds =
-    Http.get "/api/newman/build" decodeBuilds
+    Http.get "/api/newman/build?orderBy=-buildTime" decodeBuilds
 
 
 filterQuery : String -> Build -> Bool
