@@ -18,11 +18,6 @@ import org.bson.types.ObjectId;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.sse.EventOutput;
-import org.glassfish.jersey.media.sse.OutboundEvent;
-import org.glassfish.jersey.media.sse.SseBroadcaster;
-import org.glassfish.jersey.media.sse.SseFeature;
-import org.glassfish.jersey.server.ChunkedOutput;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.*;
@@ -74,7 +69,6 @@ public class NewmanResource {
     public static final String CREATE_FUTURE_JOB = "create-future-job";
     private static final String MODIFY_SERVER_STATUS = "modified-server-status";
 
-    private final SseBroadcaster broadcaster;
     private final MongoClient mongoClient;
     private final JobDAO jobDAO;
     private final TestDAO testDAO;
@@ -116,19 +110,6 @@ public class NewmanResource {
     public NewmanResource(@Context ServletContext servletContext) {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
         //noinspection SpellCheckingInspection
-        this.broadcaster = new SseBroadcaster() {
-            @Override
-            public void onException(ChunkedOutput<OutboundEvent> chunkedOutput, Exception exception) {
-                logger.error(exception.toString(), exception);
-                remove(chunkedOutput);
-            }
-
-            @Override
-            public void onClose(ChunkedOutput<OutboundEvent> chunkedOutput) {
-                remove(chunkedOutput);
-                logger.info("onClose {}", chunkedOutput);
-            }
-        };
         mongoClient = new MongoClient(config.getMongo().getHost());
         Morphia morphia = initMorphia();
         Datastore ds = morphia.createDatastore(mongoClient, config.getMongo().getDb());
@@ -2351,18 +2332,6 @@ public class NewmanResource {
         return jobDAO.find(query).asList();
     }
 
-    @GET
-    @Path("event")
-    @Produces(SseFeature.SERVER_SENT_EVENTS)
-    public EventOutput listenToBroadcast() {
-        long time1 = System.currentTimeMillis();
-        final EventOutput eventOutput = new EventOutput();
-        this.broadcaster.add(eventOutput);
-        long time2 = System.currentTimeMillis();
-        logger.debug( "Handling of listenToBroadcast took [" + ( time2 - time1 ) + "] msec." );
-        return eventOutput;
-    }
-
     @POST
     @Path("clearPaused")
     @Produces(MediaType.APPLICATION_JSON)
@@ -2561,15 +2530,9 @@ public class NewmanResource {
         if (value != null) {
             try {
                 long time1 = System.currentTimeMillis();
-                OutboundEvent.Builder eventBuilder = new OutboundEvent.Builder();
-                OutboundEvent event = eventBuilder.name(type)
-                        .mediaType(MediaType.APPLICATION_JSON_TYPE)
-                        .data(value.getClass(), value)
-                        .build();
+                EventSocket.broadcast(new Message(type, value));
                 long time2 = System.currentTimeMillis();
-                broadcaster.broadcast(event);
-                long time3 = System.currentTimeMillis();
-                logger.debug( "Broadcasting message [" + type + "] with value [" + value + "] took " + ( time3 - time1 ) + " msec., creating took " + (time2 - time1) + " msec." );
+                logger.debug( "Broadcasting message [" + type + "] with value [" + value + "] took " + ( time2 - time1 ) + " ms");
             } catch (Throwable ignored) {
                 logger.error("Invoking of broadcastMessage() failed");
             }
