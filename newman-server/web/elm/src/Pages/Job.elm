@@ -16,6 +16,8 @@ import Task
 import Time exposing (Time)
 import UrlParser exposing (Parser)
 import Utils.Types exposing (..)
+import Utils.Utils exposing (..)
+import Utils.WebSocket as WebSocket exposing (..)
 import Views.TestsTable as TestsTable
 
 
@@ -38,6 +40,7 @@ type Msg
     | GetTestsViewCompleted (Result Http.Error (List TestView))
     | TestsTableMsg TestsTable.Msg
     | OnTime Time
+    | WebSocketEvent WebSocket.Event
 
 
 
@@ -118,13 +121,13 @@ viewHeader model job =
                 )
 
         testsStatus =
-            [ Button.button[ Button.info, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "RUNNING" ] [ text <| toString job.runningTests ]
+            [ Button.button [ Button.info, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "RUNNING" ] [ text <| toString job.runningTests ]
             , text "/ "
-            , Button.button[ Button.success, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "SUCCESS"] [ text <| toString job.passedTests ]
+            , Button.button [ Button.success, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "SUCCESS" ] [ text <| toString job.passedTests ]
             , text "/ "
-            , Button.button[ Button.danger, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "FAIL"] [ text <| toString job.failedTests ]
+            , Button.button [ Button.danger, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "FAIL" ] [ text <| toString job.failedTests ]
             , text "/ "
-            , Button.button[ Button.small , Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery ""] [ text <| toString job.totalTests ]
+            , Button.button [ Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "" ] [ text <| toString job.totalTests ]
             ]
 
         jobToT ( key, val ) =
@@ -249,6 +252,22 @@ update msg model =
         OnTime time ->
             ( { model | currTime = time }, Cmd.none )
 
+        WebSocketEvent event ->
+            case event of
+                ModifiedJob job ->
+                    case model.maybeJob of
+                        Just currentJob ->
+                            if currentJob.id == job.id then
+                                ( { model | maybeJob = Just job }, Cmd.none )
+                            else
+                                ( model, Cmd.none )
+
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 getJobInfoCmd : JobId -> Cmd Msg
 getJobInfoCmd jobId =
@@ -266,3 +285,8 @@ getTestsViewCmd jobId =
 getTime : Cmd Msg
 getTime =
     Task.perform OnTime Time.now
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

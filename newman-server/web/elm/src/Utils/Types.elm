@@ -193,8 +193,8 @@ decodeJob =
         |> required "failedTests" int
         |> required "passedTests" int
         |> required "runningTests" int
-        |> required "startTime" (nullable int)
-        |> required "endTime" (nullable int)
+        |> optional "startTime" (nullable int) Nothing
+        |> optional "endTime" (nullable int) Nothing
         |> optional "jobSetupLogs" (dict string) Dict.empty
 
 

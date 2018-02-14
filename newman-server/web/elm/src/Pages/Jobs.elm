@@ -20,6 +20,7 @@ import Paginate exposing (..)
 import Task
 import Time exposing (Time)
 import Utils.Types exposing (..)
+import Utils.WebSocket as WebSocket
 import Views.JobsTable as JobsTable
 
 
@@ -36,6 +37,9 @@ type Msg
     | OnTime Time
     | JobsTableMsg JobsTable.Msg
 
+handleEvent: WebSocket.Event -> Cmd Msg
+handleEvent event =
+    JobsTable.handleEvent event |> Cmd.map JobsTableMsg
 
 init : ( Model, Cmd Msg )
 init =
@@ -82,8 +86,6 @@ update msg model =
                     JobsTable.update subMsg model.jobsTableModel
             in
             ( { model | jobsTableModel = updatedJobsTableModel }, cmd |> Cmd.map JobsTableMsg )
-
-
 
 -----
 {-

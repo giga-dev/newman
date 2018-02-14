@@ -19,8 +19,9 @@ import List.Extra as ListExtra
 import Paginate exposing (PaginatedList)
 import Time exposing (Time)
 import Utils.Types exposing (..)
+import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
-
+import Utils.Utils exposing (..)
 
 type Msg
     = First
@@ -35,7 +36,7 @@ type Msg
     | OnClickJobDrop String
     | OnJobDropConfirmed String
     | RequestCompletedDropJob String (Result Http.Error String)
-
+    | WebSocketEvent WebSocket.Event
 
 type alias Model =
     { allJobs : Jobs
@@ -101,7 +102,7 @@ viewTable model currTime =
                     )
                 ]
         widthPct pct =
-            style [("width", pct)]
+            style [ ( "width", pct ) ]
     in
     div []
         [ div [ class "form-inline" ]
@@ -116,8 +117,8 @@ viewTable model currTime =
                     , th [ widthPct "12%" ] [ text "Job Id" ]
                     , th [ widthPct "10%" ] [ text "Suite" ]
                     , th [ widthPct "6%" ] [ text "Duration" ]
-                    , th [ widthPct "6%"] [ text "Submitted At" ]
-                    , th [ widthPct "12%"] [ text "Build" ]
+                    , th [ widthPct "6%" ] [ text "Submitted At" ]
+                    , th [ widthPct "12%" ] [ text "Build" ]
                     , th [ widthPct "6%" ] [ text "Submitted By" ]
                     , th [ widthPct "6%" ] [ text "# p. agents" ]
                     , th [ widthPct "15%" ]
@@ -217,7 +218,7 @@ viewJob currTime job =
         , td [ title job.suiteName ] [ text job.suiteName ]
         , td [] [ text durationText ]
         , td [ title submittedTimeHourFull ] [ text submittedTimeHour ]
-        , td [] [ a [ href <| "#build/" ++ job.build.id , title <| job.build.name ++ " (" ++ job.build.branch ++ ")"] [ text <| job.build.name ++ " (" ++ job.build.branch ++ ")"] ]
+        , td [] [ a [ href <| "#build/" ++ job.build.id, title <| job.build.name ++ " (" ++ job.build.branch ++ ")" ] [ text <| job.build.name ++ " (" ++ job.build.branch ++ ")" ] ]
         , td [] [ text job.submittedBy ]
         , td [] [ text (toString (List.length job.preparingAgents)) ]
         , td []
@@ -278,6 +279,22 @@ update msg model =
 
         RequestCompletedDropJob jobId result ->
             onRequestCompletedDropJob jobId model result
+
+        WebSocketEvent event ->
+            case event of
+                CreatedJob job ->
+                    let
+                        newList =
+                            job :: model.allJobs
+                    in
+                    ( { model | allJobs = newList, jobs = Paginate.map (\_ -> newList) model.jobs }, Cmd.none )
+                ModifiedJob job ->
+                    let
+                        newList =
+                            ListExtra.replaceIf (\item -> item.id == job.id) job model.allJobs
+                    in
+                    ( { model | allJobs = newList, jobs = Paginate.map (\_ -> newList) model.jobs }, Cmd.none )
+
 
 
 toJobState : String -> JobState
@@ -345,6 +362,7 @@ toggleJobCmd jobId =
 
 onRequestCompletedDropJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
 onRequestCompletedDropJob jobId model result =
+    -- TODO might need to remove it from the allJobs field
     case result of
         Ok _ ->
             let
@@ -369,3 +387,8 @@ dropJobCmd jobId =
             , timeout = Nothing
             , withCredentials = False
             }
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

@@ -1,26 +1,28 @@
 module Main exposing (..)
 
-import Bootstrap.CDN exposing (..)
-import Bootstrap.Navbar as Navbar exposing (..)
+import Bootstrap.CDN exposing (stylesheet)
+import Bootstrap.Navbar as Navbar
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
-import Navigation exposing (..)
-import Pages.Agents as Agents exposing (..)
-import Pages.Build as Build exposing (..)
-import Pages.Builds as Builds exposing (..)
-import Pages.Home as Home exposing (..)
-import Pages.Job as Job exposing (..)
-import Pages.Jobs as Jobs exposing (..)
-import Pages.SubmitNewJob as SubmitNewJob exposing (..)
-import Pages.Suite as Suite exposing (..)
-import Pages.Suites as Suites exposing (..)
-import Pages.Test as Test exposing (..)
-import Pages.TestHistory as TestHistory exposing (..)
+import Navigation exposing (Location)
+import Pages.Agents as Agents
+import Pages.Build as Build
+import Pages.Builds as Builds
+import Pages.Home as Home
+import Pages.Job as Job
+import Pages.Jobs as Jobs
+import Pages.SubmitNewJob as SubmitNewJob
+import Pages.Suite as Suite
+import Pages.Suites as Suites
+import Pages.Test as Test
+import Pages.TestHistory as TestHistory
+import Task
 import UrlParser exposing (..)
-import Utils.Types exposing (..)
-import Views.JobsTable exposing (..)
-import Views.TopBar as TopBar exposing (..)
+import Utils.Types exposing (BuildId, JobId, SuiteId, TestId)
+import Utils.WebSocket as WebSocket exposing (Event(CreatedJob))
+import Views.JobsTable
+import Views.TopBar as TopBar
 
 
 main : Program Never Model Msg
@@ -131,6 +133,7 @@ type alias Model =
     , homeModel : Home.Model
     , suitesModel : Suites.Model
     , topBarModel : TopBar.Model
+    , webSocketModel : WebSocket.Model
     }
 
 
@@ -149,6 +152,7 @@ type Msg
     | TestMsg Test.Msg
     | TopBarMsg TopBar.Msg
     | TestHistoryMsg TestHistory.Msg
+    | WebSocketMsg WebSocket.Msg
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -209,7 +213,17 @@ init location =
         ( navbarState, navbarCmd ) =
             Navbar.initialState NavbarMsg
     in
-    ( Model currentPage navbarState submitNewJobModel jobsModel buildsModel agentsModel homeModel suitesModel topBarModel
+    ( { currentPage = currentPage
+      , navbarState = navbarState
+      , submitNewJobModel = submitNewJobModel
+      , jobsModel = jobsModel
+      , buildsModel = buildsModel
+      , agentsModel = agentsModel
+      , homeModel = homeModel
+      , suitesModel = suitesModel
+      , topBarModel = topBarModel
+      , webSocketModel = WebSocket.initModel location
+      }
     , Cmd.batch
         [ submitNewJobCmd |> Cmd.map SubmitNewJobMsg
         , jobsCmd |> Cmd.map JobsMsg
@@ -352,6 +366,26 @@ update msg model =
 
         ( TestHistoryMsg subMsg, _ ) ->
             ( model, Cmd.none )
+
+        ( WebSocketMsg subMsg, _ ) ->
+            let
+                event =
+                    WebSocket.toEvent subMsg
+
+                --
+                --                a =
+                --                    Debug.log "MAIN GOT" event
+                cmd =
+                    case event of
+                        Ok ev ->
+                            Cmd.batch
+                                [ Jobs.handleEvent ev |> Cmd.map JobsMsg
+                                , Job.handleEvent ev |> Cmd.map JobMsg
+                                ]
+                        Err err ->
+                            Cmd.none
+            in
+            ( model, cmd )
 
 
 topNavBar : Html Msg
@@ -508,4 +542,5 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Navbar.subscriptions model.navbarState NavbarMsg
+        , WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
         ]
