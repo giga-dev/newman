@@ -42,10 +42,11 @@ type Event
 
 {-
 
-   private static final String MODIFIED_BUILD = "modified-build";
-   public static final String CREATED_TEST = "created-test";
-   public static final String MODIFIED_TEST = "modified-test";
    public static final String CREATED_BUILD = "created-build";
+   private static final String MODIFIED_BUILD = "modified-build";
+
+
+   public static final String CREATED_TEST = "created-test";
    public static final String CREATED_SUITE = "created-suite";
    public static final String MODIFIED_SUITE = "modified-suite";
    public static final String CREATE_FUTURE_JOB = "create-future-job";

@@ -1,5 +1,8 @@
 module Pages.SubmitNewJob exposing (..)
 
+import Bootstrap.Form.Select as Select
+import Bootstrap.Form.Input as Input
+import Bootstrap.Button as Button
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -123,7 +126,7 @@ view : Model -> Html Msg
 view model =
     let
         toOption data =
-            option [ value data.id ] [ text data.name ]
+            Select.item [ value data.id ] [ text data.name ]
 
         submittedFutureJobFormat jobId =
             [ text ("submitted future job eith id " ++ jobId) ]
@@ -137,8 +140,8 @@ view model =
                     ]
                 ]
             , div [ class "row" ]
-                [ select [ onInput UpdateSelectedSuite ]
-                    ([ option [ value "1" ] [ text "Select a Suite" ]
+                [ Select.select [ Select.onChange UpdateSelectedSuite, Select.attrs [ style [("width", "500px")] ] ]
+                    ([ Select.item [ value "1" ] [ text "Select a Suite" ]
                      ]
                         ++ List.map toOption model.buildsAndSuites.suites
                     )
@@ -146,7 +149,7 @@ view model =
             , br [] []
             , selectBuildView model
             ]
-        , button [ onClick SubmitRequested ] [ text "Submit Future Job" ]
+        , Button.button [ Button.secondary,  Button.onClick SubmitRequested, Button.attrs [ style [("margin-top", "15px")]] ] [ text "Submit Future Job" ]
         , br [] []
         , div [] (withDefault [ text "" ] (Maybe.map submittedFutureJobFormat model.submittedFutureJobId.id))
         ]
@@ -156,7 +159,7 @@ selectBuildView : Model -> Html Msg
 selectBuildView model =
     let
         toOption data =
-            option [ value data.id ] [ text data.name ]
+            Select.item [ value data.id ] [ text data.name ]
 
         ( isSelect, isManual ) =
             case model.buildSelection of
@@ -169,30 +172,31 @@ selectBuildView model =
     div []
         [ div
             [ class "row" ]
-            [ radio "Select build :" (UpdatedBuildSelection SelectOption) ]
+            [ radio "Select build :" (UpdatedBuildSelection SelectOption)  isSelect ]
         , div
             [ class "row" ]
-            [ select [ disabled isManual, onInput UpdateSelectedBuild ]
-                ([ option [ value "1" ] [ text "Select a Build" ]
-                 ]
-                    ++ List.map toOption model.buildsAndSuites.builds
-                )
+            [ Select.select [ Select.disabled isManual, Select.onChange UpdateSelectedBuild, Select.attrs [ style [ ("width", "500px") ] ] ]
+                            ([ Select.item [ value "1" ] [ text "Select a Build" ]
+                             ]
+                                ++ List.map toOption model.buildsAndSuites.builds
+                            )
             ]
+        , br [] []
         , div
             [ class "row" ]
-            [ radio "Enter build id :" (UpdatedBuildSelection FillInManually) ]
+            [ radio "Enter build id :" (UpdatedBuildSelection FillInManually) isManual ]
         , div
             [ class "row" ]
-            [ input [ disabled isSelect, onInput UpdateSelectedBuild, type_ "string" ] []
+            [ Input.text [ Input.disabled isSelect, Input.onInput UpdateSelectedBuild, Input.attrs [ style [("width", "500px")] ] ]
             ]
         ]
 
 
-radio : String -> msg -> Html msg
-radio textVal msg =
+radio : String -> msg -> Bool -> Html msg
+radio textVal msg isChecked =
     label
         []
-        [ input [ type_ "radio", name "font-size", onClick msg ] []
+        [ input [ type_ "radio", name "font-size", onClick msg, checked isChecked ] []
         , text textVal
         ]
 
