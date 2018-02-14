@@ -1040,7 +1040,7 @@ public class NewmanResource {
             query.field("jobId").equal(jobId);
         }
 
-        return applySelectTestsPropertiesAndGet(query, orderBy, all, offset, limit, new String[]{"sha", "properties", "jobId", "testType", "timeout", "logs", "scheduledAt"});
+        return applySelectTestsPropertiesAndGet(query, orderBy, all, offset, limit, new String[]{"sha", "properties", "testType", "timeout", "logs", "scheduledAt"});
     }
 
     private List<Test> retrieveAgentTests( String agentName, List<String> orderBy, boolean all, int offset, int limit ){

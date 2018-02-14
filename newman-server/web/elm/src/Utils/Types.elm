@@ -174,6 +174,9 @@ toJobState str =
         "BROKEN" ->
             BROKEN
 
+        "READY" ->
+            READY
+
         _ ->
             BROKEN
 
@@ -388,37 +391,6 @@ decodeSuiteWithCriteria =
         |> required "criteria" (map (Json.Encode.encode 4) value)
 
 
-type alias TestView =
-    { id : String
-    , name : String
-    , arguments : List String
-    , status : String
-    , errorMessage : String
-    , testScore : Int
-    , historyStats : String
-    , assignedAgent : String
-    , startTime : Maybe Int
-    , endTime : Maybe Int
-    , progressPercent : Int
-    }
-
-
-decodeTestView : Decoder TestView
-decodeTestView =
-    decode TestView
-        |> required "id" string
-        |> required "name" string
-        |> required "arguments" (list string)
-        |> required "status" string
-        |> optional "errorMessage" string ""
-        |> optional "testScore" int -1
-        |> optional "historyStats" string ""
-        |> optional "assignedAgent" string ""
-        |> required "startTime" (nullable int)
-        |> required "endTime" (nullable int)
-        |> required "progressPercent" int
-
-
 type alias TestId =
     String
 
@@ -440,7 +412,6 @@ type alias Test =
     , endTime : Maybe Int
     , scheduledAt : Int
     , progressPercent : Int
-    , sha : String
     }
 
 
@@ -458,12 +429,31 @@ decodeTest =
         |> optional "testScore" int -1
         |> optional "historyStats" string ""
         |> required "logs" (dict string)
-        |> required "assignedAgent" string
+        |> optional "assignedAgent" string ""
         |> required "startTime" (nullable int)
         |> required "endTime" (nullable int)
         |> required "scheduledAt" int
         |> required "progressPercent" int
-        |> required "sha" string
+
+decodeTestView : Decoder Test
+decodeTestView =
+    decode Test
+        |> required "id" string
+        |> optional "jobId" string ""
+        |> required "name" string
+        |> required "arguments" (list string)
+        |> optional "testType" string ""
+        |> optional "timeout" int 0
+        |> required "status" string
+        |> optional "errorMessage" string ""
+        |> optional "testScore" int -1
+        |> optional "historyStats" string ""
+        |> optional "logs" (dict string) Dict.empty
+        |> optional "assignedAgent" string ""
+        |> optional "startTime" (nullable int) Nothing
+        |> optional "endTime" (nullable int) Nothing
+        |> optional "scheduledAt" int 0
+        |> required "progressPercent" int
 
 
 decodeUser =

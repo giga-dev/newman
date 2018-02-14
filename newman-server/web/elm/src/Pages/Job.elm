@@ -37,7 +37,7 @@ type CollapseState
 type Msg
     = GetJobInfoCompleted (Result Http.Error Job)
     | ToggleButton
-    | GetTestsViewCompleted (Result Http.Error (List TestView))
+    | GetTestsViewCompleted (Result Http.Error (List Test))
     | TestsTableMsg TestsTable.Msg
     | OnTime Time
     | WebSocketEvent WebSocket.Event
@@ -289,4 +289,7 @@ getTime =
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
-    event => WebSocketEvent
+    Cmd.batch
+        [ event => WebSocketEvent
+        , TestsTable.handleEvent event |> Cmd.map TestsTableMsg
+        ]

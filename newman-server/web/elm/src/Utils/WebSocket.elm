@@ -2,7 +2,7 @@ module Utils.WebSocket exposing (..)
 
 import Json.Decode exposing (Decoder, Value, field, string, value)
 import Navigation exposing (Location)
-import Utils.Types exposing (Job, decodeJob, Agent, decodeAgent)
+import Utils.Types exposing (Agent, Job, Test, decodeAgent, decodeJob, decodeTestView)
 import WebSocket
 
 
@@ -36,43 +36,55 @@ type Event
     = CreatedJob Job
     | ModifiedJob Job
     | ModifiedAgent Agent
+    | ModifiedTest Test
+
+
 
 {-
 
-    private static final String MODIFIED_BUILD = "modified-build";
-    public static final String CREATED_TEST = "created-test";
-    public static final String MODIFIED_TEST = "modified-test";
-    public static final String CREATED_BUILD = "created-build";
-    public static final String CREATED_SUITE = "created-suite";
-    public static final String MODIFIED_SUITE = "modified-suite";
-    public static final String CREATE_FUTURE_JOB = "create-future-job";
-    private static final String MODIFY_SERVER_STATUS = "modified-server-status";
+   private static final String MODIFIED_BUILD = "modified-build";
+   public static final String CREATED_TEST = "created-test";
+   public static final String MODIFIED_TEST = "modified-test";
+   public static final String CREATED_BUILD = "created-build";
+   public static final String CREATED_SUITE = "created-suite";
+   public static final String MODIFIED_SUITE = "modified-suite";
+   public static final String CREATE_FUTURE_JOB = "create-future-job";
+   private static final String MODIFY_SERVER_STATUS = "modified-server-status";
 
 -}
+
 
 toEvent : Msg -> Result String Event
 toEvent msg =
     case msg of
         NewMessage str ->
             let
-                json =
+               json =
                     Json.Decode.decodeString decodeWebSocketData str
 
---                aa =
---                    Debug.log "AA" json
+                --                aa =
+                --                    Debug.log "AA" json
             in
             case json of
                 Ok ok ->
                     let
+                        parse msg decoder =
+                            Result.map msg <| Json.Decode.decodeValue decoder ok.content
+
                         bodyRes =
                             case ok.id of
                                 "created-job" ->
-                                    Result.map CreatedJob <| Json.Decode.decodeValue decodeJob ok.content
+                                    parse CreatedJob decodeJob
 
                                 "modified-job" ->
-                                    Result.map ModifiedJob <| Json.Decode.decodeValue decodeJob ok.content
+                                    parse ModifiedJob decodeJob
+
                                 "modified-agent" ->
-                                    Result.map ModifiedAgent <| Json.Decode.decodeValue decodeAgent ok.content
+                                    parse ModifiedAgent decodeAgent
+
+                                "modified-test" ->
+                                    parse ModifiedTest decodeTestView
+
                                 other ->
                                     Err <| "Unhandled event id: " ++ other
                     in

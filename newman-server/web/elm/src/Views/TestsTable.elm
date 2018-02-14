@@ -19,9 +19,10 @@ import List.Extra as ListExtra
 import Paginate exposing (PaginatedList)
 import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
-import Utils.Types exposing (TestView, decodeTestView)
+import Utils.Types exposing (Test, decodeTest)
 import Views.NewmanModal as NewmanModal exposing (..)
-
+import Utils.Utils exposing (..)
+import Utils.WebSocket as WebSocket exposing (..)
 
 type Msg
     = First
@@ -30,17 +31,17 @@ type Msg
     | Prev
     | GoTo Int
     | FilterQuery String
-
+    | WebSocketEvent WebSocket.Event
 
 type alias Model =
-    { all : List TestView
-    , paginated : PaginatedList TestView
+    { all : List Test
+    , paginated : PaginatedList Test
     , pageSize : Int
     , query : String
     }
 
 
-init : List TestView -> Model
+init : List Test -> Model
 init list =
     let
         pageSize =
@@ -165,7 +166,7 @@ viewTable model currTime =
 -}
 
 
-viewTest : Time -> TestView -> Html Msg
+viewTest : Time -> Test -> Html Msg
 viewTest currTime test =
     let
         status =
@@ -274,9 +275,18 @@ update msg model =
             ( { model | query = query, paginated = Paginate.fromList model.pageSize (List.filter (filterQuery query) model.all) }
             , Cmd.none
             )
+        WebSocketEvent event ->
+            case event of
+                ModifiedTest test ->
+                    let
+                        newList = ListExtra.replaceIf (\item -> item.id == test.id && item.jobId == test.jobId) test model.all
+                    in
+                    ({model | all = newList, paginated = Paginate.fromList model.pageSize newList}, Cmd.none)
+                _ ->
+                    (model, Cmd.none)
 
 
-filterQuery : String -> TestView -> Bool
+filterQuery : String -> Test -> Bool
 filterQuery query test =
     if
         String.length query
@@ -315,3 +325,7 @@ toTestStatus str =
 
         _ ->
             FAIL
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

@@ -383,6 +383,7 @@ update msg model =
                                 , Job.handleEvent ev |> Cmd.map JobMsg
                                 , Agents.handleEvent ev |> Cmd.map AgentsMsg
                                 ]
+
                         Err err ->
                             Cmd.none
             in
