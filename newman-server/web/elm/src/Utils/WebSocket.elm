@@ -25,7 +25,16 @@ decodeWebSocketData =
 
 initModel : Location -> Model
 initModel location =
-    Model <| "ws://" ++ location.hostname ++ ":" ++ location.port_ ++ "/events"
+    let
+        protocol =
+            case location.protocol of
+                "https:" ->
+                    "wss"
+
+                _ ->
+                    "ws"
+    in
+    Model <| protocol ++ "://" ++ location.hostname ++ ":" ++ location.port_ ++ "/events"
 
 
 type Msg
@@ -60,7 +69,7 @@ toEvent msg =
     case msg of
         NewMessage str ->
             let
-               json =
+                json =
                     Json.Decode.decodeString decodeWebSocketData str
 
                 --                aa =
