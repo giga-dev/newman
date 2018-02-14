@@ -329,6 +329,7 @@ filterQuery query job =
             || String.startsWith query job.id
             || String.startsWith query job.build.name
             || String.startsWith query job.suiteName
+            || String.startsWith query job.submittedBy
     then
         True
     else
