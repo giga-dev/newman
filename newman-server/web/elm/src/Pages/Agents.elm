@@ -19,7 +19,9 @@ import Json.Decode.Pipeline exposing (decode, required)
 import Paginate exposing (..)
 import Time exposing (Time)
 import Utils.Types exposing (..)
-
+import Utils.Utils exposing (..)
+import Utils.WebSocket as WebSocket exposing (..)
+import List.Extra as ListExtra
 
 type alias Model =
     { allAgents : Agents
@@ -36,7 +38,7 @@ type Msg
     | Prev
     | GoTo Int
     | FilterQuery String
-
+    | WebSocketEvent WebSocket.Event
 
 init : ( Model, Cmd Msg )
 init =
@@ -90,6 +92,22 @@ update msg model =
             ( { model | agents = Paginate.fromList model.pageSize filteredList }
             , Cmd.none
             )
+        WebSocketEvent event ->
+            case event of
+                ModifiedAgent agent ->
+                    let
+                        inList = ListExtra.find (\item -> item.id == agent.id) model.allAgents
+
+                        newList =
+                            case inList of
+                                Just found ->
+                                    ListExtra.replaceIf (\item -> item.id == agent.id) agent model.allAgents
+                                Nothing ->
+                                    agent :: model.allAgents
+                    in
+                    ({ model | allAgents = newList , agents = Paginate.fromList model.pageSize newList }, Cmd.none)
+                _ ->
+                    (model, Cmd.none)
 
 
 view : Model -> Html Msg
@@ -264,3 +282,7 @@ filterQuery query agent =
         True
     else
         False
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

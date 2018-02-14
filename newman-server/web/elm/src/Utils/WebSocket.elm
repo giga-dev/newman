@@ -2,7 +2,7 @@ module Utils.WebSocket exposing (..)
 
 import Json.Decode exposing (Decoder, Value, field, string, value)
 import Navigation exposing (Location)
-import Utils.Types exposing (Job, decodeJob)
+import Utils.Types exposing (Job, decodeJob, Agent, decodeAgent)
 import WebSocket
 
 
@@ -35,15 +35,13 @@ type Msg
 type Event
     = CreatedJob Job
     | ModifiedJob Job
+    | ModifiedAgent Agent
 
 {-
 
     private static final String MODIFIED_BUILD = "modified-build";
     public static final String CREATED_TEST = "created-test";
-    public static final String MODIFIED_JOB = "modified-job";
     public static final String MODIFIED_TEST = "modified-test";
-    public static final String CREATED_JOB = "created-job";
-    public static final String MODIFIED_AGENT = "modified-agent";
     public static final String CREATED_BUILD = "created-build";
     public static final String CREATED_SUITE = "created-suite";
     public static final String MODIFIED_SUITE = "modified-suite";
@@ -73,7 +71,8 @@ toEvent msg =
 
                                 "modified-job" ->
                                     Result.map ModifiedJob <| Json.Decode.decodeValue decodeJob ok.content
-
+                                "modified-agent" ->
+                                    Result.map ModifiedAgent <| Json.Decode.decodeValue decodeAgent ok.content
                                 other ->
                                     Err <| "Unhandled event id: " ++ other
                     in

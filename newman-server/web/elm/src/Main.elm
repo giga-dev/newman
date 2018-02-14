@@ -381,6 +381,7 @@ update msg model =
                             Cmd.batch
                                 [ Jobs.handleEvent ev |> Cmd.map JobsMsg
                                 , Job.handleEvent ev |> Cmd.map JobMsg
+                                , Agents.handleEvent ev |> Cmd.map AgentsMsg
                                 ]
                         Err err ->
                             Cmd.none

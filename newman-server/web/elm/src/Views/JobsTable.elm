@@ -294,6 +294,8 @@ update msg model =
                             ListExtra.replaceIf (\item -> item.id == job.id) job model.allJobs
                     in
                     ( { model | allJobs = newList, jobs = Paginate.map (\_ -> newList) model.jobs }, Cmd.none )
+                _ ->
+                    (model, Cmd.none)
 
 
 
