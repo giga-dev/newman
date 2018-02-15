@@ -1,37 +1,34 @@
 module Pages.SubmitNewJob exposing (..)
 
-import Bootstrap.Form.Select as Select
-import Bootstrap.Form.Input as Input
 import Bootstrap.Button as Button
+import Bootstrap.Form.Input as Input
+import Bootstrap.Form.Select as Select
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Http exposing (..)
 import Json.Decode exposing (Decoder, int)
 import Json.Decode.Pipeline exposing (decode, required)
+import Json.Encode
 import Maybe exposing (withDefault)
+import Multiselect
 
 
 type Msg
     = GetBuildsAndSuitesCompleted (Result Http.Error BuildsAndSuites)
-    | UpdateSelectedSuite String
     | UpdateSelectedBuild String
-    | SubmitNewJob (Result Http.Error FutureJob)
-    | SubmitRequested
-    | UpdatedBuildSelection BuildSelection
-
-
-type BuildSelection
-    = SelectOption
-    | FillInManually
+    | SubmitNewJobCompleted (Result Http.Error (List FutureJob))
+    | OnClickSubmit
+    | MultiSelectMsg Multiselect.Msg
+    | UpdatedBuildSelection Bool
 
 
 type alias Model =
     { buildsAndSuites : BuildsAndSuites
     , selectedBuild : String
-    , selectedSuite : String
-    , submittedFutureJobId : FutureJob
-    , buildSelection : BuildSelection
+    , selectedSuites : Multiselect.Model
+    , submittedFutureJobs : List FutureJob
+    , isSelect : Bool
     }
 
 
@@ -57,12 +54,19 @@ type alias BuildsAndSuites =
 
 
 type alias FutureJob =
-    { id : Maybe String }
+    { id : String }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model (BuildsAndSuites [] []) "" "" (FutureJob Nothing) SelectOption, getBuildsAndSuitesCmd )
+    ( { buildsAndSuites = BuildsAndSuites [] []
+      , selectedBuild = ""
+      , selectedSuites = Multiselect.initModel [] ""
+      , submittedFutureJobs = []
+      , isSelect = True
+      }
+    , getBuildsAndSuitesCmd
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,7 +75,11 @@ update msg model =
         GetBuildsAndSuitesCompleted result ->
             case result of
                 Ok data ->
-                    ( { model | buildsAndSuites = data }, Cmd.none )
+                    let
+                        suites =
+                            List.map (\suite -> ( suite.id, suite.name )) data.suites
+                    in
+                    ( { model | buildsAndSuites = data, selectedSuites = Multiselect.initModel suites "suites" }, Cmd.none )
 
                 Err err ->
                     -- log error
@@ -80,22 +88,26 @@ update msg model =
         UpdateSelectedBuild build ->
             ( { model | selectedBuild = build }, Cmd.none )
 
-        UpdateSelectedSuite suite ->
-            ( { model | selectedSuite = suite }, Cmd.none )
+        MultiSelectMsg subMsg ->
+            let
+                ( subModel, subCmd, outMsg ) =
+                    Multiselect.update subMsg model.selectedSuites
+            in
+            ( { model | selectedSuites = subModel }, Cmd.map MultiSelectMsg subCmd )
 
-        SubmitRequested ->
+        OnClickSubmit ->
             ( model, submitFutureJobCmd model )
 
-        SubmitNewJob result ->
+        SubmitNewJobCompleted result ->
             case result of
                 Ok data ->
-                    ( { model | submittedFutureJobId = data }, Cmd.none )
+                    ( { model | submittedFutureJobs = data }, Cmd.none )
 
                 Err err ->
                     ( model, Cmd.none )
 
-        UpdatedBuildSelection option ->
-            ( { model | buildSelection = option }, Cmd.none )
+        UpdatedBuildSelection select ->
+            ( { model | isSelect = select }, Cmd.none )
 
 
 getBuildsAndSuitesCmd : Cmd Msg
@@ -112,24 +124,28 @@ submitFutureJobCmd : Model -> Cmd Msg
 submitFutureJobCmd model =
     let
         postReq =
-            postFutureJob model.selectedBuild model.selectedSuite
+            postFutureJob model.selectedBuild (List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites))
     in
-    Http.send SubmitNewJob postReq
+    Http.send SubmitNewJobCompleted postReq
 
 
-postFutureJob : String -> String -> Http.Request FutureJob
-postFutureJob buildId suiteId =
-    Http.post ("../api/newman/futureJob/" ++ buildId ++ "/" ++ suiteId) Http.emptyBody futureJobDecoder
+postFutureJob : String -> List String -> Http.Request (List FutureJob)
+postFutureJob buildId suites =
+    let
+        jsonify =
+            Http.jsonBody <| Json.Encode.object [ ( "buildId", Json.Encode.string buildId ), ( "suites", Json.Encode.list <| List.map Json.Encode.string suites ) ]
+    in
+    Http.post "../api/newman/futureJob" jsonify decodeFutureJobs
 
 
 view : Model -> Html Msg
 view model =
     let
-        toOption data =
-            Select.item [ value data.id ] [ text data.name ]
-
-        submittedFutureJobFormat jobId =
-            [ text ("submitted future job eith id " ++ jobId) ]
+        submittedFutureJobString = case model.submittedFutureJobs of
+            [] ->
+                ""
+            _ ->
+                "submitted the folowing future jobs:"
     in
     div [ id "page-wrapper" ]
         [ div [ class "container-fluid" ]
@@ -139,19 +155,17 @@ view model =
                         [ text "Submit New Job" ]
                     ]
                 ]
-            , div [ class "row" ]
-                [ Select.select [ Select.onChange UpdateSelectedSuite, Select.attrs [ style [("width", "500px")] ] ]
-                    ([ Select.item [ value "1" ] [ text "Select a Suite" ]
-                     ]
-                        ++ List.map toOption model.buildsAndSuites.suites
-                    )
+            , div [ class "row", style [ ( "width", "500px" ) ] ]
+                [ text "Select suite:"
+                , Multiselect.view model.selectedSuites |> Html.map MultiSelectMsg
                 ]
             , br [] []
             , selectBuildView model
             ]
-        , Button.button [ Button.secondary,  Button.onClick SubmitRequested, Button.attrs [ style [("margin-top", "15px")]] ] [ text "Submit Future Job" ]
+        , Button.button [ Button.secondary, Button.onClick OnClickSubmit, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Submit Future Job" ]
         , br [] []
-        , div [] (withDefault [ text "" ] (Maybe.map submittedFutureJobFormat model.submittedFutureJobId.id))
+        , div [] ([ text submittedFutureJobString ]
+            ++ List.map (\job -> div [] [text job.id]) model.submittedFutureJobs)
         ]
 
 
@@ -160,34 +174,26 @@ selectBuildView model =
     let
         toOption data =
             Select.item [ value data.id ] [ text data.name ]
-
-        ( isSelect, isManual ) =
-            case model.buildSelection of
-                SelectOption ->
-                    ( True, False )
-
-                _ ->
-                    ( False, True )
     in
     div []
         [ div
             [ class "row" ]
-            [ radio "Select build :" (UpdatedBuildSelection SelectOption)  isSelect ]
+            [ radio "Select build :" (UpdatedBuildSelection True) model.isSelect ]
         , div
             [ class "row" ]
-            [ Select.select [ Select.disabled isManual, Select.onChange UpdateSelectedBuild, Select.attrs [ style [ ("width", "500px") ] ] ]
-                            ([ Select.item [ value "1" ] [ text "Select a Build" ]
-                             ]
-                                ++ List.map toOption model.buildsAndSuites.builds
-                            )
+            [ Select.select [ Select.disabled (not model.isSelect), Select.onChange UpdateSelectedBuild, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
+                ([ Select.item [ value "1" ] [ text "Select a Build" ]
+                 ]
+                    ++ List.map toOption model.buildsAndSuites.builds
+                )
             ]
         , br [] []
         , div
             [ class "row" ]
-            [ radio "Enter build id :" (UpdatedBuildSelection FillInManually) isManual ]
+            [ radio "Enter build id :" (UpdatedBuildSelection False) (not model.isSelect) ]
         , div
             [ class "row" ]
-            [ Input.text [ Input.disabled isSelect, Input.onInput UpdateSelectedBuild, Input.attrs [ style [("width", "500px")] ] ]
+            [ Input.text [ Input.disabled model.isSelect, Input.onInput UpdateSelectedBuild, Input.attrs [ style [ ( "width", "500px" ) ] ] ]
             ]
         ]
 
@@ -218,10 +224,15 @@ decodeSuite =
         |> Json.Decode.Pipeline.required "customVariables" Json.Decode.string
 
 
+decodeFutureJobs : Json.Decode.Decoder (List FutureJob)
+decodeFutureJobs =
+    Json.Decode.list futureJobDecoder
+
+
 futureJobDecoder : Json.Decode.Decoder FutureJob
 futureJobDecoder =
     decode FutureJob
-        |> Json.Decode.Pipeline.required "id" (Json.Decode.maybe Json.Decode.string)
+        |> Json.Decode.Pipeline.required "id" Json.Decode.string
 
 
 buildsAndSuitesDecoder : Json.Decode.Decoder BuildsAndSuites
@@ -229,3 +240,8 @@ buildsAndSuitesDecoder =
     Json.Decode.map2 BuildsAndSuites
         (Json.Decode.field "suites" (Json.Decode.list decodeSuite))
         (Json.Decode.field "builds" (Json.Decode.list decodeBuild))
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.map MultiSelectMsg <| Multiselect.subscriptions model.selectedSuites

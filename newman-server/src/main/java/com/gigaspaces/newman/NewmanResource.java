@@ -157,18 +157,18 @@ public class NewmanResource {
 
     private void handleHangingJob() {
         Job potentialJob = getPotentialJob();
-        if(potentialJob == null){
+        if (potentialJob == null) {
             // might happand when there are no Jobs that should run (Ready/Running)
             return;
         }
-        if(!handleSetupProblem(potentialJob)){
+        if (!handleSetupProblem(potentialJob)) {
             handleZombie(potentialJob);
         }
     }
 
     private boolean handleSetupProblem(Job potentialJob) {
         int maxPrepareTimeHours = 1;
-        if(tooLongPrepareTime(potentialJob, maxPrepareTimeHours) && potentialJob.getState().equals(State.READY)){
+        if (tooLongPrepareTime(potentialJob, maxPrepareTimeHours) && potentialJob.getState().equals(State.READY)) {
             logger.info("Job state is BROKEN because it had setup problem for {} hours. job - id:[{}], name: [{}], build:[{}], startPrepareTime: [{}].",
                     maxPrepareTimeHours, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName(), potentialJob.getStartPrepareTime());
             updateBrokenJob(potentialJob);
@@ -187,17 +187,16 @@ public class NewmanResource {
     }
 
     private boolean handleZombie(Job potentialJob) {
-        if(potentialJob.getLastTimeZombie() == null){
-            if(isZombie(potentialJob)){ // job not running and zombie
+        if (potentialJob.getLastTimeZombie() == null) {
+            if (isZombie(potentialJob)) { // job not running and zombie
                 UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations();
                 updateJobStatus.set("lastTimeZombie", new Date());
                 jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(potentialJob.getId()), updateJobStatus);
                 return true;
             }
-        }
-        else{ // already seen as zombie
+        } else { // already seen as zombie
             int hoursToWaitBeforeDelete = 1;
-            if(isTimeExpired(potentialJob.getLastTimeZombie().getTime(), hoursToWaitBeforeDelete, TimeUnit.HOURS)){
+            if (isTimeExpired(potentialJob.getLastTimeZombie().getTime(), hoursToWaitBeforeDelete, TimeUnit.HOURS)) {
                 logger.info("Job state is BROKEN because it became zombie (no match agents) for {} hours. job: [id:{}, name: {}, build:{}].",
                         hoursToWaitBeforeDelete, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
                 updateBrokenJob(potentialJob);
@@ -207,20 +206,18 @@ public class NewmanResource {
         return false;
     }
 
-    private boolean isTimeExpired(long startTimeMilliseconds, int timeToPass, TimeUnit timeUnit){
+    private boolean isTimeExpired(long startTimeMilliseconds, int timeToPass, TimeUnit timeUnit) {
         long divideByTineUnit = 1;
-        if(timeUnit.equals(TimeUnit.SECONDS)){
+        if (timeUnit.equals(TimeUnit.SECONDS)) {
             divideByTineUnit = 1000;
+        } else if (timeUnit.equals(TimeUnit.MINUTES)) {
+            divideByTineUnit = 1000 * 60;
+        } else if (timeUnit.equals(TimeUnit.HOURS)) {
+            divideByTineUnit = 1000 * 60 * 60;
         }
-        else if(timeUnit.equals(TimeUnit.MINUTES)){
-            divideByTineUnit = 1000*60;
-        }
-        else if(timeUnit.equals(TimeUnit.HOURS)){
-            divideByTineUnit = 1000*60*60;
-        }
-        long currentTime  = System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
         long timePassSinceStart = currentTime - startTimeMilliseconds;
-        int timePassed = (int)(timePassSinceStart / divideByTineUnit);
+        int timePassed = (int) (timePassSinceStart / divideByTineUnit);
 
         return timePassed >= timeToPass;
     }
@@ -252,17 +249,17 @@ public class NewmanResource {
     }
 
     private boolean tooLongPrepareTime(Job potentialJob, int maxPrepareTimeHours) {
-        if(potentialJob.getStartPrepareTime() != null){
+        if (potentialJob.getStartPrepareTime() != null) {
             long firstTimePrepare = potentialJob.getStartPrepareTime().getTime();
-            long currentTime  = System.currentTimeMillis();
+            long currentTime = System.currentTimeMillis();
             long timePassSinceFirstPrepare = currentTime - firstTimePrepare;
-            int hoursPassed   = (int) (timePassSinceFirstPrepare / (1000*60*60));
+            int hoursPassed = (int) (timePassSinceFirstPrepare / (1000 * 60 * 60));
 
-            if(hoursPassed >= maxPrepareTimeHours){
+            if (hoursPassed >= maxPrepareTimeHours) {
                 return true;
             }
 
-            if(isTimeExpired(potentialJob.getStartPrepareTime().getTime(),maxPrepareTimeHours, TimeUnit.HOURS)){
+            if (isTimeExpired(potentialJob.getStartPrepareTime().getTime(), maxPrepareTimeHours, TimeUnit.HOURS)) {
                 return true;
             }
         }
@@ -275,8 +272,8 @@ public class NewmanResource {
         for (Agent agent : agents) {
             if (job.getSuite().getRequirements().isEmpty()
                     || job.getSuite().getRequirements() == null
-                    || agent.getCapabilities().containsAll(job.getSuite().getRequirements())){
-               return false;
+                    || agent.getCapabilities().containsAll(job.getSuite().getRequirements())) {
+                return false;
             }
         }
         return true;
@@ -286,8 +283,7 @@ public class NewmanResource {
         Morphia morphia;
         try {
             morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             logger.error("failed to init morphia", e);
             throw e;
         }
@@ -342,17 +338,17 @@ public class NewmanResource {
     @Path("jobs-view")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<JobView> jobsView(@DefaultValue("0") @QueryParam("offset") int offset,
-                           @DefaultValue("30") @QueryParam("limit") int limit
+                                   @DefaultValue("30") @QueryParam("limit") int limit
             , @QueryParam("buildId") String buildId
             , @QueryParam("all") boolean all
             , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
 
         List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit, true);
-        List<JobView> jobViews = new ArrayList<>( jobs.size() );
+        List<JobView> jobViews = new ArrayList<>(jobs.size());
 
-        for( Job job : jobs ){
-            jobViews.add( new JobView( job ) );
+        for (Job job : jobs) {
+            jobViews.add(new JobView(job));
         }
         return new Batch<>(jobViews, offset, limit, all, orderBy, uriInfo);
     }
@@ -364,27 +360,27 @@ public class NewmanResource {
 
         List<Suite> suites = getAllThinSuites(true);//  suiteDAO.find( suitesQuery ).asList();
 
-        List<SuiteView> suiteViews = new ArrayList<>( suites.size() );
-        for( Suite suite : suites ){
-            suiteViews.add( new SuiteView( suite ) );
+        List<SuiteView> suiteViews = new ArrayList<>(suites.size());
+        for (Suite suite : suites) {
+            suiteViews.add(new SuiteView(suite));
         }
 
         List<Build> builds = getThinBuilds();
         int buildsCount = builds.size();
-        List<BuildView> buildViews = new ArrayList<>( buildsCount );
-        for( Build build : builds ){
-            buildViews.add( new BuildView( build ) );
+        List<BuildView> buildViews = new ArrayList<>(buildsCount);
+        for (Build build : builds) {
+            buildViews.add(new BuildView(build));
         }
-        return new AllSuitesAndBuilds( buildViews, suiteViews );
+        return new AllSuitesAndBuilds(buildViews, suiteViews);
     }
 
-    private List<Build> getThinBuilds(){
+    private List<Build> getThinBuilds() {
         final int buildsLimit = 30;
         Query<Build> buildsQuery = buildDAO.createQuery();
 
         buildsQuery.retrievedFields(true, "id", "name", "branch", "tags");
         buildsQuery.order("-buildTime").limit(buildsLimit);
-        List<Build> builds = buildDAO.find( buildsQuery ).asList();
+        List<Build> builds = buildDAO.find(buildsQuery).asList();
         return builds;
     }
 
@@ -406,13 +402,13 @@ public class NewmanResource {
     @GET
     @Path("job/running")
     @Produces(MediaType.TEXT_PLAIN)
-    public String getRunningJobs(){
+    public String getRunningJobs() {
         Query<Job> query = jobDAO.createQuery();
         query.or(query.criteria("state").equal("READY"), query.criteria("state").equal("RUNNING"));
         return String.valueOf(jobDAO.find(query).asList().size());
     }
 
-    private List<Job> retrieveJobs( String buildId, List<String> orderBy, boolean all, int offset, int limit, boolean returnThinObjects ) {
+    private List<Job> retrieveJobs(String buildId, List<String> orderBy, boolean all, int offset, int limit, boolean returnThinObjects) {
 
         Query<Job> query = jobDAO.createQuery();
         if (buildId != null) {
@@ -425,7 +421,7 @@ public class NewmanResource {
             query.offset(offset).limit(limit);
         }
 
-        if( returnThinObjects ){
+        if (returnThinObjects) {
             addRequiredJobTableColumns(query);
         }
 
@@ -433,14 +429,14 @@ public class NewmanResource {
     }
 
 
-    private void addRequiredBuildTableColumns( Query<Build> query ){
+    private void addRequiredBuildTableColumns(Query<Build> query) {
         query.retrievedFields(false, "resources", "testsMetadata", "shas", "tags");
     }
 
-    private void addRequiredJobTableColumns( Query<Job> query ){
-        query.retrievedFields( true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name",
+    private void addRequiredJobTableColumns(Query<Job> query) {
+        query.retrievedFields(true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name",
                 "submitTime", "startTime", "endTime", "testURI", "submittedBy", "state", "totalTests",
-                "passedTests", "failedTests", "runningTests", "preparingAgents" );
+                "passedTests", "failedTests", "runningTests", "preparingAgents");
     }
 
 
@@ -453,7 +449,7 @@ public class NewmanResource {
         Query<FutureJob> query = futureJobDAO.createQuery();
         query.order("submitTime");
         FutureJob futureJob = futureJobDAO.findOne(query);
-        if(futureJob != null){
+        if (futureJob != null) {
             Datastore datastore = futureJobDAO.getDatastore();
             datastore.findAndDelete(query);
         }
@@ -466,8 +462,8 @@ public class NewmanResource {
     public Response deleteFutureJob(final @PathParam("futureJobId") String futureJobId) {
 
         Query<FutureJob> query = futureJobDAO.createIdQuery(futureJobId);
-        FutureJob futureJob = futureJobDAO.findOne( query );
-        if(futureJob != null){
+        FutureJob futureJob = futureJobDAO.findOne(query);
+        if (futureJob != null) {
             Datastore datastore = futureJobDAO.getDatastore();
             datastore.findAndDelete(query);
         }
@@ -498,15 +494,15 @@ public class NewmanResource {
         return job;
     }
 
-    private Job findOneJobById(String jobId){
+    private Job findOneJobById(String jobId) {
         Query<Job> query = jobDAO.createQuery();
-        return jobDAO.findOne( query.field("_id").equal(new ObjectId( jobId ) ) );
+        return jobDAO.findOne(query.field("_id").equal(new ObjectId(jobId)));
     }
 
-    private Job findOneThinJobById( String jobId ){
+    private Job findOneThinJobById(String jobId) {
         Query<Job> query = jobDAO.createQuery();
-        query.retrievedFields( true, "id", "suite.id", "suite.name", "build.id", "build.name", "build.branch" );
-        return jobDAO.findOne( query.field("_id").equal(new ObjectId(jobId)) );
+        query.retrievedFields(true, "id", "suite.id", "suite.name", "build.id", "build.name", "build.branch");
+        return jobDAO.findOne(query.field("_id").equal(new ObjectId(jobId)));
     }
 
 
@@ -584,22 +580,22 @@ public class NewmanResource {
             @PathParam("buildId") String buildId,
             @PathParam("suiteId") String suiteId,
             @QueryParam("author") String authorOpt,
-            @Context SecurityContext sc){
+            @Context SecurityContext sc) {
         checkServerStatus();
 
         String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
         Build build = null;
         Suite suite = null;
 
-        if(buildId != null){
-            build =  buildDAO.findOne(buildDAO.createIdQuery(buildId));
-            if(build == null) {
+        if (buildId != null) {
+            build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
+            if (build == null) {
                 throw new BadRequestException("invalid build id in create FutureJob: " + buildId);
             }
         }
-        if(suiteId != null){
+        if (suiteId != null) {
             suite = suiteDAO.findOne(suiteDAO.createIdQuery(suiteId));
-            if(suite == null) {
+            if (suite == null) {
                 throw new BadRequestException("invalid suite id in create FutureJob: " + suiteId);
             }
         }
@@ -608,8 +604,49 @@ public class NewmanResource {
         FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), author);
 
         futureJobDAO.save(futureJob);
-        broadcastMessage(CREATE_FUTURE_JOB,futureJob);
+        broadcastMessage(CREATE_FUTURE_JOB, futureJob);
         return futureJob;
+    }
+
+    @POST
+    @Path("futureJob")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public List<FutureJob> createFutureJobs(
+            FutureJobsRequest futureJobsRequest,
+            @QueryParam("author") String authorOpt,
+            @Context SecurityContext sc) {
+        checkServerStatus();
+
+        String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
+        Build build = null;
+        List<String> suites = futureJobsRequest.getSuites();
+        String buildId = futureJobsRequest.getBuildId();
+
+        if (buildId != null) {
+            build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
+            if (build == null) {
+                throw new BadRequestException("invalid build id in create FutureJob: " + buildId);
+            }
+        }
+        List<FutureJob> response = new ArrayList<FutureJob>();
+        if (!suites.isEmpty()) {
+            for (String suiteId : suites) {
+                Suite suite = suiteDAO.findOne(suiteDAO.createIdQuery(suiteId));
+                if (suite == null) {
+                    throw new BadRequestException("invalid suite id in create FutureJob: " + suiteId);
+                }
+
+                //noinspection ConstantConditions
+                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), author);
+                response.add(futureJob);
+
+                futureJobDAO.save(futureJob);
+                broadcastMessage(CREATE_FUTURE_JOB, futureJob);
+
+            }
+        }
+        return response;
     }
 
     @POST
@@ -633,7 +670,7 @@ public class NewmanResource {
             }
             if (state != null) {
                 UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", state);
-                if(state.equals(State.PAUSED)){
+                if (state.equals(State.PAUSED)) {
                     // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
                     updateJobStatus.unset("startPrepareTime");
                 }
@@ -788,57 +825,54 @@ public class NewmanResource {
     public Build getPendingBuildsToSubmit(
             @QueryParam("branch") String branchStr,
             @QueryParam("tags") String tagsStr,
-            @QueryParam("mode") String modeStr){
+            @QueryParam("mode") String modeStr) {
 
-        if(modeStr == null || modeStr.isEmpty()){
+        if (modeStr == null || modeStr.isEmpty()) {
             modeStr = "DAILY";
         }
 
-        logger.info("choosing build with params - branchStr ["+branchStr+"], tagsStr ["+tagsStr+"], modeStr ["+modeStr+"]");
+        logger.info("choosing build with params - branchStr [" + branchStr + "], tagsStr [" + tagsStr + "], modeStr [" + modeStr + "]");
 
         Build buildsRes;
         Set<String> tagsSet = null;
-        if (branchStr == null || branchStr.isEmpty()){
+        if (branchStr == null || branchStr.isEmpty()) {
             throw new IllegalArgumentException("branch can not be null or empty when asking for pending build to submit");
         }
 
-        if(tagsStr != null && !tagsStr.isEmpty()){
+        if (tagsStr != null && !tagsStr.isEmpty()) {
             tagsSet = new HashSet<>(Arrays.asList(tagsStr.split("\\s*,\\s*")));
         }
 
-        if("DAILY".equals(modeStr)){
+        if ("DAILY".equals(modeStr)) {
 
             Set<String> excludeTags = new HashSet<>();
             excludeTags.add("RELEASE");
             Query<Build> query = buildDAO.createQuery().order("-buildTime").field("branch").equal(branchStr).field("tags").hasNoneOf(excludeTags);
 
-            if(tagsSet != null && !tagsSet.isEmpty()){ // build should be with specifics tags
+            if (tagsSet != null && !tagsSet.isEmpty()) { // build should be with specifics tags
                 query.field("tags").hasAllOf(tagsSet);
             }
 
             Build build = buildDAO.findOne(query);
             if (build != null && build.getBuildStatus().getTotalJobs() == 0) {
-                buildsRes =  build;
-            }
-            else {
+                buildsRes = build;
+            } else {
                 String errorStr = "Did not find build with params - branchStr [" + branchStr + "], tagsStr [" + tagsStr + "], modeStr [" + modeStr + "]";
                 logger.error(errorStr);
                 throw new RuntimeException(errorStr);
             }
-        }
-        else if ("NIGHTLY".equals(modeStr)){
+        } else if ("NIGHTLY".equals(modeStr)) {
             //get latest nightly build that didn't run, if exist
             buildsRes = getLatestReleaseBuild();
-            logger.info("try find build - used getLatestReleaseBuild - build is ["+buildsRes+"]");
+            logger.info("try find build - used getLatestReleaseBuild - build is [" + buildsRes + "]");
             // if nightly mode and there aren't new builds - take last build anyway
-            if(buildsRes == null){
+            if (buildsRes == null) {
                 buildsRes = getLatestBuild(branchStr);
-                logger.info("Did not find build trying for second time - used getLatestBuild - build is ["+buildsRes+"]");
+                logger.info("Did not find build trying for second time - used getLatestBuild - build is [" + buildsRes + "]");
             }
             buildsRes.addTag("NIGHTLY");
             updateBuild(buildsRes.getId(), buildsRes);
-        }
-        else {
+        } else {
             String errorStr = "Got unsupported build MODE [" + modeStr + "]";
             logger.error(errorStr);
             throw new RuntimeException(errorStr);
@@ -855,20 +889,19 @@ public class NewmanResource {
         query = buildDAO.createQuery().order("-buildTime").field("tags").hasAllOf(xapReleaseTags);
         QueryResults<Build> queryResults = buildDAO.find(query);
         List<Build> builds = queryResults.asList();
-        logger.info("choosing build in getLatestReleaseBuild method. found ["+builds.size()+"] builds, need to pick one.\n builds:");
+        logger.info("choosing build in getLatestReleaseBuild method. found [" + builds.size() + "] builds, need to pick one.\n builds:");
         for (Build nightly : builds) {
-            logger.info("build is id: ["+nightly.getId()+"], name: ["+nightly.getName()+"], branch: ["+nightly.getBranch()+"], " +
-                    "tags: ["+nightly.getTags()+"]");
-            if(nightly.getBuildStatus().getTotalJobs() == 0){
+            logger.info("build is id: [" + nightly.getId() + "], name: [" + nightly.getName() + "], branch: [" + nightly.getBranch() + "], " +
+                    "tags: [" + nightly.getTags() + "]");
+            if (nightly.getBuildStatus().getTotalJobs() == 0) {
                 res = nightly;
                 break;
             }
         }
-        if(res != null){
-            logger.info("Chosen build(!) is id: ["+res.getId()+"], name: ["+res.getName()+"], branch: ["+res.getBranch()+"], " +
-                    "tags: ["+res.getTags()+"]");
-        }
-        else {
+        if (res != null) {
+            logger.info("Chosen build(!) is id: [" + res.getId() + "], name: [" + res.getName() + "], branch: [" + res.getBranch() + "], " +
+                    "tags: [" + res.getTags() + "]");
+        } else {
             logger.info("Did not choose build in getLatestReleaseBuild [res is null]");
         }
 
@@ -893,15 +926,15 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public synchronized Test finishTest(final Test test) {
-        try{
+        try {
             logger.debug("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
             String jobId = test.getJobId();
             Job testJob = getJob(jobId);
-            if( testJob== null){
-                throw new BadRequestException("finishTest - the job of the test is not on database. test: ["+test+"].");
+            if (testJob == null) {
+                throw new BadRequestException("finishTest - the job of the test is not on database. test: [" + test + "].");
             }
             Test.Status status = test.getStatus();
             if (status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)) {
@@ -929,7 +962,7 @@ public class NewmanResource {
             }
             int historyLength = 25;
             List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
-            String historyStatsString = TestScoreUtils.decodeShortHistoryString( test, testHistory, test.getStatus(),testJob.getBuild() ); // added current fail to history;
+            String historyStatsString = TestScoreUtils.decodeShortHistoryString(test, testHistory, test.getStatus(), testJob.getBuild()); // added current fail to history;
             double reliabilityTestScore = TestScoreUtils.score(historyStatsString);
 
             testUpdateOps.set("testScore", reliabilityTestScore);
@@ -956,15 +989,15 @@ public class NewmanResource {
                         .removeAll("currentTests", test.getId());
                 Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent()), updateOps, false, false);
                 if (agent != null) {
-                    agent.setJob( job );
+                    agent.setJob(job);
                     //logger.info("DEBUG(finishTest) find and update agent ---> agent: [{}]", agent.getName());
                     Agent idling = null;
                     if (agent.getCurrentTests().isEmpty()) {
                         idling = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent())
                                         .where("this.currentTests.length == 0"),
                                 agentDAO.createUpdateOperations().set("state", Agent.State.IDLING));
-                        if(idling != null){
-                            logger.debug("agent [{}] become idling because it finish all his tests",idling.getName());
+                        if (idling != null) {
+                            logger.debug("agent [{}] become idling because it finish all his tests", idling.getName());
                         }
                     }
                     broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
@@ -976,8 +1009,7 @@ public class NewmanResource {
             broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(job.getSuite()));
             logger.info("succeed finish test- id:[{}], name:[{}]", result.getId(), result.getName());
             return result;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             logger.error("failed to finish test because: ", e);
             throw e;
         }
@@ -988,16 +1020,16 @@ public class NewmanResource {
     @Path("job-tests-view")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<TestView> getJobTestsView(@DefaultValue("0") @QueryParam("offset") int offset,
-                                   @DefaultValue("30") @QueryParam("limit") int limit,
-                                   @DefaultValue("false") @QueryParam("all") boolean all,
-                                   @QueryParam("orderBy") List<String> orderBy,
-                                   @QueryParam("jobId") String jobId,
-                                   @Context UriInfo uriInfo) {
+                                           @DefaultValue("30") @QueryParam("limit") int limit,
+                                           @DefaultValue("false") @QueryParam("all") boolean all,
+                                           @QueryParam("orderBy") List<String> orderBy,
+                                           @QueryParam("jobId") String jobId,
+                                           @Context UriInfo uriInfo) {
 
         List<Test> tests = retrieveJobTests(jobId, orderBy, all, offset, limit);
-        List<TestView> testsView = new ArrayList<>( tests.size() );
-        for( Test test : tests ){
-            testsView.add( new TestView( test ) );
+        List<TestView> testsView = new ArrayList<>(tests.size());
+        for (Test test : tests) {
+            testsView.add(new TestView(test));
         }
 
         return new Batch<>(testsView, offset, limit, all, orderBy, uriInfo);
@@ -1022,18 +1054,18 @@ public class NewmanResource {
     @Path("agent-tests")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<Test> getAgentTests(@DefaultValue("0") @QueryParam("offset") int offset,
-                                   @DefaultValue("30") @QueryParam("limit") int limit,
-                                   @DefaultValue("false") @QueryParam("all") boolean all,
-                                   @QueryParam("orderBy") List<String> orderBy,
-                                   @QueryParam("agentName") String agentName,
-                                   @Context UriInfo uriInfo) {
+                                     @DefaultValue("30") @QueryParam("limit") int limit,
+                                     @DefaultValue("false") @QueryParam("all") boolean all,
+                                     @QueryParam("orderBy") List<String> orderBy,
+                                     @QueryParam("agentName") String agentName,
+                                     @Context UriInfo uriInfo) {
 
         List<Test> tests = agentName != null && agentName.trim().length() > 0 ?
                 retrieveAgentTests(agentName, orderBy, all, offset, limit) : Collections.emptyList();
         return new Batch<>(tests, offset, limit, all, orderBy, uriInfo);
     }
 
-    private List<Test> retrieveJobTests( String jobId, List<String> orderBy, boolean all, int offset, int limit ){
+    private List<Test> retrieveJobTests(String jobId, List<String> orderBy, boolean all, int offset, int limit) {
 
         Query<Test> query = testDAO.createQuery();
         if (jobId != null) {
@@ -1043,7 +1075,7 @@ public class NewmanResource {
         return applySelectTestsPropertiesAndGet(query, orderBy, all, offset, limit, new String[]{"sha", "properties", "testType", "timeout", "logs", "scheduledAt"});
     }
 
-    private List<Test> retrieveAgentTests( String agentName, List<String> orderBy, boolean all, int offset, int limit ){
+    private List<Test> retrieveAgentTests(String agentName, List<String> orderBy, boolean all, int offset, int limit) {
 
         Query<Test> query = testDAO.createQuery();
         if (agentName != null) {
@@ -1053,7 +1085,7 @@ public class NewmanResource {
         return applySelectTestsPropertiesAndGet(query, orderBy, all, offset, limit, new String[]{"sha", "properties", "assignedAgent", "testType", "timeout", "logs", "scheduledAt"});
     }
 
-    private List<Test> applySelectTestsPropertiesAndGet( Query<Test> query, List<String> orderBy, boolean all, int offset, int limit, String[] strings ){
+    private List<Test> applySelectTestsPropertiesAndGet(Query<Test> query, List<String> orderBy, boolean all, int offset, int limit, String[] strings) {
 
         if (orderBy != null) {
             if (orderBy.isEmpty()) {
@@ -1065,7 +1097,7 @@ public class NewmanResource {
             query.offset(offset).limit(limit);
         }
         //redundant test properties for job tests view
-        query.retrievedFields( false, strings );
+        query.retrievedFields(false, strings);
         return testDAO.find(query).asList();
     }
 
@@ -1085,7 +1117,7 @@ public class NewmanResource {
                               @PathParam("jobId") String jobId,
                               @PathParam("id") String id,
                               @Context UriInfo uriInfo) {
-        if(getJob(jobId) == null){
+        if (getJob(jobId) == null) {
             logger.warn("uploadTestLog - the job of the test is not on database. testId:[{}], jobId:[{}].", id, jobId);
             return null;
         }
@@ -1108,13 +1140,13 @@ public class NewmanResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Job uploadJobSetupLog(FormDataMultiPart form,
-                              @PathParam("jobId") String jobId, @PathParam("agentName") String agentName,
-                              @Context UriInfo uriInfo) {
-        if(getJob(jobId) == null){
+                                 @PathParam("jobId") String jobId, @PathParam("agentName") String agentName,
+                                 @Context UriInfo uriInfo) {
+        if (getJob(jobId) == null) {
             logger.warn("uploadJobSetupLog - the job is not in the database. jobId:[{}].", jobId);
             return null;
         }
-        if(getAgent(agentName) == null){
+        if (getAgent(agentName) == null) {
             logger.warn("uploadJobSetupLog - the agent is not in the database. agent:[{}].", agentName);
             return null;
         }
@@ -1215,7 +1247,7 @@ public class NewmanResource {
     @Path("job/{jobId}/{agentName}/log/{name}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response downloadJobSetupLog(@PathParam("jobId") String jobId, @PathParam("agentName") String agentName, @PathParam("name") String name,
-                                    @DefaultValue("false") @QueryParam("download") boolean download) {
+                                        @DefaultValue("false") @QueryParam("download") boolean download) {
         MediaType mediaType;
         if (download) {
             mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
@@ -1261,7 +1293,7 @@ public class NewmanResource {
 
     private String calcCacheResourceToDownload(String branch, String BuildName, String resourceName, boolean resource) {
         String resourcesOrMetadata = resource ? "resources" : "metadata";
-        return SERVER_CACHE_BUILDS_FOLDER + "/" + branch + "/" + BuildName + "/" +resourcesOrMetadata + "/" + resourceName;
+        return SERVER_CACHE_BUILDS_FOLDER + "/" + branch + "/" + BuildName + "/" + resourcesOrMetadata + "/" + resourceName;
     }
 
 
@@ -1269,11 +1301,11 @@ public class NewmanResource {
     @Path("cacheBuild")
     @Produces(MediaType.APPLICATION_JSON)
     public synchronized Build cacheBuild(@QueryParam("buildIdToCache") String buildIdToCache) throws IOException, URISyntaxException {
-        try{
+        try {
             Build build = getBuild(buildIdToCache);
 
             if (build == null) {
-                throw new IllegalArgumentException("cant cache the build with id "+ buildIdToCache +" because it does not exists");
+                throw new IllegalArgumentException("cant cache the build with id " + buildIdToCache + " because it does not exists");
             }
 
             if (!buildCacheEnabled) {
@@ -1292,13 +1324,11 @@ public class NewmanResource {
                 downloadResourceAndMetadata(build);
 
                 updateResourceAndMetadataURIs(build);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 // restore cache
                 try {
                     removeFromCache(build);
-                }
-                finally {
+                } finally {
                     FileUtils.delete(new File(calcCachePath(build)).toPath());
                 }
                 throw e;
@@ -1306,8 +1336,7 @@ public class NewmanResource {
 
             logger.info("create cached build: [{}]", build);
             return build;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             logger.error("could not cache build", e);
             throw e;
         }
@@ -1345,8 +1374,7 @@ public class NewmanResource {
     private void revertBuild(Build toRemove) throws IOException {
         try {
             updateBuild(toRemove.getId(), toRemove);
-        }
-        finally {
+        } finally {
             FileUtils.delete(new File(calcCachePath(toRemove)).toPath());
         }
     }
@@ -1382,8 +1410,7 @@ public class NewmanResource {
         }
         if (isResource) {
             build.setResources(newResources);
-        }
-        else {
+        } else {
             build.setTestsMetadata(newResources);
         }
     }
@@ -1444,7 +1471,7 @@ public class NewmanResource {
             }
             long testLogsSize = Files.walk(Paths.get(SERVER_TESTS_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum();
             long jobsSetupLogSize = Files.walk(Paths.get(SERVER_JOBS_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum();
-            latestLogSize.set(testLogsSize+jobsSetupLogSize);
+            latestLogSize.set(testLogsSize + jobsSetupLogSize);
             String sum = String.valueOf(latestLogSize.get());
             return Response.ok(sum, MediaType.TEXT_PLAIN_TYPE).build();
         } catch (Exception e) {
@@ -1457,15 +1484,15 @@ public class NewmanResource {
     @Path("agents/count")
     public Response getAgentsCount() {
         long count = agentDAO.count();
-        logger.debug( "agents count=" + count );
+        logger.debug("agents count=" + count);
         return Response.ok(count, MediaType.TEXT_PLAIN_TYPE).build();
     }
 
     @GET
     @Path("agents/failing")
     public Response getFailingAgents() {
-        long count = agentDAO.createQuery().filter("setupRetries >",0).countAll();
-        logger.debug( "agents failed setup count=" + count );
+        long count = agentDAO.createQuery().filter("setupRetries >", 0).countAll();
+        logger.debug("agents failed setup count=" + count);
         return Response.ok(count, MediaType.TEXT_PLAIN_TYPE).build();
     }
 
@@ -1558,7 +1585,7 @@ public class NewmanResource {
         Agent agent = agentDAO.findOne(agentDAO.createQuery().field("name").equal(name));
         //if such agent not found (already does not exist), then create Agent instance and
         //provide only its name
-        if( agent == null ){
+        if (agent == null) {
             agent = new Agent();
             agent.setName(name);
         }
@@ -1582,9 +1609,9 @@ public class NewmanResource {
         }
 
         List<Agent> agents = agentDAO.find(query).asList();
-        for( Agent agent : agents ){
+        for (Agent agent : agents) {
             String jobId = agent.getJobId();
-            if( jobId != null ) {
+            if (jobId != null) {
                 Job job = findOneThinJobById(jobId);
                 logger.debug("within for on agents, jobID=" + jobId + ", job=" + job);
                 agent.setJob(job);
@@ -1628,7 +1655,7 @@ public class NewmanResource {
             query = testDAO.createQuery();
             query.and(query.criteria("jobId").equal(jobId), query.criteria("status").equal(Test.Status.PENDING));
             updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
-                .set("assignedAgent", name).set("startTime", new Date());
+                    .set("assignedAgent", name).set("startTime", new Date());
             result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
         }
 
@@ -1647,11 +1674,11 @@ public class NewmanResource {
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), jobUpdateOperations);
                 agentUpdateOps.add("currentTests", result.getId());
                 agentUpdateOps.set("state", Agent.State.RUNNING);
-                if(job != null){
+                if (job != null) {
                     Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()),
                             buildUpdateOperations);
                     broadcastMessage(MODIFIED_JOB, job);
-                    if(build != null){
+                    if (build != null) {
                         broadcastMessage(MODIFIED_BUILD, build);
                     }
                 }
@@ -1682,7 +1709,7 @@ public class NewmanResource {
         }
         agent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, true);
         broadcastMessage(MODIFIED_AGENT, agent);
-        logger.warn("agent [{}] got test id: [{}], test-state:[{}]", agent.getName(), result.getId(),result.getStatus());
+        logger.warn("agent [{}] got test id: [{}], test-state:[{}]", agent.getName(), result.getId(), result.getStatus());
         return result;
     }
 
@@ -1739,12 +1766,12 @@ public class NewmanResource {
             updateOps.set("state", Agent.State.PREPARING);
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().add("preparingAgents", agent.getName());
             // update startPrepareTime only if not set
-            if(job.getStartPrepareTime() == null){
-                logger.info("agent [host:[{}], name:[{}]] start prepare on job [id:[{}], name:[{}]].",agent.getHost(), agent.getName(), job.getId(), job.getSuite().getName());
+            if (job.getStartPrepareTime() == null) {
+                logger.info("agent [host:[{}], name:[{}]] start prepare on job [id:[{}], name:[{}]].", agent.getHost(), agent.getName(), job.getId(), job.getSuite().getName());
                 updateJobStatus.set("startPrepareTime", new Date());
             }
             // job can be run = not a zombie
-            if(job.getLastTimeZombie() != null){
+            if (job.getLastTimeZombie() != null) {
                 updateJobStatus.unset("lastTimeZombie");
             }
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), updateJobStatus);
@@ -1755,7 +1782,7 @@ public class NewmanResource {
         }
 
         Agent readyAgent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, false, true);
-        if(readyAgent != null && readyAgent.getState().equals(Agent.State.IDLING)){
+        if (readyAgent != null && readyAgent.getState().equals(Agent.State.IDLING)) {
             logger.debug("agent [{}] is idling at subscribe because didn't find job", readyAgent.getName());
         }
 
@@ -1811,7 +1838,8 @@ public class NewmanResource {
                                   @DefaultValue("50") @QueryParam("limit") int limit,
                                   @DefaultValue("false") @QueryParam("all") boolean all
             , @QueryParam("orderBy") List<String> orderBy
-            , @Context UriInfo uriInfo) {Query<Build> query = buildDAO.createQuery();
+            , @Context UriInfo uriInfo) {
+        Query<Build> query = buildDAO.createQuery();
         if (!all) {
             query.offset(offset).limit(limit);
         }
@@ -1964,7 +1992,7 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Build getBuild(final @PathParam("id") String id) {
         Build build = buildDAO.findOne(buildDAO.createIdQuery(id));
-        logger.info( "Build [" + build.getName() + "] [" + build.getId() + "] shas:" + Arrays.toString( build.getShas().entrySet().toArray( new Map.Entry[build.getShas().size()] ) ) );
+        logger.info("Build [" + build.getName() + "] [" + build.getId() + "] shas:" + Arrays.toString(build.getShas().entrySet().toArray(new Map.Entry[build.getShas().size()])));
         return build;
     }
 
@@ -2036,8 +2064,7 @@ public class NewmanResource {
                 if (curPendingJobs > 0) {
                     updateOps.set("buildStatus.pendingJobs", curPendingJobs - 1);
                 }
-            }
-            else if (state == State.BROKEN) {
+            } else if (state == State.BROKEN) {
                 int currBrokenJobs = associatedBuildStatus.getBrokenJobs();
                 if (currBrokenJobs > 0) {
                     updateOps.set("buildStatus.brokenJobs", currBrokenJobs - 1);
@@ -2127,15 +2154,15 @@ public class NewmanResource {
     @POST
     @Path("suite/{sourceSuiteId}/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Suite addSuite( final @PathParam("sourceSuiteId") String sourceSuiteId, final @PathParam("name") String name ) {
+    public Suite addSuite(final @PathParam("sourceSuiteId") String sourceSuiteId, final @PathParam("name") String name) {
 
         Suite sourceSuite = getSuite(sourceSuiteId);
         Suite duplicatedSuite = sourceSuite;
-        duplicatedSuite.setName( name );
-        duplicatedSuite.setId( null );
+        duplicatedSuite.setName(name);
+        duplicatedSuite.setId(null);
 
-        suiteDAO.save( duplicatedSuite );
-        logger.info("---addSuite---" + duplicatedSuite );
+        suiteDAO.save(duplicatedSuite);
+        logger.info("---addSuite---" + duplicatedSuite);
         broadcastMessage(CREATED_SUITE, new SuiteWithJobs(duplicatedSuite));
         return duplicatedSuite;
     }
@@ -2162,15 +2189,15 @@ public class NewmanResource {
     @Path("suite")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<SuiteView> getAllSuites(@DefaultValue("0") @QueryParam("offset") int offset,
-                                     @DefaultValue("30") @QueryParam("limit") int limit
+                                         @DefaultValue("30") @QueryParam("limit") int limit
             , @QueryParam("all") boolean all
             , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
 
-        List<Suite> suites = getAllThinSuites( true );
-        List<SuiteView> suiteViews = new ArrayList<>( suites.size() );
-        for( Suite suite : suites ){
-            suiteViews.add( new SuiteView( suite ) );
+        List<Suite> suites = getAllThinSuites(true);
+        List<SuiteView> suiteViews = new ArrayList<>(suites.size());
+        for (Suite suite : suites) {
+            suiteViews.add(new SuiteView(suite));
         }
 
         return new Batch<>(suiteViews, offset, limit, all, orderBy, uriInfo);
@@ -2178,18 +2205,18 @@ public class NewmanResource {
 
     /**
      * With only if and name
+     *
      * @return
      */
-    private List<Suite> getAllThinSuites( boolean withCustomVariables ) {
+    private List<Suite> getAllThinSuites(boolean withCustomVariables) {
 
         Query<Suite> suitesQuery = suiteDAO.createQuery();
-        if( withCustomVariables ){
+        if (withCustomVariables) {
             suitesQuery.retrievedFields(true, "id", "name", "customVariables");
-        }
-        else {
+        } else {
             suitesQuery.retrievedFields(true, "id", "name");
         }
-        suitesQuery.order( "name" );
+        suitesQuery.order("name");
 
         List<Suite> suites = suiteDAO.find(suitesQuery).asList();
         return suites;
@@ -2235,7 +2262,7 @@ public class NewmanResource {
         filterBranches.add(MASTER_BRANCH_NAME);
         filterBranches.add(branch);
 
-        logger.debug( "--getTests() history, testId=" + id + ",jobId=" + jobId + ", buildId=" + build.getId() + ", branch=" + branch + ", endTime=" + endTime);
+        logger.debug("--getTests() history, testId=" + id + ",jobId=" + jobId + ", buildId=" + build.getId() + ", branch=" + branch + ", endTime=" + endTime);
 
         Query<Test> testsQuery = testDAO.createQuery();
         testsQuery.or(testsQuery.criteria("status").equal(Test.Status.FAIL), testsQuery.criteria("status").equal(Test.Status.SUCCESS)); // get only success or fail test
@@ -2243,21 +2270,21 @@ public class NewmanResource {
         testsQuery.field("name").equal(testName).field("arguments").equal(testArguments);
 
         //in order to improve query in the case of master branch
-        if( branch.equals( MASTER_BRANCH_NAME ) ) {
+        if (branch.equals(MASTER_BRANCH_NAME)) {
             String sha = thisTest.getSha();
             testsQuery.field("sha").equal(sha);
         }
         testsQuery.limit(limit);
 
         List<Test> tests = testDAO.find(testsQuery).asList();
-        logger.debug( "--getTests() history, testId=" + id + ", tests size:" + tests.size() );
+        logger.debug("--getTests() history, testId=" + id + ", tests size:" + tests.size());
         //logger.info("DEBUG (getTests) get test history of testId: [{}], (thisTest: [{}])", id, thisTest);
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
-            logger.debug( "--getTests() history, test.getEndTime()=" + test.getEndTime() + ", tests size:" + tests.size() );
+            logger.debug("--getTests() history, test.getEndTime()=" + test.getEndTime() + ", tests size:" + tests.size());
             String jobIdLocal = test.getJobId();
             //don't bring tests that were ran after this test on any branch
-            if( suiteJobs.contains( jobIdLocal ) && ( endTime == null || (test.getEndTime() != null && test.getEndTime().compareTo( endTime ) <= 0 ))) {
+            if (suiteJobs.contains(jobIdLocal) && (endTime == null || (test.getEndTime() != null && test.getEndTime().compareTo(endTime) <= 0))) {
                 //logger.info("DEBUG (getTests) ---- > create testHistoryItem to [{}]", test);
                 TestHistoryItem testHistoryItem = createTestHistoryItem(test, filterBranches);
                 if (testHistoryItem == null) {
@@ -2277,27 +2304,27 @@ public class NewmanResource {
         Query<Job> query = jobDAO.createQuery();
         query.field("suite.id").equal(suiteId);
         List<ObjectId> jobObjectOIds = jobDAO.findIds(query);
-        List<String> retVal = new ArrayList<>( jobObjectOIds.size() );
-        for( ObjectId jobObjectId : jobObjectOIds ){
-            retVal.add(jobObjectId.toString() );
+        List<String> retVal = new ArrayList<>(jobObjectOIds.size());
+        for (ObjectId jobObjectId : jobObjectOIds) {
+            retVal.add(jobObjectId.toString());
         }
 
         return retVal;
     }
 
 
-    private TestHistoryItem createTestHistoryItem(Test test, Collection<String> filterBranches ) {
+    private TestHistoryItem createTestHistoryItem(Test test, Collection<String> filterBranches) {
 
         Job job = getJob(test.getJobId());
         if (job == null) {
             return null;
         }
         String branch = job.getBuild().getBranch();
-        if( !filterBranches.contains( branch ) ){
-            return  null;
+        if (!filterBranches.contains(branch)) {
+            return null;
         }
         //logger.info("DEBUG (createTestHistoryItem) get job of test ---- > test: [{}], job: [{}])", test, job);
-        return new TestHistoryItem( new TestView( test ), new JobView( job ) );
+        return new TestHistoryItem(new TestView(test), new JobView(job));
     }
 
     private SuiteWithJobs createSuiteWithJobs(Suite suite) {
@@ -2326,8 +2353,8 @@ public class NewmanResource {
     private List<Job> getActiveBuildJobs(Build build) {
 
         Query<Job> query = jobDAO.createQuery();
-        query.retrievedFields( true, "id", "passedTests", "failedTests", "runningTests", "totalTests",
-                "suite.id", "suite.name" );
+        query.retrievedFields(true, "id", "passedTests", "failedTests", "runningTests", "totalTests",
+                "suite.id", "suite.name");
         query.field("build.id").equal(build.getId()).field("state").equal(State.RUNNING);
         return jobDAO.find(query).asList();
     }
@@ -2342,8 +2369,7 @@ public class NewmanResource {
             for (Job j : jobDAO.find(query).asList()) {
                 deleteJob(j.getId());
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             logger.warn("caught exception during clear paused jobs operation", e);
             return Response.serverError().build();
         }
@@ -2369,17 +2395,16 @@ public class NewmanResource {
 
             QueryResults<Job> runningJobsResult = jobDAO.find(stillRunningJobsQuery);
 
-            while( !runningJobsResult.asList().isEmpty() ) {
+            while (!runningJobsResult.asList().isEmpty()) {
                 List<Job> jobList = runningJobsResult.asList();
                 logger.info("waiting for all agents to finish running tests, {} jobs are still running:", jobList.size());
                 for (Job job : jobList) {
-                    logger.info("{},", job.getId() );
+                    logger.info("{},", job.getId());
                 }
                 Thread.sleep(10000);
                 runningJobsResult = jobDAO.find(stillRunningJobsQuery);
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             logger.warn("failed to suspend server", e);
             return Response.serverError().build();
         }
@@ -2419,8 +2444,7 @@ public class NewmanResource {
             if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDING)) {
                 return Response.status(Response.Status.FORBIDDEN)
                         .entity("Server is currently suspending").build();
-            }
-            else if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
+            } else if (this.serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
                 return Response.status(Response.Status.FORBIDDEN)
                         .entity("Server is already suspended").build();
             }
@@ -2515,11 +2539,11 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("agent/{setupRetries}")
-    public Agent setNumberOfRetries( @PathParam("setupRetries") final int numberOfRetries,final Agent agent) {
+    public Agent setNumberOfRetries(@PathParam("setupRetries") final int numberOfRetries, final Agent agent) {
 
         UpdateOperations<Agent> agentUpdateOps = agentDAO.createUpdateOperations();
-        agentUpdateOps.set("setupRetries",numberOfRetries);
-        agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false,false );
+        agentUpdateOps.set("setupRetries", numberOfRetries);
+        agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, false);
         return agent;
     }
 
@@ -2532,7 +2556,7 @@ public class NewmanResource {
                 long time1 = System.currentTimeMillis();
                 EventSocket.broadcast(new Message(type, value));
                 long time2 = System.currentTimeMillis();
-                logger.debug( "Broadcasting message [" + type + "] with value [" + value + "] took " + ( time2 - time1 ) + " ms");
+                logger.debug("Broadcasting message [" + type + "] with value [" + value + "] took " + (time2 - time1) + " ms");
             } catch (Throwable ignored) {
                 logger.error("Invoking of broadcastMessage() failed");
             }
@@ -2589,7 +2613,7 @@ public class NewmanResource {
                 int runningTests = 0 - tests.size();
                 logger.info("returnTests for agent [{}], jobId [{}], running tests size [{}]",
                         agent.getName(), agent.getJobId(), runningTests);
-                jobUpdateOps.inc("runningTests", runningTests );
+                jobUpdateOps.inc("runningTests", runningTests);
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(agent.getJobId()), jobUpdateOps);
             }
         }
@@ -2597,7 +2621,7 @@ public class NewmanResource {
                 agentDAO.createUpdateOperations().set("currentTests", new HashSet<>()).set("state", Agent.State.IDLING));
         ag.setJob(job);
 
-        if(ag != null && ag.getState().equals(Agent.State.IDLING)){
+        if (ag != null && ag.getState().equals(Agent.State.IDLING)) {
             logger.warn("agent [{}] is idling while returning tests to pool", ag.getName());
         }
         for (Test test : tests) {

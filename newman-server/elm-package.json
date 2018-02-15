@@ -20,6 +20,7 @@
         "elm-lang/websocket": "1.0.2 <= v < 2.0.0",
         "evancz/elm-markdown": "3.0.1 <= v < 4.0.0",
         "evancz/url-parser": "2.0.1 <= v < 3.0.0",
+        "inkuzmin/elm-multiselect": "2.0.1 <= v < 3.0.0",
         "jschomay/elm-paginate": "3.0.0 <= v < 4.0.0",
         "mgold/elm-date-format": "1.4.2 <= v < 2.0.0",
         "rluiten/elm-date-extra": "9.2.1 <= v < 10.0.0",

@@ -545,4 +545,5 @@ subscriptions model =
     Sub.batch
         [ Navbar.subscriptions model.navbarState NavbarMsg
         , WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
+        , SubmitNewJob.subscriptions model.submitNewJobModel |> Sub.map SubmitNewJobMsg
         ]
