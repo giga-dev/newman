@@ -19,9 +19,10 @@ import List.Extra as ListExtra
 import Paginate exposing (PaginatedList)
 import Time exposing (Time)
 import Utils.Types exposing (..)
+import Utils.Utils exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
-import Utils.Utils exposing (..)
+
 
 type Msg
     = First
@@ -38,12 +39,14 @@ type Msg
     | RequestCompletedDropJob String (Result Http.Error String)
     | WebSocketEvent WebSocket.Event
 
+
 type alias Model =
     { allJobs : Jobs
     , jobs : PaginatedList Job
     , pageSize : Int
     , confirmationState : Modal.State
     , jobToDrop : Maybe String
+    , query : String
     }
 
 
@@ -53,7 +56,7 @@ init jobs =
         pageSize =
             15
     in
-    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing
+    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing ""
 
 
 viewTable : Model -> Time -> Html Msg
@@ -101,6 +104,7 @@ viewTable model currTime =
                         ++ nextButtons
                     )
                 ]
+
         widthPct pct =
             style [ ( "width", pct ) ]
     in
@@ -258,7 +262,7 @@ update msg model =
             ( { model | jobs = Paginate.goTo i model.jobs }, Cmd.none )
 
         FilterQuery query ->
-            ( { model | jobs = Paginate.fromList model.pageSize (List.filter (filterQuery query) model.allJobs) }
+            ( { model | query = query, jobs = Paginate.fromList model.pageSize (List.filter (filterQuery query) model.allJobs) }
             , Cmd.none
             )
 
@@ -283,20 +287,13 @@ update msg model =
         WebSocketEvent event ->
             case event of
                 CreatedJob job ->
-                    let
-                        newList =
-                            job :: model.allJobs
-                    in
-                    ( { model | allJobs = newList, jobs = Paginate.map (\_ -> newList) model.jobs }, Cmd.none )
-                ModifiedJob job ->
-                    let
-                        newList =
-                            ListExtra.replaceIf (\item -> item.id == job.id) job model.allJobs
-                    in
-                    ( { model | allJobs = newList, jobs = Paginate.map (\_ -> newList) model.jobs }, Cmd.none )
-                _ ->
-                    (model, Cmd.none)
+                    ( updateJobAdded model job, Cmd.none )
 
+                ModifiedJob job ->
+                    ( updateJobUpdated model job, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 toJobState : String -> JobState
@@ -340,15 +337,45 @@ filterQuery query job =
 -- commands
 
 
+updateAllJobs : (List Job -> List Job) -> Model -> Model
+updateAllJobs f model =
+    let
+        newList =
+            f model.allJobs
+
+        filtered =
+            List.filter (filterQuery model.query) newList
+
+        newPaginated =
+            Paginate.map (\_ -> filtered) model.jobs
+    in
+    { model | jobs = newPaginated, allJobs = newList }
+
+
+updateJobAdded : Model -> Job -> Model
+updateJobAdded model addedJob =
+    updateAllJobs (\list -> addedJob :: list) model
+
+updateJobUpdated : Model -> Job -> Model
+updateJobUpdated model jobToUpdate =
+    let
+        f =
+            ListExtra.replaceIf (\item -> item.id == jobToUpdate.id) jobToUpdate
+    in
+    updateAllJobs f model
+updateJobRemoved : Model -> JobId -> Model
+updateJobRemoved model jobIdToRemove =
+    let
+        f =
+            ListExtra.filterNot (\item -> item.id == jobIdToRemove)
+    in
+    updateAllJobs f model
+
 onRequestCompletedToggleJob : Model -> Result Http.Error Job -> ( Model, Cmd Msg )
 onRequestCompletedToggleJob model result =
     case result of
         Ok job ->
-            let
-                newList =
-                    Paginate.map (ListExtra.replaceIf (\item -> item.id == job.id) job) model.jobs
-            in
-            ( { model | jobs = newList }, Cmd.none )
+            ( updateJobUpdated model job , Cmd.none )
 
         Err err ->
             ( model, Cmd.none )
@@ -368,11 +395,7 @@ onRequestCompletedDropJob jobId model result =
     -- TODO might need to remove it from the allJobs field
     case result of
         Ok _ ->
-            let
-                newList =
-                    Paginate.map (ListExtra.filterNot (\item -> item.id == jobId)) model.jobs
-            in
-            ( { model | jobs = newList }, Cmd.none )
+            ( updateJobRemoved model jobId, Cmd.none )
 
         Err err ->
             ( model, Cmd.none )
