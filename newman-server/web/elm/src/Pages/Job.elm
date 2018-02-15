@@ -56,7 +56,7 @@ initModel : JobId -> Model
 initModel jobId =
     { maybeJob = Nothing
     , collapseState = Hidden
-    , testsTable = TestsTable.init []
+    , testsTable = TestsTable.init jobId []
     , currTime = 0
     }
 
@@ -225,7 +225,7 @@ update msg model =
         GetTestsViewCompleted result ->
             case result of
                 Ok data ->
-                    ( { model | testsTable = TestsTable.init data }, Cmd.none )
+                    ( { model | testsTable = TestsTable.init (Maybe.withDefault "" <| Maybe.map (\job -> job.id) model.maybeJob) data }, Cmd.none )
 
                 Err err ->
                     ( model, Cmd.none )

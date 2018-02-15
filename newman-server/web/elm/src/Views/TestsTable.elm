@@ -20,9 +20,10 @@ import Paginate exposing (PaginatedList)
 import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
 import Utils.Types exposing (Test, decodeTest)
-import Views.NewmanModal as NewmanModal exposing (..)
 import Utils.Utils exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
+import Views.NewmanModal as NewmanModal exposing (..)
+
 
 type Msg
     = First
@@ -33,16 +34,18 @@ type Msg
     | FilterQuery String
     | WebSocketEvent WebSocket.Event
 
+
 type alias Model =
     { all : List Test
     , paginated : PaginatedList Test
     , pageSize : Int
     , query : String
+    , jobId : String
     }
 
 
-init : List Test -> Model
-init list =
+init : String -> List Test -> Model
+init jobId list =
     let
         pageSize =
             25
@@ -54,6 +57,7 @@ init list =
     , paginated = Paginate.fromList pageSize list
     , pageSize = pageSize
     , query = ""
+    , jobId = jobId
     }
 
 
@@ -275,15 +279,41 @@ update msg model =
             ( { model | query = query, paginated = Paginate.fromList model.pageSize (List.filter (filterQuery query) model.all) }
             , Cmd.none
             )
+
         WebSocketEvent event ->
             case event of
                 ModifiedTest test ->
-                    let
-                        newList = ListExtra.replaceIf (\item -> item.id == test.id && item.jobId == test.jobId) test model.all
-                    in
-                    ({model | all = newList, paginated = Paginate.fromList model.pageSize newList}, Cmd.none)
+                    if model.jobId == test.jobId then
+                        ( updateTestUpdated model test, Cmd.none )
+                    else
+                        ( model, Cmd.none )
+
                 _ ->
-                    (model, Cmd.none)
+                    ( model, Cmd.none )
+
+
+updateAllTests : (List Test -> List Test) -> Model -> Model
+updateAllTests f model =
+    let
+        newList =
+            f model.all
+
+        filtered =
+            List.filter (filterQuery model.query) newList
+
+        newPaginated =
+            Paginate.map (\_ -> filtered) model.paginated
+    in
+    { model | paginated = newPaginated, all = newList }
+
+
+updateTestUpdated : Model -> Test -> Model
+updateTestUpdated model testToUpdate =
+    let
+        f =
+            ListExtra.replaceIf (\item -> item.id == testToUpdate.id) testToUpdate
+    in
+    updateAllTests f model
 
 
 filterQuery : String -> Test -> Bool
@@ -325,6 +355,7 @@ toTestStatus str =
 
         _ ->
             FAIL
+
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
