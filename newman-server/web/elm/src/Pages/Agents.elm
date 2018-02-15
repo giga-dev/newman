@@ -27,6 +27,7 @@ type alias Model =
     { allAgents : Agents
     , agents : PaginatedAgents
     , pageSize : Int
+    , query : String
     }
 
 
@@ -49,6 +50,7 @@ init =
     ( { allAgents = []
       , agents = Paginate.fromList pageSize []
       , pageSize = pageSize
+      , query = ""
       }
     , getAgentsCmd
     )
@@ -89,25 +91,41 @@ update msg model =
                 filteredList =
                     List.filter (filterQuery query) model.allAgents
             in
-            ( { model | agents = Paginate.fromList model.pageSize filteredList }
+            ( { model | query = query, agents = Paginate.fromList model.pageSize filteredList }
             , Cmd.none
             )
         WebSocketEvent event ->
             case event of
                 ModifiedAgent agent ->
-                    let
-                        inList = ListExtra.find (\item -> item.id == agent.id) model.allAgents
-
-                        newList =
-                            case inList of
-                                Just found ->
-                                    ListExtra.replaceIf (\item -> item.id == agent.id) agent model.allAgents
-                                Nothing ->
-                                    agent :: model.allAgents
-                    in
-                    ({ model | allAgents = newList , agents = Paginate.fromList model.pageSize newList }, Cmd.none)
+                     ( updateAgentUpdated model agent, Cmd.none)
                 _ ->
                     (model, Cmd.none)
+
+
+
+
+updateAll : (List Agent -> List Agent) -> Model -> Model
+updateAll f model =
+    let
+        newList =
+            f model.allAgents
+
+        filtered =
+            List.filter (filterQuery model.query) newList
+
+        newPaginated =
+            Paginate.map (\_ -> filtered) model.agents
+    in
+    { model | agents = newPaginated, allAgents = newList }
+
+
+updateAgentUpdated : Model -> Agent -> Model
+updateAgentUpdated model agentToUpdate =
+    let
+        f =
+            ListExtra.replaceIf (\item -> item.id == agentToUpdate.id) agentToUpdate
+    in
+    updateAll f model
 
 
 view : Model -> Html Msg
