@@ -209,7 +209,7 @@ table {
 
 @media(min-width:768px) {
     #wrapper {
-        padding-left: 225px;
+        padding-left: 200px;
     }
 
     #page-wrapper {
@@ -222,27 +222,19 @@ table {
 @media(min-width:768px) {
     .side-nav {
         position: fixed;
-        top: 54px;
-        left: 225px;
-        width: 225px;
-        margin-left: -225px;
+        top: 60px;
+        left: 200px;
+        width: 200px;
+        margin-left: -200px;
         border: none;
-        border-radius: 0;
         overflow-y: auto;
-        background-color: #222;
         bottom: 0;
         overflow-x: hidden;
         padding-bottom: 40px;
     }
 
     .side-nav>li>a {
-        width: 225px;
-    }
-
-    .side-nav li a:hover,
-    .side-nav li a:focus {
-        outline: none;
-        background-color: #000 !important;
+        width: 200px;
     }
 }
 
@@ -256,15 +248,17 @@ table {
 
 .side-nav>li>a {
     display: block;
-    padding: 10px 15px 10px 38px;
+    padding: 10px 15px 10px 20px;
     text-decoration: none;
-    color: #999
+    border-radius: 0px !important;
 }
 
-.side-nav>li>a:hover {
-    color: #fff;
+.topbar-info {
+    color: white;
+    width: 100%;
+    left: 220px;
+    position: absolute;
 }
-
 .pagination {
     margin-bottom: 0px;
 }

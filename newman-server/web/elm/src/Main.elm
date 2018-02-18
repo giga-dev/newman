@@ -4,6 +4,7 @@ import Bootstrap.CDN exposing (stylesheet)
 import Bootstrap.Navbar as Navbar
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Http
 import Navigation exposing (Location)
 import Pages.Agents as Agents
@@ -100,10 +101,51 @@ routeToPage route =
             TestHistoryPage <| TestHistory.initModel
 
 
+routeToString : Route -> String
+routeToString route =
+    let
+        pieces =
+            case route of
+                HomeRoute ->
+                    []
+
+                SubmitNewJobRoute ->
+                    [ "submit-new-job" ]
+
+                JobsRoute ->
+                    [ "jobs" ]
+
+                BuildsRoute ->
+                    [ "builds" ]
+
+                SuitesRoute ->
+                    [ "suites" ]
+
+                AgentsRoute ->
+                    [ "agents" ]
+
+                JobRoute id ->
+                    [ "job", id ]
+
+                BuildRoute id ->
+                    [ "build", id ]
+
+                SuiteRoute id ->
+                    [ "suite", id ]
+
+                TestRoute id ->
+                    [ "test", id ]
+
+                TestHistoryRoute id ->
+                    [ "test-history", id ]
+    in
+    "#" ++ String.join "/" pieces
+
+
 route : Parser (Route -> a) a
 route =
     oneOf
-        [ UrlParser.map HomeRoute (UrlParser.s "home")
+        [ UrlParser.map HomeRoute (UrlParser.s "")
         , UrlParser.map JobsRoute (UrlParser.s "jobs")
         , UrlParser.map SubmitNewJobRoute (UrlParser.s "submit-new-job")
         , UrlParser.map BuildsRoute (UrlParser.s "builds")
@@ -119,12 +161,13 @@ route =
 
 locFor : Location -> Msg
 locFor location =
-    parseHash route location
+    fromLocation location
         |> GoTo
 
 
 type alias Model =
     { currentPage : Page
+    , currentRoute : Route
     , navbarState : Navbar.State
     , submitNewJobModel : SubmitNewJob.Model
     , jobsModel : Jobs.Model
@@ -155,11 +198,19 @@ type Msg
     | WebSocketMsg WebSocket.Msg
 
 
+fromLocation : Location -> Maybe Route
+fromLocation location =
+    if String.isEmpty location.hash then
+        Just HomeRoute
+    else
+        parseHash route location
+
+
 init : Location -> ( Model, Cmd Msg )
 init location =
     let
         currentRoute =
-            case parseHash route location of
+            case fromLocation location of
                 Just route ->
                     route
 
@@ -214,6 +265,7 @@ init location =
             Navbar.initialState NavbarMsg
     in
     ( { currentPage = currentPage
+      , currentRoute = currentRoute
       , navbarState = navbarState
       , submitNewJobModel = submitNewJobModel
       , jobsModel = jobsModel
@@ -246,24 +298,28 @@ update msg model =
         ( GoTo maybeRoute, _ ) ->
             case maybeRoute of
                 Just route ->
+                    let
+                        newModel =
+                            { model | currentRoute = route, currentPage = routeToPage route }
+                    in
                     case route of
                         JobRoute id ->
-                            ( { model | currentPage = routeToPage route }, Job.getJobInfoCmd id |> Cmd.map JobMsg )
+                            ( newModel, Job.getJobInfoCmd id |> Cmd.map JobMsg )
 
                         BuildRoute id ->
-                            ( { model | currentPage = routeToPage route }, Build.getBuildInfoCmd id |> Cmd.map BuildMsg )
+                            ( newModel, Build.getBuildInfoCmd id |> Cmd.map BuildMsg )
 
                         SuiteRoute id ->
-                            ( { model | currentPage = routeToPage route }, Suite.getSuiteInfoCmd id |> Cmd.map SuiteMsg )
+                            ( newModel, Suite.getSuiteInfoCmd id |> Cmd.map SuiteMsg )
 
                         TestRoute id ->
-                            ( { model | currentPage = routeToPage route }, Test.getTestDataCmd id |> Cmd.map TestMsg )
+                            ( newModel, Test.getTestDataCmd id |> Cmd.map TestMsg )
 
                         TestHistoryRoute id ->
-                            ( { model | currentPage = routeToPage route }, TestHistory.getTestHistory id |> Cmd.map TestHistoryMsg )
+                            ( newModel, TestHistory.getTestHistory id |> Cmd.map TestHistoryMsg )
 
                         _ ->
-                            ( { model | currentPage = routeToPage route }, Cmd.none )
+                            ( newModel, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -390,42 +446,6 @@ update msg model =
             ( model, cmd )
 
 
-topNavBar : Html Msg
-topNavBar =
-    div [ class "navbar-header" ]
-        [ button [ class "navbar-toggle", attribute "data-target" ".navbar-ex1-collapse", attribute "data-toggle" "collapse", type_ "button" ]
-            [ span [ class "icon-bar" ]
-                []
-            , span [ class "icon-bar" ]
-                []
-            , span [ class "icon-bar" ]
-                []
-            ]
-        , a [ class "navbar-brand", href "index" ]
-            [ text "Newman" ]
-        ]
-
-
-leftNavBar : Html Msg
-leftNavBar =
-    let
-        pages =
-            [ ( "Home", "#home" ), ( "Submit New Job", "#submit-new-job" ), ( "Jobs", "#jobs" ), ( "Builds", "#builds" ), ( "Agents", "#agents" ), ( "Suites", "#suites" ) ]
-    in
-    div [ class "collapse navbar-collapse navbar-ex1-collapse" ]
-        [ ul [ class "nav navbar-nav side-nav" ]
-            (List.map
-                (\( name, ref ) ->
-                    li [ class "" ]
-                        [ a [ href ref ]
-                            [ text name ]
-                        ]
-                )
-                pages
-            )
-        ]
-
-
 bodyWrapper : Html Msg -> Html Msg
 bodyWrapper inner =
     div [ id "page-wrapper" ]
@@ -484,58 +504,32 @@ view : Model -> Html Msg
 view model =
     let
         pages =
-            [ ( "Home", "#home" ), ( "Submit New Job", "#submit-new-job" ), ( "Jobs", "#jobs" ), ( "Builds", "#builds" ), ( "Agents", "#agents" ), ( "Suites", "#suites" ) ]
+            [ ( "Home", "#" ), ( "Submit New Job", "#submit-new-job" ), ( "Jobs", "#jobs" ), ( "Builds", "#builds" ), ( "Agents", "#agents" ), ( "Suites", "#suites" ) ]
+
+        isActive page =
+            UrlParser.parsePath
     in
     div [ id "wrapper" ]
         [ Bootstrap.CDN.stylesheet
-        , Navbar.config NavbarMsg
-            |> Navbar.inverse
-            |> Navbar.fixTop
-            |> Navbar.brand [ href "#" ] [ text "Newman" ]
-            --            |> Navbar.items
-            --                [ Navbar.itemLinkActive [ href "#" ] [ text "Home" ]
-            --                , Navbar.itemLink [ href "#" ] [ text "Home22" ]
-            --                ]
-            |> Navbar.customItems
-                [ Navbar.customItem (TopBar.view model.topBarModel |> Html.map TopBarMsg)
-                , Navbar.customItem
-                    (ul
-                        [ class "nav navbar-nav side-nav" ]
-                        (List.map
-                            (\( name, ref ) ->
-                                li [ class "nav-item" ]
-                                    [ a [ class "nav-link", href ref ]
-                                        [ text name ]
-                                    ]
-                            )
-                            pages
+        , nav [ class "navbar navbar-toggleable navbar-inverse bg-inverse fixed-top", attribute "role" "navigation" ]
+            [ div [ class "navbar-header" ]
+                [ a [ class "navbar-brand", href "index" ]
+                    [ text "Newman" ]
+                ]
+            , TopBar.view model.topBarModel |> Html.map TopBarMsg
+            , div [ class "collapse navbar-collapse", attribute "style" "position: absolute;" ]
+                [ ul [ class "nav nav-pills flex-column side-nav" ]
+                    (List.indexedMap
+                        (\index ( name, ref ) ->
+                            li [ class "nav-item" ]
+                                [ a [ class "nav-link", classList [ ( "active", routeToString model.currentRoute == ref ) ], href ref ]
+                                    [ text name ]
+                                ]
                         )
+                        pages
                     )
                 ]
-            |> Navbar.view model.navbarState
-
-        {-
-
-           [ ul [ class "nav navbar-nav side-nav" ]
-                       (List.map
-                           (\( name, ref ) ->
-                               li [ class "" ]
-                                   [ a [ href ref ]
-                                       [ text name ]
-                                   ]
-                           )
-                           pages
-                       )
-                   ]
-        -}
-        --                [ Navbar.itemLink [ href "#" ] [ text "Item 1" ]
-        --                , Navbar.itemLink [ href "#" ] [ text "Item 2" ]
-        --                ]
-        {- , nav [ class "navbar navbar-inverse navbar-fixed-top", attribute "role" "navigation" ]
-           [ topNavBar
-           , leftNavBar
-           ]
-        -}
+            ]
         , viewBody model
         ]
 

@@ -2,7 +2,7 @@ module Views.TopBar exposing (..)
 
 import Filesize exposing (..)
 import Html exposing (Html, br, div, p, span, text)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (align, class, style)
 import Http
 import Json.Decode
 import Utils.Types exposing (..)
@@ -104,7 +104,7 @@ view model =
         logSizeString =
             "Logs size: " ++ size
     in
-    span [ style [ ( "color", "white" ), ( "padding-right", "20%" ) ] ]
+    span [ class "topbar-info" ]
         [ text <| userNameString ++ ",  " ++ failingAgentsString ++ ",  " ++ agentsCountString ++ ",  " ++ logSizeString ]
 
 
