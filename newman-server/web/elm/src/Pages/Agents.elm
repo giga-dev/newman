@@ -312,11 +312,11 @@ getAgents =
 filterQuery : String -> Agent -> Bool
 filterQuery query agent =
     let
-        a =
-            Debug.log ("filtered agents with query " ++ query ++ ":") (toString filteredList ++ " agent: " ++ toString agent)
-
-        b =
-            Debug.log "filtering capabiliteis" (toString agent.capabilities)
+--        a =
+--            Debug.log ("filtered agents with query " ++ query ++ ":") (toString filteredList ++ " agent: " ++ toString agent)
+--
+--        b =
+--            Debug.log "filtering capabiliteis" (toString agent.capabilities)
 
         filteredList =
             List.filter (String.startsWith query) agent.capabilities

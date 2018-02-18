@@ -95,9 +95,9 @@ update msg model =
             case event of
                 CreatedFutureJob futureJob ->
                     ( { model | futureJobs = futureJob :: model.futureJobs }, Cmd.none )
---
---                ModifiedBuild build ->
---                    ( onEventModifiedBuild build model, Cmd.none )
+
+                ModifiedBuild build ->
+                    ( onEventModifiedBuild build model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -114,21 +114,31 @@ updateList id newItem list =
 removeFromList id list =
     List.filter (\item -> item.id /= id) list
 
+addToList item list =
+    let
+        newList = item :: list
+    in
+    if (List.length newList > 5) then
+        ListExtra.removeAt ((List.length newList) - 1) newList
+    else
+        newList
 
 handleActiveBuilds : Build -> Model -> Model
 handleActiveBuilds build model =
-    model
---    let
---        newActiveBuilds = model.activeBuilds
---        newPendingBuilds = model.pendingBuilds
---        newHistoryBuilds = model.historyBuilds
---    in
---    if (build.buildStats.totalJobs == build.buildStats.doneJobs) then
---        model
---    else if (build.buildStatus.runningJobs == 0 && build.buildStatus.pendingJobs > 0) then
---        model
---    else
---        model
+    if (build.buildStatus.totalJobs == build.buildStatus.doneJobs) then
+        let
+            newActiveBuilds = removeFromList build.id model.activeBuilds
+            newHistoryBuilds = addToList build model.historyBuilds
+        in
+        { model | activeBuilds = newActiveBuilds, historyBuilds = newHistoryBuilds }
+    else if (build.buildStatus.runningJobs == 0 && build.buildStatus.pendingJobs > 0) then
+        let
+            newActiveBuilds = removeFromList build.id model.activeBuilds
+            newPendingBuilds = addToList build model.pendingBuilds
+        in
+        { model | activeBuilds = newActiveBuilds, pendingBuilds = newPendingBuilds }
+    else
+        model
 
 
 
@@ -136,13 +146,44 @@ handleActiveBuilds build model =
 
 handlePendingBuilds : Build -> Model -> Model
 handlePendingBuilds build model =
-    model
+    if (build.buildStatus.totalJobs == build.buildStatus.doneJobs) then
+        let
+            newPendingBuilds = removeFromList build.id model.pendingBuilds
+            newHistoryBuilds = addToList build model.historyBuilds
+        in
+        { model | pendingBuilds = newPendingBuilds, historyBuilds = newHistoryBuilds }
+    else if (build.buildStatus.runningJobs > 0) then
+        let
+            newPendingBuilds = removeFromList build.id model.pendingBuilds
+            newActiveBuilds = addToList build model.activeBuilds
+        in
+        { model | activeBuilds = newActiveBuilds, pendingBuilds = newPendingBuilds }
+    else
+        model
 
 
 handleHistoryBuilds : Build -> Model -> Model
-handleHistoryBuilds build model =
-    model
+handleHistoryBuilds build orgModel =
+    if (build.buildStatus.doneJobs < build.buildStatus.totalJobs) then
+        let
+            newHistoryBuilds = removeFromList build.id orgModel.historyBuilds
+            model = { orgModel | historyBuilds = newHistoryBuilds }
+        in
+        if (build.buildStatus.runningJobs > 0) then
+            let
+                newActiveBuilds = addToList build model.activeBuilds
+            in
+            { model | activeBuilds = newActiveBuilds }
+        else if (build.buildStatus.pendingJobs > 0) then
+            let
+                newPendingBuilds = addToList build model.pendingBuilds
+            in
+            { model | pendingBuilds = newPendingBuilds }
+        else
+            model
 
+    else
+        orgModel
 
 onEventModifiedBuild : Build -> Model -> Model
 onEventModifiedBuild build model =

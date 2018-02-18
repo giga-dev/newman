@@ -712,7 +712,7 @@ public class NewmanResource {
         List<Build> pendingBuilds =
                 buildDAO.find(pendingBuildsQuery.
                         where("this.buildStatus.pendingJobs>0").
-                        where("this.buildStatus.runningJobs==0").
+                        where("this.buildStatus.runningJobs<=0").
                         where("this.buildStatus.totalJobs>0").
                         where("this.buildStatus.doneJobs + this.buildStatus.brokenJobs < this.buildStatus.totalJobs").
                         limit(5).
