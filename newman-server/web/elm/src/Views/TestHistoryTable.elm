@@ -185,12 +185,15 @@ viewRecord testHistory =
 
                 ( h, m, _ ) ->
                     toString h ++ " hours and " ++ toString m ++ " minutes"
+
+        dateFormat date =
+            Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat date))
     in
     tr []
         [ td [] [ a [ href <| "#test/" ++ testHistory.test.id ] [ text testHistory.test.id ] ]
         , td [] [ a [ href <| "#job/" ++ testHistory.test.jobId ] [ text testHistory.test.jobId ] ]
         , td [] [ a [ href <| "#build/" ++ testHistory.job.buildId ] [ text <| testHistory.job.buildName ++ "(" ++ testHistory.job.buildBranch ++ ")" ] ]
-        , td [] [ text <| toString testHistory.test.endTime ]
+        , td [] [ text <| dateFormat testHistory.test.endTime ]
         , td [] [ text durationText ]
         , td [] [ status [] [ text testHistory.test.status ] ]
         , td [] [ span [ title testHistory.test.errorMessage ] [ text testHistory.test.errorMessage ] ]

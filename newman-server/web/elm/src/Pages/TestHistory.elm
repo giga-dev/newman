@@ -1,6 +1,6 @@
 module Pages.TestHistory exposing (..)
 
-import Html exposing (Html, div, h1, h2, text)
+import Html exposing (Html, div, h1, h2, h4, text)
 import Html.Attributes exposing (class)
 import Http
 import UrlParser exposing (Parser)
@@ -40,7 +40,7 @@ view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text "Test History" ]
-        , text <| "Arguments: " ++ String.join " " model.arguments
+        , h4 [] [ text <| "Arguments: " ++ String.join " " model.arguments ]
         , TestHistoryTable.viewTable model.table |> Html.map TestHistoryTableMsg
         ]
 
