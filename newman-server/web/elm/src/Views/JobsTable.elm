@@ -363,6 +363,7 @@ updateJobUpdated model jobToUpdate =
             ListExtra.replaceIf (\item -> item.id == jobToUpdate.id) jobToUpdate
     in
     updateAllJobs f model
+
 updateJobRemoved : Model -> JobId -> Model
 updateJobRemoved model jobIdToRemove =
     let
@@ -392,7 +393,6 @@ toggleJobCmd jobId =
 
 onRequestCompletedDropJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
 onRequestCompletedDropJob jobId model result =
-    -- TODO might need to remove it from the allJobs field
     case result of
         Ok _ ->
             ( updateJobRemoved model jobId, Cmd.none )

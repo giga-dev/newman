@@ -4,6 +4,7 @@ import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Button as Button
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
+import Bootstrap.Modal as Modal
 import Bootstrap.Progress as Progress exposing (..)
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
@@ -16,18 +17,22 @@ import Html.Events exposing (..)
 import Http
 import Json.Decode exposing (Decoder, int)
 import Json.Decode.Pipeline exposing (decode, required)
+import List.Extra as ListExtra
 import Paginate exposing (..)
 import Time exposing (Time)
 import Utils.Types exposing (..)
 import Utils.Utils exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
-import List.Extra as ListExtra
+import Views.NewmanModal as NewmanModal exposing (..)
+
 
 type alias Model =
     { allAgents : Agents
     , agents : PaginatedAgents
     , pageSize : Int
     , query : String
+    , confirmationState : Modal.State
+    , agentToDrop : Maybe String
     }
 
 
@@ -40,6 +45,11 @@ type Msg
     | GoTo Int
     | FilterQuery String
     | WebSocketEvent WebSocket.Event
+    | OnClickDropAgent String
+    | OnAgentDropConfirmed String
+    | NewmanModalMsg Modal.State
+    | RequestCompletedDropAgent String (Result Http.Error String)
+
 
 init : ( Model, Cmd Msg )
 init =
@@ -51,6 +61,8 @@ init =
       , agents = Paginate.fromList pageSize []
       , pageSize = pageSize
       , query = ""
+      , confirmationState = Modal.hiddenState
+      , agentToDrop = Nothing
       }
     , getAgentsCmd
     )
@@ -94,15 +106,36 @@ update msg model =
             ( { model | query = query, agents = Paginate.fromList model.pageSize filteredList }
             , Cmd.none
             )
+
         WebSocketEvent event ->
             case event of
                 ModifiedAgent agent ->
-                     ( updateAgentUpdated model agent, Cmd.none)
+                    ( updateAgentUpdated model agent, Cmd.none )
+
                 _ ->
-                    (model, Cmd.none)
+                    ( model, Cmd.none )
+
+        OnClickDropAgent agentId ->
+            ( { model | confirmationState = Modal.visibleState, agentToDrop = Just agentId }, Cmd.none )
+
+        NewmanModalMsg newState ->
+            ( { model | agentToDrop = Nothing, confirmationState = newState }, Cmd.none )
+
+        OnAgentDropConfirmed agentId ->
+            ( { model | confirmationState = Modal.hiddenState }, dropAgentCmd agentId )
+
+        RequestCompletedDropAgent agentId result ->
+            onRequestCompletedDropAgent agentId model result
 
 
+onRequestCompletedDropAgent : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
+onRequestCompletedDropAgent agentId model result =
+    case result of
+        Ok _ ->
+            ( updateAgentRemoved model agentId, Cmd.none )
 
+        Err err ->
+            ( model, Cmd.none )
 
 updateAll : (List Agent -> List Agent) -> Model -> Model
 updateAll f model =
@@ -127,6 +160,13 @@ updateAgentUpdated model agentToUpdate =
     in
     updateAll f model
 
+updateAgentRemoved : Model -> String -> Model
+updateAgentRemoved model idToRemove =
+    let
+        f =
+            ListExtra.filterNot (\item -> item.id == idToRemove)
+    in
+    updateAll f model
 
 view : Model -> Html Msg
 view model =
@@ -194,16 +234,18 @@ view model =
                         , th [] [ text "Suite" ]
                         , th [] [ text "Current Tests" ]
                         , th [] [ text "Last seen" ]
+                        , th [] [ text "Actions" ]
                         ]
                     ]
                 , tbody [] (List.map viewAgent (Paginate.page model.agents))
                 ]
             , pagination
             ]
+        , NewmanModal.confirmAgentDrop model.agentToDrop NewmanModalMsg OnAgentDropConfirmed model.confirmationState
         ]
 
 
-viewAgent : Agent -> Html msg
+viewAgent : Agent -> Html Msg
 viewAgent agent =
     let
         agentCapabilities =
@@ -251,6 +293,10 @@ viewAgent agent =
         , td [] [ text suiteString ]
         , td [] [ text currentTests ]
         , td [] [ text lastSeen ]
+        , td []
+            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickDropAgent agent.id ]
+                [ span [ class "ion-close" ] [] ]
+            ]
         ]
 
 
@@ -300,6 +346,21 @@ filterQuery query agent =
         True
     else
         False
+
+
+dropAgentCmd : String -> Cmd Msg
+dropAgentCmd agentId =
+    Http.send (RequestCompletedDropAgent agentId) <|
+        Http.request <|
+            { method = "DELETE"
+            , headers = []
+            , url = "/api/newman/agent/" ++ agentId
+            , body = Http.emptyBody
+            , expect = Http.expectString
+            , timeout = Nothing
+            , withCredentials = False
+            }
+
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
