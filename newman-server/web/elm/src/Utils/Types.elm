@@ -48,15 +48,12 @@ type alias Build =
     , branch : String
     , tags : List String
     , buildTime : Int
+    , buildStatus : DashboardBuildStatus
     , resources : List String
     , testsMetadata : List String
     , shas : Shas
     }
 
-
-
-type alias DashboardBuilds =
-    List DashboardBuild
 
 
 type alias Builds =
@@ -214,6 +211,7 @@ decodeBuild =
         |> required "branch" string
         |> required "tags" (list string)
         |> required "buildTime" int
+        |> required "buildStatus" decodeDashboardBuildStatus
         |> required "resources" (list string)
         |> required "testsMetadata" (list string)
         |> required "shas" (dict string)
@@ -248,10 +246,10 @@ decodeDashboardJob =
 
 
 type alias DashboardData =
-    { historyBuilds : List DashboardBuild
+    { historyBuilds : List Build
     , futureJobs : List FutureJob
-    , pendingBuilds: List DashboardBuild
-    , activeBuilds : List DashboardBuild
+    , pendingBuilds: List Build
+    , activeBuilds : List Build
     , activeJobs : ActiveJobsDashboard
     }
 
@@ -269,15 +267,6 @@ type alias FutureJob =
 
 
 
-type alias DashboardBuild =
-    { id : BuildId
-    , name : String
-    , branch : String
-    , buildTime : Int
-    , buildStatus : DashboardBuildStatus
-    }
-
-
 type alias DashboardBuildStatus =
     { totalTests : Int
     , passedTests : Int
@@ -292,15 +281,6 @@ type alias DashboardBuildStatus =
     , suitesIds : List String
     }
 
-
-decodeDashboardBuild : Decoder DashboardBuild
-decodeDashboardBuild =
-    decode DashboardBuild
-        |> required "id" string
-        |> required "name" string
-        |> required "branch" string
-        |> required "buildTime" int
-        |> required "buildStatus" decodeDashboardBuildStatus
 
 
 decodeDashboardBuildStatus : Decoder DashboardBuildStatus
@@ -335,10 +315,10 @@ decodeFutureJob =
 decodeDashboardData : Decoder DashboardData
 decodeDashboardData =
     decode DashboardData
-        |> required "historyBuilds" (list decodeDashboardBuild)
+        |> required "historyBuilds" (list decodeBuild)
         |> required "futureJobs" (list decodeFutureJob)
-        |> required "pendingBuilds" (list decodeDashboardBuild)
-        |> required "activeBuilds" (list decodeDashboardBuild)
+        |> required "pendingBuilds" (list decodeBuild)
+        |> required "activeBuilds" (list decodeBuild)
         |> required "activeJobs" (dict (list decodeDashboardJob))
 
 decodeBuilds : Decoder Builds

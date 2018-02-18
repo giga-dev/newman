@@ -3,7 +3,7 @@ module Utils.WebSocket exposing (..)
 import Json.Decode exposing (Decoder, Value, field, string, value)
 import Navigation exposing (Location)
 import Task
-import Utils.Types exposing (Agent, Build, Job, Suite, Test, decodeAgent, decodeBuild, decodeJob, decodeSuite, decodeTestView, FutureJob, decodeFutureJob)
+import Utils.Types exposing (Agent, Build, FutureJob, Job, Suite, Test, decodeAgent, decodeBuild, decodeFutureJob, decodeJob, decodeSuite, decodeTestView)
 import WebSocket
 
 
@@ -54,6 +54,7 @@ type Event
     | CreatedTest Test
     | ModifiedTest Test
     | CreatedBuild Build
+    | ModifiedBuild Build
     | CreatedSuite Suite
     | ModifiedSuite Suite
     | CreatedFutureJob FutureJob
@@ -64,8 +65,7 @@ type Event
     Dashboard:
    private static final String MODIFIED_BUILD = "modified-build";
 
-    Dashboard
-   public static final String CREATE_FUTURE_JOB = "create-future-job";
+   TODO handle modified job in home page
 
    Manage Newman + App (Main)
    private static final String MODIFY_SERVER_STATUS = "modified-server-status";
@@ -109,6 +109,9 @@ toEvent msg =
 
                                 "created-build" ->
                                     parse CreatedBuild decodeBuild
+
+                                "modified-build" ->
+                                    parse ModifiedBuild decodeBuild
 
                                 "created-suite" ->
                                     parse CreatedSuite decodeSuite

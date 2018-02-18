@@ -17,8 +17,8 @@ import Json.Decode.Pipeline exposing (decode, required)
 import List.Extra as ListExtra
 import Maybe exposing (withDefault)
 import Utils.Types exposing (..)
-import Views.NewmanModal as NewmanModal
 import Utils.WebSocket as WebSocket exposing (..)
+import Views.NewmanModal as NewmanModal
 
 
 type Msg
@@ -31,10 +31,10 @@ type Msg
 
 
 type alias Model =
-    { historyBuilds : List DashboardBuild
+    { historyBuilds : List Build
     , futureJobs : List FutureJob
-    , pendingBuilds : List DashboardBuild
-    , activeBuilds : List DashboardBuild
+    , pendingBuilds : List Build
+    , activeBuilds : List Build
     , activeJobs : ActiveJobsDashboard
     , confirmationState : Modal.State
     , futureJobToDrop : Maybe String
@@ -93,11 +93,67 @@ update msg model =
 
         WebSocketEvent event ->
             case event of
-                CreatedFutureJob futureJob->
+                CreatedFutureJob futureJob ->
                     ( { model | futureJobs = futureJob :: model.futureJobs }, Cmd.none )
+--
+--                ModifiedBuild build ->
+--                    ( onEventModifiedBuild build model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
+
+
+findById id list =
+    List.any (\item -> item.id == id) list
+
+
+updateList id newItem list =
+    ListExtra.replaceIf (\item -> item.id == id) newItem list
+
+
+removeFromList id list =
+    List.filter (\item -> item.id /= id) list
+
+
+handleActiveBuilds : Build -> Model -> Model
+handleActiveBuilds build model =
+    model
+--    let
+--        newActiveBuilds = model.activeBuilds
+--        newPendingBuilds = model.pendingBuilds
+--        newHistoryBuilds = model.historyBuilds
+--    in
+--    if (build.buildStats.totalJobs == build.buildStats.doneJobs) then
+--        model
+--    else if (build.buildStatus.runningJobs == 0 && build.buildStatus.pendingJobs > 0) then
+--        model
+--    else
+--        model
+
+
+
+
+
+handlePendingBuilds : Build -> Model -> Model
+handlePendingBuilds build model =
+    model
+
+
+handleHistoryBuilds : Build -> Model -> Model
+handleHistoryBuilds build model =
+    model
+
+
+onEventModifiedBuild : Build -> Model -> Model
+onEventModifiedBuild build model =
+    if findById build.id model.activeBuilds then
+        handleActiveBuilds build model
+    else if findById build.id model.pendingBuilds then
+        handlePendingBuilds build model
+    else if findById build.id model.historyBuilds then
+        handleHistoryBuilds build model
+    else
+        model
 
 
 onRequestCompletedDropFutureJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
@@ -142,7 +198,7 @@ view model =
         ]
 
 
-viewHistory : DashboardBuilds -> Html Msg
+viewHistory : List Build -> Html Msg
 viewHistory dashboardBuilds =
     div []
         [ h2 [] [ text "History" ]
@@ -210,7 +266,7 @@ viewFutureJobs futureJobs =
         ]
 
 
-viewHistoryBuild : DashboardBuild -> Html msg
+viewHistoryBuild : Build -> Html msg
 viewHistoryBuild build =
     let
         buildName =
@@ -247,7 +303,7 @@ viewHistoryBuild build =
         ]
 
 
-viewPendingBuilds : DashboardBuilds -> Html Msg
+viewPendingBuilds : List Build -> Html Msg
 viewPendingBuilds builds =
     div []
         [ h2 [] [ text "Pending Builds" ]
@@ -285,7 +341,7 @@ widthPcnt pcnt =
     style [ ( "width", pcnt ) ]
 
 
-viewPendingBuild : DashboardBuild -> Html Msg
+viewPendingBuild : Build -> Html Msg
 viewPendingBuild build =
     let
         buildName =
@@ -322,7 +378,7 @@ viewPendingBuild build =
         ]
 
 
-viewActiveBuilds : DashboardBuilds -> ActiveJobsDashboard -> Html Msg
+viewActiveBuilds : List Build -> ActiveJobsDashboard -> Html Msg
 viewActiveBuilds builds activeJobs =
     div []
         [ h2 [] [ text "Active Builds" ]
@@ -349,7 +405,7 @@ viewActiveBuilds builds activeJobs =
                         , Badge.badge [] [ text "Total" ]
                         , text " | Jobs"
                         ]
-                    , th [  ] [ text "Suites" ]
+                    , th [] [ text "Suites" ]
                     ]
                 ]
             , tbody [] <| List.concat (List.map (viewActiveBuild activeJobs) builds)
@@ -357,7 +413,7 @@ viewActiveBuilds builds activeJobs =
         ]
 
 
-viewActiveBuild : ActiveJobsDashboard -> DashboardBuild -> List (Html Msg)
+viewActiveBuild : ActiveJobsDashboard -> Build -> List (Html Msg)
 viewActiveBuild activeJobs build =
     let
         buildName =
@@ -395,7 +451,7 @@ viewActiveBuild activeJobs build =
                 [ td [] [ text <| "↳ Job: ", a [ href <| "#job/" ++ job.id ] [ text job.id ] ]
                 , td [] []
                 , td [ colspan 2, class "tests-data" ]
-                    [ Badge.badgeInfo [] [ text <| toString job.runningTests]
+                    [ Badge.badgeInfo [] [ text <| toString job.runningTests ]
                     , text " "
                     , Badge.badgeSuccess [] [ text <| toString job.passedTests ]
                     , text " "
@@ -433,7 +489,6 @@ dropFutureJobCmd futureJobId =
             , timeout = Nothing
             , withCredentials = False
             }
-
 
 
 handleEvent : WebSocket.Event -> Cmd Msg
