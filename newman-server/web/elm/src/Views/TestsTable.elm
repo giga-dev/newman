@@ -281,6 +281,9 @@ update msg model =
 
         WebSocketEvent event ->
             case event of
+                CreatedTest test ->
+                    ( updateTestAdded model test, Cmd.none )
+
                 ModifiedTest test ->
                     if model.jobId == test.jobId then
                         ( updateTestUpdated model test, Cmd.none )
@@ -305,6 +308,10 @@ updateAllTests f model =
     in
     { model | paginated = newPaginated, all = newList }
 
+
+updateTestAdded : Model -> Test -> Model
+updateTestAdded model addedTest =
+    updateAllTests (\list -> addedTest :: list) model
 
 updateTestUpdated : Model -> Test -> Model
 updateTestUpdated model testToUpdate =

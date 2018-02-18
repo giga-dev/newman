@@ -51,6 +51,7 @@ type Event
     = CreatedJob Job
     | ModifiedJob Job
     | ModifiedAgent Agent
+    | CreatedTest Test
     | ModifiedTest Test
     | CreatedBuild Build
     | CreatedSuite Suite
@@ -61,9 +62,6 @@ type Event
 {-
     Dashboard:
    private static final String MODIFIED_BUILD = "modified-build";
-
-    TestsTable
-   public static final String CREATED_TEST = "created-test";
 
     Dashboard
    public static final String CREATE_FUTURE_JOB = "create-future-job";
@@ -102,6 +100,9 @@ toEvent msg =
                                 "modified-agent" ->
                                     parse ModifiedAgent decodeAgent
 
+                                "created-test" ->
+                                    parse CreatedTest decodeTestView
+
                                 "modified-test" ->
                                     parse ModifiedTest decodeTestView
 
@@ -110,6 +111,7 @@ toEvent msg =
 
                                 "created-suite" ->
                                     parse CreatedSuite decodeSuite
+
                                 "modified-suite" ->
                                     parse ModifiedSuite decodeSuite
 
