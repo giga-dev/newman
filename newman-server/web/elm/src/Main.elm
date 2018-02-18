@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Bootstrap.CDN exposing (stylesheet)
-import Bootstrap.Navbar as Navbar
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -168,7 +167,6 @@ locFor location =
 type alias Model =
     { currentPage : Page
     , currentRoute : Route
-    , navbarState : Navbar.State
     , submitNewJobModel : SubmitNewJob.Model
     , jobsModel : Jobs.Model
     , buildsModel : Builds.Model
@@ -189,7 +187,6 @@ type Msg
     | SuitesMsg Suites.Msg
     | HomeMsg Home.Msg
     | JobMsg Job.Msg
-    | NavbarMsg Navbar.State
     | BuildMsg Build.Msg
     | SuiteMsg Suite.Msg
     | TestMsg Test.Msg
@@ -261,12 +258,9 @@ init location =
                 _ ->
                     Cmd.none
 
-        ( navbarState, navbarCmd ) =
-            Navbar.initialState NavbarMsg
     in
     ( { currentPage = currentPage
       , currentRoute = currentRoute
-      , navbarState = navbarState
       , submitNewJobModel = submitNewJobModel
       , jobsModel = jobsModel
       , buildsModel = buildsModel
@@ -292,8 +286,6 @@ init location =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.currentPage ) of
-        ( NavbarMsg state, _ ) ->
-            ( { model | navbarState = state }, Cmd.none )
 
         ( GoTo maybeRoute, _ ) ->
             case maybeRoute of
@@ -537,7 +529,6 @@ view model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Navbar.subscriptions model.navbarState NavbarMsg
-        , WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
+        [ WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
         , SubmitNewJob.subscriptions model.submitNewJobModel |> Sub.map SubmitNewJobMsg
         ]
