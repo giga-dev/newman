@@ -66,7 +66,7 @@ public class NewmanResource {
     public static final String CREATED_BUILD = "created-build";
     public static final String CREATED_SUITE = "created-suite";
     public static final String MODIFIED_SUITE = "modified-suite";
-    public static final String CREATE_FUTURE_JOB = "create-future-job";
+    public static final String CREATE_FUTURE_JOB = "created-future-job";
     private static final String MODIFY_SERVER_STATUS = "modified-server-status";
 
     private final MongoClient mongoClient;

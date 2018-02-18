@@ -18,6 +18,7 @@ import List.Extra as ListExtra
 import Maybe exposing (withDefault)
 import Utils.Types exposing (..)
 import Views.NewmanModal as NewmanModal
+import Utils.WebSocket as WebSocket exposing (..)
 
 
 type Msg
@@ -26,6 +27,7 @@ type Msg
     | OnFutureJobDropConfirmed String
     | NewmanModalMsg Modal.State
     | RequestCompletedDropFutureJob String (Result Http.Error String)
+    | WebSocketEvent WebSocket.Event
 
 
 type alias Model =
@@ -88,6 +90,14 @@ update msg model =
 
         RequestCompletedDropFutureJob id result ->
             onRequestCompletedDropFutureJob id model result
+
+        WebSocketEvent event ->
+            case event of
+                CreatedFutureJob futureJob->
+                    ( { model | futureJobs = futureJob :: model.futureJobs }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 onRequestCompletedDropFutureJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
@@ -423,3 +433,9 @@ dropFutureJobCmd futureJobId =
             , timeout = Nothing
             , withCredentials = False
             }
+
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

@@ -3,7 +3,7 @@ module Utils.WebSocket exposing (..)
 import Json.Decode exposing (Decoder, Value, field, string, value)
 import Navigation exposing (Location)
 import Task
-import Utils.Types exposing (Agent, Build, Job, Suite, Test, decodeAgent, decodeBuild, decodeJob, decodeSuite, decodeTestView)
+import Utils.Types exposing (Agent, Build, Job, Suite, Test, decodeAgent, decodeBuild, decodeJob, decodeSuite, decodeTestView, FutureJob, decodeFutureJob)
 import WebSocket
 
 
@@ -56,6 +56,7 @@ type Event
     | CreatedBuild Build
     | CreatedSuite Suite
     | ModifiedSuite Suite
+    | CreatedFutureJob FutureJob
 
 
 
@@ -114,6 +115,9 @@ toEvent msg =
 
                                 "modified-suite" ->
                                     parse ModifiedSuite decodeSuite
+
+                                "created-future-job" ->
+                                    parse CreatedFutureJob decodeFutureJob
 
                                 other ->
                                     Err <| "Unhandled event id: " ++ other

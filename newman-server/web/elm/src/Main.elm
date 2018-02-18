@@ -432,6 +432,7 @@ update msg model =
                                 , Agents.handleEvent ev |> Cmd.map AgentsMsg
                                 , Builds.handleEvent ev |> Cmd.map BuildsMsg
                                 , Suites.handleEvent ev |> Cmd.map SuitesMsg
+                                , Home.handleEvent ev |> Cmd.map HomeMsg
                                 ]
 
                         Err err ->
