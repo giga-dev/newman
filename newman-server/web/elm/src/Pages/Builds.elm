@@ -20,6 +20,7 @@ import Paginate exposing (..)
 import Task
 import Time exposing (Time)
 import Utils.Types exposing (..)
+import Utils.WebSocket as WebSocket exposing (..)
 import Views.CompareBuilds as CompareBuilds exposing (..)
 
 
@@ -28,6 +29,7 @@ type alias Model =
     , builds : PaginatedBuilds
     , pageSize : Int
     , compareBuildsModel : CompareBuilds.Model
+    , query: String
     }
 
 
@@ -40,6 +42,7 @@ type Msg
     | GoTo Int
     | FilterQuery String
     | CompareBuildsMsg CompareBuilds.Msg
+    | WebSocketEvent WebSocket.Event
 
 
 init : ( Model, Cmd Msg )
@@ -56,6 +59,7 @@ init =
             , test = Nothing
             , test4 = Nothing
             }
+      , query = ""
       }
     , getBuildsCmd
     )
@@ -92,7 +96,7 @@ update msg model =
                 filteredList =
                     List.filter (filterQuery query) model.allBuilds
             in
-            ( { model | builds = Paginate.fromList model.pageSize filteredList }
+            ( { model | query = query, builds = Paginate.fromList model.pageSize filteredList }
             , Cmd.none
             )
 
@@ -100,10 +104,39 @@ update msg model =
             let
                 ( updatedModel, cmd ) =
                     CompareBuilds.update subMsg model.compareBuildsModel
+
                 a =
                     Debug.log "builds update call to compare builds" (toString updatedModel.selectTwo)
             in
             ( { model | compareBuildsModel = updatedModel }, cmd |> Cmd.map CompareBuildsMsg )
+
+        WebSocketEvent event ->
+            case event of
+                CreatedBuild build ->
+                    ( updateBuildAdded model build, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+
+updateAll : (List Build -> List Build) -> Model -> Model
+updateAll f model =
+    let
+        newList =
+            f model.allBuilds
+
+        filtered =
+            List.filter (filterQuery model.query) newList
+
+        newPaginated =
+            Paginate.map (\_ -> filtered) model.builds
+    in
+    { model | builds = newPaginated, allBuilds = newList }
+
+
+updateBuildAdded : Model -> Build -> Model
+updateBuildAdded model addedBuild =
+    updateAll (\list -> addedBuild :: list) model
 
 
 view : Model -> Html Msg
@@ -154,8 +187,9 @@ view model =
     in
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text "Builds" ]
---        , CompareBuilds.view model.compareBuildsModel
---            |> Html.map CompareBuildsMsg
+
+        --        , CompareBuilds.view model.compareBuildsModel
+        --            |> Html.map CompareBuildsMsg
         , div []
             [ div [ class "form-inline" ]
                 [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
@@ -219,3 +253,8 @@ filterQuery query build =
         True
     else
         False
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

@@ -19,7 +19,6 @@ import List.Extra as ListExtra
 import Paginate exposing (PaginatedList)
 import Time exposing (Time)
 import Utils.Types exposing (..)
-import Utils.Utils exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
 

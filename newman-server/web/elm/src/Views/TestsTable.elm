@@ -20,7 +20,6 @@ import Paginate exposing (PaginatedList)
 import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
 import Utils.Types exposing (Test, decodeTest)
-import Utils.Utils exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
 

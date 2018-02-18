@@ -16,7 +16,6 @@ import Task
 import Time exposing (Time)
 import UrlParser exposing (Parser)
 import Utils.Types exposing (..)
-import Utils.Utils exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.TestsTable as TestsTable
 

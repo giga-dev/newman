@@ -2,9 +2,13 @@ module Utils.WebSocket exposing (..)
 
 import Json.Decode exposing (Decoder, Value, field, string, value)
 import Navigation exposing (Location)
-import Utils.Types exposing (Agent, Job, Test, decodeAgent, decodeJob, decodeTestView)
+import Utils.Types exposing (Agent, Job, Test, decodeAgent, decodeJob, decodeTestView, Build, decodeBuild)
 import WebSocket
+import Task
 
+(=>) : d -> (d->msg) -> Cmd msg
+(=>) d msg =
+    Task.perform msg  <| Task.succeed <| d
 
 type alias Model =
     { serverAddress : String }
@@ -46,6 +50,7 @@ type Event
     | ModifiedJob Job
     | ModifiedAgent Agent
     | ModifiedTest Test
+    | CreatedBuild Build
 
 
 
@@ -94,6 +99,9 @@ toEvent msg =
 
                                 "modified-test" ->
                                     parse ModifiedTest decodeTestView
+
+                                "created-build" ->
+                                    parse CreatedBuild decodeBuild
 
                                 other ->
                                     Err <| "Unhandled event id: " ++ other
