@@ -12,7 +12,8 @@ import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode
 import Maybe exposing (withDefault)
 import Multiselect
-
+import Views.NewmanModal as NewmanModal
+import Bootstrap.Modal as Modal
 
 type Msg
     = GetBuildsAndSuitesCompleted (Result Http.Error BuildsAndSuites)
@@ -21,6 +22,7 @@ type Msg
     | OnClickSubmit
     | MultiSelectMsg Multiselect.Msg
     | UpdatedBuildSelection Bool
+    | NewmanModalMsg Modal.State
 
 
 type alias Model =
@@ -29,6 +31,8 @@ type alias Model =
     , selectedSuites : Multiselect.Model
     , submittedFutureJobs : List FutureJob
     , isSelect : Bool
+    , modalState: Modal.State
+    , errorMessage: String
     }
 
 
@@ -64,6 +68,8 @@ init =
       , selectedSuites = Multiselect.initModel [] ""
       , submittedFutureJobs = []
       , isSelect = True
+      , modalState = Modal.hiddenState
+      , errorMessage = ""
       }
     , getBuildsAndSuitesCmd
     )
@@ -96,7 +102,17 @@ update msg model =
             ( { model | selectedSuites = subModel }, Cmd.map MultiSelectMsg subCmd )
 
         OnClickSubmit ->
-            ( model, submitFutureJobCmd model )
+            let
+                (buildId, suitesList) =
+                    (model.selectedBuild,  (List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites)))
+            in
+            case (buildId, suitesList) of
+                ("", _) ->
+                    ( { model| errorMessage = "Please select a build", modalState = Modal.visibleState} , Cmd.none)
+                (_, []) ->
+                    ( { model| errorMessage = "Please select one or more suites", modalState = Modal.visibleState} , Cmd.none)
+                _ ->
+                    ( model, submitFutureJobCmd buildId suitesList )
 
         SubmitNewJobCompleted result ->
             case result of
@@ -110,6 +126,9 @@ update msg model =
             ( { model | isSelect = select }, Cmd.none )
 
 
+        NewmanModalMsg newState ->
+            ( { model | modalState = newState }, Cmd.none )
+
 getBuildsAndSuitesCmd : Cmd Msg
 getBuildsAndSuitesCmd =
     Http.send GetBuildsAndSuitesCompleted getBuildsAndSuites
@@ -120,11 +139,11 @@ getBuildsAndSuites =
     Http.get "/api/newman/all-builds-and-suites" buildsAndSuitesDecoder
 
 
-submitFutureJobCmd : Model -> Cmd Msg
-submitFutureJobCmd model =
+submitFutureJobCmd : String -> List String -> Cmd Msg
+submitFutureJobCmd buildId suites =
     let
         postReq =
-            postFutureJob model.selectedBuild (List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites))
+            postFutureJob buildId suites
     in
     Http.send SubmitNewJobCompleted postReq
 
@@ -141,11 +160,13 @@ postFutureJob buildId suites =
 view : Model -> Html Msg
 view model =
     let
-        submittedFutureJobString = case model.submittedFutureJobs of
-            [] ->
-                ""
-            _ ->
-                "submitted the folowing future jobs:"
+        submittedFutureJobString =
+            case model.submittedFutureJobs of
+                [] ->
+                    ""
+
+                _ ->
+                    "submitted the folowing future jobs:"
     in
     div [ id "page-wrapper" ]
         [ div [ class "container-fluid" ]
@@ -164,8 +185,11 @@ view model =
             ]
         , Button.button [ Button.secondary, Button.onClick OnClickSubmit, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Submit Future Job" ]
         , br [] []
-        , div [] ([ text submittedFutureJobString ]
-            ++ List.map (\job -> div [] [text job.id]) model.submittedFutureJobs)
+        , div []
+            ([ text submittedFutureJobString ]
+                ++ List.map (\job -> div [] [ text job.id ]) model.submittedFutureJobs
+            )
+        , NewmanModal.viewError model.errorMessage NewmanModalMsg model.modalState
         ]
 
 
@@ -173,7 +197,7 @@ selectBuildView : Model -> Html Msg
 selectBuildView model =
     let
         toOption data =
-            Select.item [ value data.id ] [ text data.name ]
+            Select.item [ value data.id, selected <| model.selectedBuild == data.id ] [ text data.name ]
     in
     div []
         [ div

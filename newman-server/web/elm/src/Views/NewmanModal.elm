@@ -91,3 +91,19 @@ confirmAgentDrop maybeAgent toMsg confirmMsg modalState =
                 |> Modal.large
                 |> Modal.h3 [] [ text "Error: Future Job is not defined" ]
                 |> Modal.view modalState
+
+
+viewError : String -> (State -> toMsg) -> State -> Html toMsg
+viewError txt toMsg modalState =
+    Modal.config toMsg
+                    |> Modal.small
+                    |> Modal.h3 [] [ text "Error occured!" ]
+                    |> Modal.body [] [ p [] [ text txt ] ]
+                    |> Modal.footer []
+                        [ Button.button
+                            [ Button.outlinePrimary
+                            , Button.onClick <| toMsg Modal.hiddenState
+                            ]
+                            [ text "Close" ]
+                        ]
+                    |> Modal.view modalState
