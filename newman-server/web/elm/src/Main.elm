@@ -513,7 +513,7 @@ view model =
         [ Bootstrap.CDN.stylesheet
         , nav [ class "navbar navbar-toggleable navbar-inverse bg-inverse fixed-top", attribute "role" "navigation" ]
             [ div [ class "navbar-header" ]
-                [ a [ class "navbar-brand", href "index" ]
+                [ a [ class "navbar-brand", href "#" ]
                     [ text "Newman" ]
                 ]
             , TopBar.view model.topBarModel |> Html.map TopBarMsg
