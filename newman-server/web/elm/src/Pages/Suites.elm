@@ -16,6 +16,7 @@ import Html.Events exposing (..)
 import Http
 import Json.Decode exposing (Decoder, int)
 import Json.Decode.Pipeline exposing (decode, required)
+import List.Extra as ListExtra
 import Paginate exposing (..)
 import Task
 import Time exposing (Time)
@@ -27,7 +28,7 @@ type alias Model =
     { allSuites : Suites
     , suites : PaginatedSuites
     , pageSize : Int
-    , query: String
+    , query : String
     }
 
 
@@ -48,11 +49,13 @@ init =
         pageSize =
             20
     in
-    ({ allSuites = []
-    , suites = Paginate.fromList pageSize []
-    , pageSize = pageSize
-    , query = ""
-    }, getSuitesCmd)
+    ( { allSuites = []
+      , suites = Paginate.fromList pageSize []
+      , pageSize = pageSize
+      , query = ""
+      }
+    , getSuitesCmd
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -99,8 +102,12 @@ update msg model =
                 CreatedSuite suite ->
                     ( updateSuiteAdded model suite, Cmd.none )
 
+                ModifiedSuite suite ->
+                    ( updateSuiteUpdated model suite, Cmd.none )
+
                 _ ->
                     ( model, Cmd.none )
+
 
 updateAll : (List Suite -> List Suite) -> Model -> Model
 updateAll f model =
@@ -120,6 +127,20 @@ updateAll f model =
 updateSuiteAdded : Model -> Suite -> Model
 updateSuiteAdded model addedSuite =
     updateAll (\list -> addedSuite :: list) model
+
+
+updateSuiteUpdated : Model -> Suite -> Model
+updateSuiteUpdated model suiteToUpdate =
+    let
+        f l =
+            case ListExtra.find (\item -> item.id == suiteToUpdate.id) l of
+                Just _ ->
+                    ListExtra.replaceIf (\item -> item.id == suiteToUpdate.id) suiteToUpdate l
+                Nothing ->
+                    suiteToUpdate :: l
+    in
+    updateAll f model
+
 
 view : Model -> Html Msg
 view model =
@@ -151,6 +172,7 @@ view model =
                             , span [ class "sr-only" ] [ text "(current)" ]
                             ]
                         ]
+
                 False ->
                     li [ class "page-item", onClick <| GoTo index ]
                         [ button [ class "page-link" ] [ text <| toString index ]
@@ -168,10 +190,10 @@ view model =
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text "Suites" ]
         , div []
-        [ div [ class "form-inline" ]
-            [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
-            , div [ class "form-group" ] [ pagination ]
-            ]
+            [ div [ class "form-inline" ]
+                [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+                , div [ class "form-group" ] [ pagination ]
+                ]
             , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
                 [ thead []
                     [ tr []
@@ -186,10 +208,11 @@ view model =
             ]
         ]
 
+
 viewSuite : Suite -> Html msg
 viewSuite suite =
     tr []
-        [ a [ href <| "#suite/" ++ suite.id] [ text suite.name ]
+        [ a [ href <| "#suite/" ++ suite.id ] [ text suite.name ]
         , td [] [ text suite.id ]
         , td [] [ text suite.customVariables ]
         ]
@@ -204,6 +227,7 @@ getSuites : Http.Request Suites
 getSuites =
     Http.get "/api/newman/suite?all=true" decodeSuites
 
+
 filterQuery : String -> Suite -> Bool
 filterQuery query suite =
     if
@@ -215,7 +239,6 @@ filterQuery query suite =
         True
     else
         False
-
 
 
 handleEvent : WebSocket.Event -> Cmd Msg

@@ -54,6 +54,7 @@ type Event
     | ModifiedTest Test
     | CreatedBuild Build
     | CreatedSuite Suite
+    | ModifiedSuite Suite
 
 
 
@@ -63,10 +64,6 @@ type Event
 
     TestsTable
    public static final String CREATED_TEST = "created-test";
-
-   Suites View
-   public static final String CREATED_SUITE = "created-suite";
-   public static final String MODIFIED_SUITE = "modified-suite";
 
     Dashboard
    public static final String CREATE_FUTURE_JOB = "create-future-job";
@@ -113,6 +110,8 @@ toEvent msg =
 
                                 "created-suite" ->
                                     parse CreatedSuite decodeSuite
+                                "modified-suite" ->
+                                    parse ModifiedSuite decodeSuite
 
                                 other ->
                                     Err <| "Unhandled event id: " ++ other
