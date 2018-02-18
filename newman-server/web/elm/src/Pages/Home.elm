@@ -96,6 +96,9 @@ update msg model =
                 CreatedFutureJob futureJob ->
                     ( { model | futureJobs = futureJob :: model.futureJobs }, Cmd.none )
 
+                DeletedFutureJob futureJob ->
+                    ( { model | futureJobs = removeFromList futureJob.id model.futureJobs} , Cmd.none)
+
                 ModifiedBuild build ->
                     ( onEventModifiedBuild build model, Cmd.none )
 

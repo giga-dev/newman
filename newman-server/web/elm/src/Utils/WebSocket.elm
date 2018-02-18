@@ -58,6 +58,7 @@ type Event
     | CreatedSuite Suite
     | ModifiedSuite Suite
     | CreatedFutureJob FutureJob
+    | DeletedFutureJob FutureJob
 
 
 
@@ -121,6 +122,9 @@ toEvent msg =
 
                                 "created-future-job" ->
                                     parse CreatedFutureJob decodeFutureJob
+
+                                "deleted-future-job" ->
+                                    parse DeletedFutureJob decodeFutureJob
 
                                 other ->
                                     Err <| "Unhandled event id: " ++ other
