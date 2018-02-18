@@ -20,12 +20,14 @@ import Paginate exposing (..)
 import Task
 import Time exposing (Time)
 import Utils.Types exposing (..)
+import Utils.WebSocket as WebSocket exposing (..)
 
 
 type alias Model =
     { allSuites : Suites
     , suites : PaginatedSuites
     , pageSize : Int
+    , query: String
     }
 
 
@@ -37,6 +39,7 @@ type Msg
     | Prev
     | GoTo Int
     | FilterQuery String
+    | WebSocketEvent WebSocket.Event
 
 
 init : ( Model, Cmd Msg )
@@ -48,6 +51,7 @@ init =
     ({ allSuites = []
     , suites = Paginate.fromList pageSize []
     , pageSize = pageSize
+    , query = ""
     }, getSuitesCmd)
 
 
@@ -86,10 +90,36 @@ update msg model =
                 filteredList =
                     List.filter (filterQuery query) model.allSuites
             in
-            ( { model | suites = Paginate.fromList model.pageSize filteredList }
+            ( { model | query = query, suites = Paginate.fromList model.pageSize filteredList }
             , Cmd.none
             )
 
+        WebSocketEvent event ->
+            case event of
+                CreatedSuite suite ->
+                    ( updateSuiteAdded model suite, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+updateAll : (List Suite -> List Suite) -> Model -> Model
+updateAll f model =
+    let
+        newList =
+            f model.allSuites
+
+        filtered =
+            List.filter (filterQuery model.query) newList
+
+        newPaginated =
+            Paginate.map (\_ -> filtered) model.suites
+    in
+    { model | suites = newPaginated, allSuites = newList }
+
+
+updateSuiteAdded : Model -> Suite -> Model
+updateSuiteAdded model addedSuite =
+    updateAll (\list -> addedSuite :: list) model
 
 view : Model -> Html Msg
 view model =
@@ -185,3 +215,9 @@ filterQuery query suite =
         True
     else
         False
+
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

@@ -2,13 +2,15 @@ module Utils.WebSocket exposing (..)
 
 import Json.Decode exposing (Decoder, Value, field, string, value)
 import Navigation exposing (Location)
-import Utils.Types exposing (Agent, Job, Test, decodeAgent, decodeJob, decodeTestView, Build, decodeBuild)
-import WebSocket
 import Task
+import Utils.Types exposing (Agent, Build, Job, Suite, Test, decodeAgent, decodeBuild, decodeJob, decodeSuite, decodeTestView)
+import WebSocket
 
-(=>) : d -> (d->msg) -> Cmd msg
+
+(=>) : d -> (d -> msg) -> Cmd msg
 (=>) d msg =
-    Task.perform msg  <| Task.succeed <| d
+    Task.perform msg <| Task.succeed <| d
+
 
 type alias Model =
     { serverAddress : String }
@@ -51,19 +53,25 @@ type Event
     | ModifiedAgent Agent
     | ModifiedTest Test
     | CreatedBuild Build
+    | CreatedSuite Suite
 
 
 
 {-
-
-   public static final String CREATED_BUILD = "created-build";
+    Dashboard:
    private static final String MODIFIED_BUILD = "modified-build";
 
-
+    TestsTable
    public static final String CREATED_TEST = "created-test";
+
+   Suites View
    public static final String CREATED_SUITE = "created-suite";
    public static final String MODIFIED_SUITE = "modified-suite";
+
+    Dashboard
    public static final String CREATE_FUTURE_JOB = "create-future-job";
+
+   Manage Newman + App (Main)
    private static final String MODIFY_SERVER_STATUS = "modified-server-status";
 
 -}
@@ -102,6 +110,9 @@ toEvent msg =
 
                                 "created-build" ->
                                     parse CreatedBuild decodeBuild
+
+                                "created-suite" ->
+                                    parse CreatedSuite decodeSuite
 
                                 other ->
                                     Err <| "Unhandled event id: " ++ other
