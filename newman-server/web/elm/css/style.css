@@ -187,7 +187,7 @@ div.progress-bar{
 
 
 body {
-    margin-top: 100px !important;
+    margin-top: 80px !important;
     background-color: white;
 }
 
@@ -222,7 +222,7 @@ table {
 @media(min-width:768px) {
     .side-nav {
         position: fixed;
-        top: 60px;
+        top: 70px;
         left: 200px;
         width: 200px;
         margin-left: -200px;
@@ -251,7 +251,22 @@ table {
     padding: 10px 15px 10px 20px;
     text-decoration: none;
     border-radius: 0px !important;
+    color: black;
 }
+
+
+.side-nav li a:hover,
+.side-nav li a:focus {
+    font-weight: bold;
+}
+
+.side-nav .active {
+    font-weight: bold;
+    color: #0275d8!important;
+
+}
+
+
 
 .topbar-info {
     color: white;

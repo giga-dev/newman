@@ -3,6 +3,7 @@ module Pages.SubmitNewJob exposing (..)
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
 import Bootstrap.Form.Select as Select
+import Bootstrap.Modal as Modal
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -13,7 +14,7 @@ import Json.Encode
 import Maybe exposing (withDefault)
 import Multiselect
 import Views.NewmanModal as NewmanModal
-import Bootstrap.Modal as Modal
+
 
 type Msg
     = GetBuildsAndSuitesCompleted (Result Http.Error BuildsAndSuites)
@@ -31,8 +32,8 @@ type alias Model =
     , selectedSuites : Multiselect.Model
     , submittedFutureJobs : List FutureJob
     , isSelect : Bool
-    , modalState: Modal.State
-    , errorMessage: String
+    , modalState : Modal.State
+    , errorMessage : String
     }
 
 
@@ -103,14 +104,16 @@ update msg model =
 
         OnClickSubmit ->
             let
-                (buildId, suitesList) =
-                    (model.selectedBuild,  (List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites)))
+                ( buildId, suitesList ) =
+                    ( model.selectedBuild, List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites) )
             in
-            case (buildId, suitesList) of
-                ("", _) ->
-                    ( { model| errorMessage = "Please select a build", modalState = Modal.visibleState} , Cmd.none)
-                (_, []) ->
-                    ( { model| errorMessage = "Please select one or more suites", modalState = Modal.visibleState} , Cmd.none)
+            case ( buildId, suitesList ) of
+                ( "", _ ) ->
+                    ( { model | errorMessage = "Please select a build", modalState = Modal.visibleState }, Cmd.none )
+
+                ( _, [] ) ->
+                    ( { model | errorMessage = "Please select one or more suites", modalState = Modal.visibleState }, Cmd.none )
+
                 _ ->
                     ( model, submitFutureJobCmd buildId suitesList )
 
@@ -125,9 +128,9 @@ update msg model =
         UpdatedBuildSelection select ->
             ( { model | isSelect = select }, Cmd.none )
 
-
         NewmanModalMsg newState ->
             ( { model | modalState = newState }, Cmd.none )
+
 
 getBuildsAndSuitesCmd : Cmd Msg
 getBuildsAndSuitesCmd =
@@ -168,21 +171,15 @@ view model =
                 _ ->
                     "submitted the folowing future jobs:"
     in
-    div [ id "page-wrapper" ]
-        [ div [ class "container-fluid" ]
-            [ div [ class "row" ]
-                [ div [ class "col-lg-12" ]
-                    [ h1 [ class "page-header" ]
-                        [ text "Submit New Job" ]
-                    ]
-                ]
-            , div [ class "row", style [ ( "width", "500px" ) ] ]
-                [ text "Select suite:"
-                , Multiselect.view model.selectedSuites |> Html.map MultiSelectMsg
-                ]
-            , br [] []
-            , selectBuildView model
+    div [ class "container-fluid" ]
+        [ h2 [ class "page-header" ]
+            [ text "Submit New Job" ]
+        , div [ style [ ( "width", "500px" ) ] ]
+            [ text "Select suite:"
+            , Multiselect.view model.selectedSuites |> Html.map MultiSelectMsg
             ]
+        , br [] []
+        , selectBuildView model
         , Button.button [ Button.secondary, Button.onClick OnClickSubmit, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Submit Future Job" ]
         , br [] []
         , div []
@@ -201,10 +198,10 @@ selectBuildView model =
     in
     div []
         [ div
-            [ class "row" ]
+            []
             [ radio "Select build :" (UpdatedBuildSelection True) model.isSelect ]
         , div
-            [ class "row" ]
+            []
             [ Select.select [ Select.disabled (not model.isSelect), Select.onChange UpdateSelectedBuild, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
                 ([ Select.item [ value "1" ] [ text "Select a Build" ]
                  ]
@@ -213,10 +210,10 @@ selectBuildView model =
             ]
         , br [] []
         , div
-            [ class "row" ]
+            []
             [ radio "Enter build id :" (UpdatedBuildSelection False) (not model.isSelect) ]
         , div
-            [ class "row" ]
+            []
             [ Input.text [ Input.disabled model.isSelect, Input.onInput UpdateSelectedBuild, Input.attrs [ style [ ( "width", "500px" ) ] ] ]
             ]
         ]
