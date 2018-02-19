@@ -234,7 +234,7 @@ viewJob currTime job =
             , Badge.badge [ class "job-tests-badge" ] [ text <| toString job.totalTests ]
             ]
         , td []
-            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| (not <| (List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ]) && (job.runningTests == 0)) ]
+            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| (not ((List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ]) && (job.runningTests == 0))) ]
                 [ span [ class "ion-close" ] [] ]
             , text " "
             , playPauseButton
