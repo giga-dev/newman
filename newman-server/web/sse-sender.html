@@ -28,7 +28,7 @@
     };
     Polymer('sse-sender', {
       ready: function(){
-            this.before_hooks = {
+/*            this.before_hooks = {
                 'created-suite' : "",
                 'modified-agent' : "",
                 'modified-job' : [window.app.jobProgressPercent],
@@ -44,19 +44,19 @@
 
                 // When the socket has been open, let's cleanup the UI.
                 source.onopen = function () {
-                  //  console.info("sse opened");
+                   console.info("sse opened");
                 };
 
                 source.onclose = function(){
-                    // console.info("sse closed");
+                    console.info("sse closed");
                 };
 
                 source.onerror = function(){
-                    // console.info("sse onerror", arguments);
+                   console.info("sse onerror", arguments);
                 };
 
                 source.onmessage = function(e){
-                    // console.info("sse onmessage", e);
+                    //console.info("sse onmessage", e);
                 }
                 function handler(e){
                     var type = e.type;
@@ -90,6 +90,7 @@
                 source.addEventListener("modified-server-status", handler.bind(this), false);
             }
       }
+      */
     });
   </script>
 </polymer-element>
