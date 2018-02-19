@@ -67,7 +67,7 @@ viewTest test =
         logsRow =
             let
                 toLogRow ( key, val ) =
-                    li [] [ a [ href val ] [ text key ] , text " " , a [ href <| val ++ "?download=true"] [ text "[Download]"] ]
+                    li [] [ a [ href val, target "_blank" ] [ text key ] , text " " , a [ href <| val ++ "?download=true"] [ text "[Download]"] ]
             in
             ul [ style [ ("font-size" , "14px" )] ] <|
                 List.map
