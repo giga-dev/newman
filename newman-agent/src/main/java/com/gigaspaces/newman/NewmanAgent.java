@@ -406,6 +406,7 @@ public class NewmanAgent {
                 break;
             }
             catch (IllegalStateException e){ // client was closed
+                logger.warn("Got IllegalStateException while reporting test" , e);
                 c = getClient();
             }
             catch (Exception e) {
