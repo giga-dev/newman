@@ -1788,7 +1788,10 @@ public class NewmanResource {
             logger.debug("agent [{}] is idling at subscribe because didn't find job", readyAgent.getName());
         }
 
-        broadcastMessage(MODIFIED_AGENT, readyAgent);
+        //TODO this event is sent every 10 seconds (jobPollInteval) per agent
+        //TODO Check if it is necessary to send it
+        //logger.info(">>> Modified Agent " +agent.getHost()+ " subscribe");
+        //broadcastMessage(MODIFIED_AGENT, readyAgent);
         return Response.ok(job).build();
     }
 

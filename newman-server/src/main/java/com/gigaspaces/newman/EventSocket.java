@@ -25,11 +25,11 @@ public class EventSocket implements WebSocketListener {
     private static Gson gson = new GsonBuilder().registerTypeAdapter(Date.class, (JsonDeserializer<Date>) (json, typeOfT, context) -> new Date(json.getAsJsonPrimitive().getAsLong()))
             .registerTypeAdapter(Date.class, (JsonSerializer<Date>) (date, type, jsonSerializationContext) -> new JsonPrimitive(date.getTime())).create();
 
-    protected static void broadcast(Object message)
+    protected static void broadcast(Message message)
             throws IOException {
 
         endpoints.forEach(endpoint -> {
-            logger.info("Sending message to " + endpoint.session.getRemoteAddress());
+            //logger.info("Sending message [" + message.getId() + "] to " + endpoint.session.getRemoteAddress());
             synchronized (endpoint) {
                 try {
                     endpoint.session.getRemote().sendString(gson.toJson(message));
@@ -50,6 +50,7 @@ public class EventSocket implements WebSocketListener {
         logger.info("Disconnected from " + session.getRemoteAddress() + " , error; " + str + " , i = " + i);
         endpoints.remove(this);
 
+
     }
 
     @Override
@@ -61,7 +62,7 @@ public class EventSocket implements WebSocketListener {
 
     @Override
     public void onWebSocketError(Throwable throwable) {
-        throwable.printStackTrace();
+        logger.error("EventSocket got exception: ", throwable);
     }
 
     @Override
