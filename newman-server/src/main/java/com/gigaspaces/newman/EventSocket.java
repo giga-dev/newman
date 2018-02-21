@@ -16,7 +16,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Created by Barak Bar Orion
  * 3/1/15.
  */
-@WebSocket(maxTextMessageSize = 64 * 1024)
+@WebSocket(maxTextMessageSize = 64 * 1024, maxIdleTime = 10000)
 public class EventSocket implements WebSocketListener {
     private static final Logger logger = LoggerFactory.getLogger(EventSocket.class);
     private static Set<EventSocket> endpoints
