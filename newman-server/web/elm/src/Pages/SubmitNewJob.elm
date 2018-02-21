@@ -194,7 +194,7 @@ selectBuildView : Model -> Html Msg
 selectBuildView model =
     let
         toOption data =
-            Select.item [ value data.id, selected <| model.selectedBuild == data.id ] [ text data.name ]
+            Select.item [ value data.id, selected <| model.selectedBuild == data.id ] [ text <| data.name ++ " (" ++ data.branch ++ ")" ]
     in
     div []
         [ div
