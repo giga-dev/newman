@@ -74,7 +74,7 @@ viewHeader model job =
                     [ text "Build"
                     ]
                 , td []
-                    [ a [ href <| "#build/" ++ job.build.id ] [ text <| job.build.name ++ " (" ++ job.build.branch ++ ")" ]
+                    [ a [ href <| "#build/" ++ job.buildId ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ]
                     ]
                 ]
 

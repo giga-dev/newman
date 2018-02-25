@@ -7,10 +7,6 @@ import Json.Encode
 import Paginate exposing (PaginatedList)
 
 
-type alias Jobs =
-    List Job
-
-
 type alias JobId =
     String
 
@@ -22,7 +18,10 @@ type alias Job =
     , state : String
     , preparingAgents : List String
     , agents : List String
-    , build : Build
+    , buildId: String
+    , buildName : String
+    , buildBranch: String
+    , suiteId : String
     , suiteName : String
     , totalTests : Int
     , failedTests : Int
@@ -187,7 +186,10 @@ decodeJob =
         |> required "state" string
         |> required "preparingAgents" (list string)
         |> required "agents" (list string)
-        |> required "build" decodeBuild
+        |> requiredAt [ "build", "id"] string
+        |> requiredAt [ "build", "name"] string
+        |> requiredAt [ "build", "branch"] string
+        |> requiredAt [ "suite", "id" ] string
         |> requiredAt [ "suite", "name" ] string
         |> required "totalTests" int
         |> required "failedTests" int
@@ -197,10 +199,27 @@ decodeJob =
         |> optional "endTime" (nullable int) Nothing
         |> optional "jobSetupLogs" (dict string) Dict.empty
 
-
-decodeJobs : Decoder Jobs
-decodeJobs =
-    field "values" (list decodeJob)
+decodeJobView : Decoder Job
+decodeJobView =
+    decode Job
+        |> required "id" string
+        |> required "submitTime" int
+        |> required "submittedBy" string
+        |> required "state" string
+        |> required "preparingAgents" (list string)
+        |> optional "agents" (list string) []
+        |> required "buildId" string
+        |> required "buildName" string
+        |> required "buildBranch" string
+        |> required "suiteId" string
+        |> required "suiteName" string
+        |> required "totalTests" int
+        |> required "failedTests" int
+        |> required "passedTests" int
+        |> required "runningTests" int
+        |> optional "startTime" (nullable int) Nothing
+        |> optional "endTime" (nullable int) Nothing
+        |> optional "jobSetupLogs" (dict string) Dict.empty
 
 
 decodeBuild : Decoder Build

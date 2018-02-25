@@ -27,7 +27,7 @@ type alias Model =
 
 type Msg
     = GetBuildInfoCompleted (Result Http.Error Build)
-    | GetJobsInfoCompleted (Result Http.Error Jobs)
+    | GetJobsInfoCompleted (Result Http.Error (List Job))
     | JobsTableMsg JobsTable.Msg
     | OnTime Time
 
@@ -107,13 +107,15 @@ view model =
                 [ h2 [ class "text" ] [ text <| "Details for build " ++ build.name ]
                 , table []
                     ([ viewRow ( "Build Id", text build.id )
-                    , viewRow ( "Branch", text build.branch )
-                    , viewRow ( "Tags", text <| String.join "," build.tags )
-                    , viewRow ( "Build Time", text buildDate )
-                    , resourcesRow
-                    , viewRow ( "Test Metadata", text <| String.join "," build.testsMetadata )
-                    , viewRow ( "Commits:", text "" )
-                    ] ++ shasRows)
+                     , viewRow ( "Branch", text build.branch )
+                     , viewRow ( "Tags", text <| String.join "," build.tags )
+                     , viewRow ( "Build Time", text buildDate )
+                     , resourcesRow
+                     , viewRow ( "Test Metadata", text <| String.join "," build.testsMetadata )
+                     , viewRow ( "Commits:", text "" )
+                     ]
+                        ++ shasRows
+                    )
                 , br [] []
                 , h2 [ class "text" ] [ text "Participate in the following jobs:" ]
                 , jobsTableView
@@ -175,4 +177,5 @@ getBuildInfoCmd buildId =
 getJobsInfoCmd : BuildId -> Cmd Msg
 getJobsInfoCmd buildId =
     Http.send GetJobsInfoCompleted <|
-        Http.get ("/api/newman/job?buildId=" ++ buildId ++ "&all=true") decodeJobs
+        Http.get ("/api/newman/job?buildId=" ++ buildId ++ "&all=true") <|
+            Json.Decode.field "values" (Json.Decode.list decodeJob)

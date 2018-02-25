@@ -33,13 +33,15 @@ type alias Model =
 
 type Msg
     = UpdateMaxEntries String
-    | GetJobsCompleted (Result Http.Error Jobs)
+    | GetJobsCompleted (Result Http.Error (List Job))
     | OnTime Time
     | JobsTableMsg JobsTable.Msg
 
-handleEvent: WebSocket.Event -> Cmd Msg
+
+handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
     JobsTable.handleEvent event |> Cmd.map JobsTableMsg
+
 
 init : ( Model, Cmd Msg )
 init =
@@ -87,6 +89,8 @@ update msg model =
             in
             ( { model | jobsTableModel = updatedJobsTableModel }, cmd |> Cmd.map JobsTableMsg )
 
+
+
 -----
 {-
    VIEW
@@ -110,9 +114,10 @@ getJobsCmd limit =
     Http.send GetJobsCompleted (getJobs limit)
 
 
-getJobs : Int -> Http.Request Jobs
+getJobs : Int -> Http.Request (List Job)
 getJobs limit =
-    Http.get ("/api/newman/job?limit=" ++ toString limit ++ "&orderBy=-submitTime") decodeJobs
+    Http.get ("/api/newman/jobs-view?limit=" ++ toString limit ++ "&orderBy=-submitTime") <|
+        Json.Decode.field "values" (Json.Decode.list decodeJobView)
 
 
 
@@ -132,7 +137,7 @@ getJobs limit =
 --
 
 
-onGetJobsCompleted : Model -> Result Http.Error Jobs -> ( Model, Cmd Msg )
+onGetJobsCompleted : Model -> Result Http.Error (List Job) -> ( Model, Cmd Msg )
 onGetJobsCompleted model result =
     case result of
         Ok jobs ->

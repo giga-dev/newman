@@ -40,7 +40,7 @@ type Msg
 
 
 type alias Model =
-    { allJobs : Jobs
+    { allJobs : List Job
     , jobs : PaginatedList Job
     , pageSize : Int
     , confirmationState : Modal.State
@@ -221,7 +221,7 @@ viewJob currTime job =
         , td [ title job.suiteName ] [ text job.suiteName ]
         , td [] [ text durationText ]
         , td [ title submittedTimeHourFull ] [ text submittedTimeHour ]
-        , td [] [ a [ href <| "#build/" ++ job.build.id, title <| job.build.name ++ " (" ++ job.build.branch ++ ")" ] [ text <| job.build.name ++ " (" ++ job.build.branch ++ ")" ] ]
+        , td [] [ a [ href <| "#build/" ++ job.buildId, title <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] ]
         , td [] [ text job.submittedBy ]
         , td [] [ text (toString (List.length job.preparingAgents)) ]
         , td []
@@ -323,7 +323,7 @@ filterQuery query job =
         String.length query
             == 0
             || String.startsWith query job.id
-            || String.startsWith query job.build.name
+            || String.startsWith query job.buildName
             || String.startsWith query job.suiteName
             || String.startsWith query job.submittedBy
     then
