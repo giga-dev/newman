@@ -109,7 +109,13 @@ viewTable model currTime =
     in
     div []
         [ div [ class "form-inline" ]
-            [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+            [ div [ class "form-group" ]
+                [ FormInput.text
+                    [ FormInput.onInput FilterQuery
+                    , FormInput.placeholder "Filter"
+                    , FormInput.value model.query
+                    ]
+                ]
             , div [ class "form-group" ] [ pagination ]
             ]
         , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
@@ -234,7 +240,7 @@ viewJob currTime job =
             , Badge.badge [ class "job-tests-badge" ] [ text <| toString job.totalTests ]
             ]
         , td []
-            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| (not ((List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ]) && (job.runningTests <= 0))) ]
+            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| not (List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0)) ]
                 [ span [ class "ion-close" ] [] ]
             , text " "
             , playPauseButton
@@ -355,6 +361,7 @@ updateJobAdded : Model -> Job -> Model
 updateJobAdded model addedJob =
     updateAllJobs (\list -> addedJob :: list) model
 
+
 updateJobUpdated : Model -> Job -> Model
 updateJobUpdated model jobToUpdate =
     let
@@ -362,6 +369,7 @@ updateJobUpdated model jobToUpdate =
             ListExtra.replaceIf (\item -> item.id == jobToUpdate.id) jobToUpdate
     in
     updateAllJobs f model
+
 
 updateJobRemoved : Model -> JobId -> Model
 updateJobRemoved model jobIdToRemove =
@@ -371,11 +379,12 @@ updateJobRemoved model jobIdToRemove =
     in
     updateAllJobs f model
 
+
 onRequestCompletedToggleJob : Model -> Result Http.Error Job -> ( Model, Cmd Msg )
 onRequestCompletedToggleJob model result =
     case result of
         Ok job ->
-            ( updateJobUpdated model job , Cmd.none )
+            ( updateJobUpdated model job, Cmd.none )
 
         Err err ->
             ( model, Cmd.none )

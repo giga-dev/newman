@@ -29,7 +29,7 @@ type alias Model =
     , builds : PaginatedBuilds
     , pageSize : Int
     , compareBuildsModel : CompareBuilds.Model
-    , query: String
+    , query : String
     }
 
 
@@ -192,7 +192,13 @@ view model =
         --            |> Html.map CompareBuildsMsg
         , div []
             [ div [ class "form-inline" ]
-                [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+                [ div [ class "form-group" ]
+                    [ FormInput.text
+                        [ FormInput.onInput FilterQuery
+                        , FormInput.placeholder "Filter"
+                        , FormInput.value model.query
+                        ]
+                    ]
                 , div [ class "form-group" ] [ pagination ]
                 ]
             , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
@@ -249,7 +255,7 @@ filterQuery query build =
             || String.startsWith query build.id
             || String.startsWith query build.name
             || String.startsWith query build.branch
-            || (List.member True (List.map (String.startsWith query) build.tags))
+            || List.member True (List.map (String.startsWith query) build.tags)
     then
         True
     else

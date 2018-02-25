@@ -136,6 +136,7 @@ updateSuiteUpdated model suiteToUpdate =
             case ListExtra.find (\item -> item.id == suiteToUpdate.id) l of
                 Just _ ->
                     ListExtra.replaceIf (\item -> item.id == suiteToUpdate.id) suiteToUpdate l
+
                 Nothing ->
                     suiteToUpdate :: l
     in
@@ -191,7 +192,13 @@ view model =
         [ h2 [ class "text" ] [ text "Suites" ]
         , div []
             [ div [ class "form-inline" ]
-                [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+                [ div [ class "form-group" ]
+                    [ FormInput.text
+                        [ FormInput.onInput FilterQuery
+                        , FormInput.placeholder "Filter"
+                        , FormInput.value model.query
+                        ]
+                    ]
                 , div [ class "form-group" ] [ pagination ]
                 ]
             , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]

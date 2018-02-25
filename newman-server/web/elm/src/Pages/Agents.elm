@@ -136,6 +136,7 @@ onRequestCompletedDropAgent agentId model result =
         Err err ->
             ( model, Cmd.none )
 
+
 updateAll : (List Agent -> List Agent) -> Model -> Model
 updateAll f model =
     let
@@ -159,6 +160,7 @@ updateAgentUpdated model agentToUpdate =
     in
     updateAll f model
 
+
 updateAgentRemoved : Model -> String -> Model
 updateAgentRemoved model idToRemove =
     let
@@ -166,6 +168,7 @@ updateAgentRemoved model idToRemove =
             ListExtra.filterNot (\item -> item.id == idToRemove)
     in
     updateAll f model
+
 
 view : Model -> Html Msg
 view model =
@@ -216,7 +219,13 @@ view model =
         [ h2 [ class "text" ] [ text <| "Agents (" ++ (toString <| List.length model.allAgents) ++ ")" ]
         , div []
             [ div [ class "form-inline" ]
-                [ div [ class "form-group" ] [ FormInput.text [ FormInput.onInput FilterQuery, FormInput.placeholder "Filter" ] ]
+                [ div [ class "form-group" ]
+                    [ FormInput.text
+                        [ FormInput.onInput FilterQuery
+                        , FormInput.placeholder "Filter"
+                        , FormInput.value model.query
+                        ]
+                    ]
                 , div [ class "form-group" ] [ pagination ]
                 ]
             , table [ class "table table-hover table-striped table-bordered table-condensed" ]
@@ -312,12 +321,11 @@ getAgents =
 filterQuery : String -> Agent -> Bool
 filterQuery query agent =
     let
---        a =
---            Debug.log ("filtered agents with query " ++ query ++ ":") (toString filteredList ++ " agent: " ++ toString agent)
---
---        b =
---            Debug.log "filtering capabiliteis" (toString agent.capabilities)
-
+        --        a =
+        --            Debug.log ("filtered agents with query " ++ query ++ ":") (toString filteredList ++ " agent: " ++ toString agent)
+        --
+        --        b =
+        --            Debug.log "filtering capabiliteis" (toString agent.capabilities)
         filteredList =
             List.filter (String.startsWith query) agent.capabilities
 
@@ -327,7 +335,7 @@ filterQuery query agent =
         jobIdCheck =
             case agent.jobId of
                 Just jobId ->
-                    True
+                    String.startsWith query jobId
 
                 Nothing ->
                     False
