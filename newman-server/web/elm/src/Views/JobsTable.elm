@@ -220,7 +220,7 @@ viewJob currTime job =
                     Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY), Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
     in
-    tr []
+    tr [ classList [ ("succeed-row", job.passedTests == job.totalTests)]]
         [ td [] [ jobState ]
         , td [] [ progress ]
         , td [] [ a [ href <| "#job/" ++ job.id, title job.id ] [ text job.id ] ]
