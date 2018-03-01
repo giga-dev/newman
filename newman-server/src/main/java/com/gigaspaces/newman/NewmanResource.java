@@ -1814,12 +1814,6 @@ public class NewmanResource {
         return job;
     }
 
-    private List<Job> groupByBuild(List<Job> jobs) {
-        if (jobs.isEmpty()) return null;
-        String BuildId = jobs.get(0).getBuild().getId();
-        return jobs.stream().filter(job -> BuildId.equals(job.getBuild().getId())).collect(Collectors.toList());
-    }
-
     private Build getLatestBuild(String branch) {
         return buildDAO.findOne(buildDAO.createQuery().order("-buildTime").field("branch").equal(branch));
     }
