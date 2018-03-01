@@ -1804,22 +1804,12 @@ public class NewmanResource {
         }
         if (jobs != null && jobs.size() > 0) { // if found jobs with match requirements
             List<Job> jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByCapabilities(jobs, capabilities); // filter jobs with not supported requirements
-            job = bestMatch(jobsFilterByCapabilities);
+            job = jobsFilterByCapabilities.get(0);
         }
         if (job == null) { // search for jobs without requirements
             Query<Job> noRequirementsQuery = basicQuery.cloneQuery();
             noRequirementsQuery.field("suite.requirements").doesNotExist();
             job = jobDAO.findOne(noRequirementsQuery);
-        }
-        return job;
-    }
-
-    private Job bestMatch(List<Job> jobsFilterByCapabilities) {
-        Job job = null;
-        List<Job> jobsGroupById = groupByBuild(jobsFilterByCapabilities);
-        if (jobsGroupById != null && !jobsGroupById.isEmpty()) { // if has jobs after filter
-            Collections.sort(jobsGroupById, CapabilitiesAndRequirements.requirementsSort);
-            job = jobsGroupById.get(0);
         }
         return job;
     }
