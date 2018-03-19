@@ -105,6 +105,10 @@ public class SuiteDiffCronJob implements CronJob {
         StringTemplate subjectTemplate = createSubjectTemplate(properties);
         subjectTemplate.setAttribute("latestBuildBranch", latestBuild.getBranch());
         subjectTemplate.setAttribute("latestBuildName", latestBuild.getName());
+        if (suiteDiffs.size() == 1) { //add single suite name to subject
+            DiffComparableData next = suiteDiffs.iterator().next();
+            subjectTemplate.setAttribute("suiteName", '\''+next.getSuiteName()+'\'');
+        }
         subjectTemplate.setAttribute("latestBuildFailedTests", latestBuild.getBuildStatus().getFailedTests());
 
         //create body
