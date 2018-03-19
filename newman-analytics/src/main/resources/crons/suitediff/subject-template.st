@@ -1,1 +1,1 @@
-($latestBuildBranch$) $latestBuildName$ with $latestBuildFailedTests$ failures
+($latestBuildBranch$) $latestBuildName$ $suiteName$ with $latestBuildFailedTests$ failures
