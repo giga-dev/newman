@@ -65,6 +65,7 @@ public class NewmanResource {
     public static final String MODIFIED_AGENT = "modified-agent";
     public static final String CREATED_BUILD = "created-build";
     public static final String CREATED_SUITE = "created-suite";
+    public static final String CREATED_JOB_CONFIG = "created-job-config";
     public static final String MODIFIED_SUITE = "modified-suite";
     public static final String CREATE_FUTURE_JOB = "created-future-job";
     public static final String DELETED_FUTURE_JOB = "deleted-future-job";
@@ -76,6 +77,7 @@ public class NewmanResource {
     private final BuildDAO buildDAO;
     private final AgentDAO agentDAO;
     private final SuiteDAO suiteDAO;
+    private final JobConfigDAO jobConfigDAO;
     private final FutureJobDAO futureJobDAO;
     private final BuildsCacheDAO buildsCacheDAO;
     private final Config config;
@@ -123,6 +125,7 @@ public class NewmanResource {
         suiteDAO = new SuiteDAO(morphia, mongoClient, config.getMongo().getDb());
         futureJobDAO = new FutureJobDAO(morphia, mongoClient, config.getMongo().getDb());
         buildsCacheDAO = new BuildsCacheDAO(morphia, mongoClient, config.getMongo().getDb());
+        jobConfigDAO = new JobConfigDAO(morphia, mongoClient, config.getMongo().getDb());
 
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         MongoCollection testCollection = db.getCollection("Test");
@@ -2206,6 +2209,43 @@ public class NewmanResource {
         }
 
         return new Batch<>(suiteViews, offset, limit, all, orderBy, uriInfo);
+    }
+
+    @POST
+    @Path("job-config")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public JobConfig addJobConfig(JobConfig jobConfig) {
+        jobConfigDAO.save(jobConfig);
+        logger.info("---addJobConfig---" + jobConfig);
+        broadcastMessage(CREATED_JOB_CONFIG, jobConfig);
+        return jobConfig;
+    }
+
+    @GET
+    @Path("job-config-by-id/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public JobConfig getJobConfigById(final @PathParam("id") String id) {
+        JobConfig jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(id));
+        return jobConfig;
+    }
+
+    @GET
+    @Path("job-config/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public JobConfig getJobConfigByName(final @PathParam("name") String name) {
+        JobConfig jobConfig = jobConfigDAO.findOne(jobConfigDAO.createQuery().field("name").equal(name));
+        return jobConfig;
+    }
+
+    @GET
+    @Path("job-config")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<JobConfig> getAllJobConfig() {
+
+        List<JobConfig> jobConfigs = jobConfigDAO.find(jobConfigDAO.createQuery()).asList();
+
+        return jobConfigs;
     }
 
     /**

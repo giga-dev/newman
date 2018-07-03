@@ -219,6 +219,18 @@ public class NewmanClient {
         return restClient.target(uri).path("update-sha").request().rx().get(String.class);
     }
 
+    public CompletionStage<JobConfig> addConfig(JobConfig config) {
+        return restClient.target(uri).path("job-config").request().rx().post(Entity.json(config), JobConfig.class);
+    }
+
+    public CompletionStage<JobConfig> getConfig(String name) {
+        return restClient.target(uri).path("job-config").path(name).request().rx().get(JobConfig.class);
+    }
+
+    public CompletionStage<List<JobConfig>> getAllConfigs() {
+        return restClient.target(uri).path("job-config").request().rx().get(new GenericType<List<JobConfig>>(){});
+    }
+
     public void close() {
         restClient.close();
     }

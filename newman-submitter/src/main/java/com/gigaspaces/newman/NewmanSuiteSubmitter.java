@@ -26,12 +26,6 @@ import static com.gigaspaces.newman.utils.StringUtils.notEmpty;
 public class NewmanSuiteSubmitter {
     private static final Logger logger = LoggerFactory.getLogger(NewmanSuiteSubmitter.class);
 
-    //connection env variables
-    public static final String NEWMAN_HOST = "NEWMAN_HOST";
-    public static final String NEWMAN_PORT = "NEWMAN_PORT";
-    public static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
-    public static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
-
     //suite env variables
     public static final String NEWMAN_SUITE_NAME = "NEWMAN_SUITE_NAME";
     public static final String NEWMAN_SUITE_CUSTOM_VARIABLES = "NEWMAN_SUITE_CUSTOM_VARIABLES";
@@ -658,15 +652,6 @@ public class NewmanSuiteSubmitter {
         return criteria.toArray(new Criteria[criteria.size()]);
     }
 
-    private static NewmanClient getNewmanClient() throws Exception {
-        // connection arguments
-        String host = EnvUtils.getEnvironment(NEWMAN_HOST, true /*required*/, logger);
-        String port = EnvUtils.getEnvironment(NEWMAN_PORT, true /*required*/, logger);
-        String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, true /*required*/, logger);
-        String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, true /*required*/, logger);
-
-        return NewmanClient.create(host, port, username, password);
-    }
 
     private static Criteria[] parseCommaDelimitedList(String list) {
         if (list.length() == 0) return new Criteria[0];
@@ -816,4 +801,9 @@ public class NewmanSuiteSubmitter {
             newmanClient.close();
         }
     }
+
+    private static NewmanClient getNewmanClient() throws Exception {
+        return NewmanClientUtil.getNewmanClient(logger);
+    }
+
 }
