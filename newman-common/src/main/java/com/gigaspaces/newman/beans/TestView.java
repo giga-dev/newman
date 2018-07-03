@@ -23,6 +23,7 @@ public class TestView {
     private Date startTime;
     private Date endTime;
     private int progressPercent;
+    private int runNumber;
 
     public TestView( Test test ) {
 
@@ -38,6 +39,7 @@ public class TestView {
         startTime = test.getStartTime();
         endTime = test.getEndTime();
         progressPercent = test.getProgressPercent();
+        runNumber = test.getRunNumber();
         computeProgressPercent(test.getStatus());
     }
 
@@ -154,6 +156,14 @@ public class TestView {
 
     public void setHistoryStats(String historyStats) {
         this.historyStats = historyStats;
+    }
+
+    public int getRunNumber() {
+        return runNumber;
+    }
+
+    public void setRunNumber(int runNumber) {
+        this.runNumber = runNumber;
     }
 
     @Override

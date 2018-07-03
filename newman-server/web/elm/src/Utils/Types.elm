@@ -142,6 +142,7 @@ type alias TestHistoryTestView =
     , errorMessage : String
     , startTime : Int
     , endTime : Int
+    , runNumber : Int
     }
 
 
@@ -416,6 +417,7 @@ type alias Test =
     , endTime : Maybe Int
     , scheduledAt : Int
     , progressPercent : Int
+    , runNumber : Int
     }
 
 
@@ -438,6 +440,7 @@ decodeTest =
         |> required "endTime" (nullable int)
         |> required "scheduledAt" int
         |> required "progressPercent" int
+        |> required "runNumber" int
 
 
 decodeTestView : Decoder Test
@@ -459,6 +462,7 @@ decodeTestView =
         |> optional "endTime" (nullable int) Nothing
         |> optional "scheduledAt" int 0
         |> required "progressPercent" int
+        |> required "runNumber" int
 
 
 decodeUser =
@@ -484,6 +488,7 @@ decodeTestHistoryTestView =
         |> optional "errorMessage" string ""
         |> required "startTime" int
         |> required "endTime" int
+        |> required "runNumber" int
 
 
 decodeTestHistoryJobView : Json.Decode.Decoder TestHistoryJobView

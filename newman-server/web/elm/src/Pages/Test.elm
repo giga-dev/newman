@@ -118,6 +118,7 @@ viewTest test =
 
         rows =
             [ ( "Status", toBadge test.status [] [ text test.status ] )
+            , ( "Run Num", text (toString test.runNumber) )
             , ( "Id", text test.id )
             , ( "Job Id", text test.jobId )
             , ( "Arguments", text <| String.join " " test.arguments )

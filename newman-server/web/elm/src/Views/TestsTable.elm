@@ -52,12 +52,12 @@ init jobId list =
         aa =
             Debug.log "TestsTable" "init is called!"
     in
-        { all = list
-        , paginated = Paginate.fromList pageSize list
-        , pageSize = pageSize
-        , query = ""
-        , jobId = jobId
-        }
+    { all = list
+    , paginated = Paginate.fromList pageSize list
+    , pageSize = pageSize
+    , query = ""
+    , jobId = jobId
+    }
 
 
 viewTable : Model -> Time -> Html Msg
@@ -113,8 +113,8 @@ viewTable model currTime =
                 rightBound =
                     Basics.min (((currentPage - 1) // maxPagesToShow) * maxPagesToShow + maxPagesToShow) totalPages
             in
-                List.range leftBound rightBound
-                    |> List.map (\i -> f i (i == Paginate.currentPage paginated))
+            List.range leftBound rightBound
+                |> List.map (\i -> f i (i == Paginate.currentPage paginated))
 
         pagination =
             nav []
@@ -125,38 +125,38 @@ viewTable model currTime =
                     )
                 ]
     in
-        div []
-            [ div [ class "form-inline" ]
-                [ div [ class "form-group" ]
-                    [ div [ class "btn-group" ]
-                        [ FormInput.text
-                            [ FormInput.onInput FilterQuery
-                            , FormInput.placeholder "Filter"
-                            , FormInput.value model.query
-                            , FormInput.attrs [ class "filterinput" ]
-                            ]
-                        , span [ title "Clear filter", class "ion-close-circled searchclear", onClick <| FilterQuery "" ]
-                            []
+    div []
+        [ div [ class "form-inline" ]
+            [ div [ class "form-group" ]
+                [ div [ class "btn-group" ]
+                    [ FormInput.text
+                        [ FormInput.onInput FilterQuery
+                        , FormInput.placeholder "Filter"
+                        , FormInput.value model.query
+                        , FormInput.attrs [ class "filterinput" ]
                         ]
+                    , span [ title "Clear filter", class "ion-close-circled searchclear", onClick <| FilterQuery "" ]
+                        []
                     ]
-                , div [ class "form-group" ] [ pagination ]
                 ]
-            , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
-                [ thead []
-                    [ tr []
-                        [ th [ style [ ( "width", "35%" ) ] ] [ text "Name" ]
-                        , th [ width 65 ] [ text "Status" ]
-                        , th [ width 105 ] [ text "History Stats" ]
-                        , th [ width 65 ] [ text "History" ]
-                        , th [ width 210 ] [ text "Error Message" ]
-                        , th [ width 210 ] [ text "Assigned Agent" ]
-                        , th [ width 100 ] [ text "Duration" ]
-                        ]
-                    ]
-                , tbody [] (List.map (viewTest currTime) <| Paginate.page model.paginated)
-                ]
-            , pagination
+            , div [ class "form-group" ] [ pagination ]
             ]
+        , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
+            [ thead []
+                [ tr []
+                    [ th [ style [ ( "width", "35%" ) ] ] [ text "Name" ]
+                    , th [ width 65 ] [ text "Status" ]
+                    , th [ width 105 ] [ text "History Stats" ]
+                    , th [ width 65 ] [ text "History" ]
+                    , th [ width 210 ] [ text "Error Message" ]
+                    , th [ width 210 ] [ text "Assigned Agent" ]
+                    , th [ width 100 ] [ text "Duration" ]
+                    ]
+                ]
+            , tbody [] (List.map (viewTest currTime) <| Paginate.page model.paginated)
+            ]
+        , pagination
+        ]
 
 
 
@@ -199,20 +199,20 @@ viewTest currTime test =
                         ( _, _ ) ->
                             Nothing
             in
-                case diffTime of
-                    Just diff ->
-                        case ( diff.hour, diff.minute, diff.second ) of
-                            ( 0, 0, s ) ->
-                                toString s ++ " seconds"
+            case diffTime of
+                Just diff ->
+                    case ( diff.hour, diff.minute, diff.second ) of
+                        ( 0, 0, s ) ->
+                            toString s ++ " seconds"
 
-                            ( 0, m, _ ) ->
-                                toString m ++ " minutes"
+                        ( 0, m, _ ) ->
+                            toString m ++ " minutes"
 
-                            ( h, m, _ ) ->
-                                toString h ++ " hours and " ++ toString m ++ " minutes"
+                        ( h, m, _ ) ->
+                            toString h ++ " hours and " ++ toString m ++ " minutes"
 
-                    Nothing ->
-                        ""
+                Nothing ->
+                    ""
 
         historyStats =
             let
@@ -225,15 +225,15 @@ viewTest currTime test =
                 shorten txt =
                     String.slice 0 18 txt
             in
-                case splitted of
-                    [ first, second ] ->
-                        [ text <| shorten first, br [] [], text <| shorten second ]
+            case splitted of
+                [ first, second ] ->
+                    [ text <| shorten first, br [] [], text <| shorten second ]
 
-                    [ one ] ->
-                        [ text <| shorten one ]
+                [ one ] ->
+                    [ text <| shorten one ]
 
-                    _ ->
-                        [ text "" ]
+                _ ->
+                    [ text "" ]
 
         historyStatsClass =
             if toTestStatus test.status == SUCCESS then
@@ -244,16 +244,17 @@ viewTest currTime test =
                 "blue-column"
             else
                 ""
+
     in
-        tr []
-            [ td [] [ a [ href <| "#test/" ++ test.id, title <| String.join "" test.arguments ] [ text <| String.join " " test.arguments ] ]
-            , td [] [ status [] [ text test.status ] ]
-            , td [ class historyStatsClass ] historyStats
-            , td [] [ a [ href <| "#test-history/" ++ test.id ] [ text "History" ] ]
-            , td [] [ span [ title test.errorMessage ] [ text test.errorMessage ] ]
-            , td [] [ text test.assignedAgent ]
-            , td [] [ text durationText ]
-            ]
+    tr []
+        [ td [] [ a [ href <| "#test/" ++ test.id, title <| String.join "" test.arguments ] [ text <| toTestName test] ]
+        , td [] [ status [] [ text test.status ] ]
+        , td [ class historyStatsClass ] historyStats
+        , td [] [ a [ href <| "#test-history/" ++ test.id ] [ text "History" ] ]
+        , td [] [ span [ title test.errorMessage ] [ text test.errorMessage ] ]
+        , td [] [ text test.assignedAgent ]
+        , td [] [ text durationText ]
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -306,13 +307,12 @@ updateAllTests f model =
         newPaginated =
             Paginate.map (\_ -> filtered) model.paginated
     in
-        { model | paginated = newPaginated, all = newList }
+    { model | paginated = newPaginated, all = newList }
 
 
 updateTestAdded : Model -> Test -> Model
 updateTestAdded model addedTest =
     updateAllTests (\list -> addedTest :: list) model
-
 
 updateTestUpdated : Model -> Test -> Model
 updateTestUpdated model testToUpdate =
@@ -320,7 +320,7 @@ updateTestUpdated model testToUpdate =
         f =
             ListExtra.replaceIf (\item -> item.id == testToUpdate.id) testToUpdate
     in
-        updateAllTests f model
+    updateAllTests f model
 
 
 filterQuery : String -> Test -> Bool
@@ -367,3 +367,15 @@ toTestStatus str =
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
     event => WebSocketEvent
+
+toTestName : Test -> String
+toTestName {arguments,runNumber} =
+    let
+        num =
+            case runNumber of
+                1 -> ""
+                other -> String.append "#" (toString other)
+        testName =
+            List.append arguments [num]
+    in
+       String.join " " testName

@@ -45,6 +45,7 @@ public class Test {
     private Date endTime;
     private Date scheduledAt;
     private int progressPercent;
+    private int runNumber = 1;
 
     @Indexed(unique = false)
     private String sha;
@@ -234,6 +235,14 @@ public class Test {
 
     public void setHistoryStats(String historyStats) {
         this.historyStats = historyStats;
+    }
+
+    public int getRunNumber() {
+        return runNumber;
+    }
+
+    public void setRunNumber(int runNumber) {
+        this.runNumber = runNumber;
     }
 
     @PostLoad

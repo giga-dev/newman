@@ -206,6 +206,9 @@ public class NewmanAgent {
                     Test test;
                     while ((test = findTest(jobExecutor.getJob())) != null) {
                         Test testResult = jobExecutor.run(test);
+                        if(testResult.getStatus().equals(Test.Status.FAIL)){
+                            resubmitFailed(job, testResult);
+                        }
                         reportTest(testResult);
                     }
                     logger.info("Finished Worker #{} for job {}", id, jobExecutor.getJob().getId());
@@ -222,6 +225,30 @@ public class NewmanAgent {
             }
             keepAliveTask.cancel();
             jobExecutor.teardown();
+        }
+    }
+
+    private void resubmitFailed(Job job, Test failedTest) {
+        if(failedTest.getRunNumber() > 1 && job.getFailedTests() > 100){
+            return;
+        }
+        List<Test> tests = new ArrayList<>(2);
+        for (int i = 0; i < 2; i++) {
+            Test newTest = new Test();
+            newTest.setName(failedTest.getName());
+            newTest.setArguments(failedTest.getArguments());
+            newTest.setTestType(failedTest.getTestType());
+            newTest.setTimeout(1500000L);
+            newTest.setJobId(failedTest.getJobId());
+            newTest.setRunNumber(i + 2); // 2,3
+            tests.add(newTest);
+        }
+        try {
+            client.createTests(tests).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 5, TimeUnit.SECONDS);
+        } catch (InterruptedException | TimeoutException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         }
     }
 
