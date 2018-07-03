@@ -22,6 +22,14 @@ public class JobConfig {
         javaVersion=NewmanConsts.DEFAULT_JAVA_VERSION;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }
@@ -41,7 +49,8 @@ public class JobConfig {
     @Override
     public String toString() {
         return "JobConfig{" +
-                "name='" + name + '\'' +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
                 ", javaVersion=" + javaVersion +
                 '}';
     }

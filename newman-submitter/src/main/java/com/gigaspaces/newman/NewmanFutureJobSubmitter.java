@@ -18,11 +18,6 @@ import java.util.concurrent.TimeoutException;
 public class NewmanFutureJobSubmitter {
     private static final Logger logger = LoggerFactory.getLogger(NewmanFutureJobSubmitter.class);
 
-    private static final String NEWMAN_HOST = "NEWMAN_HOST";
-    private static final String NEWMAN_PORT = "NEWMAN_PORT";
-    private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
-    private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
-
     private static final String NEWMAN_BUILD_ID = "NEWMAN_BUILD_ID"; // for example: 56277de629f67f791db25554
     private static final String NEWMAN_SUITE_ID = "NEWMAN_SUITE_ID"; // for example: 55b0affe29f67f34809c6c7b
     private static final String AUTHOR = "AUTHOR"; // for example: tamirs
@@ -76,10 +71,10 @@ public class NewmanFutureJobSubmitter {
     private static NewmanClient getNewmanClient() {
         // connection arguments
         NewmanClient nc;
-        String host = EnvUtils.getEnvironment(NEWMAN_HOST, true /*required*/, logger);
-        String port = EnvUtils.getEnvironment(NEWMAN_PORT, true /*required*/, logger);
-        String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, true /*required*/, logger);
-        String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, true /*required*/, logger);
+        String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, true /*required*/, logger);
+        String port = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PORT, true /*required*/, logger);
+        String username = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_USER_NAME, true /*required*/, logger);
+        String password = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PASSWORD, true /*required*/, logger);
 
         try {
             nc = NewmanClient.create(host, port, username, password);

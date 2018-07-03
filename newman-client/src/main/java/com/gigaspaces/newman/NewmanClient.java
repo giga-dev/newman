@@ -227,6 +227,10 @@ public class NewmanClient {
         return restClient.target(uri).path("job-config").path(name).request().rx().get(JobConfig.class);
     }
 
+    public CompletionStage<JobConfig> getConfigById(String id) {
+        return restClient.target(uri).path("job-config-by-id").path(id).request().rx().get(JobConfig.class);
+    }
+
     public CompletionStage<List<JobConfig>> getAllConfigs() {
         return restClient.target(uri).path("job-config").request().rx().get(new GenericType<List<JobConfig>>(){});
     }

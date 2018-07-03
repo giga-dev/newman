@@ -20,6 +20,8 @@ public class FutureJob {
     private String buildBranch;
     private String suiteID;
     private String suiteName;
+    private String configID;
+    private String configName;
     private String author;
     private Date submitTime;
 
@@ -100,6 +102,23 @@ public class FutureJob {
         this.buildName = buildName;
     }
 
+    public String getConfigID() {
+        return configID;
+    }
+
+    public void setConfigID(String configID) {
+        this.configID = configID;
+    }
+
+    public String getConfigName() {
+        return configName;
+    }
+
+    public void setConfigName(String configName) {
+        this.configName = configName;
+    }
+
+
     @Override
     public String toString() {
         return "FutureJob{" +
@@ -109,8 +128,11 @@ public class FutureJob {
                 ", buildBranch='" + buildBranch + '\'' +
                 ", suiteID='" + suiteID + '\'' +
                 ", suiteName='" + suiteName + '\'' +
+                ", configID='" + configID + '\'' +
+                ", configName='" + configName + '\'' +
                 ", author='" + author + '\'' +
                 ", submitTime=" + submitTime +
                 '}';
     }
+
 }
