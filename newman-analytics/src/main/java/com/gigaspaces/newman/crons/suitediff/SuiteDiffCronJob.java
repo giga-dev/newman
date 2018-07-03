@@ -163,7 +163,7 @@ public class SuiteDiffCronJob implements CronJob {
         for (Job job : latest_mapSuite2Job.values()) {
             Batch<Test> testBatch = newmanClient.getTests(job.getId(), 0, job.getTotalTests()).toCompletableFuture().get();
             for (Test test : testBatch.getValues()) {
-                if (test.getStatus().equals(Test.Status.FAIL)) {
+                if (test.getStatus().equals(Test.Status.FAIL) && test.getRunNumber() == 3) {
                     String historyStats = test.getHistoryStats();
                     //apply different rules for branch and master
                     if (!job.getBuild().getBranch().equals("master")) {

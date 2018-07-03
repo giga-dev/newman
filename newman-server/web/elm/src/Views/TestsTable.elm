@@ -244,9 +244,10 @@ viewTest currTime test =
                 "blue-column"
             else
                 ""
+
     in
     tr []
-        [ td [] [ a [ href <| "#test/" ++ test.id, title <| String.join "" test.arguments ] [ text <| String.join " " test.arguments ] ]
+        [ td [] [ a [ href <| "#test/" ++ test.id, title <| String.join "" test.arguments ] [ text <| toTestName test] ]
         , td [] [ status [] [ text test.status ] ]
         , td [ class historyStatsClass ] historyStats
         , td [] [ a [ href <| "#test-history/" ++ test.id ] [ text "History" ] ]
@@ -366,3 +367,15 @@ toTestStatus str =
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
     event => WebSocketEvent
+
+toTestName : Test -> String
+toTestName {arguments,runNumber} =
+    let
+        num =
+            case runNumber of
+                1 -> ""
+                other -> String.append "#" (toString other)
+        testName =
+            List.append arguments [num]
+    in
+       String.join " " testName
