@@ -108,7 +108,7 @@ public class JobExecutor {
             Path testScript = append(jobFolder, "run-" + test.getTestType() + SCRIPT_SUFFIX);
             Path outputFile = append(outputFolder, "runner-output.log");
             ProcessResult scriptResult = ProcessUtils.executeAndWait(testScript, wrapUniqueArgsWithQuotes(test.getArguments()), testFolder,
-                    outputFile, getCustomVariablesFromSuite(), test.getTimeout().longValue());
+                    outputFile, getCustomVariablesFromSuite(), test.getTimeout().longValue()); //
 
             // Generate result:
             test.setStartTime(new Date(scriptResult.getStartTime()));
@@ -197,6 +197,10 @@ public class JobExecutor {
         String customVariableString = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
         Map<String, String> customVariables = Suite.parseCustomVariables(customVariableString);
         injectBuildBranch(customVariables);
+        //TODO - is this the correct place? should we pass it differently?
+        //TODO - should this be more generic? with the key passed from the ENUM? or something else?
+        customVariables.put("JAVA_VERSION",job.getJobConfig().getJavaVersion().getName());
+
         return customVariables;
     }
 

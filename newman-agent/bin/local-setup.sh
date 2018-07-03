@@ -2,6 +2,7 @@
 
 export SUITE_ID=55b0affe29f67f34809c6c7b
 export BUILD_ID=5798bfae29f67f02db5d290a
+export CONFIG_ID=fgdfj
 
 export SUITE_TYPE=sgtest
 export SGTEST_DIR=~/sgtest

@@ -192,14 +192,14 @@ public class NewmanJobSubmitter {
     //0- suiteId, 1-buildId, 2-configId, 3-host, 4- port, 5- user, 6- password
     public static void main(String[] args) throws Exception {
 
-        testSubmitterFromIntelliJ();
+//        testSubmitterFromIntelliJ();
 
-//        testSubmitterUsingArgs(args);
+        testSubmitterUsingArgs(args);
     }
 
     private static void testSubmitterFromIntelliJ() throws Exception {
         String suiteId = "59f25af7b3859424cac590b7";
-        String buildId = "5b3a1ad5006ff417000a28bc";
+        String buildId = "5b3b5bdd6155569e6d275783";
         String configId = "5b39e50be3a47721a0580aba";
         String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, true /*required*/, logger);
         String port = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PORT, true /*required*/, logger);

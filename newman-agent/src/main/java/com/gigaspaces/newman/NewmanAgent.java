@@ -50,14 +50,15 @@ public class NewmanAgent {
     private static void createJobSetupEnv(String[] args, NewmanAgent agent) throws ExecutionException, InterruptedException, IOException {
         logger.info("performing job setup env");
         agent.initialize(false);
-        if (args.length != 3) {
+        if (args.length != 4) {
             logger.info("Usage: java -jar newman-agent-1.0.jar <setup> <suiteId> <buildId> ... [list-of-regular-system-properties]");
             System.exit(1);
         }
         else {
             String suiteId = args[1];
             String buildId = args[2];
-            agent.prepareJobSetupEnv(suiteId, buildId);
+            String configId = args[3];
+            agent.prepareJobSetupEnv(suiteId, buildId,configId);
             System.exit(0);
         }
     }
@@ -95,7 +96,7 @@ public class NewmanAgent {
         }
     }
 
-    private void prepareJobSetupEnv(String suiteId, String buildId) throws ExecutionException, InterruptedException, IOException {
+    private void prepareJobSetupEnv(String suiteId, String buildId,String configId) throws ExecutionException, InterruptedException, IOException {
         Suite suite = client.getSuite(suiteId).toCompletableFuture().get();
         if (suite == null) {
             throw new RuntimeException("no suite with id " + suiteId);
@@ -106,9 +107,15 @@ public class NewmanAgent {
             throw new RuntimeException("no build with id " + buildId);
         }
 
+        JobConfig jobConfig = client.getConfigById(configId).toCompletableFuture().get();
+        if (jobConfig == null) {
+            throw new RuntimeException("no jobConfig with id " + configId);
+        }
+
         Job mockJob = new Job();
         mockJob.setBuild(build);
         mockJob.setSuite(suite);
+        mockJob.setJobConfig(jobConfig);
         mockJob.setId("mock");
 
         JobExecutor jobExecutor = new JobExecutor(mockJob, config.getNewmanHome());
