@@ -100,9 +100,8 @@ public class NewmanServer {
         jerseyServlet.setInitOrder(0);
 
 
-        ServletHolder webSocketHolder = context.addServlet(WebSocketServlet.class, "/events/*");
-        webSocketHolder.setInitOrder(1);
-
+//        ServletHolder webSocketHolder = context.addServlet(WebSocketServlet.class, "/events/*");
+//        webSocketHolder.setInitOrder(1);
 
         try {
             Resource keyStoreResource = createKeystoreResource();
