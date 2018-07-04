@@ -42,7 +42,8 @@ public class NewmanSuiteSubmitter {
     public static void main(String[] args) throws Exception {
 
         NewmanSuiteSubmitter submitter = new NewmanSuiteSubmitter();
-        submitter.submit();
+//        submitter.submit();
+        submitter.manualSubmitOneTestSuite();
 //        String ssd_tests = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests";
 //        submitter.manualSubmitSSD(ssd_tests);
 //        submitter.manualSubmitTgridRocksDB();
@@ -460,6 +461,24 @@ public class NewmanSuiteSubmitter {
         } finally {
             newmanClient.close();
         }
+    }
+
+    public void manualSubmitOneTestSuite() throws Exception {
+        Suite suite = new Suite();
+        suite.setName("dev-yael-failed-mx-off-heap-tests");
+        suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=2,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=false -Dblobstore.entriespercentage=0 -Dblobstore.offheap.memory=1024M -Dcom.gigaspaces.quality.tf.offheap-blobstore.enabled=true");
+        String Requirements = "LINUX";
+        suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+        String testType = "tgrid";
+        Criteria criteria = CriteriaBuilder.join(
+                CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                CriteriaBuilder.include(getTestCriteriasFromPermutationURI("file:///home/yaeln-pcu/permutations.txt")));
+        suite.setCriteria(criteria);
+        logger.info("Adding suite: " + suite);
+        NewmanClient newmanClient = getNewmanClient();
+        Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+        logger.info("result: " + result);
+        newmanClient.close();
     }
 
     public void manualSubmitTgridOffHeap() throws Exception {
