@@ -1940,3 +1940,5 @@ com.gigaspaces.test.events.NotifyFifoReliabilityTest /./qaSpace remote POJO
 com.gigaspaces.test.events.NotifyFifoReliabilityTest /./qaSpace remote POJO fifo
 com.gigaspaces.test.events.NotifyFifoReliabilityTest /./qaSpace embedded POJO_FIFO
 com.gigaspaces.test.events.NotifyFifoReliabilityTest /./qaSpace embedded POJO_FIFO fifo
+com.gigaspaces.test.redolog.compaction.RedoLogCompactionBasicTest /./qaSpace?cluster_schema=partitioned&total_members=1,1&mirror remote
+com.gigaspaces.test.redolog.compaction.RedoLogCompactionTakeMultipleTest /./qaSpace?cluster_schema=partitioned&total_members=1,1&mirror remote
