@@ -25,6 +25,12 @@ similarly:
 
 both scripts call killall -9 java after the update to trigger restart nby supervisor
 
+**NOTE:**
+
+ intel agents need to have NEWMAN_AGENT_CAPABILITIES="DOCKER,LINUX" in the newman-agent.sh script,
+
+ the lab agents need to have NEWMAN_AGENT_CAPABILITIES="DOCKER,LINUX,MVN".
+
 ## Utils
  * _check_hosts_ssh.sh_: tries to establish ssh connection to every host and report ok / failure
  * _clearDockerImages.sh_: deletes the docker images cached in the agents to free space
