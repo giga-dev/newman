@@ -4,7 +4,7 @@
 NEWMAN_USERNAME=root
 NEWMAN_PASSWORD=root
 # newman server host address
-NEWMAN_SERVER_HOST=xap-newman
+NEWMAN_SERVER_HOST=xap-newman.gspaces.com
 # newman server port
 NEWMAN_SERVER_PORT=8443
 # newman agent home directory
