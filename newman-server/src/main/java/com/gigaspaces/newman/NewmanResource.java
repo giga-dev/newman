@@ -986,25 +986,6 @@ public class NewmanResource {
 
             Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
 
-            if (result.getAssignedAgent() != null) {
-                UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date())
-                        .removeAll("currentTests", test.getId());
-                Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent()), updateOps, false, false);
-                if (agent != null) {
-                    agent.setJob(job);
-                    //logger.info("DEBUG(finishTest) find and update agent ---> agent: [{}]", agent.getName());
-                    Agent idling = null;
-                    if (agent.getCurrentTests().isEmpty()) {
-                        idling = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(result.getAssignedAgent())
-                                        .where("this.currentTests.length == 0"),
-                                agentDAO.createUpdateOperations().set("state", Agent.State.IDLING));
-                        if (idling != null) {
-                            logger.debug("agent [{}] become idling because it finish all his tests", idling.getName());
-                        }
-                    }
-                    broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
-                }
-            }
             broadcastMessage(MODIFIED_BUILD, build);
             broadcastMessage(MODIFIED_TEST, result);
             broadcastMessage(MODIFIED_JOB, job);
@@ -1014,6 +995,24 @@ public class NewmanResource {
         } catch (Exception e) {
             logger.error("failed to finish test because: ", e);
             throw e;
+        } finally {
+            if (test.getAssignedAgent() != null) {
+                UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations().set("lastTouchTime", new Date())
+                        .removeAll("currentTests", test.getId());
+                Agent agent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(test.getAssignedAgent()), updateOps, false, false);
+                if (agent != null) {
+                Agent idling = null;
+                    if (agent.getCurrentTests().isEmpty()) {
+                        idling = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(test.getAssignedAgent())
+                                        .where("this.currentTests.length == 0"),
+                                agentDAO.createUpdateOperations().set("state", Agent.State.IDLING));
+                        if (idling != null) {
+                            logger.debug("agent [{}] become idling because it finish all his tests", idling.getName());
+                        }
+                    }
+                    broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
+                }
+            }
         }
     }
 
