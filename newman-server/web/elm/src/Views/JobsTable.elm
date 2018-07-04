@@ -220,7 +220,7 @@ viewJob currTime job =
                     Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY), Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
     in
-    tr [ classList [ ("succeed-row", job.passedTests == job.totalTests)]]
+    tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
         [ td [] [ jobState ]
         , td [] [ progress ]
         , td [] [ a [ href <| "#job/" ++ job.id, title job.id ] [ text job.id ] ]
@@ -240,7 +240,13 @@ viewJob currTime job =
             , Badge.badge [ class "job-tests-badge" ] [ text <| toString job.totalTests ]
             ]
         , td []
-            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| not (List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0)) ]
+            [ Button.button
+                [ Button.danger
+                , Button.small
+                , Button.onClick <| OnClickJobDrop job.id
+                , Button.disabled <|
+                    not (List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0) && (List.length job.agents) <= 0)
+                ]
                 [ span [ class "ion-close" ] [] ]
             , text " "
             , playPauseButton
