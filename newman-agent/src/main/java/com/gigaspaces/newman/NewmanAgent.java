@@ -229,7 +229,7 @@ public class NewmanAgent {
     }
 
     private void resubmitFailed(Job job, Test failedTest) {
-        if(failedTest.getRunNumber() > 1 && job.getFailedTests() > 100){
+        if(failedTest.getRunNumber() > 1 || job.getFailedTests() > 100){
             return;
         }
         List<Test> tests = new ArrayList<>(2);
@@ -442,8 +442,17 @@ public class NewmanAgent {
             catch (IllegalStateException e){ // client was closed
                 logger.warn("Got IllegalStateException while reporting test" , e);
                 c = getClient();
-            }
-            catch (Exception e) {
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof WebApplicationException){
+                    WebApplicationException ex = (WebApplicationException) e.getCause();
+                    String responseText = ex.getResponse().readEntity(String.class);
+                    logger.warn("Agent failed while updating test result. Got status: " + ex.getResponse().getStatus()+", message: " + responseText);
+                    c = getClient();
+                    break;
+                } else {
+                    c = onClientFailure(c);
+                }
+            } catch (Exception e) {
                 logger.warn("Worker failed to update test result: {} caught: {}", testResult, e);
                 c = onClientFailure(c);
             }
