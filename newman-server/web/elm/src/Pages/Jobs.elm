@@ -23,6 +23,7 @@ import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket
 import Views.JobsTable as JobsTable
 
+
 type alias Model =
     { jobsTableModel : JobsTable.Model
     , maxEntries : Int
@@ -50,12 +51,12 @@ init =
         maxEntries =
             60
     in
-    ( { jobsTableModel = JobsTable.init []
-      , maxEntries = maxEntries
-      , currTime = 0
-      }
-    , Cmd.batch [ getJobsCmd maxEntries, getTime ]
-    )
+        ( { jobsTableModel = JobsTable.init []
+          , maxEntries = maxEntries
+          , currTime = 0
+          }
+        , Cmd.batch [ getJobsCmd maxEntries, getTime ]
+        )
 
 
 
@@ -75,7 +76,7 @@ update msg model =
                 maxEntries =
                     String.toInt newValue |> Result.toMaybe |> Maybe.withDefault 1
             in
-            ( { model | maxEntries = maxEntries }, getJobsCmd maxEntries )
+                ( { model | maxEntries = maxEntries }, getJobsCmd maxEntries )
 
         GetJobsCompleted result ->
             onGetJobsCompleted model result
@@ -88,12 +89,17 @@ update msg model =
                 ( updatedJobsTableModel, cmd ) =
                     JobsTable.update subMsg model.jobsTableModel
             in
-            ( { model | jobsTableModel = updatedJobsTableModel }, cmd |> Cmd.map JobsTableMsg )
+                ( { model | jobsTableModel = updatedJobsTableModel }, cmd |> Cmd.map JobsTableMsg )
 
-        UpdateJobsNumber jobsNum -> ( { model | maxEntries = String.toInt jobsNum |> Result.withDefault 1 }, Cmd.none )
+        UpdateJobsNumber jobsNum ->
+            ( { model | maxEntries = String.toInt jobsNum |> Result.withDefault 1 }, Cmd.none )
 
-        ApplyJobsNumberAndRetrieveJobs ->( { model | jobsTableModel = JobsTable.init [] },
-                                    Cmd.batch [ getJobsCmd model.maxEntries, getTime ] )
+        ApplyJobsNumberAndRetrieveJobs ->
+            ( { model | jobsTableModel = JobsTable.init [] }
+            , Cmd.batch [ getJobsCmd model.maxEntries, getTime ]
+            )
+
+
 
 -----
 {-
@@ -106,19 +112,23 @@ view model =
     div []
         [ div [ class "form-inline" ]
             [ h1 [ class "jobs-label" ] [ text "Jobs" ]
-            , div[class "form-inline jobs-list-max-job-count"][
-                 div[ class "jobs-list-max-job-count-label" ] [text("Max. Job count:")]
-                , div[ class "jobs-list-max-job-count-input"] [ FormInput.number [ FormInput.value  <| toString <| model.maxEntries,
-                                          FormInput.onInput UpdateJobsNumber,
-                                          FormInput.attrs [style [ ( "margin-left", "2px" ), ( "width", "85px" ) ] ] ] ]
-                , div[class "jobs-list-max-job-count-button"] [ Button.button [ Button.primary, Button.onClick ApplyJobsNumberAndRetrieveJobs ] [ text "Apply" ] ]
-              ]
-            ],
-    div [ class "container-fluid" ] <|
-           [
-            JobsTable.viewTable model.jobsTableModel model.currTime |> Html.map JobsTableMsg
-           ]
-       ]
+            , div [ class "form-inline jobs-list-max-job-count" ]
+                [ div [ class "jobs-list-max-job-count-label" ] [ text ("Max. Job count:") ]
+                , div [ class "jobs-list-max-job-count-input" ]
+                    [ FormInput.number
+                        [ FormInput.value <| toString <| model.maxEntries
+                        , FormInput.onInput UpdateJobsNumber
+                        , FormInput.attrs [ style [ ( "margin-left", "2px" ), ( "width", "85px" ) ] ]
+                        ]
+                    ]
+                , div [ class "jobs-list-max-job-count-button" ] [ Button.button [ Button.primary, Button.onClick ApplyJobsNumberAndRetrieveJobs ] [ text "Apply" ] ]
+                ]
+            ]
+        , div [ class "container-fluid" ] <|
+            [ JobsTable.viewTable model.jobsTableModel model.currTime |> Html.map JobsTableMsg
+            ]
+        ]
+
 
 
 ----
@@ -167,7 +177,7 @@ onGetJobsCompleted model result =
                 a =
                     Debug.log "onGetJobsCompleted" err
             in
-            ( model, Cmd.none )
+                ( model, Cmd.none )
 
 
 
