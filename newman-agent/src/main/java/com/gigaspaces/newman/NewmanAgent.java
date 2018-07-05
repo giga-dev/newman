@@ -222,20 +222,18 @@ public class NewmanAgent {
     }
 
     private void resubmitFailed(Job job, Test failedTest) {
-        if(failedTest.getRunNumber() > 1 || job.getFailedTests() > 100){
+        if(failedTest.getRunNumber() > 2 || job.getFailedTests() > 100){
             return;
         }
-        List<Test> tests = new ArrayList<>(2);
-        for (int i = 0; i < 2; i++) {
+        List<Test> tests = new ArrayList<>(1);
             Test newTest = new Test();
             newTest.setName(failedTest.getName());
             newTest.setArguments(failedTest.getArguments());
             newTest.setTestType(failedTest.getTestType());
             newTest.setTimeout(1500000L);
             newTest.setJobId(failedTest.getJobId());
-            newTest.setRunNumber(i + 2); // 2,3
+            newTest.setRunNumber(failedTest.getRunNumber() + 1);
             tests.add(newTest);
-        }
         try {
             client.createTests(tests).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 5, TimeUnit.SECONDS);
         } catch (InterruptedException | TimeoutException e) {
