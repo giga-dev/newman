@@ -18,7 +18,9 @@ import Views.NewmanModal as NewmanModal
 
 type Msg
     = GetBuildsAndSuitesCompleted (Result Http.Error BuildsAndSuites)
+    | GetAllConfigsCompleted (Result Http.Error (List JobConfig))
     | UpdateSelectedBuild String
+    | UpdateSelectedConfig String
     | SubmitNewJobCompleted (Result Http.Error (List FutureJob))
     | OnClickSubmit
     | MultiSelectMsg Multiselect.Msg
@@ -30,6 +32,8 @@ type alias Model =
     { buildsAndSuites : BuildsAndSuites
     , selectedBuild : String
     , selectedSuites : Multiselect.Model
+    , configurations : List JobConfig
+    , selectedConfig : String
     , submittedFutureJobs : List FutureJob
     , isSelect : Bool
     , modalState : Modal.State
@@ -52,6 +56,12 @@ type alias Suite =
     }
 
 
+type alias JobConfig =
+    { id : String
+    , name : String
+    }
+
+
 type alias BuildsAndSuites =
     { suites : List Suite
     , builds : List Build
@@ -67,12 +77,17 @@ init =
     ( { buildsAndSuites = BuildsAndSuites [] []
       , selectedBuild = ""
       , selectedSuites = Multiselect.initModel [] ""
+      , selectedConfig = ""
+      , configurations = []
       , submittedFutureJobs = []
       , isSelect = True
       , modalState = Modal.hiddenState
       , errorMessage = ""
       }
-    , getBuildsAndSuitesCmd
+    , Cmd.batch
+        [ getBuildsAndSuitesCmd
+        , getAllConfigsCmd
+        ]
     )
 
 
@@ -86,7 +101,16 @@ update msg model =
                         suites =
                             List.map (\suite -> ( suite.id, suite.name )) data.suites
                     in
-                    ( { model | buildsAndSuites = data, selectedSuites = Multiselect.initModel suites "suites" }, Cmd.none )
+                        ( { model | buildsAndSuites = data, selectedSuites = Multiselect.initModel suites "suites" }, Cmd.none )
+
+                Err err ->
+                    -- log error
+                    ( model, Cmd.none )
+
+        GetAllConfigsCompleted result ->
+            case result of
+                Ok data ->
+                    ( { model | configurations = data, selectedConfig = "" }, Cmd.none )
 
                 Err err ->
                     -- log error
@@ -95,27 +119,30 @@ update msg model =
         UpdateSelectedBuild build ->
             ( { model | selectedBuild = build }, Cmd.none )
 
+        UpdateSelectedConfig config ->
+            ( { model | selectedConfig = config }, Cmd.none )
+
         MultiSelectMsg subMsg ->
             let
                 ( subModel, subCmd, outMsg ) =
                     Multiselect.update subMsg model.selectedSuites
             in
-            ( { model | selectedSuites = subModel }, Cmd.map MultiSelectMsg subCmd )
+                ( { model | selectedSuites = subModel }, Cmd.map MultiSelectMsg subCmd )
 
         OnClickSubmit ->
             let
                 ( buildId, suitesList ) =
                     ( model.selectedBuild, List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites) )
             in
-            case ( buildId, suitesList ) of
-                ( "", _ ) ->
-                    ( { model | errorMessage = "Please select a build", modalState = Modal.visibleState }, Cmd.none )
+                case ( buildId, suitesList ) of
+                    ( "", _ ) ->
+                        ( { model | errorMessage = "Please select a build", modalState = Modal.visibleState }, Cmd.none )
 
-                ( _, [] ) ->
-                    ( { model | errorMessage = "Please select one or more suites", modalState = Modal.visibleState }, Cmd.none )
+                    ( _, [] ) ->
+                        ( { model | errorMessage = "Please select one or more suites", modalState = Modal.visibleState }, Cmd.none )
 
-                _ ->
-                    ( model, submitFutureJobCmd buildId suitesList )
+                    _ ->
+                        ( model, submitFutureJobCmd buildId suitesList )
 
         SubmitNewJobCompleted result ->
             case result of
@@ -142,13 +169,23 @@ getBuildsAndSuites =
     Http.get "/api/newman/all-builds-and-suites" buildsAndSuitesDecoder
 
 
+getAllConfigsCmd : Cmd Msg
+getAllConfigsCmd =
+    Http.send GetAllConfigsCompleted getAllConfigs
+
+
+getAllConfigs : Http.Request (List JobConfig)
+getAllConfigs =
+    Http.get "/api/newman/job-config" configurationsDecoder
+
+
 submitFutureJobCmd : String -> List String -> Cmd Msg
 submitFutureJobCmd buildId suites =
     let
         postReq =
             postFutureJob buildId suites
     in
-    Http.send SubmitNewJobCompleted postReq
+        Http.send SubmitNewJobCompleted postReq
 
 
 postFutureJob : String -> List String -> Http.Request (List FutureJob)
@@ -157,7 +194,7 @@ postFutureJob buildId suites =
         jsonify =
             Http.jsonBody <| Json.Encode.object [ ( "buildId", Json.Encode.string buildId ), ( "suites", Json.Encode.list <| List.map Json.Encode.string suites ) ]
     in
-    Http.post "../api/newman/futureJob" jsonify decodeFutureJobs
+        Http.post "../api/newman/futureJob" jsonify decodeFutureJobs
 
 
 view : Model -> Html Msg
@@ -171,23 +208,35 @@ view model =
                 _ ->
                     "submitted the folowing future jobs:"
     in
-    div [ class "container-fluid" ]
-        [ h2 [ class "page-header" ]
-            [ text "Submit New Job" ]
-        , div [ style [ ( "width", "500px" ) ] ]
-            [ text "Select suite:"
-            , Multiselect.view model.selectedSuites |> Html.map MultiSelectMsg
+        div [ class "container-fluid" ]
+            [ h2 [ class "page-header" ]
+                [ text "Submit New Job" ]
+            , div [ style [ ( "width", "500px" ) ] ]
+                [ text "Select suites:"
+                , Multiselect.view model.selectedSuites |> Html.map MultiSelectMsg
+                ]
+            , br [] []
+            , let
+                toOption data =
+                    Select.item [ value data.id, selected <| model.selectedConfig == data.id ] [ text <| data.name ]
+              in
+                div
+                    []
+                    [ text "Select Job Configuration:"
+                    , Select.select
+                        [ Select.onChange UpdateSelectedConfig, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
+                        (List.map toOption model.configurations)
+                    ]
+            , br [] []
+            , selectBuildView model
+            , Button.button [ Button.secondary, Button.onClick OnClickSubmit, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Submit Future Job" ]
+            , br [] []
+            , div []
+                ([ text submittedFutureJobString ]
+                    ++ List.map (\job -> div [] [ text job.id ]) model.submittedFutureJobs
+                )
+            , NewmanModal.viewError model.errorMessage NewmanModalMsg model.modalState
             ]
-        , br [] []
-        , selectBuildView model
-        , Button.button [ Button.secondary, Button.onClick OnClickSubmit, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Submit Future Job" ]
-        , br [] []
-        , div []
-            ([ text submittedFutureJobString ]
-                ++ List.map (\job -> div [] [ text job.id ]) model.submittedFutureJobs
-            )
-        , NewmanModal.viewError model.errorMessage NewmanModalMsg model.modalState
-        ]
 
 
 selectBuildView : Model -> Html Msg
@@ -196,27 +245,27 @@ selectBuildView model =
         toOption data =
             Select.item [ value data.id, selected <| model.selectedBuild == data.id ] [ text <| data.name ++ " (" ++ data.branch ++ ")" ]
     in
-    div []
-        [ div
-            []
-            [ radio "Select build :" (UpdatedBuildSelection True) model.isSelect ]
-        , div
-            []
-            [ Select.select [ Select.disabled (not model.isSelect), Select.onChange UpdateSelectedBuild, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
-                ([ Select.item [ value "1" ] [ text "Select a Build" ]
-                 ]
-                    ++ List.map toOption model.buildsAndSuites.builds
-                )
+        div []
+            [ div
+                []
+                [ radio "Select build :" (UpdatedBuildSelection True) model.isSelect ]
+            , div
+                []
+                [ Select.select [ Select.disabled (not model.isSelect), Select.onChange UpdateSelectedBuild, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
+                    ([ Select.item [ value "1" ] [ text "Select a Build" ]
+                     ]
+                        ++ List.map toOption model.buildsAndSuites.builds
+                    )
+                ]
+            , br [] []
+            , div
+                []
+                [ radio "Enter build id :" (UpdatedBuildSelection False) (not model.isSelect) ]
+            , div
+                []
+                [ Input.text [ Input.disabled model.isSelect, Input.onInput UpdateSelectedBuild, Input.attrs [ style [ ( "width", "500px" ) ] ] ]
+                ]
             ]
-        , br [] []
-        , div
-            []
-            [ radio "Enter build id :" (UpdatedBuildSelection False) (not model.isSelect) ]
-        , div
-            []
-            [ Input.text [ Input.disabled model.isSelect, Input.onInput UpdateSelectedBuild, Input.attrs [ style [ ( "width", "500px" ) ] ] ]
-            ]
-        ]
 
 
 radio : String -> msg -> Bool -> Html msg
@@ -261,6 +310,18 @@ buildsAndSuitesDecoder =
     Json.Decode.map2 BuildsAndSuites
         (Json.Decode.field "suites" (Json.Decode.list decodeSuite))
         (Json.Decode.field "builds" (Json.Decode.list decodeBuild))
+
+
+configurationsDecoder : Json.Decode.Decoder (List JobConfig)
+configurationsDecoder =
+    Json.Decode.list decodeConfig
+
+
+decodeConfig : Json.Decode.Decoder JobConfig
+decodeConfig =
+    decode JobConfig
+        |> Json.Decode.Pipeline.required "id" Json.Decode.string
+        |> Json.Decode.Pipeline.required "name" Json.Decode.string
 
 
 subscriptions : Model -> Sub Msg
