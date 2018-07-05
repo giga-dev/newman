@@ -23,7 +23,6 @@ import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket
 import Views.JobsTable as JobsTable
 
-
 type alias Model =
     { jobsTableModel : JobsTable.Model
     , maxEntries : Int
@@ -36,6 +35,8 @@ type Msg
     | GetJobsCompleted (Result Http.Error (List Job))
     | OnTime Time
     | JobsTableMsg JobsTable.Msg
+    | UpdateJobsNumber String
+    | ApplyJobsNumberAndRetrieveJobs
 
 
 handleEvent : WebSocket.Event -> Cmd Msg
@@ -89,6 +90,13 @@ update msg model =
             in
             ( { model | jobsTableModel = updatedJobsTableModel }, cmd |> Cmd.map JobsTableMsg )
 
+        UpdateJobsNumber jobsNum -> ( { model | maxEntries = String.toInt jobsNum |> Result.toMaybe |> Maybe.withDefault 1 }, Cmd.none )
+
+        ApplyJobsNumberAndRetrieveJobs ->( { jobsTableModel = JobsTable.init []
+                                                 , maxEntries = model.maxEntries
+                                                 , currTime = 0
+                                                 },
+                                    Cmd.batch [ getJobsCmd model.maxEntries ] )
 
 
 -----
@@ -99,11 +107,22 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    div []
+        [ div [ class "form-inline" ]
+            [ h1 [ class "jobs-label" ] [ text "Jobs" ]
+            , div[class "form-inline jobs-list-max-job-count"][
+                 div[ class "jobs-list-max-job-count-label" ] [text("Max. Job count:")]
+                , div[ class "jobs-list-max-job-count-input"] [ FormInput.number [ FormInput.value  <| toString <| model.maxEntries,
+                                          FormInput.onInput UpdateJobsNumber,
+                                          FormInput.attrs [style [ ( "margin-left", "2px" ), ( "width", "85px" ) ] ] ] ]
+                , div[class "jobs-list-max-job-count-button"] [ Button.button [ Button.primary, Button.onClick ApplyJobsNumberAndRetrieveJobs ] [ text "Apply" ] ]
+              ]
+            ],
     div [ class "container-fluid" ] <|
-        [ h2 [ class "text" ] [ text "Jobs" ]
-        , JobsTable.viewTable model.jobsTableModel model.currTime |> Html.map JobsTableMsg
-        ]
-
+           [
+            JobsTable.viewTable model.jobsTableModel model.currTime |> Html.map JobsTableMsg
+           ]
+       ]
 
 
 ----
