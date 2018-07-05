@@ -49,11 +49,11 @@ init list =
         aa =
             Debug.log "TestHistoryTable" "init is called!"
     in
-    { all = list
-    , paginated = Paginate.fromList pageSize list
-    , pageSize = pageSize
-    , query = ""
-    }
+        { all = list
+        , paginated = Paginate.fromList pageSize list
+        , pageSize = pageSize
+        , query = ""
+        }
 
 
 viewTable : Model -> Html Msg
@@ -109,8 +109,8 @@ viewTable model =
                 rightBound =
                     Basics.min (((currentPage - 1) // maxPagesToShow) * maxPagesToShow + maxPagesToShow) totalPages
             in
-            List.range leftBound rightBound
-                |> List.map (\i -> f i (i == Paginate.currentPage paginated))
+                List.range leftBound rightBound
+                    |> List.map (\i -> f i (i == Paginate.currentPage paginated))
 
         pagination =
             nav []
@@ -121,38 +121,38 @@ viewTable model =
                     )
                 ]
     in
-    div []
-        [ div [ class "form-inline" ]
-            [ div [ class "form-group" ]
-                [ div [ class "btn-group" ]
-                    [ FormInput.text
-                        [ FormInput.onInput FilterQuery
-                        , FormInput.placeholder "Filter"
-                        , FormInput.value model.query
-                        , FormInput.attrs [ class "filterinput" ]
+        div []
+            [ div [ class "form-inline" ]
+                [ div [ class "form-group" ]
+                    [ div [ class "btn-group" ]
+                        [ FormInput.text
+                            [ FormInput.onInput FilterQuery
+                            , FormInput.placeholder "Filter"
+                            , FormInput.value model.query
+                            , FormInput.attrs [ class "filterinput" ]
+                            ]
+                        , span [ title "Clear filter", class "ion-close-circled searchclear", onClick <| FilterQuery "" ]
+                            []
                         ]
-                    , span [ title "Clear filter", class "ion-close-circled searchclear", onClick <| FilterQuery "" ]
-                        []
                     ]
+                , div [ class "form-group" ] [ pagination ]
                 ]
-            , div [ class "form-group" ] [ pagination ]
-            ]
-        , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
-            [ thead []
-                [ tr []
-                    [ th [ width 65 ] [ text "Test Id" ]
-                    , th [ width 105 ] [ text "Job Id" ]
-                    , th [ width 65 ] [ text "Build" ]
-                    , th [ width 65 ] [ text "End Time" ]
-                    , th [ width 100 ] [ text "Duration" ]
-                    , th [ width 65 ] [ text "Status" ]
-                    , th [ width 210 ] [ text "Error Message" ]
+            , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
+                [ thead []
+                    [ tr []
+                        [ th [ width 65 ] [ text "Test Id" ]
+                        , th [ width 105 ] [ text "Job Id" ]
+                        , th [ width 65 ] [ text "Build" ]
+                        , th [ width 65 ] [ text "End Time" ]
+                        , th [ width 100 ] [ text "Duration" ]
+                        , th [ width 65 ] [ text "Status" ]
+                        , th [ width 210 ] [ text "Error Message" ]
+                        ]
                     ]
+                , tbody [] (List.map viewRecord <| Paginate.page model.paginated)
                 ]
-            , tbody [] (List.map viewRecord <| Paginate.page model.paginated)
+            , pagination
             ]
-        , pagination
-        ]
 
 
 viewRecord : TestHistoryItem -> Html Msg
@@ -189,15 +189,15 @@ viewRecord testHistory =
         dateFormat date =
             Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat date))
     in
-    tr []
-        [ td [] [ a [ href <| "#test/" ++ testHistory.test.id ] [ text testHistory.test.id ] ]
-        , td [] [ a [ href <| "#job/" ++ testHistory.test.jobId ] [ text testHistory.test.jobId ] ]
-        , td [] [ a [ href <| "#build/" ++ testHistory.job.buildId ] [ text <| testHistory.job.buildName ++ "(" ++ testHistory.job.buildBranch ++ ")" ] ]
-        , td [] [ text <| dateFormat testHistory.test.endTime ]
-        , td [] [ text durationText ]
-        , td [] [ status [] [ text testHistory.test.status ] ]
-        , td [] [ span [ title testHistory.test.errorMessage ] [ text testHistory.test.errorMessage ] ]
-        ]
+        tr []
+            [ td [] [ a [ href <| "#test/" ++ testHistory.test.id ] [ text testHistory.test.id ] ]
+            , td [] [ a [ href <| "#job/" ++ testHistory.test.jobId ] [ text testHistory.test.jobId ] ]
+            , td [] [ a [ href <| "#build/" ++ testHistory.job.buildId ] [ text <| testHistory.job.buildName ++ "(" ++ testHistory.job.buildBranch ++ ")" ] ]
+            , td [] [ text <| dateFormat testHistory.test.endTime ]
+            , td [] [ text durationText ]
+            , td [] [ status [] [ text testHistory.test.status ] ]
+            , td [] [ span [ title testHistory.test.errorMessage ] [ text testHistory.test.errorMessage ] ]
+            ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

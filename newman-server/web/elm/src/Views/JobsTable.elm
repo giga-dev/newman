@@ -55,7 +55,7 @@ init jobs =
         pageSize =
             15
     in
-    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing ""
+        Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing ""
 
 
 viewTable : Model -> Time -> Html Msg
@@ -107,47 +107,47 @@ viewTable model currTime =
         widthPct pct =
             style [ ( "width", pct ) ]
     in
-    div []
-        [ div [ class "form-inline" ]
-            [ div [ class "form-group" ]
-                [ FormInput.text
-                    [ FormInput.onInput FilterQuery
-                    , FormInput.placeholder "Filter"
-                    , FormInput.value model.query
-                    ]
-                ]
-            , div [ class "form-group" ] [ pagination ]
-            ]
-        , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
-            [ thead []
-                [ tr []
-                    [ th [ class "job-tests-state" ] [ text "State" ]
-                    , th [ class "job-tests-progress" ] [ text "Progess" ]
-                    , th [ widthPct "12%" ] [ text "Job Id" ]
-                    , th [ widthPct "10%" ] [ text "Suite" ]
-                    , th [ widthPct "6%" ] [ text "Duration" ]
-                    , th [ widthPct "6%" ] [ text "Submitted At" ]
-                    , th [ widthPct "12%" ] [ text "Build" ]
-                    , th [ widthPct "6%" ] [ text "Submitted By" ]
-                    , th [ widthPct "6%" ] [ text "# p. agents" ]
-                    , th [ widthPct "15%" ]
-                        [ Badge.badgeInfo [ class "job-tests-badge" ] [ text "Running" ]
-                        , text "/ "
-                        , Badge.badgeSuccess [ class "job-tests-badge" ] [ text "Passed" ]
-                        , text "/ "
-                        , Badge.badgeDanger [ class "job-tests-badge" ] [ text "Failed" ]
-                        , text "/ "
-                        , Badge.badge [ class "job-tests-badge" ] [ text "Total" ]
+        div []
+            [ div [ class "form-inline" ]
+                [ div [ class "form-group" ]
+                    [ FormInput.text
+                        [ FormInput.onInput FilterQuery
+                        , FormInput.placeholder "Filter"
+                        , FormInput.value model.query
                         ]
-                    , th [ width 80 ]
-                        [ text "Actions" ]
                     ]
+                , div [ class "form-group" ] [ pagination ]
                 ]
-            , tbody [] (List.map (viewJob currTime) <| Paginate.page model.jobs)
+            , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
+                [ thead []
+                    [ tr []
+                        [ th [ class "job-tests-state" ] [ text "State" ]
+                        , th [ class "job-tests-progress" ] [ text "Progess" ]
+                        , th [ widthPct "12%" ] [ text "Job Id" ]
+                        , th [ widthPct "10%" ] [ text "Suite" ]
+                        , th [ widthPct "6%" ] [ text "Duration" ]
+                        , th [ widthPct "6%" ] [ text "Submitted At" ]
+                        , th [ widthPct "12%" ] [ text "Build" ]
+                        , th [ widthPct "6%" ] [ text "Submitted By" ]
+                        , th [ widthPct "6%" ] [ text "# p. agents" ]
+                        , th [ widthPct "15%" ]
+                            [ Badge.badgeInfo [ class "job-tests-badge" ] [ text "Running" ]
+                            , text "/ "
+                            , Badge.badgeSuccess [ class "job-tests-badge" ] [ text "Passed" ]
+                            , text "/ "
+                            , Badge.badgeDanger [ class "job-tests-badge" ] [ text "Failed" ]
+                            , text "/ "
+                            , Badge.badge [ class "job-tests-badge" ] [ text "Total" ]
+                            ]
+                        , th [ width 80 ]
+                            [ text "Actions" ]
+                        ]
+                    ]
+                , tbody [] (List.map (viewJob currTime) <| Paginate.page model.jobs)
+                ]
+            , pagination
+            , NewmanModal.confirmJobDrop model.jobToDrop NewmanModalMsg OnJobDropConfirmed model.confirmationState
             ]
-        , pagination
-        , NewmanModal.confirmJobDrop model.jobToDrop NewmanModalMsg OnJobDropConfirmed model.confirmationState
-        ]
 
 
 viewJob : Time -> Job -> Html Msg
@@ -182,7 +182,7 @@ viewJob currTime job =
                         READY ->
                             Badge.badge
             in
-            badge [ class "newman-job-state-label" ] [ text job.state ]
+                badge [ class "newman-job-state-label" ] [ text job.state ]
 
         submittedTimeHourFull =
             Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat job.submitTime))
@@ -203,12 +203,12 @@ viewJob currTime job =
                         ( _, _ ) ->
                             Nothing
             in
-            case diffTime of
-                Just diff ->
-                    toString diff.hour ++ "h, " ++ toString diff.minute ++ "m"
+                case diffTime of
+                    Just diff ->
+                        toString diff.hour ++ "h, " ++ toString diff.minute ++ "m"
 
-                Nothing ->
-                    ""
+                    Nothing ->
+                        ""
 
         playPauseButton =
             case toJobState job.state of
@@ -220,32 +220,32 @@ viewJob currTime job =
                     Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY), Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
     in
-    tr [ classList [ ("succeed-row", job.passedTests == job.totalTests)]]
-        [ td [] [ jobState ]
-        , td [] [ progress ]
-        , td [] [ a [ href <| "#job/" ++ job.id, title job.id ] [ text job.id ] ]
-        , td [ title job.suiteName ] [ text job.suiteName ]
-        , td [] [ text durationText ]
-        , td [ title submittedTimeHourFull ] [ text submittedTimeHour ]
-        , td [] [ a [ href <| "#build/" ++ job.buildId, title <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] ]
-        , td [] [ text job.submittedBy ]
-        , td [] [ text (toString (List.length job.preparingAgents)) ]
-        , td []
-            [ Badge.badgeInfo [ class "job-tests-badge" ] [ text <| toString job.runningTests ]
-            , text "/ "
-            , Badge.badgeSuccess [ class "job-tests-badge" ] [ text <| toString job.passedTests ]
-            , text "/ "
-            , Badge.badgeDanger [ class "job-tests-badge" ] [ text <| toString job.failedTests ]
-            , text "/ "
-            , Badge.badge [ class "job-tests-badge" ] [ text <| toString job.totalTests ]
+        tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
+            [ td [] [ jobState ]
+            , td [] [ progress ]
+            , td [] [ a [ href <| "#job/" ++ job.id, title job.id ] [ text job.id ] ]
+            , td [ title job.suiteName ] [ text job.suiteName ]
+            , td [] [ text durationText ]
+            , td [ title submittedTimeHourFull ] [ text submittedTimeHour ]
+            , td [] [ a [ href <| "#build/" ++ job.buildId, title <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] ]
+            , td [] [ text job.submittedBy ]
+            , td [] [ text (toString (List.length job.preparingAgents)) ]
+            , td []
+                [ Badge.badgeInfo [ class "job-tests-badge" ] [ text <| toString job.runningTests ]
+                , text "/ "
+                , Badge.badgeSuccess [ class "job-tests-badge" ] [ text <| toString job.passedTests ]
+                , text "/ "
+                , Badge.badgeDanger [ class "job-tests-badge" ] [ text <| toString job.failedTests ]
+                , text "/ "
+                , Badge.badge [ class "job-tests-badge" ] [ text <| toString job.totalTests ]
+                ]
+            , td []
+                [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| not (List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0)) ]
+                    [ span [ class "ion-close" ] [] ]
+                , text " "
+                , playPauseButton
+                ]
             ]
-        , td []
-            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickJobDrop job.id, Button.disabled <| not (List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0)) ]
-                [ span [ class "ion-close" ] [] ]
-            , text " "
-            , playPauseButton
-            ]
-        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -354,7 +354,7 @@ updateAllJobs f model =
         newPaginated =
             Paginate.map (\_ -> filtered) model.jobs
     in
-    { model | jobs = newPaginated, allJobs = newList }
+        { model | jobs = newPaginated, allJobs = newList }
 
 
 updateJobAdded : Model -> Job -> Model
@@ -368,7 +368,7 @@ updateJobUpdated model jobToUpdate =
         f =
             ListExtra.replaceIf (\item -> item.id == jobToUpdate.id) jobToUpdate
     in
-    updateAllJobs f model
+        updateAllJobs f model
 
 
 updateJobRemoved : Model -> JobId -> Model
@@ -377,7 +377,7 @@ updateJobRemoved model jobIdToRemove =
         f =
             ListExtra.filterNot (\item -> item.id == jobIdToRemove)
     in
-    updateAllJobs f model
+        updateAllJobs f model
 
 
 onRequestCompletedToggleJob : Model -> Result Http.Error Job -> ( Model, Cmd Msg )

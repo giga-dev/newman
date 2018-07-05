@@ -67,20 +67,21 @@ viewTest test =
         logsRow =
             let
                 toLogRow ( key, val ) =
-                    li [] [ a [ href val, target "_blank" ] [ text key ] , text " " , a [ href <| val ++ "?download=true"] [ text "[Download]"] ]
+                    li [] [ a [ href val, target "_blank" ] [ text key ], text " ", a [ href <| val ++ "?download=true" ] [ text "[Download]" ] ]
             in
-            ul [ style [ ("font-size" , "14px" )] ] <|
-                List.map
-                    toLogRow
-                <|
-                    Dict.toList test.logs
+                ul [ style [ ( "font-size", "14px" ) ] ] <|
+                    List.map
+                        toLogRow
+                    <|
+                        Dict.toList test.logs
+
         formatDate maybe =
             case maybe of
                 Just date ->
                     Date.Format.format "%b %d, %H:%M:%S" <| Date.fromTime <| toFloat date
+
                 Nothing ->
                     "N/A"
-
 
         historyStats =
             let
@@ -93,16 +94,17 @@ viewTest test =
                 shorten txt =
                     String.slice 0 18 txt
             in
-            case splitted of
-                [ first, second ] ->
-                    [ ("History Stats branch", text <| shorten first )
-                    , ("History Stats master", text <| shorten second) ]
+                case splitted of
+                    [ first, second ] ->
+                        [ ( "History Stats branch", text <| shorten first )
+                        , ( "History Stats master", text <| shorten second )
+                        ]
 
-                [ one ] ->
-                    [ ("History Stats master" , text <| shorten one) ]
+                    [ one ] ->
+                        [ ( "History Stats master", text <| shorten one ) ]
 
-                _ ->
-                    [ ]
+                    _ ->
+                        []
 
         historyStatsClass =
             if toTestStatus test.status == SUCCESS then
@@ -114,8 +116,6 @@ viewTest test =
             else
                 ""
 
-
-
         rows =
             [ ( "Status", toBadge test.status [] [ text test.status ] )
             , ( "Id", text test.id )
@@ -125,15 +125,17 @@ viewTest test =
             , ( "Timeout", text <| toString test.timeout )
             , ( "Error Message", text test.errorMessage )
             , ( "Logs", logsRow )
-            , ("Assigned Agent", text test.assignedAgent)
-            , ("Start Time", text <| formatDate test.startTime)
-            , ("End Time", text <| formatDate test.endTime)
-            , ("Scheduled At", text <| formatDate <| Just test.scheduledAt)
-            , ("History", a [ href <| "#test-history/" ++ test.id ] [ text "History" ] )
-            ] ++ historyStats
+            , ( "Assigned Agent", text test.assignedAgent )
+            , ( "Start Time", text <| formatDate test.startTime )
+            , ( "End Time", text <| formatDate test.endTime )
+            , ( "Scheduled At", text <| formatDate <| Just test.scheduledAt )
+            , ( "History", a [ href <| "#test-history/" ++ test.id ] [ text "History" ] )
+            ]
+                ++ historyStats
     in
-    table [ class "job-view", style [ ("margin-bottom", "50px" )] ] <| -- TODO
-        List.map viewRow rows
+        table [ class "job-view", style [ ( "margin-bottom", "50px" ) ] ] <|
+            -- TODO
+            List.map viewRow rows
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -149,7 +151,7 @@ update msg model =
                         d =
                             Debug.log "DD" err
                     in
-                    ( model, Cmd.none )
+                        ( model, Cmd.none )
 
 
 getTestDataCmd : TestId -> Cmd Msg

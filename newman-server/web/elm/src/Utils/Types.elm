@@ -18,9 +18,9 @@ type alias Job =
     , state : String
     , preparingAgents : List String
     , agents : List String
-    , buildId: String
+    , buildId : String
     , buildName : String
-    , buildBranch: String
+    , buildBranch : String
     , suiteId : String
     , suiteName : String
     , totalTests : Int
@@ -52,7 +52,6 @@ type alias Build =
     , testsMetadata : List String
     , shas : Shas
     }
-
 
 
 type alias Builds =
@@ -127,6 +126,7 @@ type alias User =
     { userName : String
     }
 
+
 type alias TestHistoryItem =
     { test : TestHistoryTestView
     , job : TestHistoryJobView
@@ -152,8 +152,10 @@ type alias TestHistoryJobView =
     , buildBranch : String
     }
 
+
 type alias TestHistoryItems =
     List TestHistoryItem
+
 
 toJobState : String -> JobState
 toJobState str =
@@ -186,9 +188,9 @@ decodeJob =
         |> required "state" string
         |> required "preparingAgents" (list string)
         |> required "agents" (list string)
-        |> requiredAt [ "build", "id"] string
-        |> requiredAt [ "build", "name"] string
-        |> requiredAt [ "build", "branch"] string
+        |> requiredAt [ "build", "id" ] string
+        |> requiredAt [ "build", "name" ] string
+        |> requiredAt [ "build", "branch" ] string
         |> requiredAt [ "suite", "id" ] string
         |> requiredAt [ "suite", "name" ] string
         |> required "totalTests" int
@@ -198,6 +200,7 @@ decodeJob =
         |> optional "startTime" (nullable int) Nothing
         |> optional "endTime" (nullable int) Nothing
         |> optional "jobSetupLogs" (dict string) Dict.empty
+
 
 decodeJobView : Decoder Job
 decodeJobView =
@@ -239,8 +242,10 @@ decodeBuild =
 
 ---
 
+
 type alias ActiveJobsDashboard =
     Dict String (List DashboardJob)
+
 
 type alias DashboardJob =
     { id : String
@@ -251,6 +256,7 @@ type alias DashboardJob =
     , passedTests : Int
     , runningTests : Int
     }
+
 
 decodeDashboardJob : Decoder DashboardJob
 decodeDashboardJob =
@@ -267,7 +273,7 @@ decodeDashboardJob =
 type alias DashboardData =
     { historyBuilds : List Build
     , futureJobs : List FutureJob
-    , pendingBuilds: List Build
+    , pendingBuilds : List Build
     , activeBuilds : List Build
     , activeJobs : ActiveJobsDashboard
     }
@@ -285,7 +291,6 @@ type alias FutureJob =
     }
 
 
-
 type alias DashboardBuildStatus =
     { totalTests : Int
     , passedTests : Int
@@ -299,7 +304,6 @@ type alias DashboardBuildStatus =
     , suitesNames : List String
     , suitesIds : List String
     }
-
 
 
 decodeDashboardBuildStatus : Decoder DashboardBuildStatus
@@ -318,7 +322,6 @@ decodeDashboardBuildStatus =
         |> required "suitesIds" (list string)
 
 
-
 decodeFutureJob : Decoder FutureJob
 decodeFutureJob =
     decode FutureJob
@@ -331,6 +334,7 @@ decodeFutureJob =
         |> required "author" string
         |> required "submitTime" int
 
+
 decodeDashboardData : Decoder DashboardData
 decodeDashboardData =
     decode DashboardData
@@ -339,6 +343,7 @@ decodeDashboardData =
         |> required "pendingBuilds" (list decodeBuild)
         |> required "activeBuilds" (list decodeBuild)
         |> required "activeJobs" (dict (list decodeDashboardJob))
+
 
 decodeBuilds : Decoder Builds
 decodeBuilds =
@@ -434,6 +439,7 @@ decodeTest =
         |> required "scheduledAt" int
         |> required "progressPercent" int
 
+
 decodeTestView : Decoder Test
 decodeTestView =
     decode Test
@@ -459,11 +465,13 @@ decodeUser =
     decode User
         |> required "userName" string
 
+
 decodeTestHistoryItem : Json.Decode.Decoder TestHistoryItem
 decodeTestHistoryItem =
     decode TestHistoryItem
         |> required "test" decodeTestHistoryTestView
         |> required "job" decodeTestHistoryJobView
+
 
 decodeTestHistoryTestView : Json.Decode.Decoder TestHistoryTestView
 decodeTestHistoryTestView =
@@ -477,6 +485,7 @@ decodeTestHistoryTestView =
         |> required "startTime" int
         |> required "endTime" int
 
+
 decodeTestHistoryJobView : Json.Decode.Decoder TestHistoryJobView
 decodeTestHistoryJobView =
     decode TestHistoryJobView
@@ -484,6 +493,7 @@ decodeTestHistoryJobView =
         |> required "buildId" string
         |> required "buildName" string
         |> required "buildBranch" string
+
 
 decodeTestHistoryItems : Decoder TestHistoryItems
 decodeTestHistoryItems =
