@@ -90,14 +90,10 @@ update msg model =
             in
             ( { model | jobsTableModel = updatedJobsTableModel }, cmd |> Cmd.map JobsTableMsg )
 
-        UpdateJobsNumber jobsNum -> ( { model | maxEntries = String.toInt jobsNum |> Result.toMaybe |> Maybe.withDefault 1 }, Cmd.none )
+        UpdateJobsNumber jobsNum -> ( { model | maxEntries = String.toInt jobsNum |> Result.withDefault 1 }, Cmd.none )
 
-        ApplyJobsNumberAndRetrieveJobs ->( { jobsTableModel = JobsTable.init []
-                                                 , maxEntries = model.maxEntries
-                                                 , currTime = 0
-                                                 },
-                                    Cmd.batch [ getJobsCmd model.maxEntries ] )
-
+        ApplyJobsNumberAndRetrieveJobs ->( { model | jobsTableModel = JobsTable.init [] },
+                                    Cmd.batch [ getJobsCmd model.maxEntries, getTime ] )
 
 -----
 {-
