@@ -122,6 +122,21 @@ type alias SuiteId =
     String
 
 
+type alias JobConfigId =
+    String
+
+
+type alias JobConfig =
+    { id : String
+    , name : String
+    , javaVersion : String
+    }
+
+
+type alias JobConfigs =
+    List JobConfig
+
+
 type alias User =
     { userName : String
     }
@@ -394,6 +409,19 @@ decodeSuiteWithCriteria =
         |> required "customVariables" string
         |> required "requirements" (list string)
         |> required "criteria" (map (Json.Encode.encode 4) value)
+
+
+decodeJobConfigs : Decoder JobConfigs
+decodeJobConfigs =
+    Json.Decode.list decodeJobConfig
+
+
+decodeJobConfig : Decoder JobConfig
+decodeJobConfig =
+    decode JobConfig
+        |> required "id" string
+        |> required "name" string
+        |> optional "javaVersion" string "N/A"
 
 
 type alias TestId =
