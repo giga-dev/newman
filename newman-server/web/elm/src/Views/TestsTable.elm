@@ -329,9 +329,9 @@ filterQuery query test =
         String.length query
             == 0
             || String.startsWith query test.id
-            || String.startsWith (String.toLower query) (String.toLower test.name)
-            || String.startsWith query test.status
-            || String.startsWith query test.assignedAgent
+            || String.contains (String.toLower query) (String.toLower test.name)
+            || String.contains query test.status
+            || String.contains query test.assignedAgent
     then
         True
     else

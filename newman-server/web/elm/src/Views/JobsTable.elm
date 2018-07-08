@@ -6,6 +6,7 @@ import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
 import Bootstrap.Modal as Modal exposing (..)
 import Bootstrap.Progress as Progress exposing (..)
+import Bootstrap.Dropdown as Dropdown
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Duration as Duration
@@ -21,6 +22,7 @@ import Time exposing (Time)
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
+import Json.Decode exposing (..)
 
 
 type Msg
@@ -32,12 +34,15 @@ type Msg
     | FilterQuery String
     | OnClickToggleJob String
     | RequestCompletedToggleJob (Result Http.Error Job)
+    | RequestCompletedToggleJobs (Result Http.Error (List Job))
     | NewmanModalMsg Modal.State
     | OnClickJobDrop String
     | OnJobDropConfirmed String
     | RequestCompletedDropJob String (Result Http.Error String)
     | WebSocketEvent WebSocket.Event
-
+    | PauseAll
+    | ResumeAll
+    | ActionStateMsg Dropdown.State
 
 type alias Model =
     { allJobs : List Job
@@ -46,6 +51,7 @@ type alias Model =
     , confirmationState : Modal.State
     , jobToDrop : Maybe String
     , query : String
+    , actionState : Dropdown.State
     }
 
 
@@ -54,8 +60,9 @@ init jobs =
     let
         pageSize =
             15
+
     in
-    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing ""
+        Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing "" Dropdown.initialState
 
 
 viewTable : Model -> Time -> Html Msg
@@ -106,48 +113,63 @@ viewTable model currTime =
 
         widthPct pct =
             style [ ( "width", pct ) ]
-    in
-    div []
-        [ div [ class "form-inline" ]
-            [ div [ class "form-group" ]
-                [ FormInput.text
-                    [ FormInput.onInput FilterQuery
-                    , FormInput.placeholder "Filter"
-                    , FormInput.value model.query
-                    ]
-                ]
-            , div [ class "form-group" ] [ pagination ]
-            ]
-        , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
-            [ thead []
-                [ tr []
-                    [ th [ class "job-tests-state" ] [ text "State" ]
-                    , th [ class "job-tests-progress" ] [ text "Progess" ]
-                    , th [ widthPct "12%" ] [ text "Job Id" ]
-                    , th [ widthPct "10%" ] [ text "Suite" ]
-                    , th [ widthPct "6%" ] [ text "Duration" ]
-                    , th [ widthPct "6%" ] [ text "Submitted At" ]
-                    , th [ widthPct "12%" ] [ text "Build" ]
-                    , th [ widthPct "6%" ] [ text "Submitted By" ]
-                    , th [ widthPct "6%" ] [ text "# p. agents" ]
-                    , th [ widthPct "15%" ]
-                        [ Badge.badgeInfo [ class "job-tests-badge" ] [ text "Running" ]
-                        , text "/ "
-                        , Badge.badgeSuccess [ class "job-tests-badge" ] [ text "Passed" ]
-                        , text "/ "
-                        , Badge.badgeDanger [ class "job-tests-badge" ] [ text "Failed" ]
-                        , text "/ "
-                        , Badge.badge [ class "job-tests-badge" ] [ text "Total" ]
+
+        actionButton =
+            div []
+                [ Dropdown.dropdown
+                    model.actionState
+                    { options = []
+                    , toggleMsg = ActionStateMsg
+                    , toggleButton = Dropdown.toggle [ Button.primary ] [ text "Actions" ]
+                    , items =
+                        [ Dropdown.buttonItem [ onClick PauseAll ] [ text "Pause All" ]
+                        , Dropdown.buttonItem [ onClick ResumeAll ] [ text "Resume All" ]
                         ]
-                    , th [ width 80 ]
-                        [ text "Actions" ]
+                    } ]
+
+    in
+        div []
+            [ div [ class "form-inline" ]
+                [ div [ class "form-group" ]
+                    [ FormInput.text
+                        [ FormInput.onInput FilterQuery
+                        , FormInput.placeholder "Filter"
+                        , FormInput.value model.query
+                        ]
                     ]
+                , div [ class "form-group" ] [ pagination ]
+                , actionButton
                 ]
-            , tbody [] (List.map (viewJob currTime) <| Paginate.page model.jobs)
+            , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
+                [ thead []
+                    [ tr []
+                        [ th [ class "job-tests-state" ] [ text "State" ]
+                        , th [ class "job-tests-progress" ] [ text "Progess" ]
+                        , th [ widthPct "12%" ] [ text "Job Id" ]
+                        , th [ widthPct "10%" ] [ text "Suite" ]
+                        , th [ widthPct "6%" ] [ text "Duration" ]
+                        , th [ widthPct "6%" ] [ text "Submitted At" ]
+                        , th [ widthPct "12%" ] [ text "Build" ]
+                        , th [ widthPct "6%" ] [ text "Submitted By" ]
+                        , th [ widthPct "6%" ] [ text "# p. agents" ]
+                        , th [ widthPct "15%" ]
+                            [ Badge.badgeInfo [ class "job-tests-badge" ] [ text "Running" ]
+                            , text "/ "
+                            , Badge.badgeSuccess [ class "job-tests-badge" ] [ text "Passed" ]
+                            , text "/ "
+                            , Badge.badgeDanger [ class "job-tests-badge" ] [ text "Failed" ]
+                            , text "/ "
+                            , Badge.badge [ class "job-tests-badge" ] [ text "Total" ]
+                            ]
+                        , th [ width 80 ]
+                             [ text "Actions" ]
+                        ]
+                    ]
+                , tbody [] (List.map (viewJob currTime) <| Paginate.page model.jobs)
+                ]
+            , pagination
+            , NewmanModal.confirmJobDrop model.jobToDrop NewmanModalMsg OnJobDropConfirmed model.confirmationState
             ]
-        , pagination
-        , NewmanModal.confirmJobDrop model.jobToDrop NewmanModalMsg OnJobDropConfirmed model.confirmationState
-        ]
 
 
 viewJob : Time -> Job -> Html Msg
@@ -162,6 +184,7 @@ viewJob currTime job =
                 , Progress.value <| toFloat <| progressPercent
                 , Progress.info
                 ]
+
 
         jobState =
             let
@@ -182,7 +205,7 @@ viewJob currTime job =
                         READY ->
                             Badge.badge
             in
-            badge [ class "newman-job-state-label" ] [ text job.state ]
+                badge [ class "newman-job-state-label" ] [ text job.state ]
 
         submittedTimeHourFull =
             Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat job.submitTime))
@@ -203,12 +226,12 @@ viewJob currTime job =
                         ( _, _ ) ->
                             Nothing
             in
-            case diffTime of
-                Just diff ->
-                    toString diff.hour ++ "h, " ++ toString diff.minute ++ "m"
+                case diffTime of
+                    Just diff ->
+                        toString diff.hour ++ "h, " ++ toString diff.minute ++ "m"
 
-                Nothing ->
-                    ""
+                    Nothing ->
+                        ""
 
         playPauseButton =
             case toJobState job.state of
@@ -220,38 +243,38 @@ viewJob currTime job =
                     Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY), Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
     in
-    tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
-        [ td [] [ jobState ]
-        , td [] [ progress ]
-        , td [] [ a [ href <| "#job/" ++ job.id, title job.id ] [ text job.id ] ]
-        , td [ title job.suiteName ] [ text job.suiteName ]
-        , td [] [ text durationText ]
-        , td [ title submittedTimeHourFull ] [ text submittedTimeHour ]
-        , td [] [ a [ href <| "#build/" ++ job.buildId, title <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] ]
-        , td [] [ text job.submittedBy ]
-        , td [] [ text (toString (List.length job.preparingAgents)) ]
-        , td []
-            [ Badge.badgeInfo [ class "job-tests-badge" ] [ text <| toString job.runningTests ]
-            , text "/ "
-            , Badge.badgeSuccess [ class "job-tests-badge" ] [ text <| toString job.passedTests ]
-            , text "/ "
-            , Badge.badgeDanger [ class "job-tests-badge" ] [ text <| toString job.failedTests ]
-            , text "/ "
-            , Badge.badge [ class "job-tests-badge" ] [ text <| toString job.totalTests ]
-            ]
-        , td []
-            [ Button.button
-                [ Button.danger
-                , Button.small
-                , Button.onClick <| OnClickJobDrop job.id
-                , Button.disabled <|
-                    not (List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0) && (List.length job.agents) <= 0)
+        tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
+            [ td [] [ jobState ]
+            , td [] [ progress ]
+            , td [] [ a [ href <| "#job/" ++ job.id, title job.id ] [ text job.id ] ]
+            , td [ title job.suiteName ] [ text job.suiteName ]
+            , td [] [ text durationText ]
+            , td [ title submittedTimeHourFull ] [ text submittedTimeHour ]
+            , td [] [ a [ href <| "#build/" ++ job.buildId, title <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] ]
+            , td [] [ text job.submittedBy ]
+            , td [] [ text (toString (List.length job.preparingAgents)) ]
+            , td []
+                [ Badge.badgeInfo [ class "job-tests-badge" ] [ text <| toString job.runningTests ]
+                , text "/ "
+                , Badge.badgeSuccess [ class "job-tests-badge" ] [ text <| toString job.passedTests ]
+                , text "/ "
+                , Badge.badgeDanger [ class "job-tests-badge" ] [ text <| toString job.failedTests ]
+                , text "/ "
+                , Badge.badge [ class "job-tests-badge" ] [ text <| toString job.totalTests ]
                 ]
-                [ span [ class "ion-close" ] [] ]
-            , text " "
-            , playPauseButton
+            , td []
+                [ Button.button
+                    [ Button.danger
+                    , Button.small
+                    , Button.onClick <| OnClickJobDrop job.id
+                    , Button.disabled <|
+                        not (List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0) && (List.length job.agents) <= 0)
+                    ]
+                    [ span [ class "ion-close" ] [] ]
+                , text " "
+                , playPauseButton
+                ]
             ]
-        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -283,6 +306,9 @@ update msg model =
         RequestCompletedToggleJob result ->
             onRequestCompletedToggleJob model result
 
+        RequestCompletedToggleJobs result ->
+            onRequestCompletedToggleJobs model result
+
         NewmanModalMsg newState ->
             ( { model | jobToDrop = Nothing, confirmationState = newState }, Cmd.none )
 
@@ -305,6 +331,25 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        PauseAll ->
+            ( model
+            , Paginate.allItems model.jobs
+                |> List.filter (\job -> job.state == "RUNNING" || job.state == "READY")
+                |> List.map .id
+                |> toggleJobsPauseCmd
+            )
+
+        ResumeAll ->
+            ( model
+            , Paginate.allItems model.jobs
+                |> List.filter (\job -> job.state == "PAUSED")
+                |> List.map .id
+                |> toggleJobsResumeCmd
+            )
+
+        ActionStateMsg state ->
+            ( { model | actionState = state } , Cmd.none)
 
 
 toJobState : String -> JobState
@@ -336,8 +381,8 @@ filterQuery query job =
             == 0
             || String.startsWith query job.id
             || String.startsWith query job.buildName
-            || String.startsWith query job.suiteName
-            || String.startsWith query job.submittedBy
+            || String.contains query job.suiteName
+            || String.contains query job.submittedBy
     then
         True
     else
@@ -360,7 +405,7 @@ updateAllJobs f model =
         newPaginated =
             Paginate.map (\_ -> filtered) model.jobs
     in
-    { model | jobs = newPaginated, allJobs = newList }
+        { model | jobs = newPaginated, allJobs = newList }
 
 
 updateJobAdded : Model -> Job -> Model
@@ -374,7 +419,7 @@ updateJobUpdated model jobToUpdate =
         f =
             ListExtra.replaceIf (\item -> item.id == jobToUpdate.id) jobToUpdate
     in
-    updateAllJobs f model
+        updateAllJobs f model
 
 
 updateJobRemoved : Model -> JobId -> Model
@@ -383,7 +428,7 @@ updateJobRemoved model jobIdToRemove =
         f =
             ListExtra.filterNot (\item -> item.id == jobIdToRemove)
     in
-    updateAllJobs f model
+        updateAllJobs f model
 
 
 onRequestCompletedToggleJob : Model -> Result Http.Error Job -> ( Model, Cmd Msg )
@@ -396,13 +441,28 @@ onRequestCompletedToggleJob model result =
             ( model, Cmd.none )
 
 
+onRequestCompletedToggleJobs : Model -> Result Http.Error (List Job) -> ( Model, Cmd Msg )
+onRequestCompletedToggleJobs model result =
+     case result of
+     Ok jobs ->
+        ( List.foldr (flip updateJobUpdated) model jobs , Cmd.none)
+     Err err ->
+        ( model, Cmd.none )
+
+
 toggleJobCmd : String -> Cmd Msg
 toggleJobCmd jobId =
     Http.send RequestCompletedToggleJob <| Http.post ("/api/newman/job/" ++ jobId ++ "/toggle") Http.emptyBody decodeJob
 
 
+toggleJobsPauseCmd : List String -> Cmd Msg
+toggleJobsPauseCmd jobIds =
+    Http.send RequestCompletedToggleJobs <| Http.post "/api/newman/jobs/pause/" (Http.jsonBody (encodeListOfStrings jobIds)) decodeJobList
 
-----
+
+toggleJobsResumeCmd : List String -> Cmd Msg
+toggleJobsResumeCmd jobIds =
+    Http.send RequestCompletedToggleJobs <| Http.post "/api/newman/jobs/resume/" (Http.jsonBody (encodeListOfStrings jobIds)) decodeJobList
 
 
 onRequestCompletedDropJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
@@ -432,3 +492,7 @@ dropJobCmd jobId =
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
     event => WebSocketEvent
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+        Dropdown.subscriptions model.actionState ActionStateMsg

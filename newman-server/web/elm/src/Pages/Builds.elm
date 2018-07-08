@@ -254,7 +254,7 @@ filterQuery query build =
             == 0
             || String.startsWith query build.id
             || String.startsWith query build.name
-            || String.startsWith query build.branch
+            || String.contains query build.branch
             || List.member True (List.map (String.startsWith query) build.tags)
     then
         True

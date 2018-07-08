@@ -195,3 +195,7 @@ onGetJobsCompleted model result =
 getTime : Cmd Msg
 getTime =
     Task.perform OnTime Time.now
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+        JobsTable.subscriptions model.jobsTableModel |> Sub.map JobsTableMsg

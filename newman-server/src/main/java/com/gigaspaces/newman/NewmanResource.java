@@ -694,6 +694,83 @@ public class NewmanResource {
         return null;
     }
 
+    @POST
+    @Path("jobs/pause")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public synchronized List<Job> toggelMultipleJobPause(final List<String> ids) {
+        List<Job> result = new ArrayList<>(ids.size());
+        for (String id : ids) {
+            Job job = findOneJobById(id);
+            if (job != null) {
+                State state = null;
+                State old = job.getState();
+                switch (job.getState()) {
+                    case READY:
+                    case RUNNING:
+                        state = State.PAUSED;
+                        break;
+                    case PAUSED:
+                        break;
+                    case DONE:
+                        break;
+                }
+                if (state != null) {
+                    UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", state);
+                    if (state.equals(State.PAUSED)) {
+                        // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
+                        updateJobStatus.unset("startPrepareTime");
+                    }
+                    job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
+                    result.add(job);
+                    broadcastMessage(MODIFIED_JOB, job);
+                }
+            }
+        }
+        return result;
+    }
+
+    @POST
+    @Path("jobs/resume")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public synchronized List<Job> toggelMultipleJobResume(final List<String> ids) {
+        List<Job> result = new ArrayList<>(ids.size());
+        for (String id : ids) {
+            Job job = findOneJobById(id);
+            if (job != null) {
+                State state = null;
+                State old = job.getState();
+                switch (job.getState()) {
+                    case PAUSED:
+                        state = State.READY;
+                        break;
+                    case READY:
+                        break;
+                    case RUNNING:
+                        break;
+                    case DONE:
+                        break;
+                }
+                if (state != null) {
+                    UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", state);
+                    job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
+                    result.add(job);
+                    broadcastMessage(MODIFIED_JOB, job);
+
+                    //change status of Test(s) from running to pending
+                    Query<Test> query = testDAO.createQuery();
+                    query.and(query.criteria("jobId").equal(id), query.criteria("status").equal(Test.Status.RUNNING));
+                    UpdateOperations<Test> updateOps = testDAO.createUpdateOperations().set("status", Test.Status.PENDING);
+
+                    UpdateResults update = testDAO.getDatastore().update(query, updateOps);
+                    logger.info("---toggelMultipleJobResume, state is READY, affected count:" + update.getUpdatedCount());
+                }
+            }
+        }
+        return result;
+    }
+
     @GET
     @Path("dashboard")
     @Produces(MediaType.APPLICATION_JSON)
@@ -1663,8 +1740,8 @@ public class NewmanResource {
         if (result != null) {
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
-            logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]", jobId, job.getRunningTests());
             if (job != null) {
+                logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]", jobId, job.getRunningTests());
                 UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.runningTests");
                 UpdateOperations<Job> jobUpdateOperations = jobDAO.createUpdateOperations();
                 jobUpdateOperations.set("state", State.RUNNING);

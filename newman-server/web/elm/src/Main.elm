@@ -21,7 +21,7 @@ import Task
 import UrlParser exposing (..)
 import Utils.Types exposing (BuildId, JobId, SuiteId, TestId)
 import Utils.WebSocket as WebSocket exposing (Event(CreatedJob))
-import Views.JobsTable
+import Views.JobsTable as JobsTable
 import Views.TopBar as TopBar
 
 
@@ -347,6 +347,17 @@ update msg model =
             in
             ( { model | buildsModel = updatedBuildsModel }, Cmd.map BuildsMsg buildsCmd )
 
+        ( BuildMsg (Build.JobsTableMsg (JobsTable.RequestCompletedToggleJobs subMsg)), BuildPage subModel ) ->
+            let
+                theMsg = (JobsTable.RequestCompletedToggleJobs subMsg)
+                ( updatedSubModel, subCmd ) =
+                    Build.update (Build.JobsTableMsg theMsg) subModel
+                ( updatedJobsModel , jobsSubCmd) =
+                    Jobs.update (Jobs.JobsTableMsg theMsg) model.jobsModel
+            in
+            ( { model | currentPage = BuildPage updatedSubModel , jobsModel = updatedJobsModel },
+                Cmd.batch [ Cmd.map BuildMsg subCmd , Cmd.map JobsMsg jobsSubCmd ] )
+
         ( BuildMsg subMsg, BuildPage subModel ) ->
             let
                 ( updatedSubModel, subCmd ) =
@@ -534,4 +545,5 @@ subscriptions model =
     Sub.batch
         [ WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
         , SubmitNewJob.subscriptions model.submitNewJobModel |> Sub.map SubmitNewJobMsg
+        , Jobs.subscriptions model.jobsModel |> Sub.map JobsMsg
         ]
