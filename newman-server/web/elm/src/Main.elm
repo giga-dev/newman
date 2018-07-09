@@ -257,7 +257,6 @@ init location =
 
                 _ ->
                     Cmd.none
-
     in
     ( { currentPage = currentPage
       , currentRoute = currentRoute
@@ -286,7 +285,6 @@ init location =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.currentPage ) of
-
         ( GoTo maybeRoute, _ ) ->
             case maybeRoute of
                 Just route ->
@@ -349,14 +347,18 @@ update msg model =
 
         ( BuildMsg (Build.JobsTableMsg (JobsTable.RequestCompletedToggleJobs subMsg)), BuildPage subModel ) ->
             let
-                theMsg = (JobsTable.RequestCompletedToggleJobs subMsg)
+                theMsg =
+                    JobsTable.RequestCompletedToggleJobs subMsg
+
                 ( updatedSubModel, subCmd ) =
                     Build.update (Build.JobsTableMsg theMsg) subModel
-                ( updatedJobsModel , jobsSubCmd) =
+
+                ( updatedJobsModel, jobsSubCmd ) =
                     Jobs.update (Jobs.JobsTableMsg theMsg) model.jobsModel
             in
-            ( { model | currentPage = BuildPage updatedSubModel , jobsModel = updatedJobsModel },
-                Cmd.batch [ Cmd.map BuildMsg subCmd , Cmd.map JobsMsg jobsSubCmd ] )
+            ( { model | currentPage = BuildPage updatedSubModel, jobsModel = updatedJobsModel }
+            , Cmd.batch [ Cmd.map BuildMsg subCmd, Cmd.map JobsMsg jobsSubCmd ]
+            )
 
         ( BuildMsg subMsg, BuildPage subModel ) ->
             let
@@ -543,7 +545,8 @@ view model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
-        , SubmitNewJob.subscriptions model.submitNewJobModel |> Sub.map SubmitNewJobMsg
+        [ --        WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
+          --        ,
+          SubmitNewJob.subscriptions model.submitNewJobModel |> Sub.map SubmitNewJobMsg
         , Jobs.subscriptions model.jobsModel |> Sub.map JobsMsg
         ]

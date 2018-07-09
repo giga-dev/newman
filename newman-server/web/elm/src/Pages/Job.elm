@@ -162,7 +162,7 @@ viewHeader model job =
                 ]
 
         headerRows =
-            [ ( "Suite", text job.suiteName )
+            [ ( "Suite", a [ href  <| "#suite/" ++ job.suiteId] [ text job.suiteName ] )
             , ( "Submit Time", text <| dateFormat <| Just job.submitTime )
             , ( "Start Time", text <| dateFormat job.startTime )
             , ( "End Time", text <| dateFormat job.endTime )
