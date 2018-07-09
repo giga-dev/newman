@@ -14,6 +14,7 @@ import Pages.Job as Job
 import Pages.Jobs as Jobs
 import Pages.JobConfigs as JobConfigs
 import Pages.JobConfig as JobConfig
+import Pages.NewJobConfig as NewJobConfig
 import Pages.SubmitNewJob as SubmitNewJob
 import Pages.Suite as Suite
 import Pages.Suites as Suites
@@ -45,6 +46,7 @@ type Route
     | AgentsRoute
     | SuitesRoute
     | JobConfigsRoute
+    | NewJobConfigsRoute
     | JobConfigRoute JobConfigId
     | JobRoute JobId
     | BuildRoute BuildId
@@ -61,6 +63,7 @@ type Page
     | AgentsPage
     | SuitesPage
     | JobConfigsPage
+    | NewJobConfigsPage
     | JobConfigPage JobConfig.Model
     | JobPage Job.Model
     | BuildPage Build.Model
@@ -92,6 +95,9 @@ routeToPage route =
 
         JobConfigsRoute ->
             JobConfigsPage
+
+        NewJobConfigsRoute ->
+             NewJobConfigsPage
 
         JobConfigRoute id ->
             JobConfigPage (JobConfig.Model Nothing)
@@ -138,6 +144,9 @@ routeToString route =
                 JobConfigsRoute ->
                     [ "jobConfigs" ]
 
+                NewJobConfigsRoute ->
+                     [ "newJobConfig" ]
+
                 JobConfigRoute id ->
                     [ "jobConfig", id ]
 
@@ -169,6 +178,7 @@ route =
         , UrlParser.map AgentsRoute (UrlParser.s "agents")
         , UrlParser.map SuitesRoute (UrlParser.s "suites")
         , UrlParser.map JobConfigsRoute (UrlParser.s "jobConfigs")
+        , UrlParser.map NewJobConfigsRoute (UrlParser.s "newJobConfig")
         , UrlParser.map JobConfigRoute (UrlParser.s "jobConfig" </> JobConfig.parseJobConfigId)
         , UrlParser.map JobRoute (UrlParser.s "job" </> Job.parseJobId)
         , UrlParser.map BuildRoute (UrlParser.s "build" </> Build.parseBuildId)
@@ -194,6 +204,7 @@ type alias Model =
     , homeModel : Home.Model
     , suitesModel : Suites.Model
     , jobConfigsModel : JobConfigs.Model
+    , newJobConfigsModel : NewJobConfig.Model
     , topBarModel : TopBar.Model
     , webSocketModel : WebSocket.Model
     }
@@ -207,6 +218,7 @@ type Msg
     | AgentsMsg Agents.Msg
     | SuitesMsg Suites.Msg
     | JobConfigsMsg JobConfigs.Msg
+    | NewJobConfigMsg NewJobConfig.Msg
     | JobConfigMsg JobConfig.Msg
     | HomeMsg Home.Msg
     | JobMsg Job.Msg
@@ -258,6 +270,9 @@ init location =
         ( jobConfigsModel, jobConfigsCmd ) =
             JobConfigs.init
 
+        ( newJobConfigsModel, newJobConfigsCmd ) =
+            NewJobConfig.init
+
         ( homeModel, homeCmd ) =
             Home.init
 
@@ -296,6 +311,7 @@ init location =
           , homeModel = homeModel
           , suitesModel = suitesModel
           , jobConfigsModel = jobConfigsModel
+          , newJobConfigsModel = newJobConfigsModel
           , topBarModel = topBarModel
           , webSocketModel = WebSocket.initModel location
           }
@@ -305,6 +321,7 @@ init location =
             , buildsCmd |> Cmd.map BuildsMsg
             , agentsCmd |> Cmd.map AgentsMsg
             , jobConfigsCmd |> Cmd.map JobConfigsMsg
+            , newJobConfigsCmd |> Cmd.map NewJobConfigMsg
             , homeCmd |> Cmd.map HomeMsg
             , suitesCmd |> Cmd.map SuitesMsg
             , topBarCmd |> Cmd.map TopBarMsg
@@ -403,6 +420,13 @@ update msg model =
             in
                 ( { model | jobConfigsModel = updatedJobConfigsModel }, Cmd.map JobConfigsMsg jobConfigsCmd )
 
+        ( NewJobConfigMsg newJobConfigsMsg, _ ) ->
+            let
+                ( updatedNewJobConfigsModel, newJobConfigsCmd ) =
+                    NewJobConfig.update newJobConfigsMsg model.newJobConfigsModel
+            in
+                ( { model | newJobConfigsModel = updatedNewJobConfigsModel }, Cmd.map NewJobConfigMsg newJobConfigsCmd )
+
         ( JobConfigMsg subMsg, JobConfigPage subModel ) ->
             let
                 ( updatedSubModel, subCmd ) =
@@ -482,6 +506,7 @@ update msg model =
                                 , Builds.handleEvent ev |> Cmd.map BuildsMsg
                                 , Suites.handleEvent ev |> Cmd.map SuitesMsg
                                 , JobConfigs.handleEvent ev |> Cmd.map JobConfigsMsg
+--                                , NewJobConfig.handleEvent ev |> Cmd.map NewJobConfigMsg
                                 , Home.handleEvent ev |> Cmd.map HomeMsg
                                 ]
 
@@ -531,6 +556,9 @@ viewBody model =
 
         JobConfigsPage ->
             JobConfigs.view model.jobConfigsModel |> Html.map JobConfigsMsg
+
+        NewJobConfigsPage ->
+            NewJobConfig.view model.newJobConfigsModel |> Html.map NewJobConfigMsg
 
         JobConfigPage subModel ->
             JobConfig.view subModel |> Html.map JobConfigMsg
@@ -588,6 +616,6 @@ view model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
-        , SubmitNewJob.subscriptions model.submitNewJobModel |> Sub.map SubmitNewJobMsg
+        [ --WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
+         SubmitNewJob.subscriptions model.submitNewJobModel |> Sub.map SubmitNewJobMsg
         ]

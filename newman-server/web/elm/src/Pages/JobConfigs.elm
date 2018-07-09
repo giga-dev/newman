@@ -32,6 +32,7 @@ type alias Model =
 type Msg
     = GetJobConfigsCompleted (Result Http.Error JobConfigs)
     | WebSocketEvent WebSocket.Event
+    | OnClickLinkButton
 
 
 init : ( Model, Cmd Msg )
@@ -68,6 +69,9 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        OnClickLinkButton ->
+            ( model, Cmd.none )
+
 
 updateAll : (List JobConfig -> List JobConfig) -> Model -> Model
 updateAll f model =
@@ -100,19 +104,21 @@ updateJobConfigUpdated model jobConfigToUpdate =
 view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ] <|
-        [ h2 [ class "text" ] [ text "Job Configurations" ]
-        , div []
-            [ table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
-                [ thead []
-                    [ tr []
-                        [ th [] [ text "Name" ]
-                        , th [] [ text "Id" ]
+            [ h2 [ class "text" ] [ text "Job Configurations",
+            Button.linkButton [ Button.primary, Button.attrs [ href "#newJobConfig", style [ ( "margin-left", "15px" ) ] ]]  [ text "New Job Configuration" ] ]
+            , div []
+                [ table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
+                    [ thead []
+                        [ tr []
+                            [ th [] [ text "Name" ]
+                            , th [] [ text "Id" ]
+                            ]
                         ]
+                    , tbody [] (List.map viewJobConfig (model.allJobConfigs))
                     ]
-                , tbody [] (List.map viewJobConfig (model.allJobConfigs))
                 ]
             ]
-        ]
+
 
 
 viewJobConfig : JobConfig -> Html msg

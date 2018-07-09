@@ -2247,6 +2247,30 @@ public class NewmanResource {
         return jobConfigs;
     }
 
+    @POST
+    @Path("job-config-from-gui")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public JobConfig addJobConfig(@QueryParam("name") String name,@QueryParam("javaVersion") String javaVersion) {
+        JobConfig jobConfig = new JobConfig();
+        jobConfig.setJavaVersion(JavaVersion.valueOf(javaVersion));
+        jobConfig.setName(name);
+
+        jobConfigDAO.save(jobConfig);
+
+        return jobConfig;
+    }
+
+    @GET
+    @Path("java-versions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<JavaVersion> getAllJavaVersions() {
+
+        List<JavaVersion> javaVersions = Arrays.asList( JavaVersion.values());
+
+        return javaVersions;
+    }
+
     /**
      * With only if and name
      *
