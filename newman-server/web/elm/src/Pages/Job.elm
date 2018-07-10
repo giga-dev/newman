@@ -2,6 +2,7 @@ module Pages.Job exposing (..)
 
 import Bootstrap.Badge as Badge
 import Bootstrap.Button as Button
+import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.Progress as Progress exposing (..)
 import Date
 import Date.Format
@@ -25,12 +26,14 @@ type alias Model =
     , collapseState : CollapseState
     , testsTable : TestsTable.Model
     , currTime : Time
+    , statusState : RadioState
     }
 
 
 type CollapseState
     = Hidden
     | Shown
+
 
 
 type Msg
@@ -40,6 +43,7 @@ type Msg
     | TestsTableMsg TestsTable.Msg
     | OnTime Time
     | WebSocketEvent WebSocket.Event
+    | StatusMsg RadioState
 
 
 
@@ -57,6 +61,7 @@ initModel jobId =
     , collapseState = Hidden
     , testsTable = TestsTable.init jobId []
     , currTime = 0
+    , statusState = STATUS_ALL
     }
 
 
@@ -120,14 +125,25 @@ viewHeader model job =
                 )
 
         testsStatus =
-            [ Button.button [ Button.info, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.DisplayByStatus "RUNNING" ] [ text <| toString job.runningTests ]
-            , text "/ "
-            , Button.button [ Button.success, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.DisplayByStatus "SUCCESS" ] [ text <| toString job.passedTests ]
-            , text "/ "
-            , Button.button [ Button.danger, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.DisplayByStatus "FAIL" ] [ text <| toString job.failedTests ]
-            , text "/ "
-            , Button.button [ Button.small, Button.onClick <| TestsTableMsg <| TestsTable.DisplayAll ] [ text <| toString job.totalTests ]
-            ]
+            ButtonGroup.radioButtonGroup []
+                    [ ButtonGroup.radioButton
+                        (model.statusState == STATUS_RUNNING)
+                        [ Button.outlinePrimary, Button.outlineInfo, Button.onClick <| StatusMsg STATUS_RUNNING ]
+                        [ text <| toString job.runningTests ]
+                    , ButtonGroup.radioButton
+                        (model.statusState == STATUS_SUCCESS)
+                        [ Button.outlinePrimary, Button.outlineSuccess, Button.onClick <| StatusMsg STATUS_SUCCESS ]
+                        [ text <| toString job.passedTests ]
+                    , ButtonGroup.radioButton
+                        (model.statusState == STATUS_FAIL)
+                        [ Button.outlinePrimary, Button.outlineDanger, Button.onClick <| StatusMsg STATUS_FAIL ]
+                        [ text <| toString job.failedTests ]
+                    , ButtonGroup.radioButton
+                        (model.statusState == STATUS_ALL)
+                        [ Button.outlinePrimary, Button.onClick <| StatusMsg STATUS_ALL ]
+                        [ text <| toString job.totalTests ]
+                    ]
+
 
 
 
@@ -171,7 +187,7 @@ viewHeader model job =
             , ( "# Agents", text <| toString <| List.length job.agents )
             , ( "# Prep. Agents", text <| toString <| List.length job.preparingAgents )
             , ( "Submitted by", text <| job.submittedBy )
-            , ( "Status", div [] testsStatus )
+            , ( "Status", div [] [ testsStatus ] )
             , ( "Job Setup Logs", jobSetupLogs )
             ]
 
@@ -269,6 +285,12 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        StatusMsg state ->
+            let
+                ( newSubModel, newCmd ) =
+                    TestsTable.update (TestsTable.UpdateFilterState state) model.testsTable
+            in
+            ( { model | statusState = state , testsTable = newSubModel } , newCmd |> Cmd.map TestsTableMsg )
 
 getJobInfoCmd : JobId -> Cmd Msg
 getJobInfoCmd jobId =

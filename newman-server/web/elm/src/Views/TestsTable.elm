@@ -19,7 +19,7 @@ import List.Extra as ListExtra
 import Paginate exposing (PaginatedList)
 import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
-import Utils.Types exposing (Test, decodeTest)
+import Utils.Types exposing (Test, decodeTest, RadioState(..))
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
 
@@ -32,8 +32,7 @@ type Msg
     | GoTo Int
     | FilterQuery String
     | WebSocketEvent WebSocket.Event
-    | DisplayByStatus String
-    | DisplayAll
+    | UpdateFilterState RadioState
 
 
 type alias Model =
@@ -42,6 +41,7 @@ type alias Model =
     , pageSize : Int
     , query : String
     , jobId : String
+    , filterState : RadioState
     }
 
 
@@ -59,6 +59,7 @@ init jobId list =
     , pageSize = pageSize
     , query = ""
     , jobId = jobId
+    , filterState = STATUS_ALL
     }
 
 
@@ -278,15 +279,10 @@ update msg model =
             ( { model | paginated = Paginate.goTo i model.paginated }, Cmd.none )
 
         FilterQuery query ->
-            ( { model | query = query, paginated = Paginate.fromList model.pageSize (List.filter (filterQuery query) model.all) }
+            ( { model | query = query, paginated = filterTests model query model.filterState
+                                                   |> Paginate.fromList model.pageSize  }
             , Cmd.none
             )
-
-        DisplayByStatus status ->
-            ( { model | paginated = Paginate.fromList model.pageSize (List.filter (\test -> test.status == status) model.all) } , Cmd.none)
-
-        DisplayAll ->
-            ( { model | paginated = Paginate.fromList model.pageSize model.all } , Cmd.none)
 
         WebSocketEvent event ->
             case event of
@@ -301,6 +297,24 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        UpdateFilterState state ->
+            ({model | filterState = state , paginated = filterTests model model.query state |> Paginate.fromList model.pageSize } , Cmd.none)
+
+
+filterTests : Model -> String -> RadioState -> List Test
+filterTests model query filterState =
+                model.all
+                    |> List.filter (filterQuery query)
+                    |> List.filter (filterByTestState filterState)
+
+filterByTestState : RadioState ->  Test -> Bool
+filterByTestState currentState test =
+    case currentState of
+        STATUS_RUNNING -> test.status == "RUNNING"
+        STATUS_SUCCESS -> test.status == "SUCCESS"
+        STATUS_FAIL -> test.status == "FAIL"
+        STATUS_ALL -> True
 
 
 updateAllTests : (List Test -> List Test) -> Model -> Model
@@ -387,3 +401,4 @@ toTestName {arguments,runNumber} =
             List.append arguments [num]
     in
        String.join " " testName
+

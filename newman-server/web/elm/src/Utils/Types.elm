@@ -157,6 +157,11 @@ type alias TestHistoryJobView =
 type alias TestHistoryItems =
     List TestHistoryItem
 
+type RadioState
+    = STATUS_RUNNING
+    | STATUS_SUCCESS
+    | STATUS_FAIL
+    | STATUS_ALL
 
 toJobState : String -> JobState
 toJobState str =
