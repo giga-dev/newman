@@ -54,11 +54,7 @@ init =
     ( { allBuilds = []
       , builds = Paginate.fromList pageSize []
       , pageSize = pageSize
-      , compareBuildsModel =
-            { selectTwo = Nothing
-            , test = Nothing
-            , test4 = Nothing
-            }
+      , compareBuildsModel = CompareBuilds.init []
       , query = ""
       }
     , getBuildsCmd
@@ -71,7 +67,10 @@ update msg model =
         GetBuildsCompleted result ->
             case result of
                 Ok buildsFromResult ->
-                    ( { model | builds = Paginate.fromList model.pageSize buildsFromResult, allBuilds = buildsFromResult }, Cmd.none )
+                    ( { model
+                        | builds = Paginate.fromList model.pageSize buildsFromResult
+                        , allBuilds = buildsFromResult
+                        , compareBuildsModel = CompareBuilds.init buildsFromResult }, Cmd.none )
 
                 Err err ->
                     ( model, Cmd.none )
@@ -105,8 +104,6 @@ update msg model =
                 ( updatedModel, cmd ) =
                     CompareBuilds.update subMsg model.compareBuildsModel
 
-                a =
-                    Debug.log "builds update call to compare builds" (toString updatedModel.selectTwo)
             in
             ( { model | compareBuildsModel = updatedModel }, cmd |> Cmd.map CompareBuildsMsg )
 
@@ -188,8 +185,9 @@ view model =
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text "Builds" ]
 
-        --        , CompareBuilds.view model.compareBuildsModel
-        --            |> Html.map CompareBuildsMsg
+        , CompareBuilds.view model.compareBuildsModel
+            |> Html.map CompareBuildsMsg
+        , br [] []
         , div []
             [ div [ class "form-inline" ]
                 [ div [ class "form-group" ]
