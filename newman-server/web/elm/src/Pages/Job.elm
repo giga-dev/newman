@@ -120,14 +120,16 @@ viewHeader model job =
                 )
 
         testsStatus =
-            [ Button.button [ Button.info, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "RUNNING" ] [ text <| toString job.runningTests ]
+            [ Button.button [ Button.info, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.DisplayByStatus "RUNNING" ] [ text <| toString job.runningTests ]
             , text "/ "
-            , Button.button [ Button.success, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "SUCCESS" ] [ text <| toString job.passedTests ]
+            , Button.button [ Button.success, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.DisplayByStatus "SUCCESS" ] [ text <| toString job.passedTests ]
             , text "/ "
-            , Button.button [ Button.danger, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "FAIL" ] [ text <| toString job.failedTests ]
+            , Button.button [ Button.danger, Button.small, Button.onClick <| TestsTableMsg <| TestsTable.DisplayByStatus "FAIL" ] [ text <| toString job.failedTests ]
             , text "/ "
-            , Button.button [ Button.small, Button.onClick <| TestsTableMsg <| TestsTable.FilterQuery "" ] [ text <| toString job.totalTests ]
+            , Button.button [ Button.small, Button.onClick <| TestsTableMsg <| TestsTable.DisplayAll ] [ text <| toString job.totalTests ]
             ]
+
+
 
         jobToT ( key, val ) =
             li []

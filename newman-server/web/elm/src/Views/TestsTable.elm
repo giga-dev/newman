@@ -32,6 +32,8 @@ type Msg
     | GoTo Int
     | FilterQuery String
     | WebSocketEvent WebSocket.Event
+    | DisplayByStatus String
+    | DisplayAll
 
 
 type alias Model =
@@ -279,6 +281,12 @@ update msg model =
             ( { model | query = query, paginated = Paginate.fromList model.pageSize (List.filter (filterQuery query) model.all) }
             , Cmd.none
             )
+
+        DisplayByStatus status ->
+            ( { model | paginated = Paginate.fromList model.pageSize (List.filter (\test -> test.status == status) model.all) } , Cmd.none)
+
+        DisplayAll ->
+            ( { model | paginated = Paginate.fromList model.pageSize model.all } , Cmd.none)
 
         WebSocketEvent event ->
             case event of
