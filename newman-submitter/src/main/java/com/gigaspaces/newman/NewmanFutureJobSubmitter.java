@@ -20,6 +20,7 @@ public class NewmanFutureJobSubmitter {
 
     private static final String NEWMAN_BUILD_ID = "NEWMAN_BUILD_ID"; // for example: 56277de629f67f791db25554
     private static final String NEWMAN_SUITE_ID = "NEWMAN_SUITE_ID"; // for example: 55b0affe29f67f34809c6c7b
+    private static final String NEWMAN_CONFIG_ID = "NEWMAN_CONFIG_ID"; // for example: 55b0affe29f67f34809c6c7b
     private static final String AUTHOR = "AUTHOR"; // for example: tamirs
 
 
@@ -30,11 +31,13 @@ public class NewmanFutureJobSubmitter {
         NewmanClient newmanClient;
         String build_id;
         String suite_id;
+        String config_id;
         String author;
 
         newmanClient = getNewmanClient();
         build_id = EnvUtils.getEnvironment(NEWMAN_BUILD_ID, true, logger);
         suite_id = EnvUtils.getEnvironment(NEWMAN_SUITE_ID, true, logger);
+        config_id = EnvUtils.getEnvironment(NEWMAN_CONFIG_ID, true, logger);
         author = EnvUtils.getEnvironment(AUTHOR, true, logger);
 
         ServerStatus serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -44,9 +47,10 @@ public class NewmanFutureJobSubmitter {
         }
 
         validBuildAndSuite(newmanClient, build_id, suite_id);
+        validateJobConfig(newmanClient,config_id);
         FutureJob futureJob;
         try {
-            futureJob = newmanClient.createFutureJob(build_id, suite_id, author).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            futureJob = newmanClient.createFutureJob(build_id, suite_id, config_id, author).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             logger.error("can't create future job. execption: {}", e);
             throw e;
@@ -65,6 +69,14 @@ public class NewmanFutureJobSubmitter {
             newmanClient.getSuite(suite_id).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }catch (Exception e){
             throw new RuntimeException("suite id: "+ suite_id +" does not exist");
+        }
+    }
+
+    private static void validateJobConfig(NewmanClient newmanClient,String configId){
+        try{
+            newmanClient.getConfigById(configId).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        }catch (Exception e){
+            throw new RuntimeException("Config id : "+ configId +" does not exist");
         }
     }
 

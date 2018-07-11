@@ -163,6 +163,7 @@ viewHeader model job =
 
         headerRows =
             [ ( "Suite", text job.suiteName )
+            , ( "Job configuration", text job.jobConfigName )
             , ( "Submit Time", text <| dateFormat <| Just job.submitTime )
             , ( "Start Time", text <| dateFormat job.startTime )
             , ( "End Time", text <| dateFormat job.endTime )
@@ -175,7 +176,7 @@ viewHeader model job =
 
         viewRow ( name, value ) =
             tr []
-                [ td [ width 130 ] [ text name ]
+                [ td [ width 200 ] [ text name ]
                 , td [] [ value ]
                 ]
     in

@@ -131,18 +131,21 @@ update msg model =
 
         OnClickSubmit ->
             let
-                ( buildId, suitesList ) =
-                    ( model.selectedBuild, List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites) )
+                ( buildId, suitesList, configId ) =
+                    ( model.selectedBuild, List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites), model.selectedConfig )
             in
-                case ( buildId, suitesList ) of
-                    ( "", _ ) ->
+                case ( buildId, suitesList ,configId) of
+                    ( "", _ ,_) ->
                         ( { model | errorMessage = "Please select a build", modalState = Modal.visibleState }, Cmd.none )
 
-                    ( _, [] ) ->
+                    ( _, [],_ ) ->
                         ( { model | errorMessage = "Please select one or more suites", modalState = Modal.visibleState }, Cmd.none )
 
+                    ( _, _ ,"") ->
+                        ( { model | errorMessage = "Please select a Job Configuration", modalState = Modal.visibleState }, Cmd.none )
+
                     _ ->
-                        ( model, submitFutureJobCmd buildId suitesList )
+                        ( model, submitFutureJobCmd buildId suitesList configId)
 
         SubmitNewJobCompleted result ->
             case result of
@@ -179,20 +182,20 @@ getAllConfigs =
     Http.get "/api/newman/job-config" configurationsDecoder
 
 
-submitFutureJobCmd : String -> List String -> Cmd Msg
-submitFutureJobCmd buildId suites =
+submitFutureJobCmd : String -> List String -> String -> Cmd Msg
+submitFutureJobCmd buildId suites configId=
     let
         postReq =
-            postFutureJob buildId suites
+            postFutureJob buildId suites configId
     in
         Http.send SubmitNewJobCompleted postReq
 
 
-postFutureJob : String -> List String -> Http.Request (List FutureJob)
-postFutureJob buildId suites =
+postFutureJob : String -> List String -> String -> Http.Request (List FutureJob)
+postFutureJob buildId suites configId =
     let
         jsonify =
-            Http.jsonBody <| Json.Encode.object [ ( "buildId", Json.Encode.string buildId ), ( "suites", Json.Encode.list <| List.map Json.Encode.string suites ) ]
+            Http.jsonBody <| Json.Encode.object [ ( "buildId", Json.Encode.string buildId ), ( "suites", Json.Encode.list <| List.map Json.Encode.string suites ), ("configId", Json.Encode.string configId ) ]
     in
         Http.post "../api/newman/futureJob" jsonify decodeFutureJobs
 
@@ -225,7 +228,8 @@ view model =
                     [ text "Select Job Configuration:"
                     , Select.select
                         [ Select.onChange UpdateSelectedConfig, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
-                        (List.map toOption model.configurations)
+                        ([ Select.item [ value "1" ] [ text "Select Job configuration" ]]
+                            ++List.map toOption model.configurations)
                     ]
             , br [] []
             , selectBuildView model

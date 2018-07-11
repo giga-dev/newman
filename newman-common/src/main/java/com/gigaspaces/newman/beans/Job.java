@@ -50,7 +50,8 @@ public class Job {
     private Set<String> agents = Collections.emptySet();
     @Embedded
     private Map<String, String> jobSetupLogs;
-    @Embedded
+
+    @Embedded(concreteClass = JobConfig.class)
     private JobConfig jobConfig;
 
     public Job() {

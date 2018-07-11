@@ -102,7 +102,7 @@ public class NewmanJobSubmitter {
                 throw  e;
             }
             if (jobConfig == null) {
-                throw new IllegalArgumentException("build with id: " + configId + " does not exists");
+                throw new IllegalArgumentException("jobConfig with id: " + configId + " does not exists");
             }
 
             validateUris(build.getTestsMetadata()); // throws exception if URI not exists

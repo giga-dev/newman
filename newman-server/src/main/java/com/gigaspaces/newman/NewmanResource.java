@@ -438,7 +438,7 @@ public class NewmanResource {
     }
 
     private void addRequiredJobTableColumns(Query<Job> query) {
-        query.retrievedFields(true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name",
+        query.retrievedFields(true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name", "jobConfig.id", "jobConfig.name",
                 "submitTime", "startTime", "endTime", "testURI", "submittedBy", "state", "totalTests",
                 "passedTests", "failedTests", "runningTests", "preparingAgents");
     }
@@ -548,7 +548,9 @@ public class NewmanResource {
         checkServerStatus();
 
         Build build = buildDAO.findOne(buildDAO.createIdQuery(jobRequest.getBuildId()));
+        JobConfig jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(jobRequest.getConfigId()));
         Suite suite = null;
+
         if (jobRequest.getSuiteId() != null) {
             suite = suiteDAO.findOne(suiteDAO.createIdQuery(jobRequest.getSuiteId()));
         }
@@ -563,6 +565,9 @@ public class NewmanResource {
             job.setState(State.READY);
             job.setSubmitTime(new Date());
             job.setSubmittedBy(jobRequest.getAuthor());
+            if(jobConfig !=null) {
+                job.setJobConfig(jobConfig);
+            }
             jobDAO.save(job);
             UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.totalJobs")
                     .inc("buildStatus.pendingJobs")
@@ -579,11 +584,12 @@ public class NewmanResource {
     }
 
     @POST
-    @Path("futureJob/{buildId}/{suiteId}")
+    @Path("futureJob/{buildId}/{suiteId}/{configId}")
     @Produces(MediaType.APPLICATION_JSON)
     public FutureJob createFutureJob(
             @PathParam("buildId") String buildId,
             @PathParam("suiteId") String suiteId,
+            @PathParam("configId") String configId,
             @QueryParam("author") String authorOpt,
             @Context SecurityContext sc) {
         checkServerStatus();
@@ -591,6 +597,7 @@ public class NewmanResource {
         String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
         Build build = null;
         Suite suite = null;
+        JobConfig jobConfig = null;
 
         if (buildId != null) {
             build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
@@ -604,9 +611,15 @@ public class NewmanResource {
                 throw new BadRequestException("invalid suite id in create FutureJob: " + suiteId);
             }
         }
+        if (configId != null) {
+            jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(configId));
+            if (jobConfig == null) {
+                throw new BadRequestException("invalid config id in create FutureJob: " + configId);
+            }
+        }
 
         //noinspection ConstantConditions
-        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), author);
+        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(),jobConfig.getId(),jobConfig.getName(), author);
 
         futureJobDAO.save(futureJob);
         broadcastMessage(CREATE_FUTURE_JOB, futureJob);
@@ -625,8 +638,10 @@ public class NewmanResource {
 
         String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
         Build build = null;
+        JobConfig jobConfig = null;
         List<String> suites = futureJobsRequest.getSuites();
         String buildId = futureJobsRequest.getBuildId();
+        String configId = futureJobsRequest.getConfigId();
 
         if (buildId != null) {
             build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
@@ -642,8 +657,15 @@ public class NewmanResource {
                     throw new BadRequestException("invalid suite id in create FutureJob: " + suiteId);
                 }
 
+                if (configId != null) {
+                    jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(configId));
+                    if (jobConfig == null) {
+                        throw new BadRequestException("invalid config id in create FutureJob: " + configId);
+                    }
+                }
+
                 //noinspection ConstantConditions
-                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), author);
+                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), jobConfig.getId(),jobConfig.getName(),author);
                 response.add(futureJob);
 
                 futureJobDAO.save(futureJob);

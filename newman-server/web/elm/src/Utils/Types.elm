@@ -23,6 +23,8 @@ type alias Job =
     , buildBranch : String
     , suiteId : String
     , suiteName : String
+    , jobConfigId : String
+    , jobConfigName : String
     , totalTests : Int
     , failedTests : Int
     , passedTests : Int
@@ -166,6 +168,8 @@ type alias TestHistoryJobView =
     , buildId : String
     , buildName : String
     , buildBranch : String
+    , jobConfigName : String
+    , jobConfigId : String
     }
 
 
@@ -209,6 +213,8 @@ decodeJob =
         |> requiredAt [ "build", "branch" ] string
         |> requiredAt [ "suite", "id" ] string
         |> requiredAt [ "suite", "name" ] string
+        |> optionalAt [ "jobConfig", "id" ] string ""
+        |> optionalAt [ "jobConfig", "name" ] string ""
         |> required "totalTests" int
         |> required "failedTests" int
         |> required "passedTests" int
@@ -232,6 +238,8 @@ decodeJobView =
         |> required "buildBranch" string
         |> required "suiteId" string
         |> required "suiteName" string
+        |> optional "jobConfigId" string ""
+        |> optional "jobConfigName" string ""
         |> required "totalTests" int
         |> required "failedTests" int
         |> required "passedTests" int
@@ -526,6 +534,9 @@ decodeTestHistoryJobView =
         |> required "buildId" string
         |> required "buildName" string
         |> required "buildBranch" string
+        |> optional "jobConfigName" string ""
+        |> optional "jobConfigId" string ""
+
 
 
 decodeTestHistoryItems : Decoder TestHistoryItems

@@ -215,7 +215,7 @@ public class NewmanSubmitter {
         FutureJob futureJob = getAndDeleteFutureJob();
         logger.info("submitting future job - " + futureJob);
         while (futureJob != null) {
-            Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID(), futureJob.getBuildID(),futureJob.getAuthor());
+            Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID(), futureJob.getConfigID(),futureJob.getAuthor());
             futureJobIds.add(futureJobWorker);
             futureJob = getAndDeleteFutureJob();
         }

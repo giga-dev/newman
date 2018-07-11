@@ -28,7 +28,7 @@ public class FutureJob {
     public FutureJob() {
     }
 
-    public FutureJob(String buildID, String buildName, String buildBranch, String suiteID, String suiteName, String author) {
+    public FutureJob(String buildID, String buildName, String buildBranch, String suiteID, String suiteName, String configID, String configName, String author) {
         this.buildID = buildID;
         this.buildName = buildName;
         this.buildBranch = buildBranch;
@@ -36,6 +36,8 @@ public class FutureJob {
         this.suiteName = suiteName;
         this.author = author;
         this.submitTime = new Date();
+        this.configID = configID;
+        this.configName = configName;
     }
 
     public String getSuiteID() {
