@@ -1,192 +1,230 @@
 module Views.CompareBuilds exposing (..)
 
-import Dict exposing (Dict)
 import Html exposing (..)
-import Html.Attributes exposing (action, class, id, list, method, name, style, type_, value)
-import Http
-import Json.Decode as JD
-import SelectTwo exposing (..)
-import SelectTwo.Html exposing (..)
-import SelectTwo.Types exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Utils.Types exposing (..)
+import Bootstrap.Form.Select as Select
+import Bootstrap.Button as Button
+import Bootstrap.Modal as Modal exposing (..)
+import Dict exposing (Dict)
 
 
 type alias Model =
-    { selectTwo : Maybe (SelectTwo Msg)
-    , test : Maybe String
-    , test4 : Maybe { id : Int, name : String }
+    { allBuilds : Builds
+    , oldBuildId : String
+    , newBuildId : String
+    , oldBuild : Maybe Build
+    , newBuild : Maybe Build
+    , oldSelected : Bool
+    , newerBuilds : Builds
+    , confirmationState : Modal.State
     }
-
-
-init : ( Model, Cmd Msg )
-init =
-    { selectTwo = Nothing
-    , test = Nothing
-    , test4 = Nothing
-    }
-        ! []
 
 
 type Msg
-    = Test (Maybe String)
-    | Test4 (Maybe { id : Int, name : String })
-    | SelectTwo (SelectTwoMsg Msg)
-    | Test4Ajax AjaxParams Bool
-    | Test4Res AjaxParams (Result Http.Error String)
+    = UpdateOldBuild String
+    | UpdateNewBuild String
+    | ClickCompareBuilds
+    | AcknowledgeDialog
+    | ModalMsg Modal.State
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    let
-        a =
-            Debug.log "compare builds update" msg
-    in
-    case msg of
-        SelectTwo stmsg ->
-            let
-                ajaxCases =
-                    Just
-                        (\id_ params reset ->
-                            case id_ of
-                                "test-4" ->
-                                    model ! [ SelectTwo.send <| Test4Ajax params reset ]
-
-                                _ ->
-                                    model ! []
-                        )
-            in
-            SelectTwo.update SelectTwo stmsg ajaxCases model
-
-        Test s ->
-            { model | test = s } ! []
-
-        Test4 s ->
-            let
-                a =
-                    Debug.log "compare builds update" msg
-            in
-            { model | test4 = s } ! []
-
-        Test4Ajax params reset ->
-            let
-                url =
-                    "//api.github.com/search/repositories"
-
-                buildUrl =
-                    let
-                        term =
-                            if params.term == "" then
-                                "test"
-                            else
-                                params.term
-                    in
-                    url ++ "?q=" ++ term ++ "&page=" ++ toString params.page
-            in
-            SelectTwo.setLoading params reset model ! [ sendAjax buildUrl (Test4Res params) ]
-
-        Test4Res params (Ok str) ->
-            let
-                ( list, newParams ) =
-                    processResult Test4 str params
-            in
-            SelectTwo.setList list newParams model ! []
-
-        Test4Res params (Err _) ->
-            model ! []
-
-
-sendAjax : String -> (Result Http.Error String -> Msg) -> Cmd Msg
-sendAjax url msg =
-    Http.getString url
-        |> Http.send msg
-
-
-main : Program Never Model Msg
-main =
-    program
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = subscriptions
-        }
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
+init : Builds -> Model
+init builds =
+    Model builds "" "" Nothing Nothing False builds Modal.hiddenState
 
 
 view : Model -> Html Msg
 view model =
-    div
-        [ style
-            [ ( "width", "100%" )
-            , ( "height", "100%" )
-            , ( "padding", "30px" )
-            , ( "font-size", "16px" )
-            ]
-        , select2Close SelectTwo
-        ]
-        [ select2Css
-        , h1 [] [ text "Examples of Elm Select2" ]
-        , p []
-            [ text "Ajax, Single Select"
-            , div []
-                [ select2 SelectTwo
-                    { defaults = [ model.test4 |> Maybe.map (\t -> ( Just (Test4 (Just t)), t.name, True )) |> Maybe.withDefault ( Nothing, "", True ) ]
-                    , ajax = True
-                    , delay = 300
-                    , id_ = "test-4"
-                    , parents = []
-                    , clearMsg = Just (\_ -> Test4 Nothing)
-                    , showSearch = True
-                    , width = "300px"
-                    , placeholder = "Select Test"
-                    , list = []
-                    , multiSelect = False
-                    , disabled = False
-                    , noResultsMessage = Just "YOU GET NOTHING! YOU LOSE GOODDAY SIR!"
-                    }
-                ]
-            ]
-        ]
+    let
+        chooseOldBuild data =
+            Select.item [ value data.id, selected <| model.oldBuildId == data.id ]
+                [ text <| data.name ++ " (" ++ data.branch ++ ")" ]
 
-
-processResult : (Maybe { id : Int, name : String } -> Msg) -> String -> AjaxParams -> ( List (GroupSelectTwoOption Msg), AjaxParams )
-processResult msg string params =
-    JD.decodeString
-        (JD.map2 (,)
-            (JD.at [ "items" ] (JD.list itemsDecoder))
-            (JD.field "total_count" JD.int)
-            |> JD.map
-                (\( items, total_count ) ->
-                    ( items |> List.map (\i -> ( Just i, i.name )) |> SelectTwo.basicSelectOptions msg
-                    , { params | more = params.page * 30 < total_count }
+        oldBuildSelect =
+            div []
+                [ Select.select
+                    [ Select.onChange UpdateOldBuild, Select.attrs [ style [ ( "width", "400px" ) ] ] ]
+                    ([ Select.item [ value "1" ] [ text "Select Old Build" ] ]
+                        ++ List.map chooseOldBuild model.allBuilds
                     )
-                )
-        )
-        string
-        |> Result.toMaybe
-        |> Maybe.withDefault ( [], params )
+                ]
+
+        chooseNewBuild data =
+            Select.item [ value data.id, selected <| model.newBuildId == data.id ]
+                [ text <| data.name ++ " (" ++ data.branch ++ ")" ]
+
+        newBuildSelect =
+            div []
+                [ Select.select
+                    [ Select.disabled (not model.oldSelected)
+                    , Select.onChange UpdateNewBuild
+                    , Select.attrs [ style [ ( "width", "400px" ) ] ]
+                    ]
+                    ([ Select.item [ value "1" ] [ text "Select New Build" ] ]
+                        ++ List.map chooseNewBuild model.newerBuilds
+                    )
+                ]
+    in
+        div []
+            [ div [ class "form-inline" ]
+                [ oldBuildSelect
+                , newBuildSelect
+                , div []
+                    [ Button.button
+                        [ Button.disabled ((model.oldBuild == Nothing) || (model.newBuild == Nothing))
+                        , Button.primary
+                        , Button.onClick ClickCompareBuilds
+                        ]
+                        [ text "Compare Changes" ]
+                    ]
+                ]
+            , viewDialog model ModalMsg AcknowledgeDialog
+            ]
 
 
-type alias Item =
-    { id : Int, name : String }
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        UpdateOldBuild build ->
+            case (maybeGetBuild model build) of
+                Just build ->
+                    ( { model
+                        | oldBuild = Just build
+                        , oldSelected = True
+                        , oldBuildId = build.id
+                        , newerBuilds = (onlyNewerBuilds model build)
+                      }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( { model
+                        | oldBuild = Nothing
+                        , oldBuildId = ""
+                        , newBuild = Nothing
+                        , newBuildId = ""
+                        , oldSelected = False
+                      }
+                    , Cmd.none
+                    )
+
+        UpdateNewBuild build ->
+            case (maybeGetBuild model build) of
+                Just build ->
+                    ( { model | newBuild = Just build, newBuildId = build.id }, Cmd.none )
+
+                Nothing ->
+                    ( { model | newBuild = Nothing, newBuildId = "" }, Cmd.none )
+
+        ClickCompareBuilds ->
+            ( { model | confirmationState = Modal.visibleState }, Cmd.none )
+
+        AcknowledgeDialog ->
+            ( { model | confirmationState = Modal.hiddenState }, Cmd.none )
+
+        ModalMsg newState ->
+            ( { model | confirmationState = newState }, Cmd.none )
 
 
-itemsDecoder : JD.Decoder Item
-itemsDecoder =
-    JD.map2 Item
-        (JD.field "id" JD.int)
-        (JD.field "name" JD.string)
+
+-- With a given buildId returns only builds which have buildTime greater or equal to given build --
+onlyNewerBuilds : Model -> Build -> List Build
+onlyNewerBuilds model newBuild =
+    List.filter (\build -> build.buildTime >= newBuild.buildTime) model.allBuilds
 
 
-testList : (Maybe String -> Msg) -> List ( String, List (SelectTwoOption Msg) )
-testList msg =
-    [ ( Just "a", "Harry Potter" )
-    , ( Just "b", "Ender's Game" )
-    , ( Just "c", "Dune" )
-    , ( Just "d", "Foundation" )
-    , ( Just "e", "Jurassic Park" )
-    ]
-        |> SelectTwo.basicSelectOptions msg
+
+-- get build from build id after selecting item from dropdown --
+maybeGetBuild : Model -> String -> Maybe Build
+maybeGetBuild model buildId =
+    case buildId of
+        "1" ->
+            Nothing
+
+        value ->
+            model.allBuilds
+                |> List.filter (\build -> build.id == value)
+                |> List.head
+
+
+
+-- view of dialog that appears when clicking on "Compare Changes" button --
+viewDialog : Model -> (State -> toMsg) -> toMsg -> Html toMsg
+viewDialog model toMsg confirmMsg =
+    let
+        errorModel =
+                Modal.config toMsg
+                    |> Modal.large
+                    |> Modal.h3 [] [ text "ERROR! Can't find OldBuild or NewBuild :(" ]
+                    |> Modal.footer []
+                        [ Button.button
+                            [ Button.outlinePrimary
+                            , Button.onClick <| toMsg Modal.hiddenState
+                            ]
+                            [ text "Close" ]
+                        ]
+                    |> Modal.view model.confirmationState
+
+    in
+        case model.oldBuild of
+                Just oldBuild ->
+                    case model.newBuild of
+                        Just newBuild ->
+                            Modal.config toMsg
+                                |> Modal.large
+                                |> Modal.h3 [] [ text ("Compare builds "
+                                                        ++ oldBuild.name
+                                                        ++ " ("
+                                                        ++ oldBuild.branch
+                                                        ++ ") and "
+                                                        ++ newBuild.name
+                                                        ++ " ("
+                                                        ++ newBuild.branch
+                                                        ++ ")") ]
+                                |> Modal.body [] [ li [ class "nav-item" ]
+                                                     [ a [ class "nav-link", href "https://www.kongcompany.com/products/for-dogs/rubber-toys/" ]
+                                                         [ text "puppy stuf" ]
+                                                     ]
+                                                 ]
+                                |> Modal.footer []
+                                    [ Button.button
+                                        [ Button.outlinePrimary
+                                        , Button.onClick <| toMsg Modal.hiddenState
+                                        ]
+                                        [ text "Close" ]
+                                    ]
+                                |> Modal.view model.confirmationState
+                        Nothing ->
+                            errorModel
+                Nothing ->
+                    errorModel
+
+--createUrls : Shas -> Shas -> List String
+--createUrls oldBuildShas newBuildShas =
+--        case (Dict.isEmpty oldBuildShas || Dict.isEmpty newBuildShas) of
+--            True ->
+--                []
+--            False ->
+--                Dict.map (case Dict.get k newBuildShas of
+--                                        Just newSha ->
+--                                            ("/compare/" ++ v ++ "..." ++ newSha)
+--                                        Nothing ->
+--                                            ""
+--                         ) oldBuildShas
+
+
+
+
+
+----------------- Links examples
+--li [class "nav-item" ]
+--[ a [class "nav-link", href "#" ]
+--[ text "Link" ]
+--,li [class "nav-item" ]
+-- [ a [class "nav-link active", href "#" ]
+-- [ text "Active" ]
+--,li [class "nav-item" ]
+-- [ a [class "nav-link disabled", href "#" ]
+-- [ text "Disabled" ]
