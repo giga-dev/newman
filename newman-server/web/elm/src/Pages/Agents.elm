@@ -3,6 +3,7 @@ module Pages.Agents exposing (..)
 import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Button as Button
 import Bootstrap.Form as Form
+import Bootstrap.Form.Checkbox as CheckBox
 import Bootstrap.Form.Input as FormInput
 import Bootstrap.Modal as Modal
 import Bootstrap.Progress as Progress exposing (..)
@@ -30,6 +31,7 @@ type alias Model =
     , agents : PaginatedAgents
     , pageSize : Int
     , query : String
+    , filterFailingAgents : Bool
     , confirmationState : Modal.State
     , agentToDrop : Maybe String
     }
@@ -48,6 +50,7 @@ type Msg
     | OnAgentDropConfirmed String
     | NewmanModalMsg Modal.State
     | RequestCompletedDropAgent String (Result Http.Error String)
+    | FilterFailingAgents Bool
 
 
 init : ( Model, Cmd Msg )
@@ -60,6 +63,7 @@ init =
       , agents = Paginate.fromList pageSize []
       , pageSize = pageSize
       , query = ""
+      , filterFailingAgents = False
       , confirmationState = Modal.hiddenState
       , agentToDrop = Nothing
       }
@@ -100,7 +104,7 @@ update msg model =
         FilterQuery query ->
             let
                 filteredList =
-                    List.filter (filterQuery query) model.allAgents
+                    List.filter (filterQuery query model.filterFailingAgents) model.allAgents
             in
             ( { model | query = query, agents = Paginate.fromList model.pageSize filteredList }
             , Cmd.none
@@ -126,6 +130,15 @@ update msg model =
         RequestCompletedDropAgent agentId result ->
             onRequestCompletedDropAgent agentId model result
 
+        FilterFailingAgents filterFailingAgents ->
+            let
+                filteredList =
+                    List.filter (filterQuery model.query filterFailingAgents) model.allAgents
+            in
+            ( { model | filterFailingAgents = filterFailingAgents, agents = Paginate.fromList model.pageSize filteredList }
+            , Cmd.none
+            )
+
 
 onRequestCompletedDropAgent : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
 onRequestCompletedDropAgent agentId model result =
@@ -144,7 +157,7 @@ updateAll f model =
             f model.allAgents
 
         filtered =
-            List.filter (filterQuery model.query) newList
+            List.filter (filterQuery model.query model.filterFailingAgents) newList
 
         newPaginated =
             Paginate.map (\_ -> filtered) model.agents
@@ -214,9 +227,12 @@ view model =
                         ++ nextButtons
                     )
                 ]
+
+        failingAgentsFilterButton =
+            CheckBox.custom [ CheckBox.inline, CheckBox.onCheck FilterFailingAgents ] "Failing agents only"
     in
     div [ class "container-fluid" ] <|
-        [ h2 [ class "text" ] [ text <| "Agents (" ++ (toString <| List.length model.allAgents) ++ ")" ]
+        [ h2 [ class "text" ] [ text <| "Agents (" ++ (toString <| Paginate.length model.agents) ++ ")" ]
         , div []
             [ div [ class "form-inline" ]
                 [ div [ class "form-group" ]
@@ -228,6 +244,7 @@ view model =
                     ]
                 , div [ class "form-group" ] [ pagination ]
                 ]
+            , div [] [ failingAgentsFilterButton ]
             , table [ class "table table-hover table-striped table-bordered table-condensed" ]
                 [ thead []
                     [ tr []
@@ -318,14 +335,9 @@ getAgents =
     Http.get "/api/newman/agent?all=true" decodeAgents
 
 
-filterQuery : String -> Agent -> Bool
-filterQuery query agent =
+filterQuery : String -> Bool -> Agent -> Bool
+filterQuery query filterFailingAgents agent =
     let
-        --        a =
-        --            Debug.log ("filtered agents with query " ++ query ++ ":") (toString filteredList ++ " agent: " ++ toString agent)
-        --
-        --        b =
-        --            Debug.log "filtering capabiliteis" (toString agent.capabilities)
         filteredList =
             List.filter (String.startsWith query) agent.capabilities
 
@@ -341,14 +353,14 @@ filterQuery query agent =
                     False
     in
     if
-        String.length query
-            == 0
+        (not filterFailingAgents || filterFailingAgents && agent.setupRetries > 0)
+        &&  (String.length query == 0
             || String.startsWith query agent.name
             || capabilitiesCheck
             || String.startsWith query agent.state
             || String.startsWith query agent.host
             || String.startsWith query agent.pid
-            || jobIdCheck
+            || jobIdCheck)
     then
         True
     else
