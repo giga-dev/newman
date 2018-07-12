@@ -200,7 +200,7 @@ public class NewmanAgent {
                     while ((test = findTest(jobExecutor.getJob())) != null) {
                         Test testResult = jobExecutor.run(test);
                         if(testResult.getStatus().equals(Test.Status.FAIL)){
-                            resubmitFailed(job, testResult);
+                            resubmitFailed(job.getId(), testResult);
                         }
                         reportTest(testResult);
                     }
@@ -221,7 +221,20 @@ public class NewmanAgent {
         }
     }
 
-    private void resubmitFailed(Job job, Test failedTest) {
+    private void resubmitFailed(String jobId, Test failedTest){
+        Job job = null;
+        try {
+            job = client.getJob(jobId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
+        if(job == null){
+            return;
+        }
         if(failedTest.getRunNumber() > 2 || job.getFailedTests() > 100){
             return;
         }
