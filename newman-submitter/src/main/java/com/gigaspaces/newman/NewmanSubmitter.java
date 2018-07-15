@@ -323,13 +323,14 @@ public class NewmanSubmitter {
         }
     }
 
-    //TODO - add logic!
+    //TODO - DEFAULT - defines the default configuration
     private JobConfig getConfigToSubmit() {
-        List<JobConfig> jobConfigs = null;
+
+        JobConfig jobConfig;
         try {
-            jobConfigs = newmanClient.getAllConfigs().toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            if(!jobConfigs.isEmpty()) {
-                return jobConfigs.get(0);
+            jobConfig = newmanClient.getConfig("DEFAULT").toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if(jobConfig != null) {
+                return jobConfig;
             }
             logger.warn("failed to find configuration in DB");
             return null;

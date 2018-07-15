@@ -1,11 +1,15 @@
-#!/bin/bash 
-JAVA_URL="http://hercules/javas/jdk-8u45-linux-x64.tar.gz"
-JAVA_FILENAME="jdk-8u45-linux-x64.tar.gz"
-JAVA_FOLDERNAME="jdk8u45"
+#!/bin/bash
+JAVA_URL="http://hercules/javas/<new_java_version>.tar.gz"
+JAVA_FILENAME="<new_java_version>.tar.gz"
+JAVA_FOLDERNAME="<new_java_version_short>"
 
-JAVA_URL="http://hercules/javas/jdk-9.0.4_linux-x64_bin.tar.gz"
-JAVA_FILENAME="jdk-9.0.4_linux-x64_bin.tar.gz"
-JAVA_FOLDERNAME="jdk904"
+#JAVA_URL="http://hercules/javas/jdk-8u45-linux-x64.tar.gz"
+#JAVA_FILENAME="jdk-8u45-linux-x64.tar.gz"
+#JAVA_FOLDERNAME="jdk8u45"
+
+#JAVA_URL="http://hercules/javas/jdk-9.0.4_linux-x64_bin.tar.gz"
+#JAVA_FILENAME="jdk-9.0.4_linux-x64_bin.tar.gz"
+#JAVA_FOLDERNAME="jdk904"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HOSTS_FILE="${DIR}/../../newman-hosts"
