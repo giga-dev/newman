@@ -7,7 +7,7 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
-import Utils.Types exposing (Test, TestId, decodeTest)
+import Utils.Types exposing (Test, TestId, decodeTest, TestStatus(..), testStatusToString)
 
 
 type alias Model =
@@ -51,17 +51,17 @@ viewTest test =
                 ]
 
         toBadge status =
-            case toTestStatus status of
-                RUNNING ->
+            case status of
+                TEST_RUNNING ->
                     Badge.badgeInfo
 
-                FAIL ->
+                TEST_FAIL ->
                     Badge.badgeDanger
 
-                SUCCESS ->
+                TEST_SUCCESS ->
                     Badge.badgeSuccess
 
-                PENDING ->
+                TEST_PENDING ->
                     Badge.badgeDanger
 
         logsRow =
@@ -105,7 +105,7 @@ viewTest test =
                     [ ]
 
         historyStatsClass =
-            if toTestStatus test.status == SUCCESS then
+            if test.status == TEST_SUCCESS then
                 "black-column"
             else if test.testScore <= 3 then
                 "red-column"
@@ -117,7 +117,7 @@ viewTest test =
 
 
         rows =
-            [ ( "Status", toBadge test.status [] [ text test.status ] )
+            [ ( "Status", toBadge test.status [] [ text (testStatusToString test.status) ] )
             , ( "Run Num", text (toString test.runNumber) )
             , ( "Id", text test.id )
             , ( "Job Id", text test.jobId )
@@ -159,27 +159,3 @@ getTestDataCmd testId =
         Http.get ("/api/newman/test/" ++ testId) decodeTest
 
 
-type TestStatus
-    = PENDING
-    | SUCCESS
-    | FAIL
-    | RUNNING
-
-
-toTestStatus : String -> TestStatus
-toTestStatus str =
-    case str of
-        "PENDING" ->
-            PENDING
-
-        "SUCCESS" ->
-            SUCCESS
-
-        "FAIL" ->
-            FAIL
-
-        "RUNNING" ->
-            RUNNING
-
-        _ ->
-            FAIL

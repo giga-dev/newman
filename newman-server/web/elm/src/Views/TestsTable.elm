@@ -19,7 +19,7 @@ import List.Extra as ListExtra
 import Paginate exposing (PaginatedList)
 import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
-import Utils.Types exposing (Test, decodeTest, RadioState(..))
+import Utils.Types exposing (Test, decodeTest, RadioState(..), TestStatus(..), testStatusToString)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
 
@@ -176,17 +176,17 @@ viewTest : Time -> Test -> Html Msg
 viewTest currTime test =
     let
         status =
-            case test.status |> toTestStatus of
-                RUNNING ->
+            case test.status of
+                TEST_RUNNING ->
                     Badge.badgeInfo
 
-                PENDING ->
+                TEST_PENDING ->
                     Badge.badge
 
-                SUCCESS ->
+                TEST_SUCCESS ->
                     Badge.badgeSuccess
 
-                FAIL ->
+                TEST_FAIL ->
                     Badge.badgeDanger
 
         durationText =
@@ -239,7 +239,7 @@ viewTest currTime test =
                     [ text "" ]
 
         historyStatsClass =
-            if toTestStatus test.status == SUCCESS then
+            if test.status == TEST_SUCCESS then
                 "black-column"
             else if test.testScore <= 3 then
                 "red-column"
@@ -251,7 +251,7 @@ viewTest currTime test =
     in
     tr []
         [ td [] [ a [ href <| "#test/" ++ test.id, title <| String.join "" test.arguments ] [ text <| toTestName test] ]
-        , td [] [ status [] [ text test.status ] ]
+        , td [] [ status [] [ text (testStatusToString test.status) ] ]
         , td [ class historyStatsClass ] historyStats
         , td [] [ a [ href <| "#test-history/" ++ test.id ] [ text "History" ] ]
         , td [] [ span [ title test.errorMessage ] [ text test.errorMessage ] ]
@@ -306,14 +306,14 @@ filterTests : Model -> String -> RadioState -> List Test
 filterTests model query filterState =
                 model.all
                     |> List.filter (filterQuery query)
-                    |> List.filter (filterByTestState filterState)
+                    |> List.filter (filterByTestStatus filterState)
 
-filterByTestState : RadioState ->  Test -> Bool
-filterByTestState currentState test =
+filterByTestStatus : RadioState ->  Test -> Bool
+filterByTestStatus currentState test =
     case currentState of
-        STATUS_RUNNING -> test.status == "RUNNING"
-        STATUS_SUCCESS -> test.status == "SUCCESS"
-        STATUS_FAIL -> test.status == "FAIL"
+        STATUS_RUNNING -> test.status == TEST_RUNNING
+        STATUS_SUCCESS -> test.status == TEST_SUCCESS
+        STATUS_FAIL -> test.status == TEST_FAIL
         STATUS_ALL -> True
 
 
@@ -352,7 +352,6 @@ filterQuery query test =
             == 0
             || String.startsWith query test.id
             || String.contains (String.toLower query) (String.toLower test.name)
-            || String.contains query test.status
             || String.contains query test.assignedAgent
     then
         True

@@ -15,7 +15,7 @@ type alias Job =
     { id : String
     , submitTime : Int
     , submittedBy : String
-    , state : String
+    , state : JobState
     , preparingAgents : List String
     , agents : List String
     , buildId : String
@@ -31,14 +31,6 @@ type alias Job =
     , endTime : Maybe Int
     , jobSetupLogs : Dict String String
     }
-
-
-type JobState
-    = READY
-    | RUNNING
-    | DONE
-    | PAUSED
-    | BROKEN
 
 
 type alias Build =
@@ -163,27 +155,35 @@ type RadioState
     | STATUS_FAIL
     | STATUS_ALL
 
-toJobState : String -> JobState
-toJobState str =
-    case str of
-        "RUNNING" ->
-            RUNNING
 
-        "DONE" ->
-            DONE
+type JobState
+    = READY
+    | RUNNING
+    | DONE
+    | PAUSED
+    | BROKEN
 
-        "PAUSED" ->
-            PAUSED
 
-        "BROKEN" ->
-            BROKEN
+jobStateToString : JobState -> String
+jobStateToString jState =
+                        case jState of
+                                READY -> "Ready"
+                                RUNNING -> "RUNNING"
+                                DONE -> "DONE"
+                                PAUSED -> "PAUSED"
+                                BROKEN -> "BROKEN"
 
-        "READY" ->
-            READY
 
-        _ ->
-            BROKEN
-
+decodeJobState : Decoder JobState
+decodeJobState =
+        string |> andThen (\str -> case str of
+                                        "READY" -> succeed READY
+                                        "RUNNING" -> succeed RUNNING
+                                        "DONE" -> succeed DONE
+                                        "PAUSED" -> succeed PAUSED
+                                        "BROKEN" -> succeed BROKEN
+                                        _ -> fail <| "unknown job state: " ++ str
+                           )
 
 decodeJob : Decoder Job
 decodeJob =
@@ -191,7 +191,7 @@ decodeJob =
         |> required "id" string
         |> required "submitTime" int
         |> required "submittedBy" string
-        |> required "state" string
+        |> required "state" decodeJobState
         |> required "preparingAgents" (list string)
         |> required "agents" (list string)
         |> requiredAt [ "build", "id" ] string
@@ -216,7 +216,7 @@ decodeJobView =
         |> required "id" string
         |> required "submitTime" int
         |> required "submittedBy" string
-        |> required "state" string
+        |> required "state" decodeJobState
         |> required "preparingAgents" (list string)
         |> optional "agents" (list string) []
         |> required "buildId" string
@@ -406,6 +406,30 @@ decodeSuiteWithCriteria =
 type alias TestId =
     String
 
+type TestStatus
+    = TEST_RUNNING
+    | TEST_SUCCESS
+    | TEST_FAIL
+    | TEST_PENDING
+
+testStatusToString : TestStatus -> String
+testStatusToString ts =
+            case ts of
+                 TEST_RUNNING -> "Running"
+                 TEST_SUCCESS -> "Success"
+                 TEST_FAIL -> "Fail"
+                 TEST_PENDING -> "Pending"
+
+decodeTestStatus : Decoder TestStatus
+decodeTestStatus =
+        string |>
+                andThen (\str -> case str of
+                                     "RUNNING" -> succeed TEST_RUNNING
+                                     "SUCCESS" -> succeed TEST_SUCCESS
+                                     "FAIL" -> succeed TEST_FAIL
+                                     "PENDING" -> succeed TEST_PENDING
+                                     _ -> fail ("unknown test state " ++ str)
+                        )
 
 type alias Test =
     { id : TestId
@@ -414,7 +438,7 @@ type alias Test =
     , arguments : List String
     , testType : String
     , timeout : Int
-    , status : String
+    , status : TestStatus
     , errorMessage : String
     , testScore : Int
     , historyStats : String
@@ -437,7 +461,7 @@ decodeTest =
         |> required "arguments" (list string)
         |> required "testType" string
         |> required "timeout" int
-        |> required "status" string
+        |> required "status" decodeTestStatus
         |> optional "errorMessage" string ""
         |> optional "testScore" int -1
         |> optional "historyStats" string ""
@@ -459,7 +483,7 @@ decodeTestView =
         |> required "arguments" (list string)
         |> optional "testType" string ""
         |> optional "timeout" int 0
-        |> required "status" string
+        |> required "status" decodeTestStatus
         |> optional "errorMessage" string ""
         |> optional "testScore" int -1
         |> optional "historyStats" string ""

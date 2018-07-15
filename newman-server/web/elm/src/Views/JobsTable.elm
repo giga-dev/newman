@@ -189,7 +189,7 @@ viewJob currTime job =
         jobState =
             let
                 badge =
-                    case job.state |> toJobState of
+                    case job.state of
                         BROKEN ->
                             Badge.badgeDanger
 
@@ -205,7 +205,7 @@ viewJob currTime job =
                         READY ->
                             Badge.badge
             in
-                badge [ class "newman-job-state-label" ] [ text job.state ]
+                badge [ class "newman-job-state-label" ] [ text <| jobStateToString job.state ]
 
         submittedTimeHourFull =
             Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat job.submitTime))
@@ -234,7 +234,7 @@ viewJob currTime job =
                         ""
 
         playPauseButton =
-            case toJobState job.state of
+            case job.state of
                 PAUSED ->
                     Button.button [ Button.success, Button.small, Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-play" ] [] ]
@@ -268,7 +268,7 @@ viewJob currTime job =
                     , Button.small
                     , Button.onClick <| OnClickJobDrop job.id
                     , Button.disabled <|
-                        not (List.member (toJobState job.state) [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0) && (List.length job.agents) <= 0)
+                        not (List.member job.state [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0) && (List.length job.agents) <= 0)
                     ]
                     [ span [ class "ion-close" ] [] ]
                 , text " "
@@ -335,7 +335,7 @@ update msg model =
         PauseAll ->
             ( model
             , Paginate.allItems model.jobs
-                |> List.filter (\job -> job.state == "RUNNING" || job.state == "READY")
+                |> List.filter (\job -> job.state == RUNNING || job.state == READY)
                 |> List.map .id
                 |> toggleJobsPauseCmd
             )
@@ -343,35 +343,13 @@ update msg model =
         ResumeAll ->
             ( model
             , Paginate.allItems model.jobs
-                |> List.filter (\job -> job.state == "PAUSED")
+                |> List.filter (\job -> job.state == PAUSED)
                 |> List.map .id
                 |> toggleJobsResumeCmd
             )
 
         ActionStateMsg state ->
             ( { model | actionState = state } , Cmd.none)
-
-
-toJobState : String -> JobState
-toJobState str =
-    case str of
-        "RUNNING" ->
-            RUNNING
-
-        "DONE" ->
-            DONE
-
-        "PAUSED" ->
-            PAUSED
-
-        "BROKEN" ->
-            BROKEN
-
-        "READY" ->
-            READY
-
-        _ ->
-            BROKEN
 
 
 filterQuery : String -> Job -> Bool

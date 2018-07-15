@@ -103,7 +103,7 @@ viewHeader model job =
         stateRow =
             let
                 badge =
-                    case job.state |> toJobState of
+                    case job.state of
                         BROKEN ->
                             Badge.badgeDanger
 
@@ -121,7 +121,7 @@ viewHeader model job =
             in
             viewRow
                 ( "State"
-                , badge [] [ text job.state ]
+                , badge [] [ text <| jobStateToString job.state ]
                 )
 
         testsStatus =
