@@ -367,6 +367,32 @@ public class NewmanSuiteSubmitter {
         }
     }
 
+    public void manualSubmitI9ESgtestCLI() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            //suite.setName("i9e-sgtest");
+            suite.setName("i9e-sgtest-cli");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,SUITE_SUB_TYPE=i9e-sgtest,THREADS_LIMIT=1,CUSTOM_SETUP_TIMEOUT=1800000");
+            // TODO note - if set is empty, mongodb will NOT write that filed to DB
+            String Requirements = "DOCKER,LINUX";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(PatternCriteria.containsCriteria("test.manager.cli")),
+                    CriteriaBuilder.exclude(PatternCriteria.containsCriteria("test.manager.cli.security.FailedSecuredHostListCliTest")),
+                    TestCriteria.createCriteriaByTestType("sgtest")
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        }
+        finally {
+            newmanClient.close();
+        }
+    }
+
     public void manualSubmitI9ESgtest() throws Exception {
         NewmanClient newmanClient = getNewmanClient();
         try {
