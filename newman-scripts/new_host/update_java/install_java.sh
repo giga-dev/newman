@@ -31,10 +31,18 @@ for i in $(seq 0 $END); do
 	echo $host
 
 	# sshpass -p password ssh xap@$host -C "mkdir -p ~/software/java && cd ~/software/java && ln -s /opt/jdk1.8.0_144 current"
-#	sshpass -p password ssh xap@$host -C "mkdir -p ~/software/java && cd ~/software/java && rm -rf temp ${JAVA_FOLDERNAME} && mkdir temp && rm -rf ${JAVA_FILENAME}* && wget -q ${JAVA_URL} && tar -zxf ${JAVA_FILENAME} -C temp && mv temp/* temp/${JAVA_FOLDERNAME} && mv temp/${JAVA_FOLDERNAME} . && ln -nfs ${JAVA_FOLDERNAME} current && rm -rf temp"
-#  sshpass -p password ssh xap@$host -C "cd /opt && sudo ln -nfs /home/xap/software/java/jdk904 jdk-9.0.4"
+
+#  sshpass -p password ssh -o StrictHostKeyChecking=no xap@$host -C "mkdir -p ~/software/java && cd ~/software/java && rm -rf temp ${JAVA_FOLDERNAME} && mkdir temp && rm -rf ${JAVA_FILENAME}* && wget -q ${JAVA_URL} && tar -zxf ${JAVA_FILENAME} -C temp && mv temp/* temp/${JAVA_FOLDERNAME} && mv temp/${JAVA_FOLDERNAME} . && rm -rf temp"
+#sshpass -p password ssh -o StrictHostKeyChecking=no  xap@$host -C "cd /opt ; sudo ln -nfs /home/xap/software/java/${JAVA_FOLDERNAME} <JDK_name>"
+
+#  sshpass -p password ssh -o StrictHostKeyChecking=no  xap@$host -C "cd /opt && sudo ln -nfs /home/xap/software/java/jdk904 jdk-9.0.4"
+
+
+
+  sshpass -p password ssh -o StrictHostKeyChecking=no  xap@$host -C "cd /opt && ls"
+
  
- sshpass -p password ssh -o StrictHostKeyChecking=no xap@$host -C "cd /home/xap/software/java && sudo ln -nfs /home/xap/software/java/jdk8u45 current"
+# sshpass -p password ssh -o StrictHostKeyChecking=no xap@$host -C "cd /home/xap/software/java && sudo ln -nfs /home/xap/software/java/jdk8u45 current"
 
 #	sshpass -p password ssh xap@$host -C "sudo sed -i \"s/export JAVA_HOME=.*/export JAVA_HOME=\/home\/xap\/software\/java\/current/\" /etc/bashrc && sudo reboot"
 	success=$?

@@ -323,7 +323,7 @@ public class NewmanSubmitter {
         }
     }
 
-    //TODO - DEFAULT - defines the default configuration
+    //"DEFAULT"- defines the default configuration
     private JobConfig getConfigToSubmit() {
 
         JobConfig jobConfig;

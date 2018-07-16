@@ -221,7 +221,6 @@ viewJob currTime job =
                     Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY), Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
 
-        aaaaa = Debug.log "MyLogger" job.jobConfigName
     in
     tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
         [ td [] [ jobState ]

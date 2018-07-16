@@ -649,19 +649,18 @@ public class NewmanResource {
                 throw new BadRequestException("invalid build id in create FutureJob: " + buildId);
             }
         }
+        if (configId != null) {
+            jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(configId));
+            if (jobConfig == null) {
+                throw new BadRequestException("invalid config id in create FutureJob: " + configId);
+            }
+        }
         List<FutureJob> response = new ArrayList<FutureJob>();
         if (!suites.isEmpty()) {
             for (String suiteId : suites) {
                 Suite suite = suiteDAO.findOne(suiteDAO.createIdQuery(suiteId));
                 if (suite == null) {
                     throw new BadRequestException("invalid suite id in create FutureJob: " + suiteId);
-                }
-
-                if (configId != null) {
-                    jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(configId));
-                    if (jobConfig == null) {
-                        throw new BadRequestException("invalid config id in create FutureJob: " + configId);
-                    }
                 }
 
                 //noinspection ConstantConditions

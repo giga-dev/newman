@@ -506,7 +506,6 @@ update msg model =
                                 , Builds.handleEvent ev |> Cmd.map BuildsMsg
                                 , Suites.handleEvent ev |> Cmd.map SuitesMsg
                                 , JobConfigs.handleEvent ev |> Cmd.map JobConfigsMsg
---                                , NewJobConfig.handleEvent ev |> Cmd.map NewJobConfigMsg
                                 , Home.handleEvent ev |> Cmd.map HomeMsg
                                 ]
 
