@@ -325,10 +325,10 @@ public class NewmanSubmitter {
 
     //"DEFAULT"- defines the default configuration
     private JobConfig getConfigToSubmit() {
-
+        String jobConfigFromFile = properties.get("main").fetch("JOB_CONFIG_DEFAULT");
         JobConfig jobConfig;
         try {
-            jobConfig = newmanClient.getConfig("DEFAULT").toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            jobConfig = newmanClient.getConfig(jobConfigFromFile).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if(jobConfig != null) {
                 return jobConfig;
             }
