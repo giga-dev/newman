@@ -23,15 +23,11 @@ import java.util.concurrent.*;
 
 public class NewmanSubmitter {
 
-    private static final String NEWMAN_HOST = "NEWMAN_HOST";
-    private static final String NEWMAN_PORT = "NEWMAN_PORT";
-    private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
-    private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
     private static final String NEWMAN_SUITES_FILE_LOCATION = "NEWMAN_SUITES_FILE_LOCATION";
     private static final int MAX_THREADS = 20;
     private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
     private static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
-    public static final int DEFAULT_TIMEOUT_SECONDS = 60;
+    public static final int DEFAULT_TIMEOUT_SECONDS = NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS;
     private static final String RETRY_MINS_INTERVAL_ON_SUSPENDED = "RETRY_MINS_INTERVAL_ON_SUSPENDED";
     private static final int DEFAULT_RETRY_MINS_INTERVAL_ON_SUSPENDED = 1;
     // modes = FORCE, REGULAR
@@ -71,10 +67,10 @@ public class NewmanSubmitter {
 
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, TimeoutException {
         // connection arguments
-        String host = EnvUtils.getEnvironment(NEWMAN_HOST, logger);
-        String port = EnvUtils.getEnvironment(NEWMAN_PORT, logger);
-        String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, logger);
-        String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, logger);
+        String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, logger);
+        String port = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PORT, logger);
+        String username = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_USER_NAME, logger);
+        String password = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PASSWORD, logger);
 
         properties = new Ini(new File(EnvUtils.getEnvironment(NEWMAN_SUITES_FILE_LOCATION, logger)));
 
@@ -101,7 +97,7 @@ public class NewmanSubmitter {
             }
 
             if (mode.equals("NIGHTLY") && isNightlyRequired()) {
-                submitJobs(getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(), mode);
+                submitJobs(getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(),getConfigToSubmit(), mode);
                 properties.get("main").put("LAST_NIGHTLY_RUN", DateTimeFormatter.ofPattern("yyy/MM/dd").format(LocalDate.now()));
                 properties.store();
                 return 0;
@@ -122,7 +118,7 @@ public class NewmanSubmitter {
                 if (buildToRun != null) {
                     int numOfRunningJobs = Integer.parseInt(newmanClient.hasRunningJobs().toCompletableFuture().get());
                     if (numOfRunningJobs == 0) {
-                        submitJobs(buildToRun, getDailySuiteToSubmit(), mode);
+                        submitJobs(buildToRun, getDailySuiteToSubmit(),getConfigToSubmit(), mode);
                     }
                 }
                 return 0;
@@ -167,13 +163,13 @@ public class NewmanSubmitter {
         }
     }
 
-    private void submitJobs(Build buildToRun, List<String> suitesId, String mode) throws ExecutionException, InterruptedException {
+    private void submitJobs(Build buildToRun, List<String> suitesId, JobConfig jobConfig, String mode) throws ExecutionException, InterruptedException {
         List<Future<String>> submitted = new ArrayList<>();
         logger.info("build to run - name:[{}], id:[{}], branch:[{}], tags:[{}], mode:[{}].", buildToRun.getName(), buildToRun.getId(), buildToRun.getBranch(), buildToRun.getTags(), mode);
         // Submit jobs for suites
         try {
             for (String suiteId : filterSuites(suitesId, buildToRun.getId())) {
-                submitted.add(submitJobsByThreads(suiteId, buildToRun.getId(), username));
+                submitted.add(submitJobsByThreads(suiteId, buildToRun.getId(), jobConfig.getId(), username));
             }
         } catch (Exception ignored) {
             logger.error("could not submit job. build id- [" + buildToRun + "] on branch :[" + buildToRun.getBranch() + "]", ignored);
@@ -219,14 +215,14 @@ public class NewmanSubmitter {
         FutureJob futureJob = getAndDeleteFutureJob();
         logger.info("submitting future job - " + futureJob);
         while (futureJob != null) {
-            Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID(), futureJob.getAuthor());
+            Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID(), futureJob.getConfigID(),futureJob.getAuthor());
             futureJobIds.add(futureJobWorker);
             futureJob = getAndDeleteFutureJob();
         }
         return futureJobIds;
     }
 
-    private Future<String> submitJobsByThreads(String suiteId, String buildId, String author) {
+    private Future<String> submitJobsByThreads(String suiteId, String buildId, String configId, String author) {
         return workers.submit(() -> {
             Suite suite;
             try {
@@ -234,7 +230,7 @@ public class NewmanSubmitter {
                 if (suite == null) {
                     throw new IllegalArgumentException("job suite with id: " + suiteId + " does not exists");
                 }
-                final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
+                final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password);
 
                 String jobId = jobSubmitter.submitJob(author);
                 logger.info("submitted job ");
@@ -323,6 +319,24 @@ public class NewmanSubmitter {
 
         } catch (Exception e) {
             logger.error("failed to get build to run: {}, tags: {}, mode: {}, exception: {}", branch, tags, mode, e);
+            return null;
+        }
+    }
+
+    //"DEFAULT"- defines the default configuration
+    private JobConfig getConfigToSubmit() {
+
+        JobConfig jobConfig;
+        try {
+            jobConfig = newmanClient.getConfig("DEFAULT").toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if(jobConfig != null) {
+                return jobConfig;
+            }
+            logger.warn("failed to find configuration in DB");
+            return null;
+
+        } catch (Exception e) {
+            logger.error("failed to find configuration in DB ",e);
             return null;
         }
     }

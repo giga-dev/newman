@@ -51,6 +51,9 @@ public class Job {
     @Embedded
     private Map<String, String> jobSetupLogs;
 
+    @Embedded(concreteClass = JobConfig.class)
+    private JobConfig jobConfig;
+
     public Job() {
         state = State.READY;
     }
@@ -191,24 +194,39 @@ public class Job {
         this.jobSetupLogs = jobSetupLogs;
     }
 
+    public JobConfig getJobConfig() {
+        return jobConfig;
+    }
+
+    public void setJobConfig(JobConfig jobConfig) {
+        this.jobConfig = jobConfig;
+    }
+
+
+
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
-                .append("id", id)
-                .append("build", build)
-                .append("suite", suite)
-                .append("submitTime", submitTime)
-                .append("startTime", startTime)
-                .append("endTime", endTime)
-                .append("testURI", testURI)
-                .append("submittedBy", submittedBy)
-                .append("state", state)
-                .append("totalTests", totalTests)
-                .append("passedTests", passedTests)
-                .append("failedTests", failedTests)
-                .append("runningTests", runningTests)
-                .append("preparingAgents", preparingAgents)
-                .toString();
+        return "Job{" +
+                "id='" + id + '\'' +
+                ", build=" + build +
+                ", suite=" + suite +
+                ", submitTime=" + submitTime +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", testURI=" + testURI +
+                ", submittedBy='" + submittedBy + '\'' +
+                ", state=" + state +
+                ", totalTests=" + totalTests +
+                ", passedTests=" + passedTests +
+                ", failedTests=" + failedTests +
+                ", runningTests=" + runningTests +
+                ", startPrepareTime=" + startPrepareTime +
+                ", lastTimeZombie=" + lastTimeZombie +
+                ", preparingAgents=" + preparingAgents +
+                ", agents=" + agents +
+                ", jobSetupLogs=" + jobSetupLogs +
+                ", jobConfig=" + jobConfig +
+                '}';
     }
 
     public Set<String> getAgents() {

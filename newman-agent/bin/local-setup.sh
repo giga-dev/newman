@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-export SUITE_ID=59f25af7b3859424cac590b5
-export BUILD_ID=5b03e626b385946642ec861f
+export SUITE_ID=55b0affe29f67f34809c6c7b
+export BUILD_ID=5798bfae29f67f02db5d290a
+export CONFIG_ID=fgdfj
 
 export SUITE_TYPE=sgtest
 export SGTEST_DIR=~/sgtest

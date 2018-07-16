@@ -20,6 +20,8 @@ public class JobView {
     private String buildBranch;
     private String suiteId;
     private String suiteName;
+    private String jobConfigId;
+    private String jobConfigName;
 
     private Date submitTime;
     private Date startTime;
@@ -46,6 +48,12 @@ public class JobView {
         if( suite != null ) {
             suiteId = suite.getId();
             suiteName = suite.getName();
+        }
+
+        JobConfig jobConfig = job.getJobConfig();
+        if(jobConfig !=null){
+            jobConfigId=jobConfig.getId();
+            jobConfigName = jobConfig.getName();
         }
 
         submitTime = job.getSubmitTime();
@@ -197,6 +205,21 @@ public class JobView {
         this.suiteName = suiteName;
     }
 
+    public String getJobConfigId() {
+        return jobConfigId;
+    }
+
+    public void setJobConfigId(String jobConfigId) {
+        this.jobConfigId = jobConfigId;
+    }
+
+    public String getJobConfigName() {
+        return jobConfigName;
+    }
+
+    public void setJobConfigName(String jobConfigName) {
+        this.jobConfigName = jobConfigName;
+    }
 
     @Override
     public String toString() {

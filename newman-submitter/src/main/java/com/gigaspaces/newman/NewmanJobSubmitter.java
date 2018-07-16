@@ -4,6 +4,7 @@ package com.gigaspaces.newman;
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.beans.criteria.CriteriaEvaluator;
+import com.gigaspaces.newman.utils.EnvUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -37,12 +38,14 @@ public class NewmanJobSubmitter {
     private NewmanClient newmanClient;
     private String buildId;
     private String suiteId;
+    private String configId;
 
 
-    public NewmanJobSubmitter(String suiteId, String buildId, String host, String port, String username, String password){
+    public NewmanJobSubmitter(String suiteId, String buildId, String configId, String host, String port, String username, String password){
 
         this.buildId = buildId;
         this.suiteId = suiteId;
+        this.configId = configId;
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         try {
@@ -58,7 +61,7 @@ public class NewmanJobSubmitter {
 
             ServerStatus serverStatus;
             try {
-                serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
                 logger.error("can't get server status. exception: {}" , e);
                 throw  e;
@@ -70,7 +73,7 @@ public class NewmanJobSubmitter {
 
             Suite suite = null;
             try {
-                suite = newmanClient.getSuite(suiteId).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                suite = newmanClient.getSuite(suiteId).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
                 logger.error("can't get suite to submit. exception: {}" , e);
                 throw  e;
@@ -80,7 +83,7 @@ public class NewmanJobSubmitter {
             }
             Build build = null;
             try{
-                build = newmanClient.getBuild(buildId).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                build = newmanClient.getBuild(buildId).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             }
             catch (TimeoutException e){
                 logger.error("can't get build to submit. exception: {}" , e);
@@ -90,9 +93,21 @@ public class NewmanJobSubmitter {
                 throw new IllegalArgumentException("build with id: " + buildId + " does not exists");
             }
 
+            JobConfig jobConfig;
+            try{
+                jobConfig = newmanClient.getConfigById(configId).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            }
+            catch (TimeoutException e){
+                logger.error("can't get config to submit. exception: {}" , e);
+                throw  e;
+            }
+            if (jobConfig == null) {
+                throw new IllegalArgumentException("jobConfig with id: " + configId + " does not exists");
+            }
+
             validateUris(build.getTestsMetadata()); // throws exception if URI not exists
 
-            Job job = addJob(newmanClient, suiteId, buildId, author);
+            Job job = addJob(newmanClient, suiteId, buildId, configId, author);
             logger.info("added a new job {}", job);
             Collection<URI> testsMetadata = build.getTestsMetadata();
 
@@ -131,22 +146,24 @@ public class NewmanJobSubmitter {
     }
 
 
-    private Job addJob(NewmanClient client, String suiteId, String buildId, String author) throws ExecutionException, InterruptedException, TimeoutException {
+    private Job addJob(NewmanClient client, String suiteId, String buildId, String configId, String author) throws ExecutionException, InterruptedException, TimeoutException {
         JobRequest jobRequest = new JobRequest();
         jobRequest.setBuildId(buildId);
         jobRequest.setSuiteId(suiteId);
+        jobRequest.setConfigId(configId);
         jobRequest.setAuthor(author);
+
         try {
-            return client.createJob(jobRequest).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            return client.createJob(jobRequest).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
-            logger.error("can't create job: suiteId: [{}], buildId:[{}]. exception: {}", suiteId, buildId, e);
+            logger.error("can't create job: suiteId: [{}], buildId:[{}], configId: [{}]. exception: {}", suiteId, buildId,configId, e);
             throw e;
         }
     }
 
     private void addTests(List<Test> tests, NewmanClient client) throws ExecutionException, InterruptedException, TimeoutException {
         try {
-            client.createTests(tests).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS * 5, TimeUnit.SECONDS);
+            client.createTests(tests).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS * 5, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             logger.error("can't create tests. exception: {}", e);
             throw e;
@@ -172,23 +189,47 @@ public class NewmanJobSubmitter {
         }
     }
 
-    //0- suiteId, 1-buildId, 2-host, 3- port, 4- user, 5- password
-    public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException, IOException, ExecutionException, InterruptedException, ParseException, TimeoutException {
+    //0- suiteId, 1-buildId, 2-configId, 3-host, 4- port, 5- user, 6- password
+    public static void main(String[] args) throws Exception {
 
-        if (args.length != 6){
-            logger.error("Usage: java -cp newman-submitter-1.0.jar com.gigaspaces.newman.NewmanJobSubmitter <suiteid> <buildId>" +
+//        testSubmitterFromIntelliJ();
+
+        testSubmitterUsingArgs(args);
+    }
+
+    private static void testSubmitterFromIntelliJ() throws Exception {
+        String suiteId = "59f25af7b3859424cac590b7";
+        String buildId = "5b3b5bdd6155569e6d275783";
+        String configId = "5b39e50be3a47721a0580aba";
+        String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, true /*required*/, logger);
+        String port = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PORT, true /*required*/, logger);
+        String username = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_USER_NAME, true /*required*/, logger);
+        String password = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PASSWORD, true /*required*/, logger);
+
+        NewmanJobSubmitter submitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password);
+
+        final String jobId = submitter.submitJob(username);
+
+        logger.info("Submitted a new job with id {}", jobId);
+    }
+
+    //0- suiteId, 1-buildId, 2-configId, 3-host, 4- port, 5- user, 6- password
+    private static void testSubmitterUsingArgs(String[] args) throws Exception{
+        if (args.length != 7){
+            logger.error("Usage: java -cp newman-submitter-1.0.jar com.gigaspaces.newman.NewmanJobSubmitter <suiteid> <buildId> <configId>" +
                     " <newmanServerHost> <newmanServerPort> <newmanUser> <newmanPassword>");
             System.exit(1);
         }
         //TODO validate arguments
         String suiteId = args[0];
         String buildId = args[1];
-        String host = args[2];
-        String port = args[3];
-        String username = args[4];
-        String password = args[5];
+        String configId = args[2];
+        String host = args[3];
+        String port = args[4];
+        String username = args[5];
+        String password = args[6];
 
-        NewmanJobSubmitter submitter = new NewmanJobSubmitter(suiteId, buildId, host, port, username, password);
+        NewmanJobSubmitter submitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password);
 
         final String jobId = submitter.submitJob(username);
 

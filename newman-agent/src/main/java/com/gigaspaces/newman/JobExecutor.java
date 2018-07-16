@@ -197,6 +197,10 @@ public class JobExecutor {
         String customVariableString = job.getSuite() != null ? job.getSuite().getCustomVariables() : null;
         Map<String, String> customVariables = Suite.parseCustomVariables(customVariableString);
         injectBuildBranch(customVariables);
+
+        //Added job configuration to the custom variables to be passed to the xap
+        customVariables.put("JAVA_VERSION",job.getJobConfig().getJavaVersion().getName());
+
         return customVariables;
     }
 

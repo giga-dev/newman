@@ -11,6 +11,7 @@ import java.util.List;
 public class FutureJobsRequest {
 
     private String buildId;
+    private String configId;
     private List<String> suites;
 
     public FutureJobsRequest() {
@@ -32,12 +33,20 @@ public class FutureJobsRequest {
         this.suites = suites;
     }
 
+    public String getConfigId() {
+        return configId;
+    }
+
+    public void setConfigId(String configId) {
+        this.configId = configId;
+    }
 
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
                 .append("buildId", buildId)
                 .append("suites", suites)
+                .append("configId",configId)
                 .toString();
     }
 }

@@ -147,6 +147,7 @@ viewTable model currTime =
                         , th [ class "job-tests-progress" ] [ text "Progess" ]
                         , th [ widthPct "12%" ] [ text "Job Id" ]
                         , th [ widthPct "10%" ] [ text "Suite" ]
+                        , th [ widthPct "10%" ] [ text "Job Configuration" ]
                         , th [ widthPct "6%" ] [ text "Duration" ]
                         , th [ widthPct "6%" ] [ text "Submitted At" ]
                         , th [ widthPct "12%" ] [ text "Build" ]
@@ -242,12 +243,14 @@ viewJob currTime job =
                 state ->
                     Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY), Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
+
     in
         tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
             [ td [] [ jobState ]
             , td [] [ progress ]
             , td [] [ a [ href <| "#job/" ++ job.id, title job.id ] [ text job.id ] ]
             , td [ title job.suiteName ] [ text job.suiteName ]
+            , td [ title job.jobConfigName ] [ text job.jobConfigName ]
             , td [] [ text durationText ]
             , td [ title submittedTimeHourFull ] [ text submittedTimeHour ]
             , td [] [ a [ href <| "#build/" ++ job.buildId, title <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] ]
@@ -361,6 +364,7 @@ filterQuery query job =
             || String.startsWith query job.buildName
             || String.contains query job.suiteName
             || String.contains query job.submittedBy
+            || String.contains query job.jobConfigName
     then
         True
     else

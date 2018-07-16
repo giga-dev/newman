@@ -65,6 +65,7 @@ public class NewmanResource {
     public static final String MODIFIED_AGENT = "modified-agent";
     public static final String CREATED_BUILD = "created-build";
     public static final String CREATED_SUITE = "created-suite";
+    public static final String CREATED_JOB_CONFIG = "created-job-config";
     public static final String MODIFIED_SUITE = "modified-suite";
     public static final String CREATE_FUTURE_JOB = "created-future-job";
     public static final String DELETED_FUTURE_JOB = "deleted-future-job";
@@ -76,6 +77,7 @@ public class NewmanResource {
     private final BuildDAO buildDAO;
     private final AgentDAO agentDAO;
     private final SuiteDAO suiteDAO;
+    private final JobConfigDAO jobConfigDAO;
     private final FutureJobDAO futureJobDAO;
     private final BuildsCacheDAO buildsCacheDAO;
     private final Config config;
@@ -123,6 +125,7 @@ public class NewmanResource {
         suiteDAO = new SuiteDAO(morphia, mongoClient, config.getMongo().getDb());
         futureJobDAO = new FutureJobDAO(morphia, mongoClient, config.getMongo().getDb());
         buildsCacheDAO = new BuildsCacheDAO(morphia, mongoClient, config.getMongo().getDb());
+        jobConfigDAO = new JobConfigDAO(morphia, mongoClient, config.getMongo().getDb());
 
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         MongoCollection testCollection = db.getCollection("Test");
@@ -435,7 +438,7 @@ public class NewmanResource {
     }
 
     private void addRequiredJobTableColumns(Query<Job> query) {
-        query.retrievedFields(true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name",
+        query.retrievedFields(true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name", "jobConfig.id", "jobConfig.name",
                 "submitTime", "startTime", "endTime", "testURI", "submittedBy", "state", "totalTests",
                 "passedTests", "failedTests", "runningTests", "preparingAgents");
     }
@@ -545,7 +548,9 @@ public class NewmanResource {
         checkServerStatus();
 
         Build build = buildDAO.findOne(buildDAO.createIdQuery(jobRequest.getBuildId()));
+        JobConfig jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(jobRequest.getConfigId()));
         Suite suite = null;
+
         if (jobRequest.getSuiteId() != null) {
             suite = suiteDAO.findOne(suiteDAO.createIdQuery(jobRequest.getSuiteId()));
         }
@@ -560,6 +565,9 @@ public class NewmanResource {
             job.setState(State.READY);
             job.setSubmitTime(new Date());
             job.setSubmittedBy(jobRequest.getAuthor());
+            if(jobConfig !=null) {
+                job.setJobConfig(jobConfig);
+            }
             jobDAO.save(job);
             UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.totalJobs")
                     .inc("buildStatus.pendingJobs")
@@ -576,11 +584,12 @@ public class NewmanResource {
     }
 
     @POST
-    @Path("futureJob/{buildId}/{suiteId}")
+    @Path("futureJob/{buildId}/{suiteId}/{configId}")
     @Produces(MediaType.APPLICATION_JSON)
     public FutureJob createFutureJob(
             @PathParam("buildId") String buildId,
             @PathParam("suiteId") String suiteId,
+            @PathParam("configId") String configId,
             @QueryParam("author") String authorOpt,
             @Context SecurityContext sc) {
         checkServerStatus();
@@ -588,6 +597,7 @@ public class NewmanResource {
         String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
         Build build = null;
         Suite suite = null;
+        JobConfig jobConfig = null;
 
         if (buildId != null) {
             build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
@@ -601,9 +611,15 @@ public class NewmanResource {
                 throw new BadRequestException("invalid suite id in create FutureJob: " + suiteId);
             }
         }
+        if (configId != null) {
+            jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(configId));
+            if (jobConfig == null) {
+                throw new BadRequestException("invalid config id in create FutureJob: " + configId);
+            }
+        }
 
         //noinspection ConstantConditions
-        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), author);
+        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(),jobConfig.getId(),jobConfig.getName(), author);
 
         futureJobDAO.save(futureJob);
         broadcastMessage(CREATE_FUTURE_JOB, futureJob);
@@ -622,13 +638,21 @@ public class NewmanResource {
 
         String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
         Build build = null;
+        JobConfig jobConfig = null;
         List<String> suites = futureJobsRequest.getSuites();
         String buildId = futureJobsRequest.getBuildId();
+        String configId = futureJobsRequest.getConfigId();
 
         if (buildId != null) {
             build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
             if (build == null) {
                 throw new BadRequestException("invalid build id in create FutureJob: " + buildId);
+            }
+        }
+        if (configId != null) {
+            jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(configId));
+            if (jobConfig == null) {
+                throw new BadRequestException("invalid config id in create FutureJob: " + configId);
             }
         }
         List<FutureJob> response = new ArrayList<FutureJob>();
@@ -640,7 +664,7 @@ public class NewmanResource {
                 }
 
                 //noinspection ConstantConditions
-                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), author);
+                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), jobConfig.getId(),jobConfig.getName(),author);
                 response.add(futureJob);
 
                 futureJobDAO.save(futureJob);
@@ -2282,6 +2306,67 @@ public class NewmanResource {
         }
 
         return new Batch<>(suiteViews, offset, limit, all, orderBy, uriInfo);
+    }
+
+    @POST
+    @Path("job-config")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public JobConfig addJobConfig(JobConfig jobConfig) {
+        jobConfigDAO.save(jobConfig);
+        logger.info("---addJobConfig---" + jobConfig);
+        broadcastMessage(CREATED_JOB_CONFIG, jobConfig);
+        return jobConfig;
+    }
+
+    @GET
+    @Path("job-config-by-id/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public JobConfig getJobConfigById(final @PathParam("id") String id) {
+        JobConfig jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(id));
+        return jobConfig;
+    }
+
+    @GET
+    @Path("job-config/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public JobConfig getJobConfigByName(final @PathParam("name") String name) {
+        JobConfig jobConfig = jobConfigDAO.findOne(jobConfigDAO.createQuery().field("name").equal(name));
+        return jobConfig;
+    }
+
+    @GET
+    @Path("job-config")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<JobConfig> getAllJobConfig() {
+
+        List<JobConfig> jobConfigs = jobConfigDAO.find(jobConfigDAO.createQuery()).asList();
+
+        return jobConfigs;
+    }
+
+    @POST
+    @Path("job-config-from-gui")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public JobConfig addJobConfig(@QueryParam("name") String name,@QueryParam("javaVersion") String javaVersion) {
+        JobConfig jobConfig = new JobConfig();
+        jobConfig.setJavaVersion(JavaVersion.valueOf(javaVersion));
+        jobConfig.setName(name);
+
+        jobConfigDAO.save(jobConfig);
+
+        return jobConfig;
+    }
+
+    @GET
+    @Path("java-versions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<JavaVersion> getAllJavaVersions() {
+
+        List<JavaVersion> javaVersions = Arrays.asList( JavaVersion.values());
+
+        return javaVersions;
     }
 
     /**

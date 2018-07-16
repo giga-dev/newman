@@ -23,6 +23,8 @@ type alias Job =
     , buildBranch : String
     , suiteId : String
     , suiteName : String
+    , jobConfigId : String
+    , jobConfigName : String
     , totalTests : Int
     , failedTests : Int
     , passedTests : Int
@@ -114,6 +116,21 @@ type alias SuiteId =
     String
 
 
+type alias JobConfigId =
+    String
+
+
+type alias JobConfig =
+    { id : String
+    , name : String
+    , javaVersion : String
+    }
+
+
+type alias JobConfigs =
+    List JobConfig
+
+
 type alias User =
     { userName : String
     }
@@ -143,7 +160,10 @@ type alias TestHistoryJobView =
     , buildId : String
     , buildName : String
     , buildBranch : String
+    , jobConfigName : String
+    , jobConfigId : String
     }
+
 
 
 type alias TestHistoryItems =
@@ -199,6 +219,8 @@ decodeJob =
         |> requiredAt [ "build", "branch" ] string
         |> requiredAt [ "suite", "id" ] string
         |> requiredAt [ "suite", "name" ] string
+        |> optionalAt [ "jobConfig", "id" ] string ""
+        |> optionalAt [ "jobConfig", "name" ] string ""
         |> required "totalTests" int
         |> required "failedTests" int
         |> required "passedTests" int
@@ -224,6 +246,8 @@ decodeJobView =
         |> required "buildBranch" string
         |> required "suiteId" string
         |> required "suiteName" string
+        |> optional "jobConfigId" string ""
+        |> optional "jobConfigName" string ""
         |> required "totalTests" int
         |> required "failedTests" int
         |> required "passedTests" int
@@ -403,6 +427,19 @@ decodeSuiteWithCriteria =
         |> required "criteria" (map (Json.Encode.encode 4) value)
 
 
+decodeJobConfigs : Decoder JobConfigs
+decodeJobConfigs =
+    Json.Decode.list decodeJobConfig
+
+
+decodeJobConfig : Decoder JobConfig
+decodeJobConfig =
+    decode JobConfig
+        |> required "id" string
+        |> required "name" string
+        |> optional "javaVersion" string "N/A"
+
+
 type alias TestId =
     String
 
@@ -529,6 +566,10 @@ decodeTestHistoryJobView =
         |> required "buildId" string
         |> required "buildName" string
         |> required "buildBranch" string
+        |> optional "jobConfigName" string ""
+        |> optional "jobConfigId" string ""
+
+
 
 
 decodeTestHistoryItems : Decoder TestHistoryItems

@@ -10,6 +10,7 @@ public class JobRequest {
 
     private String buildId;
     private String suiteId;
+    private String configId;
     private String author;
 
     public JobRequest() {
@@ -31,11 +32,20 @@ public class JobRequest {
         this.suiteId = suiteId;
     }
 
+    public String getConfigId() {
+        return configId;
+    }
+
+    public void setConfigId(String configId) {
+        this.configId = configId;
+    }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
                 .append("buildId", buildId)
                 .append("suiteId", suiteId)
+                .append("configId", configId)
                 .append("author", author)
                 .toString();
     }

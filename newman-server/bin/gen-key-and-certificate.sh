@@ -4,7 +4,7 @@
 CN=$1
 
 echo -e "${Yellow} - Generating ${CN} keys ${Color_Off}"
-keytool -genkeypair  -keysize 2048 -genkey -alias ${CN} -keyalg RSA -keystore $KEYSTORE_DIR/${CN}.keystore\
+keytool -genkeypair  -keysize 2048 -alias ${CN} -keyalg RSA -keystore $KEYSTORE_DIR/${CN}.keystore\
  -storepass $PASSWORD -keypass $PASSWORD \
  -dname "CN=${CN}, OU=Async, O=RMI, L=Avigdor, S=NA, C=ISRAEL"
 

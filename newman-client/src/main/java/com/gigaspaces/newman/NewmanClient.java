@@ -82,10 +82,11 @@ public class NewmanClient {
         return restClient.target(uri).path("job").request().rx().put(Entity.json(jobRequest), Job.class);
     }
 
-    public CompletionStage<FutureJob> createFutureJob(String buildId, String suiteId, String authorOpt) {
+    public CompletionStage<FutureJob> createFutureJob(String buildId, String suiteId, String configId, String authorOpt) {
         RxWebTarget<RxCompletionStageInvoker> req = restClient.target(uri).path("futureJob").
                 path(buildId).
-                path(suiteId);
+                path(suiteId).
+                path(configId);
         if (authorOpt != null) {
             req = req.queryParam("author", authorOpt);
         }
@@ -217,6 +218,22 @@ public class NewmanClient {
 
     public CompletionStage<String> updateSha() {
         return restClient.target(uri).path("update-sha").request().rx().get(String.class);
+    }
+
+    public CompletionStage<JobConfig> addConfig(JobConfig config) {
+        return restClient.target(uri).path("job-config").request().rx().post(Entity.json(config), JobConfig.class);
+    }
+
+    public CompletionStage<JobConfig> getConfig(String name) {
+        return restClient.target(uri).path("job-config").path(name).request().rx().get(JobConfig.class);
+    }
+
+    public CompletionStage<JobConfig> getConfigById(String id) {
+        return restClient.target(uri).path("job-config-by-id").path(id).request().rx().get(JobConfig.class);
+    }
+
+    public CompletionStage<List<JobConfig>> getAllConfigs() {
+        return restClient.target(uri).path("job-config").request().rx().get(new GenericType<List<JobConfig>>(){});
     }
 
     public void close() {

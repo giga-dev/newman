@@ -18,13 +18,9 @@ import java.util.concurrent.TimeoutException;
 public class NewmanFutureJobSubmitter {
     private static final Logger logger = LoggerFactory.getLogger(NewmanFutureJobSubmitter.class);
 
-    private static final String NEWMAN_HOST = "NEWMAN_HOST";
-    private static final String NEWMAN_PORT = "NEWMAN_PORT";
-    private static final String NEWMAN_USER_NAME = "NEWMAN_USER_NAME";
-    private static final String NEWMAN_PASSWORD = "NEWMAN_PASSWORD";
-
     private static final String NEWMAN_BUILD_ID = "NEWMAN_BUILD_ID"; // for example: 56277de629f67f791db25554
     private static final String NEWMAN_SUITE_ID = "NEWMAN_SUITE_ID"; // for example: 55b0affe29f67f34809c6c7b
+    private static final String NEWMAN_CONFIG_ID = "NEWMAN_CONFIG_ID"; // for example: 55b0affe29f67f34809c6c7b
     private static final String AUTHOR = "AUTHOR"; // for example: tamirs
 
 
@@ -35,11 +31,13 @@ public class NewmanFutureJobSubmitter {
         NewmanClient newmanClient;
         String build_id;
         String suite_id;
+        String config_id;
         String author;
 
         newmanClient = getNewmanClient();
         build_id = EnvUtils.getEnvironment(NEWMAN_BUILD_ID, true, logger);
         suite_id = EnvUtils.getEnvironment(NEWMAN_SUITE_ID, true, logger);
+        config_id = EnvUtils.getEnvironment(NEWMAN_CONFIG_ID, true, logger);
         author = EnvUtils.getEnvironment(AUTHOR, true, logger);
 
         ServerStatus serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -49,9 +47,10 @@ public class NewmanFutureJobSubmitter {
         }
 
         validBuildAndSuite(newmanClient, build_id, suite_id);
+        validateJobConfig(newmanClient,config_id);
         FutureJob futureJob;
         try {
-            futureJob = newmanClient.createFutureJob(build_id, suite_id, author).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            futureJob = newmanClient.createFutureJob(build_id, suite_id, config_id, author).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             logger.error("can't create future job. execption: {}", e);
             throw e;
@@ -73,13 +72,21 @@ public class NewmanFutureJobSubmitter {
         }
     }
 
+    private static void validateJobConfig(NewmanClient newmanClient,String configId){
+        try{
+            newmanClient.getConfigById(configId).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        }catch (Exception e){
+            throw new RuntimeException("Config id : "+ configId +" does not exist");
+        }
+    }
+
     private static NewmanClient getNewmanClient() {
         // connection arguments
         NewmanClient nc;
-        String host = EnvUtils.getEnvironment(NEWMAN_HOST, true /*required*/, logger);
-        String port = EnvUtils.getEnvironment(NEWMAN_PORT, true /*required*/, logger);
-        String username = EnvUtils.getEnvironment(NEWMAN_USER_NAME, true /*required*/, logger);
-        String password = EnvUtils.getEnvironment(NEWMAN_PASSWORD, true /*required*/, logger);
+        String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, true /*required*/, logger);
+        String port = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PORT, true /*required*/, logger);
+        String username = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_USER_NAME, true /*required*/, logger);
+        String password = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PASSWORD, true /*required*/, logger);
 
         try {
             nc = NewmanClient.create(host, port, username, password);

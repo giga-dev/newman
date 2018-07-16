@@ -3,7 +3,7 @@ module Utils.WebSocket exposing (..)
 import Json.Decode exposing (Decoder, Value, field, string, value)
 import Navigation exposing (Location)
 import Task
-import Utils.Types exposing (Agent, Build, FutureJob, Job, Suite, Test, decodeAgent, decodeBuild, decodeFutureJob, decodeJob, decodeSuite, decodeTestView)
+import Utils.Types exposing (Agent, Build, FutureJob, Job, Suite, Test, JobConfig, decodeJobConfig, decodeAgent, decodeBuild, decodeFutureJob, decodeJob, decodeSuite, decodeTestView)
 import WebSocket
 
 
@@ -40,7 +40,7 @@ initModel location =
                 _ ->
                     "ws"
     in
-    Model <| protocol ++ "://" ++ location.hostname ++ ":" ++ location.port_ ++ "/events"
+        Model <| protocol ++ "://" ++ location.hostname ++ ":" ++ location.port_ ++ "/events"
 
 
 type Msg
@@ -57,6 +57,8 @@ type Event
     | ModifiedBuild Build
     | CreatedSuite Suite
     | ModifiedSuite Suite
+    | CreatedJobConfig JobConfig
+    | ModifiedJobConfig JobConfig
     | CreatedFutureJob FutureJob
     | DeletedFutureJob FutureJob
 
@@ -85,59 +87,65 @@ toEvent msg =
                 --                aa =
                 --                    Debug.log "AA" json
             in
-            case json of
-                Ok ok ->
-                    let
-                        parse msg decoder =
-                            Result.map msg <| Json.Decode.decodeValue decoder ok.content
+                case json of
+                    Ok ok ->
+                        let
+                            parse msg decoder =
+                                Result.map msg <| Json.Decode.decodeValue decoder ok.content
 
-                        bodyRes =
-                            case ok.id of
-                                "created-job" ->
-                                    parse CreatedJob decodeJob
+                            bodyRes =
+                                case ok.id of
+                                    "created-job" ->
+                                        parse CreatedJob decodeJob
 
-                                "modified-job" ->
-                                    parse ModifiedJob decodeJob
+                                    "modified-job" ->
+                                        parse ModifiedJob decodeJob
 
-                                "modified-agent" ->
-                                    parse ModifiedAgent decodeAgent
+                                    "modified-agent" ->
+                                        parse ModifiedAgent decodeAgent
 
-                                "created-test" ->
-                                    parse CreatedTest decodeTestView
+                                    "created-test" ->
+                                        parse CreatedTest decodeTestView
 
-                                "modified-test" ->
-                                    parse ModifiedTest decodeTestView
+                                    "modified-test" ->
+                                        parse ModifiedTest decodeTestView
 
-                                "created-build" ->
-                                    parse CreatedBuild decodeBuild
+                                    "created-build" ->
+                                        parse CreatedBuild decodeBuild
 
-                                "modified-build" ->
-                                    parse ModifiedBuild decodeBuild
+                                    "modified-build" ->
+                                        parse ModifiedBuild decodeBuild
 
-                                "created-suite" ->
-                                    parse CreatedSuite decodeSuite
+                                    "created-suite" ->
+                                        parse CreatedSuite decodeSuite
 
-                                "modified-suite" ->
-                                    parse ModifiedSuite decodeSuite
+                                    "modified-suite" ->
+                                        parse ModifiedSuite decodeSuite
 
-                                "created-future-job" ->
-                                    parse CreatedFutureJob decodeFutureJob
+                                    "created-job-config" ->
+                                        parse CreatedJobConfig decodeJobConfig
 
-                                "deleted-future-job" ->
-                                    parse DeletedFutureJob decodeFutureJob
+                                    "modified-job-config" ->
+                                        parse ModifiedJobConfig decodeJobConfig
 
-                                other ->
-                                    Err <| "Unhandled event id: " ++ other
-                    in
-                    case bodyRes of
-                        Ok body ->
-                            Ok body
+                                    "created-future-job" ->
+                                        parse CreatedFutureJob decodeFutureJob
 
-                        Err err ->
-                            Err err
+                                    "deleted-future-job" ->
+                                        parse DeletedFutureJob decodeFutureJob
 
-                Err err ->
-                    Err err
+                                    other ->
+                                        Err <| "Unhandled event id: " ++ other
+                        in
+                            case bodyRes of
+                                Ok body ->
+                                    Ok body
+
+                                Err err ->
+                                    Err err
+
+                    Err err ->
+                        Err err
 
 
 subscriptions : Model -> Sub Msg
