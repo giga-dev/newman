@@ -47,7 +47,7 @@ viewJobConfig jobConfig =
             , table []
                 [ viewRow ( "Name", text jobConfig.name )
                 , viewRow ( "Id", text jobConfig.id )
-                , viewRow ( "Java Veraion", text jobConfig.javaVersion )
+                , viewRow ( "Java Version", text jobConfig.javaVersion )
                 ]
             ]
 
