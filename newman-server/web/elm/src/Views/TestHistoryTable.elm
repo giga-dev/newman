@@ -193,7 +193,7 @@ viewRecord testHistory =
     in
     tr []
         [ td [] [ a [ href <| "#test/" ++ testHistory.test.id ] [ text testHistory.test.id ] ]
-        , td [] [ a [ href <| "#job/" ++ testHistory.test.jobId ] [ text testHistory.test.jobId ] ]
+        , td [] [ a [ href <| "#job/" ++ testHistory.test.jobId ++ "/ALL" ] [ text testHistory.test.jobId ] ]
         , td [] [ a [ href <| "#build/" ++ testHistory.job.buildId ] [ text <| testHistory.job.buildName ++ "(" ++ testHistory.job.buildBranch ++ ")" ] ]
         , td [] [ a [ href <| "#jobConfig/" ++ testHistory.job.jobConfigId ] [ text testHistory.job.jobConfigName ] ]
         , td [] [ text <| dateFormat testHistory.test.endTime ]

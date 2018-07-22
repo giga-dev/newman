@@ -16,10 +16,11 @@ import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (..)
 import Http
 import List.Extra as ListExtra
+import Navigation
 import Paginate exposing (PaginatedList)
 import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
-import Utils.Types exposing (Test, decodeTest, RadioState(..), TestStatus(..), testStatusToString)
+import Utils.Types exposing (JobId, RadioState(..), Test, TestStatus(..), decodeTest, radioStateToString, testStatusToString)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
 
@@ -32,7 +33,7 @@ type Msg
     | GoTo Int
     | FilterQuery String
     | WebSocketEvent WebSocket.Event
-    | UpdateFilterState RadioState
+    | UpdateFilterState JobId RadioState
 
 
 type alias Model =
@@ -45,8 +46,8 @@ type alias Model =
     }
 
 
-init : String -> List Test -> Model
-init jobId list =
+init : String -> List Test -> RadioState -> Model
+init jobId list state =
     let
         pageSize =
             25
@@ -55,11 +56,11 @@ init jobId list =
             Debug.log "TestsTable" "init is called!"
     in
     { all = list
-    , paginated = Paginate.fromList pageSize list
+    , paginated = Paginate.fromList pageSize <| filterTests list "" state
     , pageSize = pageSize
     , query = ""
     , jobId = jobId
-    , filterState = STATUS_ALL
+    , filterState = state
     }
 
 
@@ -156,7 +157,7 @@ viewTable model currTime =
                     , th [ width 100 ] [ text "Duration" ]
                     ]
                 ]
-            , tbody [] (List.map (viewTest currTime) <| Paginate.page model.paginated)
+            , tbody [] (List.map (viewTest currTime) <| Paginate.page model.paginated )
             ]
         , pagination
         ]
@@ -279,7 +280,7 @@ update msg model =
             ( { model | paginated = Paginate.goTo i model.paginated }, Cmd.none )
 
         FilterQuery query ->
-            ( { model | query = query, paginated = filterTests model query model.filterState
+            ( { model | query = query, paginated = filterTests model.all query model.filterState
                                                    |> Paginate.fromList model.pageSize  }
             , Cmd.none
             )
@@ -298,13 +299,18 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        UpdateFilterState state ->
-            ({model | filterState = state , paginated = filterTests model model.query state |> Paginate.fromList model.pageSize } , Cmd.none)
+        UpdateFilterState jobId state ->
+            ({model | filterState = state , paginated = filterTests model.all model.query state |> Paginate.fromList model.pageSize }
+                                                        , modifyUrl jobId (radioStateToString state) )
 
 
-filterTests : Model -> String -> RadioState -> List Test
-filterTests model query filterState =
-                model.all
+modifyUrl : String -> String -> Cmd Msg
+modifyUrl jobId state =
+        Navigation.modifyUrl <| "#" ++ String.join "/" [ "job", jobId , state]
+
+filterTests : List Test -> String -> RadioState -> List Test
+filterTests tests query filterState =
+                tests
                     |> List.filter (filterQuery query)
                     |> List.filter (filterByTestStatus filterState)
 

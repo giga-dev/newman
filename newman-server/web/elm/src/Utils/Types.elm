@@ -10,9 +10,11 @@ import Paginate exposing (PaginatedList)
 type alias JobId =
     String
 
+type alias JobRadioState =
+    String
 
 type alias Job =
-    { id : String
+    { id : JobId
     , submitTime : Int
     , submittedBy : String
     , state : JobState
@@ -174,6 +176,24 @@ type RadioState
     | STATUS_SUCCESS
     | STATUS_FAIL
     | STATUS_ALL
+
+
+stringToRadioState : String -> RadioState
+stringToRadioState state =
+        case state of
+            "RUNNING" -> STATUS_RUNNING
+            "SUCCESS" -> STATUS_SUCCESS
+            "FAIL" -> STATUS_FAIL
+            "ALL" -> STATUS_ALL
+            _ -> STATUS_ALL
+
+radioStateToString : RadioState -> String
+radioStateToString state =
+        case state of
+            STATUS_RUNNING -> "RUNNING"
+            STATUS_SUCCESS -> "SUCCESS"
+            STATUS_FAIL -> "FAIL"
+            STATUS_ALL -> "ALL"
 
 
 type JobState

@@ -54,14 +54,17 @@ parseJobId : Parser (String -> a) a
 parseJobId =
     UrlParser.string
 
+parseRadioState : Parser (String -> a) a
+parseRadioState =
+    UrlParser.string
 
-initModel : JobId -> Model
-initModel jobId =
+initModel : JobId -> RadioState -> Model
+initModel jobId state =
     { maybeJob = Nothing
     , collapseState = Hidden
-    , testsTable = TestsTable.init jobId []
+    , testsTable = TestsTable.init jobId [] state
     , currTime = 0
-    , statusState = STATUS_ALL
+    , statusState = state
     }
 
 
@@ -243,7 +246,7 @@ update msg model =
         GetTestsViewCompleted result ->
             case result of
                 Ok data ->
-                    ( { model | testsTable = TestsTable.init (Maybe.withDefault "" <| Maybe.map (\job -> job.id) model.maybeJob) data }, Cmd.none )
+                    ( { model | testsTable = TestsTable.init (Maybe.withDefault "" <| Maybe.map (\job -> job.id) model.maybeJob) data model.statusState }, Cmd.none )
 
                 Err err ->
                     ( model, Cmd.none )
@@ -289,7 +292,7 @@ update msg model =
         StatusMsg state ->
             let
                 ( newSubModel, newCmd ) =
-                    TestsTable.update (TestsTable.UpdateFilterState state) model.testsTable
+                    TestsTable.update (TestsTable.UpdateFilterState (Maybe.withDefault "" <| Maybe.map .id model.maybeJob) state) model.testsTable
             in
             ( { model | statusState = state , testsTable = newSubModel } , newCmd |> Cmd.map TestsTableMsg )
 

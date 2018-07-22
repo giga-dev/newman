@@ -22,7 +22,7 @@ import Pages.Test as Test
 import Pages.TestHistory as TestHistory
 import Task
 import UrlParser exposing (..)
-import Utils.Types exposing (BuildId, JobId, SuiteId, TestId, JobConfigId)
+import Utils.Types exposing (BuildId, JobId, SuiteId, TestId, JobConfigId, RadioState(..), JobRadioState, stringToRadioState)
 import Utils.WebSocket as WebSocket exposing (Event(CreatedJob))
 import Views.JobsTable as JobsTable
 import Views.TopBar as TopBar
@@ -48,7 +48,7 @@ type Route
     | JobConfigsRoute
     | NewJobConfigsRoute
     | JobConfigRoute JobConfigId
-    | JobRoute JobId
+    | JobRoute JobId JobRadioState
     | BuildRoute BuildId
     | SuiteRoute SuiteId
     | TestRoute TestId
@@ -102,8 +102,8 @@ routeToPage route =
         JobConfigRoute id ->
             JobConfigPage (JobConfig.Model Nothing)
 
-        JobRoute id ->
-            JobPage <| Job.initModel id
+        JobRoute id state ->
+            JobPage <| Job.initModel id (stringToRadioState state)
 
         BuildRoute id ->
             BuildPage (Build.Model Nothing Nothing 10)
@@ -150,8 +150,8 @@ routeToString route =
                 JobConfigRoute id ->
                     [ "jobConfig", id ]
 
-                JobRoute id ->
-                    [ "job", id ]
+                JobRoute id state->
+                    [ "job", id , state]
 
                 BuildRoute id ->
                     [ "build", id ]
@@ -180,7 +180,7 @@ route =
         , UrlParser.map JobConfigsRoute (UrlParser.s "jobConfigs")
         , UrlParser.map NewJobConfigsRoute (UrlParser.s "newJobConfig")
         , UrlParser.map JobConfigRoute (UrlParser.s "jobConfig" </> JobConfig.parseJobConfigId)
-        , UrlParser.map JobRoute (UrlParser.s "job" </> Job.parseJobId)
+        , UrlParser.map JobRoute (UrlParser.s "job" </> Job.parseJobId </> Job.parseRadioState)
         , UrlParser.map BuildRoute (UrlParser.s "build" </> Build.parseBuildId)
         , UrlParser.map SuiteRoute (UrlParser.s "suite" </> Suite.parseSuiteId)
         , UrlParser.map TestRoute (UrlParser.s "test" </> UrlParser.string)
@@ -281,7 +281,7 @@ init location =
 
         moreCmd =
             case currentRoute of
-                JobRoute id ->
+                JobRoute id _ ->
                     Job.initCmd id |> Cmd.map JobMsg
 
                 JobConfigRoute id ->
@@ -341,7 +341,7 @@ update msg model =
                             { model | currentRoute = route, currentPage = routeToPage route }
                     in
                         case route of
-                            JobRoute id ->
+                            JobRoute id _ ->
                                 ( newModel, Job.getJobInfoCmd id |> Cmd.map JobMsg )
 
                             JobConfigRoute id ->
