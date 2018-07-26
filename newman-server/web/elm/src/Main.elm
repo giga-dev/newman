@@ -11,9 +11,9 @@ import Pages.Build as Build
 import Pages.Builds as Builds
 import Pages.Home as Home
 import Pages.Job as Job
-import Pages.Jobs as Jobs
-import Pages.JobConfigs as JobConfigs
 import Pages.JobConfig as JobConfig
+import Pages.JobConfigs as JobConfigs
+import Pages.Jobs as Jobs
 import Pages.NewJobConfig as NewJobConfig
 import Pages.SubmitNewJob as SubmitNewJob
 import Pages.Suite as Suite
@@ -22,7 +22,7 @@ import Pages.Test as Test
 import Pages.TestHistory as TestHistory
 import Task
 import UrlParser exposing (..)
-import Utils.Types exposing (BuildId, JobId, SuiteId, TestId, JobConfigId, RadioState(..), JobRadioState, stringToRadioState)
+import Utils.Types exposing (BuildId, JobConfigId, JobId, JobRadioState, RadioState(..), SuiteId, TestId, stringToRadioState)
 import Utils.WebSocket as WebSocket exposing (Event(CreatedJob))
 import Views.JobsTable as JobsTable
 import Views.TopBar as TopBar
@@ -97,7 +97,7 @@ routeToPage route =
             JobConfigsPage
 
         NewJobConfigsRoute ->
-             NewJobConfigsPage
+            NewJobConfigsPage
 
         JobConfigRoute id ->
             JobConfigPage (JobConfig.Model Nothing)
@@ -145,13 +145,13 @@ routeToString route =
                     [ "jobConfigs" ]
 
                 NewJobConfigsRoute ->
-                     [ "newJobConfig" ]
+                    [ "newJobConfig" ]
 
                 JobConfigRoute id ->
                     [ "jobConfig", id ]
 
-                JobRoute id state->
-                    [ "job", id , state]
+                JobRoute id state ->
+                    [ "job", id, state ]
 
                 BuildRoute id ->
                     [ "build", id ]
@@ -165,7 +165,7 @@ routeToString route =
                 TestHistoryRoute id ->
                     [ "test-history", id ]
     in
-        "#" ++ String.join "/" pieces
+    "#" ++ String.join "/" pieces
 
 
 route : Parser (Route -> a) a
@@ -302,32 +302,32 @@ init location =
                 _ ->
                     Cmd.none
     in
-        ( { currentPage = currentPage
-          , currentRoute = currentRoute
-          , submitNewJobModel = submitNewJobModel
-          , jobsModel = jobsModel
-          , buildsModel = buildsModel
-          , agentsModel = agentsModel
-          , homeModel = homeModel
-          , suitesModel = suitesModel
-          , jobConfigsModel = jobConfigsModel
-          , newJobConfigsModel = newJobConfigsModel
-          , topBarModel = topBarModel
-          , webSocketModel = WebSocket.initModel location
-          }
-        , Cmd.batch
-            [ submitNewJobCmd |> Cmd.map SubmitNewJobMsg
-            , jobsCmd |> Cmd.map JobsMsg
-            , buildsCmd |> Cmd.map BuildsMsg
-            , agentsCmd |> Cmd.map AgentsMsg
-            , jobConfigsCmd |> Cmd.map JobConfigsMsg
-            , newJobConfigsCmd |> Cmd.map NewJobConfigMsg
-            , homeCmd |> Cmd.map HomeMsg
-            , suitesCmd |> Cmd.map SuitesMsg
-            , topBarCmd |> Cmd.map TopBarMsg
-            , moreCmd
-            ]
-        )
+    ( { currentPage = currentPage
+      , currentRoute = currentRoute
+      , submitNewJobModel = submitNewJobModel
+      , jobsModel = jobsModel
+      , buildsModel = buildsModel
+      , agentsModel = agentsModel
+      , homeModel = homeModel
+      , suitesModel = suitesModel
+      , jobConfigsModel = jobConfigsModel
+      , newJobConfigsModel = newJobConfigsModel
+      , topBarModel = topBarModel
+      , webSocketModel = WebSocket.initModel location
+      }
+    , Cmd.batch
+        [ submitNewJobCmd |> Cmd.map SubmitNewJobMsg
+        , jobsCmd |> Cmd.map JobsMsg
+        , buildsCmd |> Cmd.map BuildsMsg
+        , agentsCmd |> Cmd.map AgentsMsg
+        , jobConfigsCmd |> Cmd.map JobConfigsMsg
+        , newJobConfigsCmd |> Cmd.map NewJobConfigMsg
+        , homeCmd |> Cmd.map HomeMsg
+        , suitesCmd |> Cmd.map SuitesMsg
+        , topBarCmd |> Cmd.map TopBarMsg
+        , moreCmd
+        ]
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -336,31 +336,39 @@ update msg model =
         ( GoTo maybeRoute, _ ) ->
             case maybeRoute of
                 Just route ->
-                    let
-                        newModel =
-                            { model | currentRoute = route, currentPage = routeToPage route }
-                    in
-                        case route of
-                            JobRoute id _ ->
-                                ( newModel, Job.getJobInfoCmd id |> Cmd.map JobMsg )
+                    case ( route, model.currentRoute ) of
+                        ( JobRoute _ _, JobRoute _ _ ) ->
+                            ( model, Cmd.none )
 
-                            JobConfigRoute id ->
-                                ( newModel, JobConfig.getJobConfigInfoCmd id |> Cmd.map JobConfigMsg )
+                        ( _, _ ) ->
+                            let
+                                newPage =
+                                    routeToPage route
 
-                            BuildRoute id ->
-                                ( newModel, Build.getBuildInfoCmd id |> Cmd.map BuildMsg )
+                                newModel =
+                                    { model | currentRoute = route, currentPage = newPage }
+                            in
+                            case route of
+                                JobRoute id _ ->
+                                    ( newModel, Job.getJobInfoCmd id |> Cmd.map JobMsg )
 
-                            SuiteRoute id ->
-                                ( newModel, Suite.getSuiteInfoCmd id |> Cmd.map SuiteMsg )
+                                JobConfigRoute id ->
+                                    ( newModel, JobConfig.getJobConfigInfoCmd id |> Cmd.map JobConfigMsg )
 
-                            TestRoute id ->
-                                ( newModel, Test.getTestDataCmd id |> Cmd.map TestMsg )
+                                BuildRoute id ->
+                                    ( newModel, Build.getBuildInfoCmd id |> Cmd.map BuildMsg )
 
-                            TestHistoryRoute id ->
-                                ( newModel, TestHistory.getTestHistory id |> Cmd.map TestHistoryMsg )
+                                SuiteRoute id ->
+                                    ( newModel, Suite.getSuiteInfoCmd id |> Cmd.map SuiteMsg )
 
-                            _ ->
-                                ( newModel, Cmd.none )
+                                TestRoute id ->
+                                    ( newModel, Test.getTestDataCmd id |> Cmd.map TestMsg )
+
+                                TestHistoryRoute id ->
+                                    ( newModel, TestHistory.getTestHistory id |> Cmd.map TestHistoryMsg )
+
+                                _ ->
+                                    ( newModel, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -370,21 +378,21 @@ update msg model =
                 ( updatedSubModel, subCmd ) =
                     SubmitNewJob.update subMsg model.submitNewJobModel
             in
-                ( { model | submitNewJobModel = updatedSubModel }, Cmd.map SubmitNewJobMsg subCmd )
+            ( { model | submitNewJobModel = updatedSubModel }, Cmd.map SubmitNewJobMsg subCmd )
 
         ( JobsMsg subMsg, _ ) ->
             let
                 ( updatedSubModel, subCmd ) =
                     Jobs.update subMsg model.jobsModel
             in
-                ( { model | jobsModel = updatedSubModel }, Cmd.map JobsMsg subCmd )
+            ( { model | jobsModel = updatedSubModel }, Cmd.map JobsMsg subCmd )
 
         ( JobMsg subMsg, JobPage subModel ) ->
             let
                 ( updatedSubModel, subCmd ) =
                     Job.update subMsg subModel
             in
-                ( { model | currentPage = JobPage updatedSubModel }, Cmd.map JobMsg subCmd )
+            ( { model | currentPage = JobPage updatedSubModel }, Cmd.map JobMsg subCmd )
 
         ( JobMsg subMsg, _ ) ->
             ( model, Cmd.none )
@@ -394,7 +402,7 @@ update msg model =
                 ( updatedBuildsModel, buildsCmd ) =
                     Builds.update buildsMsg model.buildsModel
             in
-                ( { model | buildsModel = updatedBuildsModel }, Cmd.map BuildsMsg buildsCmd )
+            ( { model | buildsModel = updatedBuildsModel }, Cmd.map BuildsMsg buildsCmd )
 
         ( BuildMsg (Build.JobsTableMsg (JobsTable.RequestCompletedToggleJobs subMsg)), BuildPage subModel ) ->
             let
@@ -416,7 +424,7 @@ update msg model =
                 ( updatedSubModel, subCmd ) =
                     Build.update subMsg subModel
             in
-                ( { model | currentPage = BuildPage updatedSubModel }, Cmd.map BuildMsg subCmd )
+            ( { model | currentPage = BuildPage updatedSubModel }, Cmd.map BuildMsg subCmd )
 
         ( BuildMsg subMsg, _ ) ->
             ( model, Cmd.none )
@@ -426,28 +434,28 @@ update msg model =
                 ( updatedAgentsModel, agentsCmd ) =
                     Agents.update agentMsg model.agentsModel
             in
-                ( { model | agentsModel = updatedAgentsModel }, Cmd.map AgentsMsg agentsCmd )
+            ( { model | agentsModel = updatedAgentsModel }, Cmd.map AgentsMsg agentsCmd )
 
         ( JobConfigsMsg jobConfigsMsg, _ ) ->
             let
                 ( updatedJobConfigsModel, jobConfigsCmd ) =
                     JobConfigs.update jobConfigsMsg model.jobConfigsModel
             in
-                ( { model | jobConfigsModel = updatedJobConfigsModel }, Cmd.map JobConfigsMsg jobConfigsCmd )
+            ( { model | jobConfigsModel = updatedJobConfigsModel }, Cmd.map JobConfigsMsg jobConfigsCmd )
 
         ( NewJobConfigMsg newJobConfigsMsg, _ ) ->
             let
                 ( updatedNewJobConfigsModel, newJobConfigsCmd ) =
                     NewJobConfig.update newJobConfigsMsg model.newJobConfigsModel
             in
-                ( { model | newJobConfigsModel = updatedNewJobConfigsModel }, Cmd.map NewJobConfigMsg newJobConfigsCmd )
+            ( { model | newJobConfigsModel = updatedNewJobConfigsModel }, Cmd.map NewJobConfigMsg newJobConfigsCmd )
 
         ( JobConfigMsg subMsg, JobConfigPage subModel ) ->
             let
                 ( updatedSubModel, subCmd ) =
                     JobConfig.update subMsg subModel
             in
-                ( { model | currentPage = JobConfigPage updatedSubModel }, Cmd.map JobConfigMsg subCmd )
+            ( { model | currentPage = JobConfigPage updatedSubModel }, Cmd.map JobConfigMsg subCmd )
 
         ( JobConfigMsg subMsg, _ ) ->
             ( model, Cmd.none )
@@ -457,21 +465,21 @@ update msg model =
                 ( updatedSuitesModel, suitesCmd ) =
                     Suites.update suiteMsg model.suitesModel
             in
-                ( { model | suitesModel = updatedSuitesModel }, Cmd.map SuitesMsg suitesCmd )
+            ( { model | suitesModel = updatedSuitesModel }, Cmd.map SuitesMsg suitesCmd )
 
         ( SuiteMsg subMsg, SuitePage subModel ) ->
             let
                 ( updatedSubModel, subCmd ) =
                     Suite.update subMsg subModel
             in
-                ( { model | currentPage = SuitePage updatedSubModel }, Cmd.map SuiteMsg subCmd )
+            ( { model | currentPage = SuitePage updatedSubModel }, Cmd.map SuiteMsg subCmd )
 
         ( HomeMsg homeMsg, _ ) ->
             let
                 ( updatedSubModel, subCmd ) =
                     Home.update homeMsg model.homeModel
             in
-                ( { model | homeModel = updatedSubModel }, Cmd.map HomeMsg subCmd )
+            ( { model | homeModel = updatedSubModel }, Cmd.map HomeMsg subCmd )
 
         ( SuiteMsg subMsg, _ ) ->
             ( model, Cmd.none )
@@ -481,7 +489,7 @@ update msg model =
                 ( updatedSubModel, subCmd ) =
                     Test.update subMsg subModel
             in
-                ( { model | currentPage = TestPage updatedSubModel }, Cmd.map TestMsg subCmd )
+            ( { model | currentPage = TestPage updatedSubModel }, Cmd.map TestMsg subCmd )
 
         ( TestMsg subMsg, _ ) ->
             ( model, Cmd.none )
@@ -491,14 +499,14 @@ update msg model =
                 ( updatedSubModel, subCmd ) =
                     TopBar.update subMsg model.topBarModel
             in
-                ( { model | topBarModel = updatedSubModel }, Cmd.map TopBarMsg subCmd )
+            ( { model | topBarModel = updatedSubModel }, Cmd.map TopBarMsg subCmd )
 
         ( TestHistoryMsg subMsg, TestHistoryPage subModel ) ->
             let
                 ( updatedSubModel, subCmd ) =
                     TestHistory.update subMsg subModel
             in
-                ( { model | currentPage = TestHistoryPage updatedSubModel }, Cmd.map TestHistoryMsg subCmd )
+            ( { model | currentPage = TestHistoryPage updatedSubModel }, Cmd.map TestHistoryMsg subCmd )
 
         ( TestHistoryMsg subMsg, _ ) ->
             ( model, Cmd.none )
@@ -527,7 +535,7 @@ update msg model =
                         Err err ->
                             Cmd.none
             in
-                ( model, cmd )
+            ( model, cmd )
 
 
 bodyWrapper : Html Msg -> Html Msg
@@ -602,29 +610,29 @@ view model =
         isActive page =
             UrlParser.parsePath
     in
-        div [ id "wrapper" ]
-            [ Bootstrap.CDN.stylesheet
-            , nav [ class "navbar navbar-toggleable navbar-inverse bg-primary fixed-top", attribute "role" "navigation" ]
-                [ div [ class "navbar-header" ]
-                    [ a [ class "navbar-brand", href "#" ]
-                        [ text "Newman" ]
-                    ]
-                , TopBar.view model.topBarModel |> Html.map TopBarMsg
-                , div [ class "collapse navbar-collapse", attribute "style" "position: absolute;" ]
-                    [ ul [ class "nav  flex-column side-nav" ]
-                        (List.indexedMap
-                            (\index ( name, ref ) ->
-                                li [ class "nav-item" ]
-                                    [ a [ class "nav-link", classList [ ( "active", routeToString model.currentRoute == ref ) ], href ref ]
-                                        [ text name ]
-                                    ]
-                            )
-                            pages
-                        )
-                    ]
+    div [ id "wrapper" ]
+        [ Bootstrap.CDN.stylesheet
+        , nav [ class "navbar navbar-toggleable navbar-inverse bg-primary fixed-top", attribute "role" "navigation" ]
+            [ div [ class "navbar-header" ]
+                [ a [ class "navbar-brand", href "#" ]
+                    [ text "Newman" ]
                 ]
-            , viewBody model
+            , TopBar.view model.topBarModel |> Html.map TopBarMsg
+            , div [ class "collapse navbar-collapse", attribute "style" "position: absolute;" ]
+                [ ul [ class "nav  flex-column side-nav" ]
+                    (List.indexedMap
+                        (\index ( name, ref ) ->
+                            li [ class "nav-item" ]
+                                [ a [ class "nav-link", classList [ ( "active", routeToString model.currentRoute == ref ) ], href ref ]
+                                    [ text name ]
+                                ]
+                        )
+                        pages
+                    )
+                ]
             ]
+        , viewBody model
+        ]
 
 
 subscriptions : Model -> Sub Msg
