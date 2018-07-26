@@ -305,7 +305,7 @@ getJobInfoCmd jobId =
 getTestsViewCmd : JobId -> Cmd Msg
 getTestsViewCmd jobId =
     Http.send GetTestsViewCompleted <|
-        Http.get ("/api/newman/job-tests-view?jobId=" ++ jobId ++ "&all=true") <|
+        Http.get ("/api/newman/job-tests-view?jobId=" ++ jobId ++ "&all=true&orderBy=name") <|
             Json.Decode.field "values" (Json.Decode.list decodeTestView)
 
 
