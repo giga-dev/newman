@@ -495,13 +495,13 @@ viewActiveBuild activeJobs build =
                 [ td [] [ text <| "↳ Job: ", a [ href <| "#job/" ++ job.id ] [ text job.id ] ]
                 , td [] []
                 , td [ colspan 2, class "tests-data" ]
-                    [ Badge.badgeInfo [] [ text <| toString job.runningTests ]
+                    [ Badge.badgeInfo [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/RUNNING" ] [text <| toString job.runningTests] ]
                     , text " "
-                    , Badge.badgeSuccess [] [ text <| toString job.passedTests ]
+                    , Badge.badgeSuccess [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/SUCCESS" ] [text <| toString job.passedTests] ]
                     , text " "
-                    , Badge.badgeDanger [] [ text <| toString job.failedTests ]
+                    , Badge.badgeDanger [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAIL" ] [text <| toString job.failedTests] ]
                     , text " "
-                    , Badge.badgePrimary [] [ text <| toString (job.totalTests - job.passedTests - job.failedTests) ]
+                    , Badge.badge [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/ALL" ] [ text <| toString job.totalTests] ]
                     ]
                 , td [] [ a [ href <| "#suite/" ++ job.suiteId ] [ text job.suiteName ] ]
                 ]
