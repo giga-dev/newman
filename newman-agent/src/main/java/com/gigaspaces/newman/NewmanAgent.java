@@ -255,7 +255,7 @@ public class NewmanAgent {
             newTest.setRunNumber(failedTest.getRunNumber() + 1);
             tests.add(newTest);
         try {
-            client.createTests(tests).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 5, TimeUnit.SECONDS);
+            client.createTests(tests, "don't count").toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 5, TimeUnit.SECONDS);
         } catch (InterruptedException | TimeoutException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {

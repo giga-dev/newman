@@ -5,7 +5,6 @@ import Bootstrap.Button as Button
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
 import Bootstrap.Modal as Modal exposing (..)
-import Bootstrap.Progress as Progress exposing (..)
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Duration as Duration
@@ -320,6 +319,7 @@ filterByTestStatus currentState test =
         STATUS_RUNNING -> test.status == TEST_RUNNING
         STATUS_SUCCESS -> test.status == TEST_SUCCESS
         STATUS_FAIL -> test.status == TEST_FAIL
+        STATUS_FAILED3TIMES -> test.runNumber == 3 && test.status == TEST_FAIL
         STATUS_ALL -> True
 
 

@@ -90,8 +90,8 @@ viewHeader model job =
             viewRow
                 ( "Progress"
                 , Progress.progress
-                    [ Progress.value <| toFloat <| (job.runningTests + job.failedTests + job.passedTests) * 100 // job.totalTests
-                    , Progress.label <| toString <| (job.runningTests + job.failedTests + job.passedTests) * 100 // job.totalTests
+                    [ Progress.value <| toFloat <| (job.runningTests + job.failedTests + job.passedTests) * 100 // (job.totalTests + job.numOfTestRetries)
+                                        , Progress.label <| toString <| (job.runningTests + job.failedTests + job.passedTests) * 100 // (job.totalTests + job.numOfTestRetries)
                     ]
                 )
 
@@ -131,19 +131,23 @@ viewHeader model job =
             ButtonGroup.radioButtonGroup []
                     [ ButtonGroup.radioButton
                         (model.statusState == STATUS_RUNNING)
-                        [ Button.outlinePrimary, Button.outlineInfo, Button.onClick <| StatusMsg STATUS_RUNNING ]
+                        [ Button.attrs [title "Running Tests"] , Button.outlinePrimary, Button.outlineInfo, Button.onClick <| StatusMsg STATUS_RUNNING ]
                         [ text <| toString job.runningTests ]
                     , ButtonGroup.radioButton
                         (model.statusState == STATUS_SUCCESS)
-                        [ Button.outlinePrimary, Button.outlineSuccess, Button.onClick <| StatusMsg STATUS_SUCCESS ]
+                        [ Button.attrs [title "Passed Tests"] , Button.outlinePrimary, Button.outlineSuccess, Button.onClick <| StatusMsg STATUS_SUCCESS ]
                         [ text <| toString job.passedTests ]
                     , ButtonGroup.radioButton
                         (model.statusState == STATUS_FAIL)
-                        [ Button.outlinePrimary, Button.outlineDanger, Button.onClick <| StatusMsg STATUS_FAIL ]
+                        [ Button.attrs [title "Failed Tests"] , Button.outlinePrimary, Button.outlineDanger, Button.onClick <| StatusMsg STATUS_FAIL ]
                         [ text <| toString job.failedTests ]
                     , ButtonGroup.radioButton
+                        (model.statusState == STATUS_FAILED3TIMES)
+                        [ Button.attrs [title "Failed 3 Times"] , Button.outlinePrimary, Button.outlineWarning, Button.onClick <| StatusMsg STATUS_FAILED3TIMES ]
+                        [ text <| toString job.failed3TimesTests ]
+                    , ButtonGroup.radioButton
                         (model.statusState == STATUS_ALL)
-                        [ Button.outlinePrimary, Button.onClick <| StatusMsg STATUS_ALL ]
+                        [ Button.attrs [title "All Tests"] , Button.outlinePrimary, Button.onClick <| StatusMsg STATUS_ALL ]
                         [ text <| toString job.totalTests ]
                     ]
 
@@ -246,7 +250,7 @@ update msg model =
         GetTestsViewCompleted result ->
             case result of
                 Ok data ->
-                    ( { model | testsTable = TestsTable.init (Maybe.withDefault "" <| Maybe.map (\job -> job.id) model.maybeJob) data model.statusState }, Cmd.none )
+                    ( { model | testsTable = TestsTable.init (Maybe.withDefault "" <| Maybe.map .id model.maybeJob) data model.statusState }, Cmd.none )
 
                 Err err ->
                     ( model, Cmd.none )

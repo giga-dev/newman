@@ -29,8 +29,10 @@ type alias Job =
     , jobConfigName : String
     , totalTests : Int
     , failedTests : Int
+    , failed3TimesTests : Int
     , passedTests : Int
     , runningTests : Int
+    , numOfTestRetries : Int
     , startTime : Maybe Int
     , endTime : Maybe Int
     , jobSetupLogs : Dict String String
@@ -175,6 +177,7 @@ type RadioState
     = STATUS_RUNNING
     | STATUS_SUCCESS
     | STATUS_FAIL
+    | STATUS_FAILED3TIMES
     | STATUS_ALL
 
 
@@ -184,6 +187,7 @@ stringToRadioState state =
             "RUNNING" -> STATUS_RUNNING
             "SUCCESS" -> STATUS_SUCCESS
             "FAIL" -> STATUS_FAIL
+            "FAILED3TIMES" -> STATUS_FAILED3TIMES
             "ALL" -> STATUS_ALL
             _ -> STATUS_ALL
 
@@ -193,6 +197,7 @@ radioStateToString state =
             STATUS_RUNNING -> "RUNNING"
             STATUS_SUCCESS -> "SUCCESS"
             STATUS_FAIL -> "FAIL"
+            STATUS_FAILED3TIMES -> "FAILED3TIMES"
             STATUS_ALL -> "ALL"
 
 
@@ -243,8 +248,10 @@ decodeJob =
         |> optionalAt [ "jobConfig", "name" ] string ""
         |> required "totalTests" int
         |> required "failedTests" int
+        |> required "failed3TimesTests" int
         |> required "passedTests" int
         |> required "runningTests" int
+        |> required "numOfTestRetries" int
         |> optional "startTime" (nullable int) Nothing
         |> optional "endTime" (nullable int) Nothing
         |> optional "jobSetupLogs" (dict string) Dict.empty
@@ -270,8 +277,10 @@ decodeJobView =
         |> optional "jobConfigName" string ""
         |> required "totalTests" int
         |> required "failedTests" int
+        |> required "failed3TimesTests" int
         |> required "passedTests" int
         |> required "runningTests" int
+        |> required "numOfTestRetries" int
         |> optional "startTime" (nullable int) Nothing
         |> optional "endTime" (nullable int) Nothing
         |> optional "jobSetupLogs" (dict string) Dict.empty
@@ -305,8 +314,10 @@ type alias DashboardJob =
     , suiteName : String
     , totalTests : Int
     , failedTests : Int
+    , failed3TimesTests : Int
     , passedTests : Int
     , runningTests : Int
+    , numOfTestRetries : Int
     }
 
 
@@ -318,8 +329,10 @@ decodeDashboardJob =
         |> requiredAt [ "suite", "name" ] string
         |> required "totalTests" int
         |> required "failedTests" int
+        |> required "failed3TimesTests" int
         |> required "passedTests" int
         |> required "runningTests" int
+        |> required "numOfTestRetries" int
 
 
 type alias DashboardData =
@@ -347,7 +360,9 @@ type alias DashboardBuildStatus =
     { totalTests : Int
     , passedTests : Int
     , failedTests : Int
+    , failed3TimesTests : Int
     , runningTests : Int
+    , numOfTestRetries : Int
     , totalJobs : Int
     , pendingJobs : Int
     , runningJobs : Int
@@ -364,6 +379,8 @@ decodeDashboardBuildStatus =
         |> required "totalTests" int
         |> required "passedTests" int
         |> required "failedTests" int
+        |> required "failed3TimesTests" int
+        |> required "numOfTestRetries" int
         |> required "runningTests" int
         |> required "totalJobs" int
         |> required "pendingJobs" int

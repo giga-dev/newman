@@ -39,7 +39,9 @@ public class Job {
     private int totalTests;
     private int passedTests;
     private int failedTests;
+    private int failed3TimesTests = 0;
     private int runningTests;
+    private int numOfTestRetries = 0;
     // first agent start prepare on job
     private Date startPrepareTime;
     // last time job seen as zombie
@@ -146,12 +148,24 @@ public class Job {
         this.failedTests = failedTests;
     }
 
+    public int getFailed3TimesTests() { return failed3TimesTests;}
+
+    public void setFailed3TimesTests(int failed3TimesTests) { this.failed3TimesTests = failed3TimesTests; }
+
     public int getRunningTests() {
         return runningTests;
     }
 
     public void setRunningTests(int runningTests) {
         this.runningTests = runningTests;
+    }
+
+    public int getNumOfTestRetries() {
+        return numOfTestRetries;
+    }
+
+    public void setNumOfTestRetries(int numOfTestRetries) {
+        this.numOfTestRetries = numOfTestRetries;
     }
 
     public Suite getSuite() {
@@ -219,7 +233,9 @@ public class Job {
                 ", totalTests=" + totalTests +
                 ", passedTests=" + passedTests +
                 ", failedTests=" + failedTests +
+                ", failed3TimesTests=" + failed3TimesTests +
                 ", runningTests=" + runningTests +
+                ", numOfTestRetries=" + numOfTestRetries +
                 ", startPrepareTime=" + startPrepareTime +
                 ", lastTimeZombie=" + lastTimeZombie +
                 ", preparingAgents=" + preparingAgents +

@@ -12,7 +12,9 @@ public class BuildStatus {
     private int totalTests;
     private int passedTests;
     private int failedTests;
+    private int failed3TimesTests = 0;
     private int runningTests;
+    private int numOfTestRetries = 0;
 
     private int totalJobs;
     private int pendingJobs;
@@ -52,12 +54,26 @@ public class BuildStatus {
         this.failedTests = failedTests;
     }
 
+    public int getFailed3TimesTests() {
+        return failed3TimesTests;
+    }
+
+    public void setFailed3TimesTests(int failed3TimesTests) { this.failed3TimesTests = failed3TimesTests; }
+
     public int getRunningTests() {
         return runningTests;
     }
 
     public void setRunningTests(int runningTests) {
         this.runningTests = runningTests;
+    }
+
+    public int getNumOfTestRetries() {
+        return numOfTestRetries;
+    }
+
+    public void setNumOfTestRetries(int numOfTestRetries) {
+        this.numOfTestRetries = numOfTestRetries;
     }
 
     public int getTotalJobs() {
@@ -122,7 +138,9 @@ public class BuildStatus {
                 "totalTests=" + totalTests +
                 ", passedTests=" + passedTests +
                 ", failedTests=" + failedTests +
+                ", failed3TimesTests=" + failed3TimesTests +
                 ", runningTests=" + runningTests +
+                ", numOfTestRetries=" + numOfTestRetries +
                 ", totalJobs=" + totalJobs +
                 ", pendingJobs=" + pendingJobs +
                 ", runningJobs=" + runningJobs +

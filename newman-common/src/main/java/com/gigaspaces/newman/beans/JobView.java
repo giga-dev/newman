@@ -32,7 +32,9 @@ public class JobView {
     private int totalTests;
     private int passedTests;
     private int failedTests;
+    private int failed3TimesTests;
     private int runningTests;
+    private int numOfTestRetries;
     private Set<String> preparingAgents = Collections.emptySet();
 
     public JobView( Job job ) {
@@ -65,7 +67,9 @@ public class JobView {
         totalTests = job.getTotalTests();
         passedTests = job.getPassedTests();
         failedTests = job.getFailedTests();
+        failed3TimesTests = job.getFailed3TimesTests();
         runningTests = job.getRunningTests();
+        numOfTestRetries = job.getNumOfTestRetries();
         preparingAgents = job.getPreparingAgents();
     }
 
@@ -149,6 +153,14 @@ public class JobView {
         this.failedTests = failedTests;
     }
 
+    public int getFailed3TimesTests() {
+        return failed3TimesTests;
+    }
+
+    public void setFailed3TimesTests(int failed3TimesTests) {
+        this.failed3TimesTests = failed3TimesTests;
+    }
+
     public int getRunningTests() {
         return runningTests;
     }
@@ -156,6 +168,10 @@ public class JobView {
     public void setRunningTests(int runningTests) {
         this.runningTests = runningTests;
     }
+
+    public int getNumOfTestRetries() {return numOfTestRetries; }
+
+    public void setNumOfTestRetries(int numOfTestRetries) { this.numOfTestRetries = numOfTestRetries; }
 
     public Set<String> getPreparingAgents() {
         return preparingAgents;
@@ -234,7 +250,9 @@ public class JobView {
                 .append("totalTests", totalTests)
                 .append("passedTests", passedTests)
                 .append("failedTests", failedTests)
+                .append("failed3TimesTests", failed3TimesTests)
                 .append("runningTests", runningTests)
+                .append("numOfTestRetries", numOfTestRetries)
                 .append("preparingAgents", preparingAgents)
                 .toString();
     }

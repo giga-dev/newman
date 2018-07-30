@@ -98,8 +98,8 @@ public class NewmanClient {
         return restClient.target(uri).path("test").request().rx().put(Entity.json(test), Test.class);
     }
 
-    public CompletionStage<Response> createTests(List<Test> tests) {
-        return restClient.target(uri).path("tests").request().rx().put(Entity.json(new Batch<>(tests, 0, tests.size(), false, null, null)));
+    public CompletionStage<Response> createTests(List<Test> tests, String queryParam) {
+        return restClient.target(uri).path("tests").queryParam("toCount", queryParam).request().rx().put(Entity.json(new Batch<>(tests, 0, tests.size(), false, null, null)));
     }
 
     public CompletionStage<ServerStatus> getServerStatus() {

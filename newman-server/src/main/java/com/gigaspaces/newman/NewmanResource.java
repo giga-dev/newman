@@ -235,7 +235,7 @@ public class NewmanResource {
     private Query<Job> basicJobQuery() {
         Query<Job> basicDummyQuery = jobDAO.createQuery();
         basicDummyQuery.or(basicDummyQuery.criteria("state").equal(State.READY), basicDummyQuery.criteria("state").equal(State.RUNNING));
-        basicDummyQuery.where("this.totalTests != (this.passedTests + this.failedTests + this.runningTests)");
+        basicDummyQuery.where("(this.totalTests + this.numOfTestRetries) != (this.passedTests + this.failedTests + this.runningTests)");
         basicDummyQuery.order("submitTime");
         return basicDummyQuery;
     }
@@ -440,7 +440,7 @@ public class NewmanResource {
     private void addRequiredJobTableColumns(Query<Job> query) {
         query.retrievedFields(true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name", "jobConfig.id", "jobConfig.name",
                 "submitTime", "startTime", "endTime", "testURI", "submittedBy", "state", "totalTests",
-                "passedTests", "failedTests", "runningTests", "preparingAgents");
+                "passedTests", "failedTests", "failed3TimesTests", "runningTests", "numOfTestRetries", "preparingAgents");
     }
 
 
@@ -892,7 +892,7 @@ public class NewmanResource {
     @PUT
     @Path("tests")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void addTests(Batch<Test> tests) {
+    public void addTests(Batch<Test> tests, @QueryParam("toCount") String toCountStr) {
         if (tests.getValues().isEmpty()) {
             return;
         }
@@ -901,21 +901,21 @@ public class NewmanResource {
             return;
         }
         List<Test> res = new ArrayList<>(tests.getValues().size());
-        //noinspection Convert2streamapi
         for (Test test : tests.getValues()) {
             res.add(addTest(test));
         }
-        //res.addAll(tests.getValues().stream().map(this::addTest).collect(Collectors.toList()));
         if (!res.isEmpty()) {
             Test test = res.get(0);
-            UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests", res.size());
-            job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(test.getJobId()), jobUpdateOps, false, false);
-            Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), buildDAO.createUpdateOperations().inc("buildStatus.totalTests", res.size()));
-            tests.getValues().stream().forEach(test1 -> broadcastMessage(CREATED_TEST, test1));
-            broadcastMessage(MODIFIED_BUILD, build);
-            broadcastMessage(MODIFIED_JOB, job);
+
+            if (toCountStr.equals("count")) {
+                UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests", res.size());
+                job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(test.getJobId()), jobUpdateOps, false, false);
+                Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), buildDAO.createUpdateOperations().inc("buildStatus.totalTests", res.size()));
+                tests.getValues().stream().forEach(test1 -> broadcastMessage(CREATED_TEST, test1));
+                broadcastMessage(MODIFIED_BUILD, build);
+                broadcastMessage(MODIFIED_JOB, job);
+            }
         }
-//        return new Batch<>(res, tests.getOffset(), tests.getLimit(), false, Collections.emptyList(), null);
     }
 
 
@@ -1047,12 +1047,22 @@ public class NewmanResource {
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations();
             UpdateOperations<Build> updateBuild = buildDAO.createUpdateOperations();
             testUpdateOps.set("status", status);
-            if (status == Test.Status.FAIL) {
-                updateJobStatus.inc("failedTests");
-                updateBuild.inc("buildStatus.failedTests");
-            } else {
-                updateJobStatus.inc("passedTests");
-                updateBuild.inc("buildStatus.passedTests");
+            if (test.getRunNumber() == 1) {
+                if (status == Test.Status.FAIL) {
+                    updateJobStatus.inc("failedTests");
+                    updateBuild.inc("buildStatus.failedTests");
+                } else {
+                    updateJobStatus.inc("passedTests");
+                    updateBuild.inc("buildStatus.passedTests");
+                }
+            }
+            if ((test.getRunNumber() > 1)) {
+                updateJobStatus.inc("numOfTestRetries");
+                updateBuild.inc("buildStatus.numOfTestRetries");
+            }
+            if ((test.getRunNumber() == 3) && (status == Test.Status.FAIL)) {
+                updateJobStatus.inc("failed3TimesTests");
+                updateBuild.inc("buildStatus.failed3TimesTests");
             }
             updateJobStatus.dec("runningTests");
             updateBuild.dec("buildStatus.runningTests");
@@ -1848,7 +1858,7 @@ public class NewmanResource {
         //Return jobs that need more agents that it has now
         basicQuery.or(
                 basicQuery.and(basicQuery.criteria("preparingAgents").exists(),
-                        new WhereCriteria("this.preparingAgents.length < (this.totalTests - this.passedTests - this.failedTests - this.runningTests)")),
+                        new WhereCriteria("this.preparingAgents.length < (this.totalTests + this.numOfTestRetries - this.passedTests - this.failedTests - this.runningTests)")),
                 basicQuery.criteria("preparingAgents").doesNotExist()
         );
 
@@ -2520,7 +2530,7 @@ public class NewmanResource {
 
         Query<Job> query = jobDAO.createQuery();
         query.retrievedFields(true, "id", "passedTests", "failedTests", "runningTests", "totalTests",
-                "suite.id", "suite.name");
+                "failed3TimesTests", "numOfTestRetries", "suite.id", "suite.name");
         query.field("build.id").equal(build.getId()).field("state").equal(State.RUNNING);
         return jobDAO.find(query).asList();
     }

@@ -62,7 +62,7 @@ viewTest test =
                     Badge.badgeSuccess
 
                 TEST_PENDING ->
-                    Badge.badgeDanger
+                    Badge.badge
 
         logsRow =
             let

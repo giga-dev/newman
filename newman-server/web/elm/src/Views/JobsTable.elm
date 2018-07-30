@@ -152,15 +152,17 @@ viewTable model currTime =
                         , th [ widthPct "6%" ] [ text "Submitted At" ]
                         , th [ widthPct "12%" ] [ text "Build" ]
                         , th [ widthPct "6%" ] [ text "Submitted By" ]
-                        , th [ widthPct "6%" ] [ text "# p. agents" ]
-                        , th [ widthPct "15%" ]
-                            [ Badge.badgeInfo [ class "job-tests-badge" ] [ text "Running" ]
+                        , th [ widthPct "4%" ] [ text "# p. agents" ]
+                        , th [ widthPct "17%" ]
+                            [ Badge.badgeInfo [ class "job-tests-badge" , title "Running Tests" ] [ text "Run" ]
                             , text "/ "
-                            , Badge.badgeSuccess [ class "job-tests-badge" ] [ text "Passed" ]
+                            , Badge.badgeSuccess [ class "job-tests-badge" , title "Passed Tests" ] [ text "Pass" ]
                             , text "/ "
-                            , Badge.badgeDanger [ class "job-tests-badge" ] [ text "Failed" ]
+                            , Badge.badgeDanger [ class "job-tests-badge" , title "Failed Tests" ] [ text "Fail" ]
                             , text "/ "
-                            , Badge.badge [ class "job-tests-badge" ] [ text "Total" ]
+                            , Badge.badgeWarning [ class "job-tests-badge" , title "Failed 3 Times" ] [ text "3xFail" ]
+                            , text "/ "
+                            , Badge.badge [ class "job-tests-badge" , title "All Tests" ] [ text "Total" ]
                             ]
                         , th [ width 80 ]
                              [ text "Actions" ]
@@ -257,13 +259,20 @@ viewJob currTime job =
             , td [] [ text job.submittedBy ]
             , td [] [ text (toString (List.length job.preparingAgents)) ]
             , td []
-                [ Badge.badgeInfo [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/RUNNING" ] [text <| toString job.runningTests] ]
+                [ Badge.badgeInfo [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/RUNNING" , title "Running Tests" ]
+                                    [text <| toString job.runningTests] ]
                 , text "/ "
-                , Badge.badgeSuccess [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/SUCCESS" ] [text <| toString job.passedTests] ]
+                , Badge.badgeSuccess [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/SUCCESS" , title "Passed Tests" ]
+                                    [text <| toString job.passedTests] ]
                 , text "/ "
-                , Badge.badgeDanger [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAIL" ] [text <| toString job.failedTests] ]
+                , Badge.badgeDanger [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAIL" , title "Failed Tests" ]
+                                    [text <| toString job.failedTests] ]
                 , text "/ "
-                , Badge.badge [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/ALL" ] [ text <| toString job.totalTests] ]
+                , Badge.badgeWarning [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAILED3TIMES" , title "Failed 3 Times" ]
+                                    [text <| toString job.failed3TimesTests] ]
+                , text "/ "
+                , Badge.badge [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/ALL" , title "All Tests" ]
+                                    [ text <| toString job.totalTests] ]
                 ]
             , td []
                 [ Button.button
