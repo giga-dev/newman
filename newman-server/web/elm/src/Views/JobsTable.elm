@@ -160,7 +160,7 @@ viewTable model currTime =
                             , text "/ "
                             , Badge.badgeDanger [ class "job-tests-badge" , title "Failed Tests" ] [ text "Fail" ]
                             , text "/ "
-                            , Badge.badgeWarning [ class "job-tests-badge" , title "Failed 3 Times" ] [ text "3xFail" ]
+                            , Badge.badgeWarning [ class "job-tests-badge", style [("background-color","DarkRed")] , title "Failed 3 Times" ] [ text "3xFail" ]
                             , text "/ "
                             , Badge.badge [ class "job-tests-badge" , title "All Tests" ] [ text "Total" ]
                             ]
@@ -268,7 +268,7 @@ viewJob currTime job =
                 , Badge.badgeDanger [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAIL" , title "Failed Tests" ]
                                     [text <| toString job.failedTests] ]
                 , text "/ "
-                , Badge.badgeWarning [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAILED3TIMES" , title "Failed 3 Times" ]
+                , Badge.badgeWarning [ class "job-tests-badge", style [("background-color","DarkRed")] ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAILED3TIMES" , title "Failed 3 Times" ]
                                     [text <| toString job.failed3TimesTests] ]
                 , text "/ "
                 , Badge.badge [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/ALL" , title "All Tests" ]

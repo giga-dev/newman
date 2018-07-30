@@ -361,7 +361,7 @@ viewPendingBuilds builds =
                         , text " "
                         , Badge.badgeDanger [] [ text "Failed" ]
                         , text " "
-                        , Badge.badgeWarning [] [ text "Failed 3 Times" ]
+                        , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ text "Failed 3 Times" ]
                         , text " "
                         , Badge.badgePrimary [] [ text "Pending" ]
                         , text " | Tests"
@@ -404,7 +404,7 @@ viewPendingBuild build =
             , text " "
             , Badge.badgeDanger [] [ text <| toString buildStatus.failedTests ]
             , text " "
-            , Badge.badgeWarning [] [ text <| toString buildStatus.failed3TimesTests ]
+            , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ text <| toString buildStatus.failed3TimesTests ]
             , text " "
             , Badge.badgePrimary [] [ text <| toString (buildStatus.totalTests - buildStatus.passedTests - buildStatus.failedTests) ]
             ]
@@ -442,7 +442,7 @@ viewActiveBuilds builds activeJobs =
                         , text " "
                         , Badge.badgeDanger [] [ text "Failed" ]
                         , text " "
-                        , Badge.badgeWarning [] [ text "Failed 3 Times" ]
+                        , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ text "Failed 3 Times" ]
                         , text " "
                         , Badge.badgePrimary [] [ text "Pending" ]
                         , text " | Tests"
@@ -485,7 +485,7 @@ viewActiveBuild activeJobs build =
             , text " "
             , Badge.badgeDanger [] [ text <| toString buildStatus.failedTests ]
             , text " "
-            , Badge.badgeWarning [] [ text <| toString buildStatus.failed3TimesTests ]
+            , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ text <| toString buildStatus.failed3TimesTests ]
             , text " "
             , Badge.badgePrimary [] [ text <| toString (buildStatus.totalTests - buildStatus.passedTests - buildStatus.failedTests) ]
             ]
@@ -509,7 +509,7 @@ viewActiveBuild activeJobs build =
                     , text " "
                     , Badge.badgeDanger [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAIL" ] [text <| toString job.failedTests] ]
                     , text " "
-                    , Badge.badgeWarning [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAILED3TIMES" , title "Failed 3 Times" ]
+                    , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAILED3TIMES" , title "Failed 3 Times" ]
                                                 [text <| toString job.failed3TimesTests] ]
                     , text " "
                     , Badge.badge [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/ALL" ] [ text <| toString job.totalTests] ]
