@@ -14,6 +14,7 @@ import Pages.Job as Job
 import Pages.JobConfig as JobConfig
 import Pages.JobConfigs as JobConfigs
 import Pages.Jobs as Jobs
+import Pages.ManageNewman as ManageNewman
 import Pages.NewJobConfig as NewJobConfig
 import Pages.SubmitNewJob as SubmitNewJob
 import Pages.Suite as Suite
@@ -47,6 +48,7 @@ type Route
     | SuitesRoute
     | JobConfigsRoute
     | NewJobConfigsRoute
+    | ManageNewmanRoute
     | JobConfigRoute JobConfigId
     | JobRoute JobId JobRadioState
     | BuildRoute BuildId
@@ -63,6 +65,7 @@ type Page
     | AgentsPage
     | SuitesPage
     | JobConfigsPage
+    | ManageNewmanPage
     | NewJobConfigsPage
     | JobConfigPage JobConfig.Model
     | JobPage Job.Model
@@ -98,6 +101,9 @@ routeToPage route =
 
         NewJobConfigsRoute ->
             NewJobConfigsPage
+
+        ManageNewmanRoute ->
+            ManageNewmanPage
 
         JobConfigRoute id ->
             JobConfigPage (JobConfig.Model Nothing)
@@ -144,6 +150,9 @@ routeToString route =
                 JobConfigsRoute ->
                     [ "jobConfigs" ]
 
+                ManageNewmanRoute ->
+                    [ "manageNewman" ]
+
                 NewJobConfigsRoute ->
                     [ "newJobConfig" ]
 
@@ -178,6 +187,8 @@ route =
         , UrlParser.map AgentsRoute (UrlParser.s "agents")
         , UrlParser.map SuitesRoute (UrlParser.s "suites")
         , UrlParser.map JobConfigsRoute (UrlParser.s "jobConfigs")
+        , UrlParser.map ManageNewmanRoute (UrlParser.s "manageNewman")
+        , UrlParser.map JobConfigRoute (UrlParser.s "NewmanManageConfig" </> JobConfig.parseJobConfigId)
         , UrlParser.map NewJobConfigsRoute (UrlParser.s "newJobConfig")
         , UrlParser.map JobConfigRoute (UrlParser.s "jobConfig" </> JobConfig.parseJobConfigId)
         , UrlParser.map JobRoute (UrlParser.s "job" </> Job.parseJobId </> Job.parseRadioState)
@@ -205,6 +216,7 @@ type alias Model =
     , suitesModel : Suites.Model
     , jobConfigsModel : JobConfigs.Model
     , newJobConfigsModel : NewJobConfig.Model
+    , manageNewmanModel : ManageNewman.Model
     , topBarModel : TopBar.Model
     , webSocketModel : WebSocket.Model
     }
@@ -221,6 +233,7 @@ type Msg
     | NewJobConfigMsg NewJobConfig.Msg
     | JobConfigMsg JobConfig.Msg
     | HomeMsg Home.Msg
+    | ManageNewmanMsg ManageNewman.Msg
     | JobMsg Job.Msg
     | BuildMsg Build.Msg
     | SuiteMsg Suite.Msg
@@ -276,6 +289,9 @@ init location =
         ( homeModel, homeCmd ) =
             Home.init
 
+        ( manageNewmanModel, manageNewmanCmd ) =
+            ManageNewman.init
+
         ( topBarModel, topBarCmd ) =
             TopBar.init
 
@@ -309,6 +325,7 @@ init location =
       , buildsModel = buildsModel
       , agentsModel = agentsModel
       , homeModel = homeModel
+      , manageNewmanModel = manageNewmanModel
       , suitesModel = suitesModel
       , jobConfigsModel = jobConfigsModel
       , newJobConfigsModel = newJobConfigsModel
@@ -323,6 +340,7 @@ init location =
         , jobConfigsCmd |> Cmd.map JobConfigsMsg
         , newJobConfigsCmd |> Cmd.map NewJobConfigMsg
         , homeCmd |> Cmd.map HomeMsg
+        , manageNewmanCmd |> Cmd.map ManageNewmanMsg
         , suitesCmd |> Cmd.map SuitesMsg
         , topBarCmd |> Cmd.map TopBarMsg
         , moreCmd
@@ -481,6 +499,13 @@ update msg model =
             in
             ( { model | homeModel = updatedSubModel }, Cmd.map HomeMsg subCmd )
 
+        ( ManageNewmanMsg manageNewmanMsg, _ ) ->
+            let
+                ( updatedManageNewmanModel, manageNewmanCmd ) =
+                    ManageNewman.update manageNewmanMsg model.manageNewmanModel
+            in
+            ( { model | manageNewmanModel = updatedManageNewmanModel }, Cmd.map ManageNewmanMsg manageNewmanCmd )
+
         ( SuiteMsg subMsg, _ ) ->
             ( model, Cmd.none )
 
@@ -528,6 +553,7 @@ update msg model =
                                 , Agents.handleEvent ev |> Cmd.map AgentsMsg
                                 , Builds.handleEvent ev |> Cmd.map BuildsMsg
                                 , Suites.handleEvent ev |> Cmd.map SuitesMsg
+                                , ManageNewman.handleEvent ev |> Cmd.map ManageNewmanMsg
                                 , JobConfigs.handleEvent ev |> Cmd.map JobConfigsMsg
                                 , Home.handleEvent ev |> Cmd.map HomeMsg
                                 ]
@@ -588,6 +614,9 @@ viewBody model =
         SuitesPage ->
             Suites.view model.suitesModel |> Html.map SuitesMsg
 
+        ManageNewmanPage ->
+            ManageNewman.view model.manageNewmanModel |> Html.map ManageNewmanMsg
+
         SuitePage subModel ->
             Suite.view subModel |> Html.map SuiteMsg
 
@@ -605,7 +634,7 @@ view : Model -> Html Msg
 view model =
     let
         pages =
-            [ ( "Home", "#" ), ( "Submit New Job", "#submit-new-job" ), ( "Jobs", "#jobs" ), ( "Builds", "#builds" ), ( "Agents", "#agents" ), ( "Suites", "#suites" ), ( "Job Configurations", "#jobConfigs" ) ]
+            [ ( "Home", "#" ), ( "Submit New Job", "#submit-new-job" ), ( "Jobs", "#jobs" ), ( "Builds", "#builds" ), ( "Agents", "#agents" ), ( "Suites", "#suites" ), ( "Job Configurations", "#jobConfigs" ), ( "Manage Newman", "#manageNewman" ) ]
 
         isActive page =
             UrlParser.parsePath
