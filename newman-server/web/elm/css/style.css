@@ -344,3 +344,21 @@ td {
 .jobs-list-max-job-count-button{
     margin-left: 7px;
 }
+
+.job-radio-button-failed3X {
+    border-color: DarkRed !important;
+    color: DarkRed;
+    background-color: transparent;
+}
+
+.job-radio-button-failed3X:hover {
+    border-color: DarkRed;
+    color: white;
+    background-color: DarkRed;
+}
+
+.job-radio-button-failed3X.active {
+    border-color: DarkRed;
+    color: white;
+    background-color: DarkRed;
+}

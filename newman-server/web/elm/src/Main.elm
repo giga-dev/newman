@@ -112,7 +112,7 @@ routeToPage route =
             JobPage <| Job.initModel id (stringToRadioState state)
 
         BuildRoute id ->
-            BuildPage (Build.Model Nothing Nothing 10)
+            BuildPage <| Build.initModel
 
         SuiteRoute id ->
             SuitePage (Suite.Model Nothing)
@@ -304,7 +304,7 @@ init location =
                     JobConfig.getJobConfigInfoCmd id |> Cmd.map JobConfigMsg
 
                 BuildRoute id ->
-                    Build.getBuildInfoCmd id |> Cmd.map BuildMsg
+                    Build.initCmd id |> Cmd.map BuildMsg
 
                 SuiteRoute id ->
                     Suite.getSuiteInfoCmd id |> Cmd.map SuiteMsg

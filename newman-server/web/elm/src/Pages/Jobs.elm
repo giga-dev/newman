@@ -27,14 +27,14 @@ import Views.JobsTable as JobsTable
 type alias Model =
     { jobsTableModel : JobsTable.Model
     , maxEntries : Int
-    , currTime : Time
+    , currTime : Maybe Time
     }
 
 
 type Msg
     = UpdateMaxEntries String
     | GetJobsCompleted (Result Http.Error (List Job))
-    | OnTime Time
+    | ReceiveTime Time
     | JobsTableMsg JobsTable.Msg
     | UpdateJobsNumber String
     | ApplyJobsNumberAndRetrieveJobs
@@ -53,9 +53,9 @@ init =
     in
         ( { jobsTableModel = JobsTable.init []
           , maxEntries = maxEntries
-          , currTime = 0
+          , currTime = Nothing
           }
-        , Cmd.batch [ getJobsCmd maxEntries, getTime ]
+        , Cmd.batch [ getJobsCmd maxEntries, requestTime ]
         )
 
 
@@ -81,22 +81,22 @@ update msg model =
         GetJobsCompleted result ->
             onGetJobsCompleted model result
 
-        OnTime time ->
-            ( { model | currTime = time }, Cmd.none )
+        ReceiveTime time ->
+            ( { model | currTime = Just time }, Cmd.none )
 
         JobsTableMsg subMsg ->
             let
                 ( updatedJobsTableModel, cmd ) =
                     JobsTable.update subMsg model.jobsTableModel
             in
-                ( { model | jobsTableModel = updatedJobsTableModel }, cmd |> Cmd.map JobsTableMsg )
+                ( { model | jobsTableModel = updatedJobsTableModel }, Cmd.batch [ cmd |> Cmd.map JobsTableMsg , requestTime ] )
 
         UpdateJobsNumber jobsNum ->
             ( { model | maxEntries = String.toInt jobsNum |> Result.withDefault 1 }, Cmd.none )
 
         ApplyJobsNumberAndRetrieveJobs ->
             ( { model | jobsTableModel = JobsTable.init [] }
-            , Cmd.batch [ getJobsCmd model.maxEntries, getTime ]
+            , getJobsCmd model.maxEntries
             )
 
 
@@ -192,9 +192,9 @@ onGetJobsCompleted model result =
 --        |> Http.request
 
 
-getTime : Cmd Msg
-getTime =
-    Task.perform OnTime Time.now
+requestTime : Cmd Msg
+requestTime =
+    Task.perform ReceiveTime Time.now
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

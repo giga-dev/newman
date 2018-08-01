@@ -63,7 +63,7 @@ init jobId list state =
     }
 
 
-viewTable : Model -> Time -> Html Msg
+viewTable : Model -> Maybe Time -> Html Msg
 viewTable model currTime =
     let
         prevButtons =
@@ -172,7 +172,7 @@ viewTable model currTime =
 -}
 
 
-viewTest : Time -> Test -> Html Msg
+viewTest : Maybe Time -> Test -> Html Msg
 viewTest currTime test =
     let
         status =
@@ -192,14 +192,14 @@ viewTest currTime test =
         durationText =
             let
                 diffTime =
-                    case ( test.startTime, test.endTime ) of
-                        ( Just startTime, Just endTime ) ->
+                    case ( test.startTime, test.endTime, currTime ) of
+                        ( Just startTime, Just endTime, _ ) ->
                             Just <| Duration.diff (Date.fromTime (toFloat endTime)) (Date.fromTime (toFloat startTime))
 
-                        ( Just startTime, Nothing ) ->
-                            Just <| Duration.diff (Date.fromTime currTime) (Date.fromTime (toFloat startTime))
+                        ( Just startTime, Nothing, Just time ) ->
+                            Just <| Duration.diff (Date.fromTime time) (Date.fromTime (toFloat startTime))
 
-                        ( _, _ ) ->
+                        ( _, _ , _ ) ->
                             Nothing
             in
             case diffTime of

@@ -65,7 +65,7 @@ init jobs =
         Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing "" Dropdown.initialState
 
 
-viewTable : Model -> Time -> Html Msg
+viewTable : Model -> Maybe Time -> Html Msg
 viewTable model currTime =
     let
         prevButtons =
@@ -175,7 +175,7 @@ viewTable model currTime =
             ]
 
 
-viewJob : Time -> Job -> Html Msg
+viewJob : Maybe Time -> Job -> Html Msg
 viewJob currTime job =
     let
         progressPercent =
@@ -219,14 +219,14 @@ viewJob currTime job =
         durationText =
             let
                 diffTime =
-                    case ( job.startTime, job.endTime ) of
-                        ( Just startTime, Just endTime ) ->
+                    case ( job.startTime, job.endTime , currTime ) of
+                        ( Just startTime, Just endTime , _ ) ->
                             Just <| Duration.diff (Date.fromTime (toFloat endTime)) (Date.fromTime (toFloat startTime))
 
-                        ( Just startTime, Nothing ) ->
-                            Just <| Duration.diff (Date.fromTime currTime) (Date.fromTime (toFloat startTime))
+                        ( Just startTime, Nothing , Just time ) ->
+                            Just <| Duration.diff (Date.fromTime time) (Date.fromTime (toFloat startTime))
 
-                        ( _, _ ) ->
+                        ( _, _, _ ) ->
                             Nothing
             in
                 case diffTime of

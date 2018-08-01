@@ -25,7 +25,7 @@ type alias Model =
     { maybeJob : Maybe Job
     , collapseState : CollapseState
     , testsTable : TestsTable.Model
-    , currTime : Time
+    , currTime : Maybe Time
     , statusState : RadioState
     }
 
@@ -41,7 +41,7 @@ type Msg
     | ToggleButton
     | GetTestsViewCompleted (Result Http.Error (List Test))
     | TestsTableMsg TestsTable.Msg
-    | OnTime Time
+    | ReceiveTime Time
     | WebSocketEvent WebSocket.Event
     | StatusMsg RadioState
 
@@ -63,14 +63,14 @@ initModel jobId state =
     { maybeJob = Nothing
     , collapseState = Hidden
     , testsTable = TestsTable.init jobId [] state
-    , currTime = 0
+    , currTime = Nothing
     , statusState = state
     }
 
 
 initCmd : JobId -> Cmd Msg
 initCmd jobId =
-    Cmd.batch [ getJobInfoCmd jobId, getTime ]
+    Cmd.batch [ getJobInfoCmd jobId, requestTime ]
 
 
 viewHeader : Model -> Job -> Html Msg
@@ -143,7 +143,7 @@ viewHeader model job =
                         [ text <| toString job.failedTests ]
                     , ButtonGroup.radioButton
                         (model.statusState == STATUS_FAILED3TIMES)
-                        [ Button.attrs [title "Failed 3 Times"] , Button.outlinePrimary, Button.outlineWarning, Button.onClick <| StatusMsg STATUS_FAILED3TIMES ]
+                        [ Button.attrs [title "Failed 3 Times", class "job-radio-button-failed3X"] , Button.onClick <| StatusMsg STATUS_FAILED3TIMES ]
                         [ text <| toString job.failed3TimesTests ]
                     , ButtonGroup.radioButton
                         (model.statusState == STATUS_ALL)
@@ -250,7 +250,7 @@ update msg model =
         GetTestsViewCompleted result ->
             case result of
                 Ok data ->
-                    ( { model | testsTable = TestsTable.init (Maybe.withDefault "" <| Maybe.map .id model.maybeJob) data model.statusState }, Cmd.none )
+                    ( { model | testsTable = TestsTable.init (Maybe.withDefault "" <| Maybe.map .id model.maybeJob) data model.statusState }, requestTime )
 
                 Err err ->
                     ( model, Cmd.none )
@@ -274,8 +274,8 @@ update msg model =
             in
             ( { model | collapseState = newState }, Cmd.none )
 
-        OnTime time ->
-            ( { model | currTime = time }, Cmd.none )
+        ReceiveTime time ->
+            ( { model | currTime = Just time }, Cmd.none )
 
         WebSocketEvent event ->
             case event of
@@ -313,9 +313,9 @@ getTestsViewCmd jobId =
             Json.Decode.field "values" (Json.Decode.list decodeTestView)
 
 
-getTime : Cmd Msg
-getTime =
-    Task.perform OnTime Time.now
+requestTime : Cmd Msg
+requestTime =
+    Task.perform ReceiveTime Time.now
 
 
 handleEvent : WebSocket.Event -> Cmd Msg

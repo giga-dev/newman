@@ -1,6 +1,6 @@
 module Pages.Build exposing (..)
 
-import Date
+import Date exposing (..)
 import Date.Format
 import Dict exposing (Dict)
 import Html exposing (..)
@@ -12,6 +12,7 @@ import Json.Decode.Pipeline exposing (decode)
 import List exposing (length)
 import Maybe exposing (withDefault)
 import Platform.Cmd exposing (batch)
+import Task exposing (..)
 import Time exposing (Time)
 import UrlParser exposing (Parser)
 import Utils.Types exposing (..)
@@ -21,7 +22,7 @@ import Views.JobsTable as JobsTable exposing (..)
 type alias Model =
     { maybeBuild : Maybe Build
     , maybeJobsTableModel : Maybe JobsTable.Model
-    , currTime : Time
+    , currTime : Maybe Time
     }
 
 
@@ -29,7 +30,7 @@ type Msg
     = GetBuildInfoCompleted (Result Http.Error Build)
     | GetJobsInfoCompleted (Result Http.Error (List Job))
     | JobsTableMsg JobsTable.Msg
-    | OnTime Time
+    | ReceiveTime Time
 
 
 parseBuildId : Parser (String -> a) a
@@ -37,18 +38,21 @@ parseBuildId =
     UrlParser.string
 
 
-init : BuildId -> ( Model, Cmd Msg )
-init buildId =
+initModel :  Model
+initModel =
     let
         maxEntries =
             40
     in
-    ( { maybeBuild = Nothing
+    { maybeBuild = Nothing
       , maybeJobsTableModel = Nothing
-      , currTime = 0
-      }
-    , Cmd.none
-    )
+      , currTime = Nothing
+    }
+
+
+initCmd : BuildId -> Cmd Msg
+initCmd buildId =
+    Cmd.batch [ getBuildInfoCmd buildId, requestTime ]
 
 
 view : Model -> Html Msg
@@ -94,14 +98,6 @@ view model =
                     <|
                         Dict.toList build.shas
 
-                --                xapOpenSha =
-                --                    withDefault "" (Dict.get "xap-open" build.shas)
-                --
-                --                xapSha =
-                --                    withDefault "" (Dict.get "xap" build.shas)
-                --
-                --                insightEdgeSha =
-                --                    withDefault "" (Dict.get "InsightEdge" build.shas)
             in
             div [ class "container-fluid" ] <|
                 [ h2 [ class "text" ] [ text <| "Details for build " ++ build.name ]
@@ -147,13 +143,10 @@ update msg model =
         GetJobsInfoCompleted result ->
             case result of
                 Ok jobsFromResult ->
-                    ( { model | maybeJobsTableModel = Just (JobsTable.init jobsFromResult) }, Cmd.none )
+                    ( { model | maybeJobsTableModel = Just (JobsTable.init jobsFromResult) }, requestTime )
 
                 Err err ->
                     ( model, Cmd.none )
-
-        OnTime time ->
-            ( { model | currTime = time }, Cmd.none )
 
         JobsTableMsg subMsg ->
             let
@@ -165,7 +158,10 @@ update msg model =
                         Nothing ->
                             JobsTable.update subMsg (JobsTable.init [])
             in
-            ( { model | maybeJobsTableModel = Just updatedJobsTableModel }, cmd |> Cmd.map JobsTableMsg )
+            ( { model | maybeJobsTableModel = Just updatedJobsTableModel }, Cmd.batch [ cmd |> Cmd.map JobsTableMsg , requestTime ] )
+
+        ReceiveTime time ->
+            ( { model | currTime = Just time } , Cmd.none )
 
 
 getBuildInfoCmd : BuildId -> Cmd Msg
@@ -179,3 +175,7 @@ getJobsInfoCmd buildId =
     Http.send GetJobsInfoCompleted <|
         Http.get ("/api/newman/job?buildId=" ++ buildId ++ "&all=true") <|
             Json.Decode.field "values" (Json.Decode.list decodeJob)
+
+requestTime : Cmd Msg
+requestTime =
+    Task.perform ReceiveTime Time.now
