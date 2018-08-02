@@ -78,7 +78,12 @@ update msg model =
         GetAgentsCompleted result ->
             case result of
                     Ok agentsFromResult ->
-                        ( { model | agents = Paginate.fromList model.pageSize agentsFromResult, allAgents = agentsFromResult }, Cmd.none )
+                        let
+                            filteredList =
+                                List.filter (filterQuery model.query model.filterFailingAgents) agentsFromResult
+                        in
+                            ( { model | agents = Paginate.fromList model.pageSize filteredList
+                                      , allAgents = agentsFromResult }, Cmd.none )
 
                     Err err ->
                         ( model, Cmd.none )
@@ -337,7 +342,7 @@ getAgentsCmd =
 
 cleanSetupRetriesCmd :Cmd Msg
 cleanSetupRetriesCmd =
-    Http.send GetAgentsCompleted <| Http.post "/api/newman/agent/clean-setup-retries" Http.emptyBody decodeAgents
+    Http.send GetAgentsCompleted <| Http.post "/api/newman/agent/clean-setup-retries?all=true" Http.emptyBody decodeAgents
 
 filterQuery : String -> Bool -> Agent -> Bool
 filterQuery query filterFailingAgents agent =
