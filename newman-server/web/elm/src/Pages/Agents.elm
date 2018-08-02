@@ -51,6 +51,7 @@ type Msg
     | NewmanModalMsg Modal.State
     | RequestCompletedDropAgent String (Result Http.Error String)
     | FilterFailingAgents Bool
+    | CleanSetupRetries
 
 
 init : ( Model, Cmd Msg )
@@ -76,15 +77,11 @@ update msg model =
     case msg of
         GetAgentsCompleted result ->
             case result of
-                Ok agentsFromResult ->
-                    ( { model | agents = Paginate.fromList model.pageSize agentsFromResult, allAgents = agentsFromResult }, Cmd.none )
+                    Ok agentsFromResult ->
+                        ( { model | agents = Paginate.fromList model.pageSize agentsFromResult, allAgents = agentsFromResult }, Cmd.none )
 
-                Err err ->
-                    let
-                        a =
-                            Debug.log "onGetAgentsCompleted" err
-                    in
-                    ( model, Cmd.none )
+                    Err err ->
+                        ( model, Cmd.none )
 
         First ->
             ( { model | agents = Paginate.first model.agents }, Cmd.none )
@@ -138,6 +135,10 @@ update msg model =
             ( { model | filterFailingAgents = filterFailingAgents, agents = Paginate.fromList model.pageSize filteredList }
             , Cmd.none
             )
+
+        CleanSetupRetries ->
+            ( model, cleanSetupRetriesCmd )
+
 
 
 onRequestCompletedDropAgent : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
@@ -228,6 +229,9 @@ view model =
                     )
                 ]
 
+        cleanSetupRetriesButton =
+            div [] [ Button.button [ Button.primary, Button.onClick CleanSetupRetries ] [ text "Clear Failing Agents" ] ]
+
         failingAgentsFilterButton =
             CheckBox.custom [ CheckBox.inline, CheckBox.onCheck FilterFailingAgents ] "Failing agents only"
     in
@@ -243,6 +247,7 @@ view model =
                         ]
                     ]
                 , div [ class "form-group" ] [ pagination ]
+                , cleanSetupRetriesButton
                 ]
             , div [] [ failingAgentsFilterButton ]
             , table [ class "table table-hover table-striped table-bordered table-condensed" ]
@@ -327,13 +332,12 @@ viewAgent agent =
 
 getAgentsCmd : Cmd Msg
 getAgentsCmd =
-    Http.send GetAgentsCompleted getAgents
+    Http.send GetAgentsCompleted <| Http.get "/api/newman/agent?all=true" decodeAgents
 
 
-getAgents : Http.Request Agents
-getAgents =
-    Http.get "/api/newman/agent?all=true" decodeAgents
-
+cleanSetupRetriesCmd :Cmd Msg
+cleanSetupRetriesCmd =
+    Http.send GetAgentsCompleted <| Http.post "/api/newman/agent/clean-setup-retries" Http.emptyBody decodeAgents
 
 filterQuery : String -> Bool -> Agent -> Bool
 filterQuery query filterFailingAgents agent =

@@ -1734,6 +1734,33 @@ public class NewmanResource {
     }
 
     @POST
+    @Path("agent/clean-setup-retries")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<Agent> cleanAgentRetries(@DefaultValue("0") @QueryParam("offset") int offset,
+                                          @DefaultValue("30") @QueryParam("limit") int limit,
+                                          @DefaultValue("false") @QueryParam("all") boolean all
+            , @QueryParam("orderBy") List<String> orderBy
+            , @Context UriInfo uriInfo) {
+        Query<Agent> query = agentDAO.createQuery();
+        if (!all) {
+            query.offset(offset).limit(limit);
+        }
+        if (orderBy != null) {
+            orderBy.forEach(query::order);
+        }
+
+        UpdateOperations<Agent> updateAgentStatus = agentDAO.createUpdateOperations().set("setupRetries",0);
+        UpdateResults update = agentDAO.getDatastore().update(query, updateAgentStatus);
+        logger.info("cleanAgentRetries: number of agents updated " + update.getUpdatedCount());
+
+        List<Agent> agents = agentDAO.find(query).asList();
+        for (Agent agent : agents) {
+            broadcastMessage(MODIFIED_AGENT, agent);
+        }
+        return new Batch<>(agents, offset, limit, all, orderBy, uriInfo);
+    }
+
+    @POST
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
