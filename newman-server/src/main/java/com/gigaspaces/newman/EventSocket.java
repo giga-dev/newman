@@ -29,13 +29,8 @@ public class EventSocket implements WebSocketListener {
             throws IOException {
 
         endpoints.forEach(endpoint -> {
-            //logger.info("Sending message [" + message.getId() + "] to " + endpoint.session.getRemoteAddress());
             synchronized (endpoint) {
-                try {
-                    endpoint.session.getRemote().sendString(gson.toJson(message));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                endpoint.session.getRemote().sendStringByFuture(gson.toJson(message));
             }
         });
     }

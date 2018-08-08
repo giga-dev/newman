@@ -23,7 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.IOException;
+
 import java.util.Arrays;
 
 import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
@@ -100,8 +101,8 @@ public class NewmanServer {
         jerseyServlet.setInitOrder(0);
 
 
-//        ServletHolder webSocketHolder = context.addServlet(WebSocketServlet.class, "/events/*");
-//        webSocketHolder.setInitOrder(1);
+        ServletHolder webSocketHolder = context.addServlet(WebSocketServlet.class, "/events/*");
+        webSocketHolder.setInitOrder(1);
 
         try {
             Resource keyStoreResource = createKeystoreResource();
@@ -150,7 +151,7 @@ public class NewmanServer {
         return mapping;
     }
 
-    private static Resource createKeystoreResource() throws MalformedURLException {
+    private static Resource createKeystoreResource() throws IOException {
         String filePath = getNonEmptySystemProperty(KEYS_PATH, "./keys/server.keystore");
         if(new File(filePath).exists()){
             return Resource.newResource(new File(filePath));
