@@ -89,6 +89,7 @@ public class NewmanResource {
     private final Timer timer = new Timer(true);
 
     private final ConcurrentHashMap<String, Object> agentLocks = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, OfflineAgent> offlineAgents = new ConcurrentHashMap<>();
 
     private static final int maxJobsPerSuite = 5;
     private final DistinctIterable distinctTestsByAssignedAgentFilter;
@@ -1733,6 +1734,29 @@ public class NewmanResource {
         return new Batch<>(agents, offset, limit, all, orderBy, uriInfo);
     }
 
+    @GET
+    @Path("agent/offline")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Agent> getOfflineAgents() {
+
+        List<Agent> result = new ArrayList<>(offlineAgents.size());
+        for (Map.Entry<String,OfflineAgent> entry : offlineAgents.entrySet()) {
+            Agent agent = new Agent();
+            logger.info("getOfflineAgents ip: " + entry.getKey());
+            agent.setName(entry.getKey());
+            agent.setHost(entry.getValue().getHost());
+            agent.setLastTouchTime(entry.getValue().getLastTouchTime());
+            agent.setId("");
+            agent.setJobId("");
+            agent.setHostAddress("");
+            agent.setPid("");
+            agent.setJob(new Job());
+            agent.setState(Agent.State.IDLING);
+            result.add(agent);
+        }
+        return result;
+    }
+
     @POST
     @Path("agent/clean-setup-retries")
     @Produces(MediaType.APPLICATION_JSON)
@@ -1921,6 +1945,10 @@ public class NewmanResource {
         }
 
         Agent readyAgent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, false, true);
+        if (found == null) {
+            String agentIp = agent.getName().substring(0,agent.getName().indexOf("-"));
+            offlineAgents.remove(agentIp);
+        }
         if (readyAgent != null && readyAgent.getState().equals(Agent.State.IDLING)) {
             logger.debug("agent [{}] is idling at subscribe because didn't find job", readyAgent.getName());
         }
@@ -2232,6 +2260,15 @@ public class NewmanResource {
         Datastore datastore = agentDAO.getDatastore();
         datastore.findAndDelete(idAgentQuery);
         return Response.ok(Entity.json(agentId)).build();
+    }
+
+    @DELETE
+    @Path("offlineAgent/{agentName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteOfflineAgent(final @PathParam("agentName") String agentName) {
+
+        offlineAgents.remove(agentName);
+        return Response.ok(Entity.json(agentName)).build();
     }
 
     @DELETE
@@ -2759,9 +2796,11 @@ public class NewmanResource {
     }
 
     private void handleZombieAgent(Agent agent) {
-        logger.warn("Agent {} is did not report on time while he was IDLING and will be deleted", agent.getName());
+        logger.warn("Agent {} did not report on time while he was IDLING and will be deleted", agent.getName());
         final Agent toDelete = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agent.getName()));
         if (toDelete != null) {
+            String agentIp = agent.getName().substring(0,agent.getName().indexOf("-"));
+            offlineAgents.put(agentIp, new OfflineAgent(agentIp, agent.getHost(), agent.getLastTouchTime()));
             agentDAO.getDatastore().findAndDelete(agentDAO.createIdQuery(toDelete.getId()));
             //Delete agent from preparing agents in jobs
             jobDAO.createUpdateOperations().removeAll("preparingAgents", toDelete.getName());

@@ -1,15 +1,11 @@
 module Pages.Agents exposing (..)
 
-import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Button as Button
-import Bootstrap.Form as Form
 import Bootstrap.Form.Checkbox as CheckBox
 import Bootstrap.Form.Input as FormInput
 import Bootstrap.Modal as Modal
-import Bootstrap.Progress as Progress exposing (..)
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
-import Date.Extra.Duration as Duration
 import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
 import Date.Format
 import Html exposing (..)
@@ -28,12 +24,15 @@ import Views.NewmanModal as NewmanModal exposing (..)
 
 type alias Model =
     { allAgents : Agents
+    , offlineAgents : Agents
     , agents : PaginatedAgents
     , pageSize : Int
     , query : String
     , filterFailingAgents : Bool
+    , filterOfflineAgents : Bool
     , confirmationState : Modal.State
     , agentToDrop : Maybe String
+    , offlineAgentToDrop : Maybe String
     }
 
 
@@ -48,10 +47,14 @@ type Msg
     | WebSocketEvent WebSocket.Event
     | OnClickDropAgent String
     | OnAgentDropConfirmed String
+    | OnClickDropOfflineAgent String
+    | OnOfflineAgentDropConfirmed String
     | NewmanModalMsg Modal.State
-    | RequestCompletedDropAgent String (Result Http.Error String)
+    | RequestCompletedDropAgent String String (Result Http.Error String)
     | FilterFailingAgents Bool
     | CleanSetupRetries
+    | FilterOfflineAgents Bool
+    | GetOfflineAgentsCompleted (Result Http.Error Agents)
 
 
 init : ( Model, Cmd Msg )
@@ -61,12 +64,15 @@ init =
             20
     in
     ( { allAgents = []
+      , offlineAgents = []
       , agents = Paginate.fromList pageSize []
       , pageSize = pageSize
       , query = ""
       , filterFailingAgents = False
+      , filterOfflineAgents = False
       , confirmationState = Modal.hiddenState
       , agentToDrop = Nothing
+      , offlineAgentToDrop = Nothing
       }
     , getAgentsCmd
     )
@@ -80,13 +86,24 @@ update msg model =
                     Ok agentsFromResult ->
                         let
                             filteredList =
-                                List.filter (filterQuery model.query model.filterFailingAgents) agentsFromResult
+                                if (model.filterOfflineAgents) then
+                                      model.offlineAgents
+                                else
+                                    List.filter (filterQuery model.query model.filterFailingAgents) agentsFromResult
                         in
                             ( { model | agents = Paginate.fromList model.pageSize filteredList
                                       , allAgents = agentsFromResult }, Cmd.none )
 
                     Err err ->
                         ( model, Cmd.none )
+
+        GetOfflineAgentsCompleted result ->
+            case result of
+                Ok offlineAgentsResult ->
+                         ({model | agents = Paginate.fromList model.pageSize offlineAgentsResult,
+                                    offlineAgents = offlineAgentsResult } , Cmd.none )
+                Err err ->
+                         ( model, Cmd.none )
 
         First ->
             ( { model | agents = Paginate.first model.agents }, Cmd.none )
@@ -106,7 +123,10 @@ update msg model =
         FilterQuery query ->
             let
                 filteredList =
-                    List.filter (filterQuery query model.filterFailingAgents) model.allAgents
+                        if (model.filterOfflineAgents) then
+                              model.offlineAgents
+                        else
+                            List.filter (filterQuery query model.filterFailingAgents) model.allAgents
             in
             ( { model | query = query, agents = Paginate.fromList model.pageSize filteredList }
             , Cmd.none
@@ -121,39 +141,81 @@ update msg model =
                     ( model, Cmd.none )
 
         OnClickDropAgent agentId ->
-            ( { model | confirmationState = Modal.visibleState, agentToDrop = Just agentId }, Cmd.none )
+                ( { model | confirmationState = Modal.visibleState, agentToDrop = Just agentId }, Cmd.none )
+
+        OnClickDropOfflineAgent agentName ->
+            ( { model | confirmationState = Modal.visibleState, offlineAgentToDrop = Just agentName }, Cmd.none )
 
         NewmanModalMsg newState ->
-            ( { model | agentToDrop = Nothing, confirmationState = newState }, Cmd.none )
+            ( { model | agentToDrop = Nothing, offlineAgentToDrop = Nothing, confirmationState = newState }, Cmd.none )
 
         OnAgentDropConfirmed agentId ->
             ( { model | confirmationState = Modal.hiddenState }, dropAgentCmd agentId )
 
-        RequestCompletedDropAgent agentId result ->
-            onRequestCompletedDropAgent agentId model result
+        OnOfflineAgentDropConfirmed agentName ->
+            ( { model | confirmationState = Modal.hiddenState }, dropOfflineAgentCmd agentName )
+
+        RequestCompletedDropAgent offlineOrOnline agentId result ->
+            onRequestCompletedDropAgent offlineOrOnline agentId model result
 
         FilterFailingAgents filterFailingAgents ->
             let
                 filteredList =
-                    List.filter (filterQuery model.query filterFailingAgents) model.allAgents
+                    if ((not filterFailingAgents) && model.filterOfflineAgents) then
+                          model.offlineAgents
+                    else
+                        List.filter (filterQuery model.query filterFailingAgents) model.allAgents
             in
-            ( { model | filterFailingAgents = filterFailingAgents, agents = Paginate.fromList model.pageSize filteredList }
-            , Cmd.none
+            ( { model | filterFailingAgents = filterFailingAgents,
+                        agents = Paginate.fromList model.pageSize filteredList,
+                        filterOfflineAgents = if filterFailingAgents then
+                                                    False
+                                              else   model.filterOfflineAgents }
+                        , Cmd.none
             )
+
+        FilterOfflineAgents filterOfflineAgents ->
+            let
+                filteredList =
+                    if (filterOfflineAgents) then
+                          model.offlineAgents
+                    else
+                        List.filter (filterQuery model.query model.filterFailingAgents) model.allAgents
+
+                cmd =  if (filterOfflineAgents) then
+                            getOfflineAgentsCmd
+                       else
+                            Cmd.none
+            in
+            ( {model | filterOfflineAgents = filterOfflineAgents
+                     , agents = Paginate.fromList model.pageSize filteredList
+                     , filterFailingAgents = if filterOfflineAgents then
+                                                    False
+                                             else model.filterFailingAgents } , cmd )
 
         CleanSetupRetries ->
             ( model, cleanSetupRetriesCmd )
 
 
 
-onRequestCompletedDropAgent : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
-onRequestCompletedDropAgent agentId model result =
+onRequestCompletedDropAgent : String -> String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
+onRequestCompletedDropAgent offlineOrOnline agentId model result =
     case result of
         Ok _ ->
-            ( updateAgentRemoved model agentId, Cmd.none )
-
+                case offlineOrOnline of
+                        "online" ->
+                                ( updateAgentRemoved model agentId, Cmd.none )
+                        "offline" ->
+                            let
+                                offlineAgentList =
+                                    ListExtra.filterNot (\agent -> agent.name == agentId ) model.offlineAgents
+                            in
+                                ( {model | offlineAgents = offlineAgentList
+                                         , agents = Paginate.fromList model.pageSize offlineAgentList } , Cmd.none )
+                        err ->
+                                ( model, Cmd.none )
         Err err ->
-            ( model, Cmd.none )
+                ( model, Cmd.none )
 
 
 updateAll : (List Agent -> List Agent) -> Model -> Model
@@ -238,7 +300,22 @@ view model =
             div [] [ Button.button [ Button.primary, Button.onClick CleanSetupRetries ] [ text "Clear Failing Agents" ] ]
 
         failingAgentsFilterButton =
-            CheckBox.custom [ CheckBox.inline, CheckBox.onCheck FilterFailingAgents ] "Failing agents only"
+            CheckBox.custom [ CheckBox.inline, CheckBox.onCheck FilterFailingAgents , CheckBox.checked model.filterFailingAgents ] "Failing agents only"
+
+        offlineAgentsFilterButton =
+            CheckBox.custom [ CheckBox.inline, CheckBox.onCheck FilterOfflineAgents , CheckBox.checked model.filterOfflineAgents ] "Offline agents only"
+
+        confirmAgentDropDialog =
+                case  model.agentToDrop of
+                    Just agentId ->
+                        NewmanModal.confirmAgentDrop agentId NewmanModalMsg OnAgentDropConfirmed model.confirmationState
+                    Nothing ->
+                        case model.offlineAgentToDrop of
+                            Just agentName ->
+                                NewmanModal.confirmAgentDrop agentName NewmanModalMsg OnOfflineAgentDropConfirmed model.confirmationState
+                            Nothing ->
+                                NewmanModal.confirmAgentDrop "agentNotFound" NewmanModalMsg OnOfflineAgentDropConfirmed model.confirmationState
+
     in
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text <| "Agents (" ++ (toString <| Paginate.length model.agents) ++ ")" ]
@@ -255,6 +332,7 @@ view model =
                 , cleanSetupRetriesButton
                 ]
             , div [] [ failingAgentsFilterButton ]
+            , div [] [ offlineAgentsFilterButton ]
             , table [ class "table table-hover table-striped table-bordered table-condensed" ]
                 [ thead []
                     [ tr []
@@ -272,16 +350,16 @@ view model =
                         , th [] [ text "Actions" ]
                         ]
                     ]
-                , tbody [] (List.map viewAgent (Paginate.page model.agents))
+                , tbody [] (List.map (viewAgent model.filterOfflineAgents) (Paginate.page model.agents))
                 ]
             , pagination
             ]
-        , NewmanModal.confirmAgentDrop model.agentToDrop NewmanModalMsg OnAgentDropConfirmed model.confirmationState
+        , confirmAgentDropDialog
         ]
 
 
-viewAgent : Agent -> Html Msg
-viewAgent agent =
+viewAgent : Bool -> Agent -> Html Msg
+viewAgent filterOfflineAgents agent =
     let
         agentCapabilities =
             String.join "," agent.capabilities
@@ -315,11 +393,20 @@ viewAgent agent =
 
         lastSeen =
             Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat agent.lastTouchTime))
+
+        closeButtonMsg agentId agentName =
+                if filterOfflineAgents then
+                    OnClickDropOfflineAgent agentName
+                else
+                    OnClickDropAgent agentId
     in
     tr []
         [ td [] [ text agent.name ]
         , td [] [ text agentCapabilities ]
-        , td [] [ text agent.state ]
+        , td [] [ text <| if filterOfflineAgents then
+                            ""
+                          else
+                            agent.state ]
         , td [] [ text agent.host ]
         , td [] [ text agent.pid ]
         , td [] [ text (toString agent.setupRetries) ]
@@ -328,10 +415,9 @@ viewAgent agent =
         , td [] [ text suiteString ]
         , td [] [ text currentTests ]
         , td [] [ text lastSeen ]
-        , td []
-            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickDropAgent agent.id ]
-                [ span [ class "ion-close" ] [] ]
-            ]
+        , td [] [ Button.button [ Button.danger, Button.small, Button.onClick <| closeButtonMsg agent.id agent.name ]
+                    [ span [ class "ion-close" ] [] ]
+                ]
         ]
 
 
@@ -343,6 +429,11 @@ getAgentsCmd =
 cleanSetupRetriesCmd :Cmd Msg
 cleanSetupRetriesCmd =
     Http.send GetAgentsCompleted <| Http.post "/api/newman/agent/clean-setup-retries?all=true" Http.emptyBody decodeAgents
+
+getOfflineAgentsCmd : Cmd Msg
+getOfflineAgentsCmd =
+    Http.send GetOfflineAgentsCompleted <| Http.get "/api/newman/agent/offline" decodeAgentList
+
 
 filterQuery : String -> Bool -> Agent -> Bool
 filterQuery query filterFailingAgents agent =
@@ -367,7 +458,7 @@ filterQuery query filterFailingAgents agent =
             || String.startsWith query agent.name
             || capabilitiesCheck
             || String.startsWith query agent.state
-            || String.startsWith query agent.host
+            || String.contains query agent.host
             || String.startsWith query agent.pid
             || jobIdCheck)
     then
@@ -378,11 +469,25 @@ filterQuery query filterFailingAgents agent =
 
 dropAgentCmd : String -> Cmd Msg
 dropAgentCmd agentId =
-    Http.send (RequestCompletedDropAgent agentId) <|
+    Http.send (RequestCompletedDropAgent "online" agentId) <|
         Http.request <|
             { method = "DELETE"
             , headers = []
             , url = "/api/newman/agent/" ++ agentId
+            , body = Http.emptyBody
+            , expect = Http.expectString
+            , timeout = Nothing
+            , withCredentials = False
+            }
+
+
+dropOfflineAgentCmd : String -> Cmd Msg
+dropOfflineAgentCmd agentName =
+    Http.send (RequestCompletedDropAgent "offline" agentName) <|
+        Http.request <|
+            { method = "DELETE"
+            , headers = []
+            , url = "/api/newman/offlineAgent/" ++ agentName
             , body = Http.emptyBody
             , expect = Http.expectString
             , timeout = Nothing

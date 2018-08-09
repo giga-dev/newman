@@ -423,6 +423,8 @@ decodeAgents : Decoder Agents
 decodeAgents =
     field "values" (list decodeAgent)
 
+decodeAgentList : Decoder Agents
+decodeAgentList = list decodeAgent
 
 decodeAgent : Decoder Agent
 decodeAgent =
