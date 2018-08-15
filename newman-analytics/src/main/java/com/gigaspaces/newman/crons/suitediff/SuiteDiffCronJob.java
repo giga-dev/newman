@@ -161,7 +161,7 @@ public class SuiteDiffCronJob implements CronJob {
     private List<HistoryTestData> getTestsThatHaveAHistoryOfFailing(Map<String, Job> latest_mapSuite2Job, NewmanClient newmanClient) throws Exception {
         List<HistoryTestData> failingTests = new ArrayList<>();
         for (Job job : latest_mapSuite2Job.values()) {
-            Batch<Test> testBatch = newmanClient.getTests(job.getId(), 0, job.getTotalTests()).toCompletableFuture().get();
+            Batch<Test> testBatch = newmanClient.getTests(job.getId(), 0, job.getTotalTests() + job.getNumOfTestRetries()).toCompletableFuture().get();
             for (Test test : testBatch.getValues()) {
                 if (test.getStatus().equals(Test.Status.FAIL) && test.getRunNumber() == 3) {
                     String historyStats = test.getHistoryStats();
