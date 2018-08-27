@@ -1,21 +1,13 @@
 # --------------------------------------------------------
-# run each day at 7-8am, every 15 min from sunday-saturday
+# DAILY MORNING REPORT - run each day at 7-8am, every 15 min from sunday-saturday
 # --------------------------------------------------------
 */15 7-8 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=XAP,NIGHTLY,RELEASE > /home/xap/newman-analytics/logs/xap-daily-suite-diff.log 2>&1
 
-#*/15 7-8 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=INSIGHTEDGE,I9E_RELEASE,I9E_NIGHTLY > /home/xap/newman-analytics/logs/i9e-daily-suite-diff.log 2>&1
-
-#--branch--
-#0 7 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=NIGHTLY,RELEASE crons.suitediff.branch=barakb-opencore > /home/xap/newman-analytics/logs/daily-suite-diff.log 2>&1
 
 # ----------------------------------------------------------
-# interday cronjob - every 1 hours from 8am to 21:00
+# INTERDAY REPORT - run every 1 hours from 8am to 21:00
 # ----------------------------------------------------------
 0 8-21/1 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.trackLatest=false > /home/xap/newman-analytics/logs/interday-suite-diff.log 2>&1
-
-#--branch--  every 10 minutes from 8-21.00
-#*/10 8-21 * * SUN-SAT cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.trackLatest=true crons.suitediff.branch=zk_last_primary_ts > /home/xap/newman-analytics/logs/branch-interday-suite-diff.log 2>&1
-
 
 
 # ---------------------------------------------------------
@@ -27,6 +19,6 @@
 # run disk space usage alert at 7am,10am,3pm
 # ---------------------------------------------------------
 00 7,10,15 * * * cd /home/xap/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/alert/alert.properties > /home/xap/newman-analytics/logs/alert.log 2>&1
+00 7,10,15 * * * cd /home/xap/newman-analytics/bin && ./diskspace.sh  > /home/xap/newman-analytics/logs/ds_alert.log 2>&1
 
-#Ansible: cronRunServer
 @reboot . /etc/environment; cd /home/xap/newman-server; ./run.sh
