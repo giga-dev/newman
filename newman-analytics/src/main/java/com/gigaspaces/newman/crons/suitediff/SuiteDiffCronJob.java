@@ -258,18 +258,28 @@ public class SuiteDiffCronJob implements CronJob {
         String branch = properties.getProperty(CRONS_SUITEDIFF_BRANCH, DEFAULT_BRANCH);
         String tag = properties.getProperty(CRONS_SUITEDIFF_TAG);
         Build latestMatch = null;
+
+        logger.info(">>>> getLatestBuild, branch=" + branch +
+                    ", tag=" + tag +
+                    ", historyBuilds size=" + historyBuilds.size() );
+
         for (Build history : historyBuilds) {
             //Get full build details since history build object has some columns removed
             history = newmanClient.getBuild(history.getId()).toCompletableFuture().get();
+            logger.info("history=" + history );
             if (history.getBranch().equals(branch)) {
+                logger.info("Before checking for not empty" );
                 if (StringUtils.notEmpty(tag)) {
                     Set<String> tagsToMatch = new HashSet<>(Arrays.asList(tag.split(",")));
+                    logger.info("Before checking for contains tag" );
                     if (history.getTags().containsAll(tagsToMatch)) {
+                        logger.info("Within checking for contains tag, latestMatch=" + latestMatch );
                         latestMatch = history;
                         break;
                     }
                 } else {
                     latestMatch = history;
+                    logger.info("Within else, latestMatch=" + latestMatch );
                     break;
                 }
             }
