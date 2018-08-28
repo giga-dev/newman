@@ -2003,6 +2003,44 @@ public class NewmanResource {
         return new Batch<>(buildDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
     }
 
+
+    @GET
+    @Path("latest-builds")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Batch<Build> getLatestBuilds(@DefaultValue("0") @QueryParam("offset") int offset,
+                                        @DefaultValue("50") @QueryParam("limit") int limit,
+                                        @DefaultValue("false") @QueryParam("all") boolean all,
+                                        @QueryParam("branch") String branchStr,
+                                        @QueryParam("tags") String tagsStr,
+                                        @Context UriInfo uriInfo) {
+
+        Query<Build> query = buildDAO.createQuery();
+        if (!all) {
+            query.offset(offset).limit(limit);
+        }
+
+        List<String> orderBy = new ArrayList<>(1);
+        orderBy.add("-buildTime");
+        orderBy.forEach(query::order);
+
+        Set<String> tagsSet;
+        if (tagsStr != null && !tagsStr.isEmpty()) {
+            tagsSet = new HashSet<>(Arrays.asList(tagsStr.split("\\s*,\\s*")));
+            if (!tagsSet.isEmpty()) { // build should be with specifics tags
+                query.field("tags").hasAllOf(tagsSet);
+            }
+        }
+
+        if( branchStr != null && !branchStr.isEmpty() ) {
+            query.field("branch").equal(branchStr);
+        }
+
+        return new Batch<>(buildDAO.find(query.
+                        where("this.buildStatus.totalJobs>0").
+                        where("this.buildStatus.doneJobs + this.buildStatus.brokenJobs == this.buildStatus.totalJobs")).
+            asList(), offset, limit, all, orderBy, uriInfo);
+    }
+
     @PUT
     @Path("build")
     @Produces(MediaType.APPLICATION_JSON)
