@@ -157,6 +157,16 @@ public class NewmanClient {
         return restClient.target(uri).path("build").path("latest").path(tags).request().rx().get(Build.class);
     }
 
+    public CompletionStage<Batch<Build>> getLatestBuilds( String branch, String tags, int limit, boolean withAllJobsCompleted ) {
+        return restClient.target(uri).path("latest-builds")
+            .queryParam("branch", branch)
+            .queryParam("tags", tags)
+            .queryParam("limit", limit)
+            .queryParam("with-all-jobs-completed", withAllJobsCompleted)
+            .request().rx().get(new GenericType<Batch<Build>>() {
+        });
+    }
+
     public CompletionStage<Job> subscribe(Agent agent) {
         return restClient.target(uri).path("subscribe").request().rx().post(Entity.json(agent), Job.class);
     }
