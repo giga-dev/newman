@@ -2012,6 +2012,7 @@ public class NewmanResource {
                                         @DefaultValue("false") @QueryParam("all") boolean all,
                                         @QueryParam("branch") String branchStr,
                                         @QueryParam("tags") String tagsStr,
+                                        @DefaultValue("true")  @QueryParam("with-all-jobs-completed") boolean withAllJobsCompleted,
                                         @Context UriInfo uriInfo) {
 
         Query<Build> query = buildDAO.createQuery();
@@ -2035,10 +2036,14 @@ public class NewmanResource {
             query.field("branch").equal(branchStr);
         }
 
-        return new Batch<>(buildDAO.find(query.
-                        where("this.buildStatus.totalJobs>0").
-                        where("this.buildStatus.doneJobs + this.buildStatus.brokenJobs == this.buildStatus.totalJobs")).
-            asList(), offset, limit, all, orderBy, uriInfo);
+        if( withAllJobsCompleted ) {
+            query = query
+                .where("this.buildStatus.totalJobs>0")
+                .where(
+                    "this.buildStatus.doneJobs + this.buildStatus.brokenJobs == this.buildStatus.totalJobs");
+        }
+
+        return new Batch<>(buildDAO.find(query).asList(), offset, limit, all, orderBy, uriInfo);
     }
 
     @PUT
