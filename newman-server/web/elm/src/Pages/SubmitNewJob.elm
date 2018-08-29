@@ -228,8 +228,7 @@ view model =
                     [ text "Select Job Configuration:"
                     , Select.select
                         [ Select.onChange UpdateSelectedConfig, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
-                        ([ Select.item [ value "1" ] [ text "Select Job configuration" ]]
-                            ++List.map toOption model.configurations)
+                        (List.map toOption model.configurations)
                     ]
             , br [] []
             , selectBuildView model
@@ -247,7 +246,7 @@ selectBuildView : Model -> Html Msg
 selectBuildView model =
     let
         toOption data =
-            Select.item [ value data.id, selected <| model.selectedBuild == data.id ] [ text <| data.name ++ " (" ++ data.branch ++ ")" ]
+            Select.item [ value data.id, selected <| model.selectedBuild == data.id ] [ text <| data.name ++ " (" ++ data.branch ++ ")" ++ " (" ++ String.join "," data.tags ++ ")" ]
     in
         div []
             [ div
