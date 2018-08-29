@@ -84,9 +84,15 @@ public class SuiteDiffCronJob implements CronJob {
 
     private void sendEmail(Properties properties, NewmanClient newmanClient) throws Exception {
 
-        DashboardData dashboardData = newmanClient.getDashboard().toCompletableFuture().get(1, TimeUnit.MINUTES);
+        String branch = properties.getProperty(CRONS_SUITEDIFF_BRANCH, DEFAULT_BRANCH);
+        String tag = properties.getProperty(CRONS_SUITEDIFF_TAG);
 
-        List<Build> historyBuilds = dashboardData.getHistoryBuilds();
+        logger.info("Before calling to method newmanClient.getLatestBuilds:");
+        logger.info("Branch:" + branch + ", tag:" + tag);
+
+        Batch<Build> historyBuildsBatch = newmanClient.getLatestBuilds( branch, tag, 5, true ).
+                                            toCompletableFuture().get(1, TimeUnit.MINUTES);
+        List<Build> historyBuilds = historyBuildsBatch.getValues();
         if (historyBuilds.size() == 0) {
             logger.info("No history builds to generate report");
             return;
