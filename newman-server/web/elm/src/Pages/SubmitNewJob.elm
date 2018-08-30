@@ -228,7 +228,8 @@ view model =
                     [ text "Select Job Configuration:"
                     , Select.select
                         [ Select.onChange UpdateSelectedConfig, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
-                        (List.map toOption model.configurations)
+                        ([ Select.item [ value "1" ] [ text "Select Job configuration" ]]
+                            ++List.map toOption model.configurations)
                     ]
             , br [] []
             , selectBuildView model
@@ -330,3 +331,5 @@ decodeConfig =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.map MultiSelectMsg <| Multiselect.subscriptions model.selectedSuites
+
+
