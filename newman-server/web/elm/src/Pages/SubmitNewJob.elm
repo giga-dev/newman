@@ -110,7 +110,7 @@ update msg model =
         GetAllConfigsCompleted result ->
             case result of
                 Ok data ->
-                    ( { model | configurations = data, selectedConfig = "" }, Cmd.none )
+                    ( { model | configurations = data, selectedConfig = Maybe.withDefault "" <| Maybe.map ( \v -> v.id ) <| List.head data }, Cmd.none )
 
                 Err err ->
                     -- log error
@@ -228,8 +228,7 @@ view model =
                     [ text "Select Job Configuration:"
                     , Select.select
                         [ Select.onChange UpdateSelectedConfig, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
-                        ([ Select.item [ value "1" ] [ text "Select Job configuration" ]]
-                            ++List.map toOption model.configurations)
+                            (List.map toOption model.configurations)
                     ]
             , br [] []
             , selectBuildView model
