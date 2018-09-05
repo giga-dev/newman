@@ -10,7 +10,6 @@ import Bootstrap.Dropdown as Dropdown
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Duration as Duration
-import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
 import Date.Format
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
@@ -96,7 +95,6 @@ viewTable model currTime =
                             ]
                         ]
 
-                --                        <li class="page-item"><a class="page-link" href="#">1</a></li>
                 False ->
                     li [ class "page-item", onClick <| GoTo index ]
                         [ button [ class "page-link" ] [ text <| toString index ]
@@ -187,7 +185,6 @@ viewJob currTime job =
                 , Progress.value <| toFloat <| progressPercent
                 , Progress.info
                 ]
-
 
         jobState =
             let

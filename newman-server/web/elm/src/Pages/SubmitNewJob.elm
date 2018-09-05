@@ -14,6 +14,8 @@ import Json.Encode
 import Maybe exposing (withDefault)
 import Multiselect
 import Views.NewmanModal as NewmanModal
+import Utils.WebSocket as WebSocket exposing (..)
+import Utils.Types as Types
 
 
 type Msg
@@ -26,6 +28,7 @@ type Msg
     | MultiSelectMsg Multiselect.Msg
     | UpdatedBuildSelection Bool
     | NewmanModalMsg Modal.State
+    | WebSocketEvent WebSocket.Event
 
 
 type alias Model =
@@ -161,25 +164,44 @@ update msg model =
         NewmanModalMsg newState ->
             ( { model | modalState = newState }, Cmd.none )
 
+        WebSocketEvent event ->
+            case event of
+                CreatedBuild build ->
+                    ( updateBuildAdded model build, Cmd.none )
+
+                CreatedSuite suite ->
+                    ( updateSuiteAdded model suite, Cmd.none )
+
+                CreatedJobConfig jobConfig ->
+                    ( updateJobConfigAdded model jobConfig, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+
+updateBuildAdded : Model -> Types.Build -> Model
+updateBuildAdded model build =
+    { model | buildsAndSuites = { builds = {id = build.id, name = build.name, branch = build.branch, tags = build.tags } :: model.buildsAndSuites.builds , suites = model.buildsAndSuites.suites } }
+
+
+updateSuiteAdded : Model -> Types.Suite -> Model
+updateSuiteAdded model suite =
+    { model | buildsAndSuites = { suites = suite :: model.buildsAndSuites.suites , builds = model.buildsAndSuites.builds } }
+
+
+updateJobConfigAdded : Model -> Types.JobConfig -> Model
+updateJobConfigAdded model jobConfig =
+    { model | configurations = {id = jobConfig.id, name = jobConfig.name } :: model.configurations }
+
 
 getBuildsAndSuitesCmd : Cmd Msg
 getBuildsAndSuitesCmd =
-    Http.send GetBuildsAndSuitesCompleted getBuildsAndSuites
-
-
-getBuildsAndSuites : Http.Request BuildsAndSuites
-getBuildsAndSuites =
-    Http.get "/api/newman/all-builds-and-suites" buildsAndSuitesDecoder
+    Http.send GetBuildsAndSuitesCompleted <| Http.get "/api/newman/all-builds-and-suites" buildsAndSuitesDecoder
 
 
 getAllConfigsCmd : Cmd Msg
 getAllConfigsCmd =
-    Http.send GetAllConfigsCompleted getAllConfigs
-
-
-getAllConfigs : Http.Request (List JobConfig)
-getAllConfigs =
-    Http.get "/api/newman/job-config" configurationsDecoder
+    Http.send GetAllConfigsCompleted <| Http.get "/api/newman/job-config" configurationsDecoder
 
 
 submitFutureJobCmd : String -> List String -> String -> Cmd Msg
@@ -331,3 +353,8 @@ decodeConfig =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.map MultiSelectMsg <| Multiselect.subscriptions model.selectedSuites
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

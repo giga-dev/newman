@@ -137,6 +137,32 @@ update msg model =
                 ModifiedAgent agent ->
                     ( updateAgentUpdated model agent, Cmd.none )
 
+                DeletedAgent agentId ->
+                    ( updateAgentRemoved model agentId , Cmd.none)
+
+                CreatedOfflineAgent agent ->
+                    let
+                        offlineList = agent :: model.offlineAgents
+
+                        paginatedList = if (model.filterOfflineAgents) then
+                                            Paginate.fromList model.pageSize offlineList
+                                        else
+                                            model.agents
+                    in
+                        ( { model | offlineAgents = offlineList , agents = paginatedList } , Cmd.none)
+
+                DeletedOfflineAgent agentName ->
+                    let
+                        offlineList =
+                                ListExtra.filterNot (\agent -> agent.name == agentName ) model.offlineAgents
+
+                        paginatedList = if (model.filterOfflineAgents) then
+                                            Paginate.fromList model.pageSize offlineList
+                                        else
+                                            model.agents
+                    in
+                        ( { model | offlineAgents = offlineList , agents = paginatedList } , Cmd.none)
+
                 _ ->
                     ( model, Cmd.none )
 
@@ -228,7 +254,10 @@ updateAll f model =
             List.filter (filterQuery model.query model.filterFailingAgents) newList
 
         newPaginated =
-            Paginate.map (\_ -> filtered) model.agents
+            if (model.filterOfflineAgents) then
+                model.agents
+            else
+                Paginate.map (\_ -> filtered) model.agents
     in
     { model | agents = newPaginated, allAgents = newList }
 

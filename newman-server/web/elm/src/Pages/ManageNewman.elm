@@ -30,24 +30,30 @@ import Utils.WebSocket as WebSocket exposing (..)
 
 
 type alias Model =
-    { currentStatus : String
+    { currentStatus : NewmanStatus
     , buttonText : String
     }
 
 
+type NewmanStatus = RUNNING
+    | SUSPENDING
+    | SUSPENDED
+    | SUSPEND_FAILED
+    | WrongStatus
+
+
 type Msg
-    = NoOp
-    | OnClickSuspendUnsespendButton
+    = OnClickSuspendUnsespendButton
     | GotNewmansStatus (Result Http.Error String)
     | GotSuspendUnsuspend (Result Http.Error String)
-    | GetNewmansStatus
     | WebSocketEvent WebSocket.Event
+
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { currentStatus = ""
-      , buttonText = ""
+    ( { currentStatus = RUNNING
+      , buttonText = "Suspend"
       }
     , getNewmanStatusCmd
     )
@@ -56,12 +62,6 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
-
-        GetNewmansStatus ->
-            ( model, Http.send GotNewmansStatus getNewmanStatus )
-
         GotNewmansStatus result ->
             case result of
                 Err httpError ->
@@ -72,14 +72,17 @@ update msg model =
                     ( model, Cmd.none )
 
                 Ok status ->
-                    ( { model | currentStatus = status }, Cmd.none )
+                    ( { model | currentStatus = stringToStatus status }, Cmd.none )
 
         WebSocketEvent event ->
-            ( model, Cmd.none )
+            case event of
+                ModifiedServerStatus status ->
+                    ( { model | currentStatus = stringToStatus status } , Cmd.none )
 
-        --
+                _ ->
+                    ( model, Cmd.none )
+
         OnClickSuspendUnsespendButton ->
-            --update return model and cmd
             ( model, onClickButtonCmd model )
 
         GotSuspendUnsuspend result ->
@@ -92,61 +95,65 @@ update msg model =
                     ( model, Cmd.none )
 
                 Ok status ->
-                    ( { model | currentStatus = status }, Cmd.none )
+                    ( { model | currentStatus = stringToStatus status }, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
-    div [ class "container-fluid" ] <|
-        [ --Alert.warning  [ text "This is a primary message."],
-          Html.h2
-            [ class "text" ]
-            [ text <| "Newman Status - " ++ model.currentStatus ]
-        , Button.button [ Button.secondary, Button.onClick OnClickSuspendUnsespendButton, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text (updateButtonText model) ]
-        ]
-
-
-api : String
-api =
-    "/api/newman/status"
-
-
-getNewmanStatus : Http.Request String
-getNewmanStatus =
-    Http.get api decodeStatus
-
-
-decodeStatus : Decoder String
-decodeStatus =
-    at [ "status" ] string
-
---decodeSucess : Decoder
---decodeSucess =
---    succeed
+    let
+       updateButtonText =
+            if model.currentStatus == RUNNING then
+                    "Suspend"
+                else
+                    "Unsuspend"
+       buttonColor =
+            if model.currentStatus == RUNNING then
+                    Button.danger
+                else
+                    Button.success
+    in
+        div [ class "container-fluid" ] <|
+            [
+              Html.h2
+                [ class "text" ]
+                [ text <| "Newman Status - " ++ statusToString model.currentStatus ]
+            , Button.button [ Button.primary, buttonColor, Button.onClick OnClickSuspendUnsespendButton, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text updateButtonText ]
+            ]
 
 
 getNewmanStatusCmd : Cmd Msg
 getNewmanStatusCmd =
     Http.send GotNewmansStatus
-        (Http.get "/api/newman/status" decodeStatus)
+        (Http.get "/api/newman/status" string)
 
 
 onClickButtonCmd : Model -> Cmd Msg
 onClickButtonCmd model =
     Http.send GotSuspendUnsuspend
-        (if model.currentStatus == "RUNNING" then
+        (if model.currentStatus == RUNNING then
             Http.post "/api/newman/suspend" Http.emptyBody <| succeed ""
          else
             Http.post "/api/newman/unsuspend" Http.emptyBody <| succeed ""
         )
 
 
-updateButtonText : Model -> String
-updateButtonText model =
-    if model.currentStatus == "RUNNING" then
-        "Suspend"
-    else
-        "Unsuspend"
+stringToStatus : String -> NewmanStatus
+stringToStatus str =
+        case str of
+            "RUNNING" -> RUNNING
+            "SUSPENDING" -> SUSPENDING
+            "SUSPENDED" -> SUSPENDED
+            "SUSPEND_FAILED" -> SUSPEND_FAILED
+            _ -> WrongStatus
+
+statusToString : NewmanStatus -> String
+statusToString status =
+        case status of
+            RUNNING -> "RUNNING"
+            SUSPENDING -> "SUSPENDING"
+            SUSPENDED -> "SUSPENDED"
+            SUSPEND_FAILED -> "SUSPEND_FAILED"
+            WrongStatus -> "Received Wrong Status"
 
 
 handleEvent : WebSocket.Event -> Cmd Msg

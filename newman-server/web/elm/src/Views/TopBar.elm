@@ -1,11 +1,12 @@
 module Views.TopBar exposing (..)
 
 import Filesize exposing (..)
-import Html exposing (Html, br, div, p, span, text)
+import Html exposing (Html, p, span, text)
 import Html.Attributes exposing (align, class, style)
 import Http
 import Json.Decode
 import Utils.Types exposing (..)
+import Utils.WebSocket as WebSocket exposing (..)
 
 
 type alias Model =
@@ -21,6 +22,7 @@ type Msg
     | GetAgentsCountCompleted (Result Http.Error Int)
     | GetLogsSizeCompleted (Result Http.Error Int)
     | GetUserNameCompleted (Result Http.Error User)
+    | WebSocketEvent WebSocket.Event
 
 
 init : ( Model, Cmd Msg )
@@ -85,6 +87,17 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
+        WebSocketEvent event ->
+                    case event of
+                        AgentCount resultAgentCount ->
+                            ( { model | agentsCount = resultAgentCount } , Cmd.none )
+
+                        FailingAgents resultFailingAgents ->
+                            ( { model | failingAgents = resultFailingAgents } , Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
@@ -106,15 +119,6 @@ view model =
     in
     span [ class "topbar-info" ]
         [ text <| userNameString ++ ",  " ++ failingAgentsString ++ ",  " ++ agentsCountString ++ ",  " ++ logSizeString ]
-
-
-
---    span [ style [ ( "color", "white" ), ( "padding-right", "20%" ) ] ]
---        [ text <| userNameString ++ ", "
---        , text failingAgentsString
---        , text agentsCountString
---        , text logSizeString
---        ]
 
 
 getFailingAgentsCmd : Cmd Msg
@@ -139,3 +143,8 @@ getUserNameCmd : Cmd Msg
 getUserNameCmd =
     Http.send GetUserNameCompleted <|
         Http.get "/api/newman/user" decodeUser
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

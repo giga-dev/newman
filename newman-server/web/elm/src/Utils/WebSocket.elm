@@ -1,6 +1,6 @@
 module Utils.WebSocket exposing (..)
 
-import Json.Decode exposing (Decoder, Value, field, string, value)
+import Json.Decode exposing (Decoder, Value, field, string, value, int, decodeString, decodeValue)
 import Navigation exposing (Location)
 import Task
 import Utils.Types exposing (Agent, Build, FutureJob, Job, Suite, Test, JobConfig, decodeJobConfig, decodeAgent, decodeBuild, decodeFutureJob, decodeJob, decodeSuite, decodeTestView)
@@ -51,6 +51,9 @@ type Event
     = CreatedJob Job
     | ModifiedJob Job
     | ModifiedAgent Agent
+    | CreatedOfflineAgent Agent
+    | DeletedOfflineAgent String
+    | DeletedAgent String
     | CreatedTest Test
     | ModifiedTest Test
     | CreatedBuild Build
@@ -58,22 +61,13 @@ type Event
     | CreatedSuite Suite
     | ModifiedSuite Suite
     | CreatedJobConfig JobConfig
-    | ModifiedJobConfig JobConfig
     | CreatedFutureJob FutureJob
     | DeletedFutureJob FutureJob
+    | ModifiedServerStatus String
+    | AgentCount Int
+    | FailingAgents Int
 
 
-
-{-
-    Dashboard:
-   private static final String MODIFIED_BUILD = "modified-build";
-
-   TODO handle modified job in home page
-
-   Manage Newman + App (Main)
-   private static final String MODIFY_SERVER_STATUS = "modified-server-status";
-
--}
 
 
 toEvent : Msg -> Result String Event
@@ -82,16 +76,13 @@ toEvent msg =
         NewMessage str ->
             let
                 json =
-                    Json.Decode.decodeString decodeWebSocketData str
-
-                --                aa =
-                --                    Debug.log "AA" json
+                    decodeString decodeWebSocketData str
             in
                 case json of
                     Ok ok ->
                         let
                             parse msg decoder =
-                                Result.map msg <| Json.Decode.decodeValue decoder ok.content
+                                Result.map msg <| decodeValue decoder ok.content
 
                             bodyRes =
                                 case ok.id of
@@ -103,6 +94,21 @@ toEvent msg =
 
                                     "modified-agent" ->
                                         parse ModifiedAgent decodeAgent
+
+                                    "deleted-agent" ->
+                                        parse DeletedAgent string
+
+                                    "created-offline-agent" ->
+                                        parse CreatedOfflineAgent decodeAgent
+
+                                    "deleted-offline-agent" ->
+                                        parse DeletedOfflineAgent string
+
+                                    "agent-count" ->
+                                        parse AgentCount int
+
+                                    "failing-agents" ->
+                                        parse FailingAgents int
 
                                     "created-test" ->
                                         parse CreatedTest decodeTestView
@@ -125,14 +131,14 @@ toEvent msg =
                                     "created-job-config" ->
                                         parse CreatedJobConfig decodeJobConfig
 
-                                    "modified-job-config" ->
-                                        parse ModifiedJobConfig decodeJobConfig
-
                                     "created-future-job" ->
                                         parse CreatedFutureJob decodeFutureJob
 
                                     "deleted-future-job" ->
                                         parse DeletedFutureJob decodeFutureJob
+
+                                    "modified-server-status" ->
+                                        parse ModifiedServerStatus string
 
                                     other ->
                                         Err <| "Unhandled event id: " ++ other
