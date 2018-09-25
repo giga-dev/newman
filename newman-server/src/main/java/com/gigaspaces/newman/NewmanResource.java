@@ -137,28 +137,30 @@ public class NewmanResource {
         MongoCollection testCollection = db.getCollection("Test");
         distinctTestsByAssignedAgentFilter = testCollection.distinct("assignedAgent", String.class);
 
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                logger.info("Checking for not seen agents");
-                getAgentsNotSeenInLastMillis(1000 * 60 * 3).forEach(NewmanResource.this::handleUnseenAgent);
-            }
-        }, 1000 * 30, 1000 * 30);
+        if (Boolean.getBoolean("production")) { // This is set to true in the newman server
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    logger.info("Checking for not seen agents");
+                    getAgentsNotSeenInLastMillis(1000 * 60 * 3).forEach(NewmanResource.this::handleUnseenAgent);
+                }
+            }, 1000 * 30, 1000 * 30);
 
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                logger.info("Checking for zombie agents");
-                getZombieAgents(1000 * 60 * 20).forEach(NewmanResource.this::handleZombieAgent);
-            }
-        }, 1000 * 30, 1000 * 30);
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    logger.info("Checking for zombie agents");
+                    getZombieAgents(1000 * 60 * 20).forEach(NewmanResource.this::handleZombieAgent);
+                }
+            }, 1000 * 30, 1000 * 30);
 
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                handleHangingJob();
-            }
-        }, 1000 * 30, 1000 * 30);
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    handleHangingJob();
+                }
+            }, 1000 * 30, 1000 * 30);
+        }
 
         initBuildsCache();
 
