@@ -74,7 +74,7 @@ init =
       , agentToDrop = Nothing
       , offlineAgentToDrop = Nothing
       }
-    , getAgentsCmd
+    , Cmd.batch [ getAgentsCmd , getOfflineAgentsCmd ]
     )
 
 
@@ -137,6 +137,32 @@ update msg model =
                 ModifiedAgent agent ->
                     ( updateAgentUpdated model agent, Cmd.none )
 
+                DeletedAgent agentId ->
+                    ( updateAgentRemoved model agentId , Cmd.none)
+
+                CreatedOfflineAgent agent ->
+                    let
+                        offlineList = agent :: model.offlineAgents
+
+                        paginatedList = if (model.filterOfflineAgents) then
+                                            Paginate.fromList model.pageSize offlineList
+                                        else
+                                            model.agents
+                    in
+                        ( { model | offlineAgents = offlineList , agents = paginatedList } , Cmd.none)
+
+                DeletedOfflineAgent hostAddress ->
+                    let
+                        offlineList =
+                                ListExtra.filterNot (\agent -> agent.hostAddress == hostAddress ) model.offlineAgents
+
+                        paginatedList = if (model.filterOfflineAgents) then
+                                            Paginate.fromList model.pageSize offlineList
+                                        else
+                                            model.agents
+                    in
+                        ( { model | offlineAgents = offlineList , agents = paginatedList } , Cmd.none)
+
                 _ ->
                     ( model, Cmd.none )
 
@@ -182,16 +208,12 @@ update msg model =
                     else
                         List.filter (filterQuery model.query model.filterFailingAgents) model.allAgents
 
-                cmd =  if (filterOfflineAgents) then
-                            getOfflineAgentsCmd
-                       else
-                            Cmd.none
             in
             ( {model | filterOfflineAgents = filterOfflineAgents
                      , agents = Paginate.fromList model.pageSize filteredList
                      , filterFailingAgents = if filterOfflineAgents then
                                                     False
-                                             else model.filterFailingAgents } , cmd )
+                                             else model.filterFailingAgents } , Cmd.none )
 
         CleanSetupRetries ->
             ( model, cleanSetupRetriesCmd )
@@ -228,7 +250,10 @@ updateAll f model =
             List.filter (filterQuery model.query model.filterFailingAgents) newList
 
         newPaginated =
-            Paginate.map (\_ -> filtered) model.agents
+            if (model.filterOfflineAgents) then
+                model.agents
+            else
+                Paginate.map (\_ -> filtered) model.agents
     in
     { model | agents = newPaginated, allAgents = newList }
 
@@ -237,7 +262,11 @@ updateAgentUpdated : Model -> Agent -> Model
 updateAgentUpdated model agentToUpdate =
     let
         f =
-            ListExtra.replaceIf (\item -> item.id == agentToUpdate.id) agentToUpdate
+            if List.any (\item -> item.id == agentToUpdate.id) model.allAgents then
+                ListExtra.replaceIf (\item -> item.id == agentToUpdate.id) agentToUpdate
+            else
+                (\list -> agentToUpdate :: list)
+
     in
     updateAll f model
 

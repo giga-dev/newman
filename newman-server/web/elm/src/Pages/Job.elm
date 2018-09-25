@@ -90,8 +90,8 @@ viewHeader model job =
             viewRow
                 ( "Progress"
                 , Progress.progress
-                    [ Progress.value <| toFloat <| (job.runningTests + job.failedTests + job.passedTests) * 100 // (job.totalTests + job.numOfTestRetries)
-                                        , Progress.label <| toString <| (job.runningTests + job.failedTests + job.passedTests) * 100 // (job.totalTests + job.numOfTestRetries)
+                    [ Progress.value <| toFloat <| (job.failedTests + job.passedTests) * 100 // job.totalTests
+                                        , Progress.label <| toString <| (job.failedTests + job.passedTests) * 100 // job.totalTests
                     ]
                 )
 
@@ -298,7 +298,7 @@ update msg model =
                 ( newSubModel, newCmd ) =
                     TestsTable.update (TestsTable.UpdateFilterState (Maybe.withDefault "" <| Maybe.map .id model.maybeJob) state) model.testsTable
             in
-            ( { model | statusState = state , testsTable = newSubModel } , newCmd |> Cmd.map TestsTableMsg )
+                ( { model | statusState = state , testsTable = newSubModel } , newCmd |> Cmd.map TestsTableMsg )
 
 getJobInfoCmd : JobId -> Cmd Msg
 getJobInfoCmd jobId =

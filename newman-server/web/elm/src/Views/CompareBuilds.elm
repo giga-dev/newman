@@ -9,6 +9,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Modal as Modal exposing (..)
 import Dict exposing (Dict)
 import List.Extra as ListExtra
+import Utils.WebSocket as WebSocket exposing (..)
 
 
 type alias Model =
@@ -26,6 +27,7 @@ type Msg
     | ClickCompareBuilds
     | AcknowledgeDialog
     | ModalMsg Modal.State
+    | WebSocketEvent WebSocket.Event
 
 
 init : Builds -> Model
@@ -111,6 +113,14 @@ update msg model =
 
         ModalMsg newState ->
             ( { model | confirmationState = newState }, Cmd.none )
+
+        WebSocketEvent event ->
+            case event of
+                CreatedBuild build ->
+                    ( { model | allBuilds = build :: model.allBuilds } , Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 
@@ -231,3 +241,8 @@ begingOfUrl repo =
                 "https://github.com/Insightedge/insightedge"
         value ->
                 "WrongRepo"
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

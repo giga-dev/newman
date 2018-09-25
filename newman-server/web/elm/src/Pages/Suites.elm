@@ -1,24 +1,15 @@
 module Pages.Suites exposing (..)
 
-import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Button as Button
-import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
-import Bootstrap.Progress as Progress exposing (..)
 import Date exposing (Date)
-import Date.Extra.Config.Config_en_au exposing (config)
-import Date.Extra.Duration as Duration
-import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
 import Date.Format
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode exposing (Decoder, int)
-import Json.Decode.Pipeline exposing (decode, required)
 import List.Extra as ListExtra
 import Paginate exposing (..)
-import Task
 import Time exposing (Time)
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
@@ -67,10 +58,6 @@ update msg model =
                     ( { model | suites = Paginate.fromList model.pageSize suitesFromResult, allSuites = suitesFromResult }, Cmd.none )
 
                 Err err ->
-                    let
-                        a =
-                            Debug.log "onGetSuitesCompleted" err
-                    in
                     ( model, Cmd.none )
 
         First ->
@@ -227,12 +214,7 @@ viewSuite suite =
 
 getSuitesCmd : Cmd Msg
 getSuitesCmd =
-    Http.send GetSuitesCompleted getSuites
-
-
-getSuites : Http.Request Suites
-getSuites =
-    Http.get "/api/newman/suite?all=true" decodeSuites
+    Http.send GetSuitesCompleted <| Http.get "/api/newman/suite?all=true" decodeSuites
 
 
 filterQuery : String -> Suite -> Bool

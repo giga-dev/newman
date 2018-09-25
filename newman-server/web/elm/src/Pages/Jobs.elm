@@ -40,11 +40,6 @@ type Msg
     | ApplyJobsNumberAndRetrieveJobs
 
 
-handleEvent : WebSocket.Event -> Cmd Msg
-handleEvent event =
-    JobsTable.handleEvent event |> Cmd.map JobsTableMsg
-
-
 init : ( Model, Cmd Msg )
 init =
     let
@@ -57,15 +52,6 @@ init =
           }
         , Cmd.batch [ getJobsCmd maxEntries, requestTime ]
         )
-
-
-
------
-{-
-   UPDATE
-   * Messages
-   * Update case
--}
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -99,12 +85,6 @@ update msg model =
             , getJobsCmd model.maxEntries
             )
 
-
-
------
-{-
-   VIEW
--}
 
 
 view : Model -> Html Msg
@@ -145,23 +125,6 @@ getJobs limit =
         Json.Decode.field "values" (Json.Decode.list decodeJobView)
 
 
-
---dropJobCmd : String -> Cmd Msg
---dropJobCmd jobId =
---    Http.send
---    { method = "GET"
---    , headers = [ Http.header "Authorization" "Basic eW9oYW5hOnlvaGFuYQ==" ]
---    , url = "http://localhost:8080/api/newman/job?limit=" ++ (toString limit) ++ "&orderBy=-submitTime"
---    , body = Http.emptyBody
---    , expect = Http.expectJson decodeJobs
---    , timeout = Nothing
---    , withCredentials = True
---    }
---        |> Http.request
---
---
-
-
 onGetJobsCompleted : Model -> Result Http.Error (List Job) -> ( Model, Cmd Msg )
 onGetJobsCompleted model result =
     case result of
@@ -180,22 +143,16 @@ onGetJobsCompleted model result =
                 ( model, Cmd.none )
 
 
-
---    { method = "GET"
---    , headers = [  ]
---    , url = "/api/newman/suites-dashboard"
---    , body = Http.emptyBody
---    , expect = Http.expectString
---    , timeout = Nothing
---    , withCredentials = True
---    }
---        |> Http.request
-
-
 requestTime : Cmd Msg
 requestTime =
     Task.perform ReceiveTime Time.now
 
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
         JobsTable.subscriptions model.jobsTableModel |> Sub.map JobsTableMsg
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    JobsTable.handleEvent event |> Cmd.map JobsTableMsg

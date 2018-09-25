@@ -63,9 +63,6 @@ update msg model =
                 CreatedJobConfig jobConfig ->
                     ( updateJobConfigAdded model jobConfig, Cmd.none )
 
-                ModifiedJobConfig jobConfig ->
-                    ( updateJobConfigUpdated model jobConfig, Cmd.none )
-
                 _ ->
                     ( model, Cmd.none )
 
@@ -85,20 +82,6 @@ updateAll f model =
 updateJobConfigAdded : Model -> JobConfig -> Model
 updateJobConfigAdded model addedJobConfig =
     updateAll (\list -> addedJobConfig :: list) model
-
-
-updateJobConfigUpdated : Model -> JobConfig -> Model
-updateJobConfigUpdated model jobConfigToUpdate =
-    let
-        f l =
-            case ListExtra.find (\item -> item.id == jobConfigToUpdate.id) l of
-                Just _ ->
-                    ListExtra.replaceIf (\item -> item.id == jobConfigToUpdate.id) jobConfigToUpdate l
-
-                Nothing ->
-                    jobConfigToUpdate :: l
-    in
-        updateAll f model
 
 
 view : Model -> Html Msg
@@ -131,26 +114,8 @@ viewJobConfig jobConfig =
 
 getJobConfigsCmd : Cmd Msg
 getJobConfigsCmd =
-    Http.send GetJobConfigsCompleted getJobConfigs
+    Http.send GetJobConfigsCompleted <| Http.get "/api/newman/job-config" decodeJobConfigs
 
-
-getJobConfigs : Http.Request JobConfigs
-getJobConfigs =
-    Http.get "/api/newman/job-config" decodeJobConfigs
-
-
-
---filterQuery : String -> Suite -> Bool
---filterQuery query suite =
---    if
---        String.length query
---            == 0
---            || String.startsWith query suite.name
---            || String.startsWith query suite.id
---    then
---        True
---    else
---        False
 
 
 handleEvent : WebSocket.Event -> Cmd Msg

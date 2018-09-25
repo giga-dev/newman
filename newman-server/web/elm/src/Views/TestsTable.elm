@@ -4,11 +4,8 @@ import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Button as Button
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
-import Bootstrap.Modal as Modal exposing (..)
 import Date exposing (Date)
-import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Duration as Duration
-import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
 import Date.Format
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
@@ -21,7 +18,6 @@ import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
 import Utils.Types exposing (JobId, RadioState(..), Test, TestStatus(..), decodeTest, radioStateToString, testStatusToString)
 import Utils.WebSocket as WebSocket exposing (..)
-import Views.NewmanModal as NewmanModal exposing (..)
 
 
 type Msg
@@ -50,9 +46,6 @@ init jobId list state =
     let
         pageSize =
             25
-
-        aa =
-            Debug.log "TestsTable" "init is called!"
     in
     { all = list
     , paginated = Paginate.fromList pageSize <| filterTests list "" state
@@ -160,16 +153,6 @@ viewTable model currTime =
             ]
         , pagination
         ]
-
-
-
---
-{-
-   PENDING
-       | SUCCESS
-       | FAIL
-       | RUNNING
--}
 
 
 viewTest : Maybe Time -> Test -> Html Msg
@@ -287,7 +270,10 @@ update msg model =
         WebSocketEvent event ->
             case event of
                 CreatedTest test ->
-                    ( updateTestAdded model test, Cmd.none )
+                    if model.jobId == test.jobId then
+                        ( updateTestAdded model test, Cmd.none )
+                    else
+                        ( model, Cmd.none )
 
                 ModifiedTest test ->
                     if model.jobId == test.jobId then

@@ -63,11 +63,7 @@ update msg model =
                     ( { model | arguments = arguments, table = TestHistoryTable.init data }, Cmd.none )
 
                 Err err ->
-                let
-                    a =
-                        Debug.log "in test history view - " msg
-                in
-                ( model, Cmd.none )
+                    ( model, Cmd.none )
 
         TestHistoryTableMsg subMsg ->
             let

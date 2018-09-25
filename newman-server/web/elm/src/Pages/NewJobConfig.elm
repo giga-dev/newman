@@ -31,8 +31,8 @@ type alias Model =
     , selectedJavaVersion : String
     , name : String
     , modalState : Modal.State
-        , errorMessage : String
-        , savedJobConfig :  Maybe JobConfig
+    , errorMessage : String
+    , savedJobConfig :  Maybe JobConfig
     }
 
 
@@ -44,8 +44,8 @@ init =
         , selectedJavaVersion =""
         , name = ""
         , modalState = Modal.hiddenState
-              , errorMessage = ""
-              ,savedJobConfig = Nothing
+        , errorMessage = ""
+        , savedJobConfig = Nothing
       }
     , getAllJavaVersionsCmd
 
@@ -93,9 +93,6 @@ update msg model =
 
 
 
-
-
-
 getAllJavaVersionsCmd : Cmd Msg
 getAllJavaVersionsCmd =
     Http.send GetAllJavaVersionsCompleted getAllJavaVersions
@@ -103,11 +100,8 @@ getAllJavaVersionsCmd =
 
 getAllJavaVersions : Http.Request (List String)
 getAllJavaVersions =
-    Http.get "/api/newman/java-versions" decodeJavaVersions
+    Http.get "/api/newman/java-versions" <| Json.Decode.list Json.Decode.string
 
-decodeJavaVersions : Decoder (List String)
-decodeJavaVersions =
-    Json.Decode.list Json.Decode.string
 
 saveJobConfigCmd : String -> String -> Cmd Msg
 saveJobConfigCmd name javaVersion =
@@ -120,10 +114,6 @@ saveJobConfigCmd name javaVersion =
 
 postJobConfig : String -> String -> Http.Request  JobConfig
 postJobConfig name javaVersion =
---    let
---        jsonify =
---            Http.jsonBody <| Json.Encode.object [ ( "name", Json.Encode.string name ), ( "javaVersion", Json.Encode.string javaVersion ) ]
---    in
       Http.post ("/api/newman/job-config-from-gui?name=" ++ name ++ "&javaVersion="++javaVersion) Http.emptyBody decodeJobConfig
 
 
@@ -136,12 +126,6 @@ view model =
                     ""
                 Just jobConfig ->
                     "Finished Saving New Job configuration: " ++ jobConfig.name
---        goBackToJobsConfig =
---                    case model.savedJobConfig of
---                        Nothing ->
---                            ""
---                        Just jobConfig ->
---                            "Go Back to Jobs Configurartions"
     in
         div [ class "container-fluid" ]
             [ h2 [ class "page-header" ]
@@ -171,8 +155,6 @@ view model =
             , div [style [ ( "color", "#2FDC62" ), ( "width", "500px" ),( "font-weight" , "bold" ) ]]
                 ([ text savedJobConfigString ] )
             , br [] []
---            , div [style [ ( "color", "#0275d8" ), ( "width", "500px" ),( "font-weight" , "bold" ) ]]
---                  ([ text goBackToJobsConfig ] )
             , NewmanModal.viewError model.errorMessage NewmanModalMsg model.modalState
             ]
 

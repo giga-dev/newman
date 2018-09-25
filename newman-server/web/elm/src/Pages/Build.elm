@@ -17,6 +17,7 @@ import Time exposing (Time)
 import UrlParser exposing (Parser)
 import Utils.Types exposing (..)
 import Views.JobsTable as JobsTable exposing (..)
+import Utils.WebSocket as WebSocket exposing (..)
 
 
 type alias Model =
@@ -31,6 +32,7 @@ type Msg
     | GetJobsInfoCompleted (Result Http.Error (List Job))
     | JobsTableMsg JobsTable.Msg
     | ReceiveTime Time
+    | WebSocketEvent WebSocket.Event
 
 
 parseBuildId : Parser (String -> a) a
@@ -163,6 +165,21 @@ update msg model =
         ReceiveTime time ->
             ( { model | currTime = Just time } , Cmd.none )
 
+        WebSocketEvent event ->
+            case event of
+                ModifiedBuild build ->
+                    case model.maybeBuild of
+                        Just currentBuild ->
+                            if (currentBuild.id == build.id) then
+                                ( {model | maybeBuild = Just build} , Cmd.none )
+                            else
+                                ( model, Cmd.none )
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 getBuildInfoCmd : BuildId -> Cmd Msg
 getBuildInfoCmd buildId =
@@ -179,3 +196,8 @@ getJobsInfoCmd buildId =
 requestTime : Cmd Msg
 requestTime =
     Task.perform ReceiveTime Time.now
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

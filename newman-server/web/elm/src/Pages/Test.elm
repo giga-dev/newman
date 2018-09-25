@@ -8,6 +8,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import Utils.Types exposing (Test, TestId, decodeTest, TestStatus(..), testStatusToString)
+import Utils.WebSocket as WebSocket exposing (..)
 
 
 type alias Model =
@@ -16,6 +17,7 @@ type alias Model =
 
 type Msg
     = GetTestDataCompleted (Result Http.Error Test)
+    | WebSocketEvent WebSocket.Event
 
 
 initModel : Model
@@ -135,7 +137,6 @@ viewTest test =
                 ++ historyStats
     in
         table [ class "job-view", style [ ( "margin-bottom", "50px" ) ] ] <|
-            -- TODO
             List.map viewRow rows
 
 
@@ -148,11 +149,21 @@ update msg model =
                     ( { model | test = Just data }, Cmd.none )
 
                 Err err ->
-                    let
-                        d =
-                            Debug.log "DD" err
-                    in
-                        ( model, Cmd.none )
+                    ( model, Cmd.none )
+
+        WebSocketEvent event ->
+            case event of
+                ModifiedTest modifiedTest ->
+                    case model.test of
+                        Just modelTest ->
+                            if modifiedTest.id == modelTest.id then
+                                ( { model | test = Just modifiedTest} , Cmd.none )
+                            else
+                                ( model, Cmd.none )
+                        Nothing ->
+                            ( model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
 
 getTestDataCmd : TestId -> Cmd Msg
@@ -161,3 +172,6 @@ getTestDataCmd testId =
         Http.get ("/api/newman/test/" ++ testId) decodeTest
 
 
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

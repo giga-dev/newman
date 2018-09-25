@@ -72,6 +72,7 @@ type alias Agent =
     { id : String
     , name : String
     , host : String
+    , hostAddress : String
     , lastTouchTime : Int
     , currentTests : List String
     , state : String
@@ -432,6 +433,7 @@ decodeAgent =
         |> required "id" string
         |> required "name" string
         |> required "host" string
+        |> required "hostAddress" string
         |> required "lastTouchTime" int
         |> required "currentTests" (list string)
         |> required "state" string

@@ -63,6 +63,11 @@ public class NewmanResource {
     public static final String MODIFIED_TEST = "modified-test";
     public static final String CREATED_JOB = "created-job";
     public static final String MODIFIED_AGENT = "modified-agent";
+    public static final String CREATED_OFFLINE_AGENT = "created-offline-agent";
+    public static final String DELETED_OFFLINE_AGENT = "deleted-offline-agent";
+    public static final String DELETED_AGENT = "deleted-agent";
+    public static final String MODIFIED_FAILING_AGENTS = "modified-failing-agents";
+    public static final String MODIFIED_AGENTS_COUNT = "modified-agents-count";
     public static final String CREATED_BUILD = "created-build";
     public static final String CREATED_SUITE = "created-suite";
     public static final String CREATED_JOB_CONFIG = "created-job-config";
@@ -457,8 +462,8 @@ public class NewmanResource {
         if (futureJob != null) {
             Datastore datastore = futureJobDAO.getDatastore();
             datastore.findAndDelete(query);
+            broadcastMessage(DELETED_FUTURE_JOB, futureJob);
         }
-        broadcastMessage(DELETED_FUTURE_JOB, futureJob);
         return futureJob;
     }
 
@@ -472,6 +477,7 @@ public class NewmanResource {
         if (futureJob != null) {
             Datastore datastore = futureJobDAO.getDatastore();
             datastore.findAndDelete(query);
+            broadcastMessage(DELETED_FUTURE_JOB, futureJob);
         }
 
         return Response.ok(Entity.json(futureJobId)).build();
@@ -577,7 +583,6 @@ public class NewmanResource {
             build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(build.getId()), buildUpdateOperations);
             broadcastMessage(CREATED_JOB, job);
             broadcastMessage(MODIFIED_BUILD, build);
-            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(suite));
             return Response.ok(job).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -908,11 +913,12 @@ public class NewmanResource {
         if (!res.isEmpty()) {
             Test test = res.get(0);
 
+            // @QueryParam("toCount") - indicates if tests should be added to "totalTests"
+            // if a test fails and is resumitted (aka run number >1 ) we don't want it to be added to "totalTests".
             if (toCountStr.equals("count")) {
                 UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests", res.size());
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(test.getJobId()), jobUpdateOps, false, false);
                 Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), buildDAO.createUpdateOperations().inc("buildStatus.totalTests", res.size()));
-                tests.getValues().stream().forEach(test1 -> broadcastMessage(CREATED_TEST, test1));
                 broadcastMessage(MODIFIED_BUILD, build);
                 broadcastMessage(MODIFIED_JOB, job);
             }
@@ -1021,6 +1027,7 @@ public class NewmanResource {
         Job job = getJob(test.getJobId());
         test.setSha(Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId(), job.getBuild().getBranch()));
         testDAO.save(test);
+        broadcastMessage(CREATED_TEST, test);
         return test;
     }
 
@@ -1101,7 +1108,6 @@ public class NewmanResource {
             broadcastMessage(MODIFIED_BUILD, build);
             broadcastMessage(MODIFIED_TEST, result);
             broadcastMessage(MODIFIED_JOB, job);
-            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(job.getSuite()));
             logger.info("succeed finish test- id:[{}], name:[{}]", result.getId(), result.getName());
             return result;
         } catch (Exception e) {
@@ -1471,7 +1477,7 @@ public class NewmanResource {
         updateOps.set("index", cache.getIndex());
         updateOps.set("size", cache.getSize());
         Query<BuildsCache> query = buildsCacheDAO.createIdQuery(cache.getId());
-        buildDAO.getDatastore().findAndModify(query, updateOps);
+        buildsCacheDAO.getDatastore().findAndModify(query, updateOps);
     }
 
     private void storeBuildInCache(Build build) throws IOException {
@@ -1682,11 +1688,17 @@ public class NewmanResource {
             logger.error("Unknown agent " + name);
             return null;
         }
+        String agentIp = agent.getHostAddress();
+        if (offlineAgents.containsKey(agentIp)) {
+            offlineAgents.remove(agentIp);
+            broadcastMessage(DELETED_OFFLINE_AGENT, agentIp);
+        }
         if (agent.getJobId() == null) {
             logger.error("Agent {} not working on job {} test {}", agent, jobId);
             return null;
         } else {
             broadcastMessage(MODIFIED_AGENT, agent);
+
             return agent.getJobId();
         }
     }
@@ -1741,19 +1753,23 @@ public class NewmanResource {
 
         List<Agent> result = new ArrayList<>(offlineAgents.size());
         for (Map.Entry<String,OfflineAgent> entry : offlineAgents.entrySet()) {
-            Agent agent = new Agent();
-            logger.info("getOfflineAgents ip: " + entry.getKey());
-            agent.setName(entry.getKey());
-            agent.setHost(entry.getValue().getHost());
-            agent.setLastTouchTime(entry.getValue().getLastTouchTime());
-            agent.setId("");
-            agent.setJobId("");
-            agent.setHostAddress("");
-            agent.setPid("");
-            agent.setJob(new Job());
-            agent.setState(Agent.State.IDLING);
+            Agent agent = createAgentFromOfflineAgent(entry.getValue());
             result.add(agent);
         }
+        return result;
+    }
+
+    private Agent createAgentFromOfflineAgent(OfflineAgent offlineAgent) {
+        Agent result = new Agent();
+        result.setName(offlineAgent.getName());
+        result.setHost(offlineAgent.getHost());
+        result.setLastTouchTime(offlineAgent.getLastTouchTime());
+        result.setId("");
+        result.setJobId("");
+        result.setHostAddress(offlineAgent.getHostAddress());
+        result.setPid("");
+        result.setJob(new Job());
+        result.setState(Agent.State.IDLING);
         return result;
     }
 
@@ -1778,9 +1794,14 @@ public class NewmanResource {
         logger.info("cleanAgentRetries: number of agents updated " + update.getUpdatedCount());
 
         List<Agent> agents = agentDAO.find(query).asList();
+        int count = 0;
         for (Agent agent : agents) {
+            if (agent.getSetupRetries() > 0) {
+                count++;
+            }
             broadcastMessage(MODIFIED_AGENT, agent);
         }
+        broadcastMessage(MODIFIED_FAILING_AGENTS, count);
         return new Batch<>(agents, offset, limit, all, orderBy, uriInfo);
     }
 
@@ -1850,7 +1871,8 @@ public class NewmanResource {
                 // return the test to the pool.
                 updateOps = testDAO.createUpdateOperations().set("status", Test.Status.PENDING)
                         .unset("assignedAgent").unset("startTime");
-                testDAO.getDatastore().findAndModify(query, updateOps, false, false);
+                Test test = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
+                broadcastMessage(MODIFIED_TEST, test);
 
                 agent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()),
                         agentDAO.createUpdateOperations().removeAll("currentTests", result.getId()), false, true);
@@ -1898,7 +1920,6 @@ public class NewmanResource {
                     UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().removeAll("preparingAgents", agent.getName());
                     Job oldJob = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(found.getJobId()), updateJobStatus);
                     broadcastMessage(MODIFIED_JOB, oldJob);
-                    broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(oldJob.getSuite()));
                 }
             } else if (found.getState() == Agent.State.RUNNING && !found.getCurrentTests().isEmpty() && found.getJobId() != null) {
                 returnTests(found);
@@ -1939,15 +1960,18 @@ public class NewmanResource {
             }
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), updateJobStatus);
             broadcastMessage(MODIFIED_JOB, job);
-            broadcastMessage(MODIFIED_SUITE, createSuiteWithJobs(job.getSuite()));
         } else {
             updateOps.set("state", Agent.State.IDLING);
         }
 
         Agent readyAgent = agentDAO.getDatastore().findAndModify(agentDAO.createQuery().field("name").equal(agent.getName()), updateOps, false, true);
         if (found == null) {
-            String agentIp = agent.getName().substring(0,agent.getName().indexOf("-"));
-            offlineAgents.remove(agentIp);
+            String agentIp = agent.getHostAddress();
+            if (offlineAgents.containsKey(agentIp)) {
+                offlineAgents.remove(agentIp);
+                broadcastMessage(DELETED_OFFLINE_AGENT, agentIp);
+            }
+            broadcastMessage(MODIFIED_AGENTS_COUNT, agentDAO.count());
         }
         if (readyAgent != null && readyAgent.getState().equals(Agent.State.IDLING)) {
             logger.debug("agent [{}] is idling at subscribe because didn't find job", readyAgent.getName());
@@ -1956,7 +1980,7 @@ public class NewmanResource {
         //TODO this event is sent every 10 seconds (jobPollInteval) per agent
         //TODO Check if it is necessary to send it
         //logger.info(">>> Modified Agent " +agent.getHost()+ " subscribe");
-        //broadcastMessage(MODIFIED_AGENT, readyAgent);
+        broadcastMessage(MODIFIED_AGENT, readyAgent);
         return Response.ok(job).build();
     }
 
@@ -2142,7 +2166,7 @@ public class NewmanResource {
             updateOps.set("state", job.getState());
         }
         Query<Job> query = jobDAO.createIdQuery(id);
-        Job result = buildDAO.getDatastore().findAndModify(query, updateOps);
+        Job result = jobDAO.getDatastore().findAndModify(query, updateOps);
         if (result != null) {
             broadcastMessage(MODIFIED_JOB, result);
         }
@@ -2302,6 +2326,7 @@ public class NewmanResource {
         Query<Agent> idAgentQuery = agentDAO.createIdQuery(agentId);
         Datastore datastore = agentDAO.getDatastore();
         datastore.findAndDelete(idAgentQuery);
+        broadcastMessage(MODIFIED_AGENTS_COUNT, agentDAO.count());
         return Response.ok(Entity.json(agentId)).build();
     }
 
@@ -2456,7 +2481,7 @@ public class NewmanResource {
         jobConfig.setName(name);
 
         jobConfigDAO.save(jobConfig);
-
+        broadcastMessage(CREATED_JOB_CONFIG, jobConfig);
         return jobConfig;
     }
 
@@ -2719,50 +2744,6 @@ public class NewmanResource {
             broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
         }
 
-        /*
-
-            UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations();
-            jobUpdateOps.set("state", State.PAUSED);
-
-            try {
-                Query<Job> updateStateQuery = jobDAO.createQuery();
-                updateStateQuery.or(updateStateQuery.criteria("state").equal(State.RUNNING), updateStateQuery.criteria("state").equal(State.READY));
-                jobDAO.getDatastore().update(updateStateQuery, jobUpdateOps);
-
-                final Query<Job> jobQuery = jobDAO.createQuery();
-                jobQuery.criteria("state").equal(State.PAUSED);
-                final Query<Job> stillRunningJobsQuery = jobQuery.filter("runningTests >", 0);
-
-                QueryResults<Job> runningJobsResult = jobDAO.find(stillRunningJobsQuery);
-
-                while( !runningJobsResult.asList().isEmpty() ) {
-                    List<Job> jobList = runningJobsResult.asList();
-                    logger.info("waiting for all agents to finish running tests, {} jobs are still running:", jobList.size());
-                    for (Job job : jobList) {
-                        logger.info("{},", job.getId() );
-                    }
-                    Thread.sleep(10000);
-                    runningJobsResult = jobDAO.find(stillRunningJobsQuery);
-                }
-                synchronized (this.serverStatusLock) {
-                    serverStatus.setStatus(ServerStatus.Status.SUSPENDED);
-                    broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
-                }
-            }
-            catch (InterruptedException e) {
-
-            }
-            catch (Exception e){
-                logger.warn("failed to suspend server", e);
-                synchronized (this.serverStatusLock) {
-                    serverStatus.setStatus(ServerStatus.Status.SUSPEND_FAILED);
-                    broadcastMessage(MODIFY_SERVER_STATUS, serverStatus);
-                }
-//                    return Response.serverError().build();
-            }
-
-
-         */
         serverSuspendThread = new Thread(() -> {
             try {
                 while (true) {
@@ -2808,10 +2789,18 @@ public class NewmanResource {
     @Path("agent/{setupRetries}")
     public Agent setNumberOfRetries(@PathParam("setupRetries") final int numberOfRetries, final Agent agent) {
 
+        int setupRetriesBefore = agent.getSetupRetries();
         UpdateOperations<Agent> agentUpdateOps = agentDAO.createUpdateOperations();
         agentUpdateOps.set("setupRetries", numberOfRetries);
-        agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, false);
-        return agent;
+        Agent updatedAgent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, false);
+        if (updatedAgent != null) {
+            broadcastMessage(MODIFIED_AGENT, updatedAgent);
+            if ((setupRetriesBefore==0 && numberOfRetries>0) || (setupRetriesBefore>0 && numberOfRetries==0)) {
+                long count = agentDAO.createQuery().filter("setupRetries >", 0).countAll();
+                broadcastMessage(MODIFIED_FAILING_AGENTS, count);
+            }
+        }
+        return updatedAgent;
     }
 
 
@@ -2842,9 +2831,12 @@ public class NewmanResource {
         logger.warn("Agent {} did not report on time while he was IDLING and will be deleted", agent.getName());
         final Agent toDelete = agentDAO.findOne(agentDAO.createQuery().field("name").equal(agent.getName()));
         if (toDelete != null) {
-            String agentIp = agent.getName().substring(0,agent.getName().indexOf("-"));
-            offlineAgents.put(agentIp, new OfflineAgent(agentIp, agent.getHost(), agent.getLastTouchTime()));
+            String agentIp = agent.getHostAddress();
+            offlineAgents.put(agentIp, new OfflineAgent(agentIp, agent.getHost(), agent.getHostAddress(), agent.getLastTouchTime()));
             agentDAO.getDatastore().findAndDelete(agentDAO.createIdQuery(toDelete.getId()));
+            broadcastMessage(DELETED_AGENT, toDelete.getId());
+            broadcastMessage(CREATED_OFFLINE_AGENT, createAgentFromOfflineAgent(offlineAgents.get(agentIp)));
+            broadcastMessage(MODIFIED_AGENTS_COUNT, agentDAO.count());
             //Delete agent from preparing agents in jobs
             jobDAO.createUpdateOperations().removeAll("preparingAgents", toDelete.getName());
         }

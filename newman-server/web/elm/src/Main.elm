@@ -553,9 +553,14 @@ update msg model =
                                 , Agents.handleEvent ev |> Cmd.map AgentsMsg
                                 , Builds.handleEvent ev |> Cmd.map BuildsMsg
                                 , Suites.handleEvent ev |> Cmd.map SuitesMsg
+                                , Suite.handleEvent ev |> Cmd.map SuiteMsg
                                 , ManageNewman.handleEvent ev |> Cmd.map ManageNewmanMsg
                                 , JobConfigs.handleEvent ev |> Cmd.map JobConfigsMsg
                                 , Home.handleEvent ev |> Cmd.map HomeMsg
+                                , Build.handleEvent ev |> Cmd.map BuildMsg
+                                , TopBar.handleEvent ev |> Cmd.map TopBarMsg
+                                , SubmitNewJob.handleEvent ev |> Cmd.map SubmitNewJobMsg
+                                , Test.handleEvent ev |> Cmd.map TestMsg
                                 ]
 
                         Err err ->

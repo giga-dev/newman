@@ -216,12 +216,7 @@ onRequestCompletedDropFutureJob jobId model result =
 
 getDashboardDataCmd : Cmd Msg
 getDashboardDataCmd =
-    Http.send GetDashboardDataCompleted getDashboardData
-
-
-getDashboardData : Http.Request DashboardData
-getDashboardData =
-    Http.get "/api/newman/dashboard" decodeDashboardData
+    Http.send GetDashboardDataCompleted <| Http.get "/api/newman/dashboard" decodeDashboardData
 
 
 view : Model -> Html Msg

@@ -1,13 +1,11 @@
 module Pages.Suite exposing (..)
 
-import Bootstrap.Button as Button exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http exposing (..)
-import Json.Decode
-import Json.Decode.Pipeline exposing (decode)
 import UrlParser exposing (Parser)
 import Utils.Types exposing (..)
+import Utils.WebSocket as WebSocket exposing (..)
 
 
 type alias Model =
@@ -17,10 +15,7 @@ type alias Model =
 
 type Msg
     = GetSuiteInfoCompleted (Result Http.Error SuiteWithCriteria)
-
-
-
--- external
+    | WebSocketEvent WebSocket.Event
 
 
 parseSuiteId : Parser (String -> a) a
@@ -79,10 +74,6 @@ view model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        d =
-            Debug.log "Suite.update" ("was called" ++ toString msg)
-    in
     case msg of
         GetSuiteInfoCompleted result ->
             case result of
@@ -92,8 +83,33 @@ update msg model =
                 Err err ->
                     ( model, Cmd.none )
 
+        WebSocketEvent event ->
+                    case event of
+                        ModifiedSuite suite ->
+                            case model.maybeSuite of
+                                Just modelSuite ->
+                                    if modelSuite.id == suite.id then
+                                        ( { model | maybeSuite = updateSuite suite modelSuite } , Cmd.none )
+                                    else
+                                        ( model, Cmd.none )
+                                Nothing ->
+                                    ( model, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+
 
 getSuiteInfoCmd : SuiteId -> Cmd Msg
 getSuiteInfoCmd suiteId =
     Http.send GetSuiteInfoCompleted <|
         Http.get ("/api/newman/suite/" ++ suiteId) decodeSuiteWithCriteria
+
+
+updateSuite : Suite -> SuiteWithCriteria -> Maybe SuiteWithCriteria
+updateSuite suite modelSuite =
+        Just { modelSuite | customVariables = suite.customVariables }
+
+
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent

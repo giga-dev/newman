@@ -14,6 +14,8 @@ import Json.Encode
 import Maybe exposing (withDefault)
 import Multiselect
 import Views.NewmanModal as NewmanModal
+import Utils.WebSocket as WebSocket exposing (..)
+import Utils.Types as Types exposing (Build, Suite, JobConfig, decodeSuite, decodeJobConfigs)
 
 
 type Msg
@@ -26,6 +28,7 @@ type Msg
     | MultiSelectMsg Multiselect.Msg
     | UpdatedBuildSelection Bool
     | NewmanModalMsg Modal.State
+    | WebSocketEvent WebSocket.Event
 
 
 type alias Model =
@@ -41,30 +44,9 @@ type alias Model =
     }
 
 
-type alias Build =
-    { id : String
-    , name : String
-    , branch : String
-    , tags : List String
-    }
-
-
-type alias Suite =
-    { id : String
-    , name : String
-    , customVariables : String
-    }
-
-
-type alias JobConfig =
-    { id : String
-    , name : String
-    }
-
-
 type alias BuildsAndSuites =
     { suites : List Suite
-    , builds : List Build
+    , builds : List ThinBuild
     }
 
 
@@ -161,25 +143,48 @@ update msg model =
         NewmanModalMsg newState ->
             ( { model | modalState = newState }, Cmd.none )
 
+        WebSocketEvent event ->
+            case event of
+                CreatedBuild build ->
+                    ( updateBuildAdded model build, Cmd.none )
+
+                CreatedSuite suite ->
+                    ( updateSuiteAdded model suite, Cmd.none )
+
+                CreatedJobConfig jobConfig ->
+                    ( updateJobConfigAdded model jobConfig, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+
+updateBuildAdded : Model -> Build -> Model
+updateBuildAdded model build =
+    let
+        thinBuild = buildToThinBuild build
+    in
+        { model | buildsAndSuites = { builds = thinBuild :: model.buildsAndSuites.builds , suites = model.buildsAndSuites.suites } }
+
+
+
+updateSuiteAdded : Model -> Suite -> Model
+updateSuiteAdded model suite =
+    { model | buildsAndSuites = { suites = suite :: model.buildsAndSuites.suites , builds = model.buildsAndSuites.builds } }
+
+
+updateJobConfigAdded : Model -> JobConfig -> Model
+updateJobConfigAdded model jobConfig =
+    { model | configurations = jobConfig :: model.configurations }
+
 
 getBuildsAndSuitesCmd : Cmd Msg
 getBuildsAndSuitesCmd =
-    Http.send GetBuildsAndSuitesCompleted getBuildsAndSuites
-
-
-getBuildsAndSuites : Http.Request BuildsAndSuites
-getBuildsAndSuites =
-    Http.get "/api/newman/all-builds-and-suites" buildsAndSuitesDecoder
+    Http.send GetBuildsAndSuitesCompleted <| Http.get "/api/newman/all-builds-and-suites" buildsAndSuitesDecoder
 
 
 getAllConfigsCmd : Cmd Msg
 getAllConfigsCmd =
-    Http.send GetAllConfigsCompleted getAllConfigs
-
-
-getAllConfigs : Http.Request (List JobConfig)
-getAllConfigs =
-    Http.get "/api/newman/job-config" configurationsDecoder
+    Http.send GetAllConfigsCompleted <| Http.get "/api/newman/job-config" decodeJobConfigs
 
 
 submitFutureJobCmd : String -> List String -> String -> Cmd Msg
@@ -280,22 +285,27 @@ radio textVal msg isChecked =
         ]
 
 
-decodeBuild : Json.Decode.Decoder Build
-decodeBuild =
-    decode Build
+--- Types
+type alias ThinBuild =
+    { id : String
+    , name : String
+    , branch : String
+    , tags : List String
+    }
+
+
+buildToThinBuild : Build -> ThinBuild
+buildToThinBuild build =
+    ThinBuild build.id build.name build.branch build.tags
+
+
+decodeThinBuild : Json.Decode.Decoder ThinBuild
+decodeThinBuild =
+    decode ThinBuild
         |> Json.Decode.Pipeline.required "id" Json.Decode.string
         |> Json.Decode.Pipeline.required "name" Json.Decode.string
         |> Json.Decode.Pipeline.required "branch" Json.Decode.string
         |> Json.Decode.Pipeline.required "tags" (Json.Decode.list Json.Decode.string)
-
-
-decodeSuite : Json.Decode.Decoder Suite
-decodeSuite =
-    decode Suite
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
-        |> Json.Decode.Pipeline.required "customVariables" Json.Decode.string
-
 
 decodeFutureJobs : Json.Decode.Decoder (List FutureJob)
 decodeFutureJobs =
@@ -312,19 +322,8 @@ buildsAndSuitesDecoder : Json.Decode.Decoder BuildsAndSuites
 buildsAndSuitesDecoder =
     Json.Decode.map2 BuildsAndSuites
         (Json.Decode.field "suites" (Json.Decode.list decodeSuite))
-        (Json.Decode.field "builds" (Json.Decode.list decodeBuild))
+        (Json.Decode.field "builds" (Json.Decode.list decodeThinBuild))
 
-
-configurationsDecoder : Json.Decode.Decoder (List JobConfig)
-configurationsDecoder =
-    Json.Decode.list decodeConfig
-
-
-decodeConfig : Json.Decode.Decoder JobConfig
-decodeConfig =
-    decode JobConfig
-        |> Json.Decode.Pipeline.required "id" Json.Decode.string
-        |> Json.Decode.Pipeline.required "name" Json.Decode.string
 
 
 subscriptions : Model -> Sub Msg
@@ -332,3 +331,6 @@ subscriptions model =
     Sub.map MultiSelectMsg <| Multiselect.subscriptions model.selectedSuites
 
 
+handleEvent : WebSocket.Event -> Cmd Msg
+handleEvent event =
+    event => WebSocketEvent
