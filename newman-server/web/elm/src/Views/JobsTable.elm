@@ -10,7 +10,8 @@ import Bootstrap.Dropdown as Dropdown
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Duration as Duration
-import Date.Format
+import DateFormat
+import DateFormat.Relative
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (..)
@@ -22,7 +23,7 @@ import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
 import Json.Decode exposing (..)
-
+import Utils.Common as Common
 
 type Msg
     = First
@@ -145,9 +146,9 @@ viewTable model currTime =
                         , th [ class "job-tests-progress" ] [ text "Progess" ]
                         , th [ widthPct "12%" ] [ text "Job Id" ]
                         , th [ widthPct "10%" ] [ text "Suite" ]
-                        , th [ widthPct "10%" ] [ text "Job Configuration" ]
+                        , th [ widthPct "8%" ] [ text "Job Configuration" ]
                         , th [ widthPct "6%" ] [ text "Duration" ]
-                        , th [ widthPct "6%" ] [ text "Submitted At" ]
+                        , th [ widthPct "8%" ] [ text "Submitted At" ]
                         , th [ widthPct "12%" ] [ text "Build" ]
                         , th [ widthPct "6%" ] [ text "Submitted By" ]
                         , th [ widthPct "4%" ] [ text "# p. agents" ]
@@ -208,10 +209,10 @@ viewJob currTime job =
                 badge [ class "newman-job-state-label" ] [ text <| jobStateToString job.state ]
 
         submittedTimeHourFull =
-            Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat job.submitTime))
+            DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat job.submitTime))
 
         submittedTimeHour =
-            Date.Format.format "%H:%M:%S" (Date.fromTime (toFloat job.submitTime))
+            DateFormat.Relative.relativeTime (Date.fromTime <| Maybe.withDefault (toFloat job.submitTime) currTime) (Date.fromTime (toFloat job.submitTime))
 
         durationText =
             let

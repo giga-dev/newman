@@ -7,7 +7,7 @@ import Bootstrap.Modal as Modal
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
-import Date.Format
+import DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -20,7 +20,7 @@ import Time exposing (Time)
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
-
+import Utils.Common as Common
 
 type alias Model =
     { allAgents : Agents
@@ -421,7 +421,7 @@ viewAgent filterOfflineAgents agent =
                     ""
 
         lastSeen =
-            Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat agent.lastTouchTime))
+            DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat agent.lastTouchTime))
 
         closeButtonMsg agentId agentName =
                 if filterOfflineAgents then

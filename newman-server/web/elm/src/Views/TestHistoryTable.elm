@@ -10,7 +10,7 @@ import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Duration as Duration
 import Date.Extra.Format as Format exposing (format, formatUtc, isoMsecOffsetFormat)
-import Date.Format
+import DateFormat
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (..)
@@ -21,7 +21,7 @@ import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
 import Utils.Types exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
-
+import Utils.Common as Common
 
 type Msg
     = First
@@ -189,7 +189,7 @@ viewRecord testHistory =
                     toString h ++ " hours and " ++ toString m ++ " minutes"
 
         dateFormat date =
-            Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat date))
+            DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat date))
     in
     tr []
         [ td [] [ a [ href <| "#test/" ++ testHistory.test.id ] [ text testHistory.test.id ] ]

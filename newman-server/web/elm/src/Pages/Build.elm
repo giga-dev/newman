@@ -1,7 +1,7 @@
 module Pages.Build exposing (..)
 
 import Date exposing (..)
-import Date.Format
+import DateFormat
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -18,7 +18,7 @@ import UrlParser exposing (Parser)
 import Utils.Types exposing (..)
 import Views.JobsTable as JobsTable exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
-
+import Utils.Common as Common
 
 type alias Model =
     { maybeBuild : Maybe Build
@@ -66,7 +66,7 @@ view model =
                     JobsTable.viewTable subModel model.currTime |> Html.map JobsTableMsg
 
                 buildDate =
-                    Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat build.buildTime))
+                    DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat build.buildTime))
 
                 resourcesRow =
                     tr []

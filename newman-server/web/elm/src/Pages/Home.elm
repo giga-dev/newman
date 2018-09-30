@@ -6,7 +6,7 @@ import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
 import Bootstrap.Modal as Modal
 import Date
-import Date.Format
+import DateFormat
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -19,7 +19,7 @@ import Maybe exposing (withDefault)
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal
-
+import Utils.Common as Common
 
 type Msg
     = GetDashboardDataCompleted (Result Http.Error DashboardData)
@@ -274,7 +274,7 @@ viewFutureJobs : List FutureJob -> Html Msg
 viewFutureJobs futureJobs =
     let
         formatTime time =
-            Date.Format.format "%b %d, %H:%M:%S" <| Date.fromTime <| toFloat time
+            DateFormat.format Common.dateTimeDateFormat <| Date.fromTime <| toFloat time
 
         viewFutureJob futureJob =
             tr []
@@ -312,7 +312,7 @@ viewHistoryBuild build =
             build.name ++ "(" ++ build.branch ++ ")"
 
         buildDate =
-            Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat build.buildTime))
+            DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat build.buildTime))
 
         buildStatus =
             build.buildStatus
@@ -389,7 +389,7 @@ viewPendingBuild build =
             build.name ++ "(" ++ build.branch ++ ")"
 
         buildDate =
-            Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat build.buildTime))
+            DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat build.buildTime))
 
         buildStatus =
             build.buildStatus
@@ -468,7 +468,7 @@ viewActiveBuild activeJobs build =
             formatDate build.buildTime
 
         formatDate time =
-            Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat time))
+            DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat time))
 
         buildStatus =
             build.buildStatus

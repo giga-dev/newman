@@ -4,7 +4,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
 import Date exposing (Date)
-import Date.Format
+import DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -14,7 +14,7 @@ import Time exposing (Time)
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.CompareBuilds as CompareBuilds exposing (..)
-
+import Utils.Common as Common
 
 type alias Model =
     { allBuilds : Builds
@@ -214,7 +214,7 @@ viewBuild build =
             build.name ++ "(" ++ build.branch ++ ")"
 
         buildDate =
-            Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat build.buildTime))
+            DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat build.buildTime))
 
         buildTags =
             String.join "," build.tags

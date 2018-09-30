@@ -5,7 +5,7 @@ import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.Progress as Progress exposing (..)
 import Date
-import Date.Format
+import DateFormat
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -19,7 +19,7 @@ import UrlParser exposing (Parser)
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.TestsTable as TestsTable
-
+import Utils.Common as Common
 
 type alias Model =
     { maybeJob : Maybe Job
@@ -98,7 +98,7 @@ viewHeader model job =
         dateFormat maybeDate =
             case maybeDate of
                 Just date ->
-                    Date.Format.format "%b %d, %H:%M:%S" (Date.fromTime (toFloat date))
+                    DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat date))
 
                 Nothing ->
                     "N/A"

@@ -6,7 +6,6 @@ import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
 import Date exposing (Date)
 import Date.Extra.Duration as Duration
-import Date.Format
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (..)
 import Html.Events exposing (..)
@@ -344,6 +343,7 @@ filterQuery query test =
             == 0
             || String.startsWith query test.id
             || String.contains (String.toLower query) (String.toLower test.name)
+            || String.contains (String.toLower query) (String.toLower <| String.join " " test.arguments)
             || String.contains query test.assignedAgent
     then
         True

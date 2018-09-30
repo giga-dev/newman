@@ -3,7 +3,7 @@ module Pages.Suites exposing (..)
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as FormInput
 import Date exposing (Date)
-import Date.Format
+import DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -13,7 +13,7 @@ import Paginate exposing (..)
 import Time exposing (Time)
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
-
+import Utils.Common as Common
 
 type alias Model =
     { allSuites : Suites

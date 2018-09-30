@@ -2,14 +2,14 @@ module Pages.Test exposing (..)
 
 import Bootstrap.Badge as Badge
 import Date
-import Date.Format
+import DateFormat
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import Utils.Types exposing (Test, TestId, decodeTest, TestStatus(..), testStatusToString)
 import Utils.WebSocket as WebSocket exposing (..)
-
+import Utils.Common as Common
 
 type alias Model =
     { test : Maybe Test }
@@ -80,7 +80,7 @@ viewTest test =
         formatDate maybe =
             case maybe of
                 Just date ->
-                    Date.Format.format "%b %d, %H:%M:%S" <| Date.fromTime <| toFloat date
+                    DateFormat.format Common.dateTimeDateFormat <| Date.fromTime <| toFloat date
 
                 Nothing ->
                     "N/A"
