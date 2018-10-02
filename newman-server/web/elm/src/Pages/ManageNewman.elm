@@ -92,8 +92,8 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
-                Ok status ->
-                    ( { model | currentStatus = stringToStatus status }, Cmd.none )
+                Ok status -> -- Ignore result as it is empty!
+                    ( model, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -122,17 +122,27 @@ view model =
 getNewmanStatusCmd : Cmd Msg
 getNewmanStatusCmd =
     Http.send GotNewmanStatus
-        (Http.get "/api/newman/status" string)
+        (Http.get "/api/newman/status" decodeStatus)
+
 
 
 onClickButtonCmd : Model -> Cmd Msg
 onClickButtonCmd model =
-    Http.send SuspendRequestCompleted
-        (if model.currentStatus == RUNNING then
-            Http.post "/api/newman/suspend" Http.emptyBody <| succeed ""
-         else
-            Http.post "/api/newman/unsuspend" Http.emptyBody <| succeed ""
-        )
+    let
+        op = case model.currentStatus of
+            RUNNING -> "suspend"
+            _ -> "unsuspend"
+    in
+        Http.send SuspendRequestCompleted <|
+            Http.request <|
+                { method = "POST"
+                , headers = []
+                , url = "/api/newman/" ++ op
+                , body = Http.emptyBody
+                , expect = Http.expectString
+                , timeout = Nothing
+                , withCredentials = False
+                }
 
 
 stringToStatus : String -> NewmanStatus

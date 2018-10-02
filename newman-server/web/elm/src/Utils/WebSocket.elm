@@ -3,7 +3,7 @@ module Utils.WebSocket exposing (..)
 import Json.Decode exposing (Decoder, Value, field, string, value, int, decodeString, decodeValue)
 import Navigation exposing (Location)
 import Task
-import Utils.Types exposing (Agent, Build, FutureJob, Job, Suite, Test, JobConfig, decodeJobConfig, decodeAgent, decodeBuild, decodeFutureJob, decodeJob, decodeSuite, decodeTestView)
+import Utils.Types exposing (Agent, Build, FutureJob, Job, Suite, Test, JobConfig, decodeJobConfig, decodeAgent, decodeBuild, decodeFutureJob, decodeJob, decodeSuite, decodeTestView, decodeStatus)
 import WebSocket
 
 
@@ -136,7 +136,7 @@ toEvent msg =
                                         parse DeletedFutureJob decodeFutureJob
 
                                     "modified-server-status" ->
-                                        parse ModifiedServerStatus string
+                                        parse ModifiedServerStatus decodeStatus
 
                                     other ->
                                         Err <| "Unhandled event id: " ++ other

@@ -628,3 +628,7 @@ encodeListOfStrings lst =
 
 
 -- convert from List Value to Value --
+
+decodeStatus : Decoder String
+decodeStatus =
+    at [ "status" ] string
