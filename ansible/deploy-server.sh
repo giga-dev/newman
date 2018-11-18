@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 read -r -p "Did you modify the password in group_vars/newmanServer? [y/N] " response
 case $response in
     [yY][eE][sS]|[yY])

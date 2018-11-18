@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/usr/bin/env bash
 set +x
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HOSTS_FILE="${DIR}/newman-hosts"

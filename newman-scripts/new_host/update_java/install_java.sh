@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 JAVA_URL="http://hercules/javas/<new_java_version>.tar.gz"
 JAVA_FILENAME="<new_java_version>.tar.gz"
 JAVA_FOLDERNAME="<new_java_version_short>"

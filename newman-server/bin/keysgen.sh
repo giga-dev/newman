@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 . ./env.sh
 
 # main entry to create server and client keys signed by ca.

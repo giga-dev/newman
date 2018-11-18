@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ $# -ne 2 ] && [ $# -ne 4 ] ; then
     echo "Usage: $0 password1 password2 OR $0 password1 password2 access_key secret_key"

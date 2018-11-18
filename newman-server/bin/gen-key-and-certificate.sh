@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 . ./env.sh
 
 CN=$1

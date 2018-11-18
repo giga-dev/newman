@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 read -r -p "Did you modify the passwords in group_vars/newmanDockerAgents and in group_vars/newmanInsightEdgeDockerAgents? [y/N] " response
 case $response in
     [yY][eE][sS]|[yY])

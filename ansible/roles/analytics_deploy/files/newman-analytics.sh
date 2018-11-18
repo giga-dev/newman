@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export NEWMAN_SERVER_HOST=xap-newman
 export NEWMAN_SERVER_PORT=8443

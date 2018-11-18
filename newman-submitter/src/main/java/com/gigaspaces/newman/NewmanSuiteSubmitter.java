@@ -491,14 +491,14 @@ public class NewmanSuiteSubmitter {
 
     public void manualSubmitOneTestSuite() throws Exception {
         Suite suite = new Suite();
-        suite.setName("dev-yael-failed-mx-off-heap-tests");
-        suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=2,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=false -Dblobstore.entriespercentage=0 -Dblobstore.offheap.memory=1024M -Dcom.gigaspaces.quality.tf.offheap-blobstore.enabled=true");
-        String Requirements = "LINUX";
+        suite.setName("mx-pmem");
+        suite.setCustomVariables("SUITE_TYPE=tgrid,THREADS_LIMIT=1,TGRID_CUSTOM_SYSTEM_PROPS=-Dblobstore.persistent=false -Dblobstore.pmem.memory=1024M -Dblobstore.pmem.fileName=\"/tmp/testPmemPool.txt\" -Dblobstore.pmem.verbose=false -Dcom.gigaspaces.quality.tf.pmem-blobstore.enabled=true -Dblobstore.entriespercentage=0, LD_LIBRARY_PATH=~/.nix-profile/lib");
+        String Requirements = "PMEM";
         suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
         String testType = "tgrid";
         Criteria criteria = CriteriaBuilder.join(
                 CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
-                CriteriaBuilder.include(getTestCriteriasFromPermutationURI("file:///home/yaeln-pcu/permutations.txt")));
+                CriteriaBuilder.include(getTestCriteriasFromPermutationURI("file:///tmp/permutations.txt")));
         suite.setCriteria(criteria);
         logger.info("Adding suite: " + suite);
         NewmanClient newmanClient = getNewmanClient();

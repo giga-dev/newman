@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export AWS_ACCESS_KEY_ID="<enter here your AWS_ACCESS_KEY_ID>"
 export AWS_SECRET_ACCESS_KEY="<enter here your AWS_SECRET_ACCESS_KEY>"

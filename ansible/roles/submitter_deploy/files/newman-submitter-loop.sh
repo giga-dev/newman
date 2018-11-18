@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 while true; do
         source submitter-env.sh
 

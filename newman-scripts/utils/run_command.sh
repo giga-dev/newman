@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/usr/bin/env bash
 JAVA_URL="http://hercules/javas/jdk-8u45-linux-x64.tar.gz"
 JAVA_FILENAME="jdk-8u45-linux-x64.tar.gz"
 JAVA_FOLDERNAME="jdk8u45"

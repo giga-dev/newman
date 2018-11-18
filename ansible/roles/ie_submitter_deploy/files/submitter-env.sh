@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 export BRANCH_FILE_PATH="/home/xap/insightedge/branch_list.txt"
 export NEWMAN_HOST=xap-newman
 export NEWMAN_PORT=8443

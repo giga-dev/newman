@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]
   then
     echo "Usage: ./run-command-on-agents.sh <SHELL_COMMAND> <FIRST_PASSWORD> <SECOND_PASSWORD>"

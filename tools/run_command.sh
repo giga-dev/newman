@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/usr/bin/env bash
 
 SCRIPT_NAME=${BASH_SOURCE[0]}
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

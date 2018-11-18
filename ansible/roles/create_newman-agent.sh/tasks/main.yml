@@ -9,7 +9,7 @@
     creates: ./roles/agent_deploy/files/newman-agent.sh
 
 - name: line 0
-  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line="#!/bin/bash"
+  lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line="#!/usr/bin/env bash"
 
 - name: line 1
   lineinfile: dest=./roles/agent_deploy/files/newman-agent.sh line='# System environment variables'

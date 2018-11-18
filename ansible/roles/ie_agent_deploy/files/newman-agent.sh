@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # System environment variables
 # username and password to connect to newman server
 NEWMAN_USERNAME=root
