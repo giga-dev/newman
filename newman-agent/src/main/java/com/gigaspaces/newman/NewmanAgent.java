@@ -51,7 +51,8 @@ public class NewmanAgent {
         logger.info("performing job setup env");
         agent.initialize(false);
         if (args.length != 4) {
-            logger.info("Usage: java -jar newman-agent-1.0.jar <setup> <suiteId> <buildId> ... [list-of-regular-system-properties]");
+            logger.error("invalid num of args");
+            logger.error("Usage: java -jar newman-agent-1.0.jar <setup> <suiteId> <buildId> <CONFIG_ID> ... [list-of-regular-system-properties]");
             System.exit(1);
         }
         else {
