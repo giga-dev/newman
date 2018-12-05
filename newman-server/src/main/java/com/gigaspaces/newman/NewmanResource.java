@@ -541,7 +541,11 @@ public class NewmanResource {
                     continue;
                 }
                 deleteJob(job.getId());
-                logger.debug("deleted job: " + job.getId() + " with build time " + job.getBuild().getBuildTime());
+                if( logger.isDebugEnabled() ) {
+                    logger.debug(
+                        "deleted job: " + job.getId() + " with build time " + job.getBuild()
+                            .getBuildTime());
+                }
                 jobsDeleted++;
             }
         }
@@ -1040,7 +1044,10 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public synchronized Test finishTest(final Test test) {
         try {
-            logger.debug("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
+            if( logger.isDebugEnabled() ) {
+                logger.debug("trying to finish test - id:[{}], name:[{}]", test.getId(),
+                             test.getName());
+            }
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
@@ -1090,7 +1097,12 @@ public class NewmanResource {
 
             testUpdateOps.set("testScore", reliabilityTestScore);
             testUpdateOps.set("historyStats", historyStatsString);
-            logger.debug("got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}], running tests before decrement:[{}]", historyStatsString, test.getId(), test.getName(), jobId, testJob.getRunningTests());
+            if( logger.isDebugEnabled() ) {
+                logger.debug(
+                    "got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}], running tests before decrement:[{}]",
+                    historyStatsString, test.getId(), test.getName(), jobId,
+                    testJob.getRunningTests());
+            }
 
             Test result = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(test.getId()), testUpdateOps, false, false);
             Query<Test> query = testDAO.createQuery();
@@ -1103,7 +1115,11 @@ public class NewmanResource {
             }
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
 
-            logger.debug("After modifying job ( after runningTests decrement ), runningTests:[{}]", job.getRunningTests());
+            if( logger.isDebugEnabled() ) {
+                logger.debug(
+                    "After modifying job ( after runningTests decrement ), runningTests:[{}]",
+                    job.getRunningTests());
+            }
 
             Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), updateBuild);
 
@@ -1605,7 +1621,9 @@ public class NewmanResource {
     @Path("agents/count")
     public Response getAgentsCount() {
         long count = agentDAO.count();
-        logger.debug("agents count=" + count);
+        if( logger.isDebugEnabled() ) {
+            logger.debug("agents count=" + count);
+        }
         return Response.ok(count, MediaType.TEXT_PLAIN_TYPE).build();
     }
 
@@ -1613,7 +1631,9 @@ public class NewmanResource {
     @Path("agents/failing")
     public Response getFailingAgents() {
         long count = agentDAO.createQuery().filter("setupRetries >", 0).countAll();
-        logger.debug("agents failed setup count=" + count);
+        if( logger.isDebugEnabled() ) {
+            logger.debug("agents failed setup count=" + count);
+        }
         return Response.ok(count, MediaType.TEXT_PLAIN_TYPE).build();
     }
 
@@ -1740,7 +1760,9 @@ public class NewmanResource {
             String jobId = agent.getJobId();
             if (jobId != null) {
                 Job job = findOneThinJobById(jobId);
-                logger.debug("within for on agents, jobID=" + jobId + ", job=" + job);
+                if( logger.isDebugEnabled() ) {
+                    logger.debug("within for on agents, jobID=" + jobId + ", job=" + job);
+                }
                 agent.setJob(job);
             }
         }
@@ -1849,7 +1871,10 @@ public class NewmanResource {
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().inc("runningTests");
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").notEqual(State.PAUSED), updateJobStatus);
             if (job != null) {
-                logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]", jobId, job.getRunningTests());
+                if( logger.isDebugEnabled() ) {
+                    logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]",
+                                 jobId, job.getRunningTests());
+                }
                 UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.runningTests");
                 UpdateOperations<Job> jobUpdateOperations = jobDAO.createUpdateOperations();
                 jobUpdateOperations.set("state", State.RUNNING);
@@ -2555,8 +2580,11 @@ public class NewmanResource {
         Set<String> filterBranches = new HashSet<>();
         filterBranches.add(MASTER_BRANCH_NAME);
         filterBranches.add(branch);
-
-        logger.debug("--getTests() history, testId=" + id + ",jobId=" + jobId + ", buildId=" + build.getId() + ", branch=" + branch + ", endTime=" + endTime);
+        if( logger.isDebugEnabled() ) {
+            logger.debug(
+                "--getTests() history, testId=" + id + ",jobId=" + jobId + ", buildId=" + build
+                    .getId() + ", branch=" + branch + ", endTime=" + endTime);
+        }
 
         Query<Test> testsQuery = testDAO.createQuery();
         testsQuery.or(testsQuery.criteria("status").equal(Test.Status.FAIL), testsQuery.criteria("status").equal(Test.Status.SUCCESS)); // get only success or fail test
@@ -2571,11 +2599,17 @@ public class NewmanResource {
         testsQuery.limit(limit);
 
         List<Test> tests = testDAO.find(testsQuery).asList();
-        logger.debug("--getTests() history, testId=" + id + ", tests size:" + tests.size());
+        if( logger.isDebugEnabled() ) {
+            logger.debug("--getTests() history, testId=" + id + ", tests size:" + tests.size());
+        }
         //logger.info("DEBUG (getTests) get test history of testId: [{}], (thisTest: [{}])", id, thisTest);
         List<TestHistoryItem> testHistoryItemsList = new ArrayList<>(tests.size());
         for (Test test : tests) {
-            logger.debug("--getTests() history, test.getEndTime()=" + test.getEndTime() + ", tests size:" + tests.size());
+            if( logger.isDebugEnabled() ) {
+                logger.debug(
+                    "--getTests() history, test.getEndTime()=" + test.getEndTime() + ", tests size:"
+                    + tests.size());
+            }
             String jobIdLocal = test.getJobId();
             //don't bring tests that were ran after this test on any branch
             if (suiteJobs.contains(jobIdLocal) && (endTime == null || (test.getEndTime() != null && test.getEndTime().compareTo(endTime) <= 0))) {
@@ -2814,7 +2848,11 @@ public class NewmanResource {
                 long time1 = System.currentTimeMillis();
                 EventSocket.broadcast(new Message(type, value));
                 long time2 = System.currentTimeMillis();
-                logger.debug("Broadcasting message [" + type + "] with value [" + value + "] took " + (time2 - time1) + " ms");
+                if( logger.isDebugEnabled() ) {
+                    logger.debug(
+                        "Broadcasting message [" + type + "] with value [" + value + "] took " + (
+                            time2 - time1) + " ms");
+                }
             } catch (Throwable ignored) {
                 logger.error("Invoking of broadcastMessage() failed");
             }
