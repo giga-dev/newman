@@ -163,7 +163,7 @@ public class NewmanSubmitter {
         }
     }
 
-    private void submitJobs(Build buildToRun, List<String> suitesId, JobConfig jobConfig, String mode) throws ExecutionException, InterruptedException {
+    private void submitJobs(Build buildToRun, List<String> suitesId, JobConfig jobConfig, String mode)  {
         List<Future<String>> submitted = new ArrayList<>();
         logger.info("build to run - name:[{}], id:[{}], branch:[{}], tags:[{}], mode:[{}].", buildToRun.getName(), buildToRun.getId(), buildToRun.getBranch(), buildToRun.getTags(), mode);
         // Submit jobs for suites
@@ -175,7 +175,11 @@ public class NewmanSubmitter {
             logger.error("could not submit job. build id- [" + buildToRun + "] on branch :[" + buildToRun.getBranch() + "]", ignored);
         } finally {
             for (Future<String> job : submitted) {
-                job.get();
+                try {
+                    job.get();
+                } catch (Exception e) {
+                    logger.error("could not submit job", e);
+                }
             }
             tearDown();
         }
@@ -235,8 +239,9 @@ public class NewmanSubmitter {
                 String jobId = jobSubmitter.submitJob(author);
                 logger.info("submitted job ");
                 return jobId;
-            } catch (InterruptedException | ExecutionException | ParseException | IOException e) {
-                throw new RuntimeException("job terminating submission due to exception", e);
+            } catch (Throwable e) {
+                logger.error("submit job faild. SuiteId: " + suiteId+", buildId: "+buildId+", configId: "+configId+", author: "+ author, e);
+                throw e;
             }
         });
     }
