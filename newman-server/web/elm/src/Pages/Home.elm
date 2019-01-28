@@ -2,21 +2,16 @@ module Pages.Home exposing (..)
 
 import Bootstrap.Badge as Badge
 import Bootstrap.Button as Button
-import Bootstrap.Form as Form
-import Bootstrap.Form.Input as FormInput
 import Bootstrap.Modal as Modal
 import Date
 import DateFormat
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
 import Http exposing (..)
-import Json.Decode exposing (Decoder, int)
-import Json.Decode.Pipeline exposing (decode, required)
 import List.Extra as ListExtra
 import Maybe exposing (withDefault)
-import Utils.Types exposing (..)
+import Utils.Types exposing (ActiveJobsDashboard, Build, DashboardData, FutureJob, decodeDashboardData)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal
 import Utils.Common as Common

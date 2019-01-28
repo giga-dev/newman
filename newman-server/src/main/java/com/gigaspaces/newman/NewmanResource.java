@@ -417,6 +417,7 @@ public class NewmanResource {
     public String getRunningJobs() {
         Query<Job> query = jobDAO.createQuery();
         query.or(query.criteria("state").equal("READY"), query.criteria("state").equal("RUNNING"));
+        query.and(query.criteria("totalTests").greaterThan(0));
         return String.valueOf(jobDAO.find(query).asList().size());
     }
 

@@ -43,7 +43,7 @@ public class NewmanSuiteSubmitter {
 
         NewmanSuiteSubmitter submitter = new NewmanSuiteSubmitter();
 //        submitter.submit();
-        submitter.manualSubmitOneTestSuite();
+        submitter.manualSubmitCustomJetty9();
 //        String ssd_tests = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests";
 //        submitter.manualSubmitSSD(ssd_tests);
 //        submitter.manualSubmitTgridRocksDB();
@@ -92,6 +92,38 @@ public class NewmanSuiteSubmitter {
                             PatternCriteria.containsCriteria(".JettyUnitTest#"),
                             PatternCriteria.containsCriteria("test.webui.security.BasicSslWebuiTest#"),
                             PatternCriteria.containsCriteria("test.webui.WebSSLJetty9Test#")),
+                    TestCriteria.createCriteriaByTestType(testType)
+
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        } finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitCustomJetty9() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("dev-meshi-jetty9");
+            suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1,JETTY_VERSION=9,WEBUI_CUSTOM_SYSTEM_PROPS=-Dselenium.browser=Firefox -Dcom.gs.test.use.newman=true");
+            // TODO note - if set is empty, mongodb will NOT write that filed to DB
+            String Requirements = "DOCKER,LINUX";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            String testType = "sgtest";
+
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(
+                            PatternCriteria.containsCriteria(".PUInstanceLifeCycleTest#"),
+                            PatternCriteria.containsCriteria(".PUStatusChangesTest#"),
+                            PatternCriteria.containsCriteria(".PureSpringMVCWebAppSharedModeTest#"),
+                            PatternCriteria.containsCriteria(".PureSpringMVCWebAppTest#"),
+                            PatternCriteria.containsCriteria(".PureSpringMVCWithEmbeddedSpaceWebAppTest#"),
+                            PatternCriteria.containsCriteria(".PureSpringMVCWithRemoteSpaceWebAppTest#"),
+                            PatternCriteria.containsCriteria(".JettyUnitTest#")),
                     TestCriteria.createCriteriaByTestType(testType)
 
             );

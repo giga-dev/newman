@@ -1,5 +1,6 @@
 module Pages.Builds exposing (..)
 
+import Bootstrap.Badge as Badge
 import Bootstrap.Button as Button
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
@@ -15,6 +16,7 @@ import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.CompareBuilds as CompareBuilds exposing (..)
 import Utils.Common as Common
+import Dict exposing (Dict)
 
 type alias Model =
     { allBuilds : Builds
@@ -191,13 +193,23 @@ view model =
                     ]
                 , div [ class "form-group" ] [ pagination ]
                 ]
-            , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
+            , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover builds-table" ]
                 [ thead []
                     [ tr []
                         [ th [] [ text "Build" ]
                         , th [] [ text "Tags" ]
                         , th [] [ text "Id" ]
                         , th [] [ text "Build Date" ]
+                        , th []
+                            [
+                             Badge.badgeSuccess [] [ text "Passed" ]
+                            , text " "
+                            , Badge.badgeDanger [] [ text "Failed" ]
+                            , text " "
+                            , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ text "Failedx3" ]
+                            ]
+
+
                         ]
                     ]
                 , tbody [] (List.map viewBuild (Paginate.page model.builds))
@@ -218,13 +230,28 @@ viewBuild build =
 
         buildTags =
             String.join "," build.tags
+
+
+        buildTests =
+            [
+            Badge.badgeSuccess [] [ text <| toString build.buildStatus.passedTests ]
+            , text " "
+            , Badge.badgeDanger [] [ text <| toString build.buildStatus.failedTests ]
+            , text " "
+            , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ text <| toString build.buildStatus.failed3TimesTests ]
+            , text " "
+            ]
+
+
     in
     tr []
         [ td [] [ a [ href <| "#build/" ++ build.id ] [ text buildName ] ]
         , td [] [ text buildTags ]
         , td [] [ text build.id ]
         , td [] [ text buildDate ]
+        , td [ class "tests-data" ] buildTests
         ]
+
 
 
 getBuildsCmd : Cmd Msg

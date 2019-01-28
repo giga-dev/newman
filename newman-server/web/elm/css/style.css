@@ -311,7 +311,7 @@ td {
     width: 100%;
 }
 
-.history-table .badge {
+.history-table .badge, .builds-table .badge {
     width: 50px;
 }
 
