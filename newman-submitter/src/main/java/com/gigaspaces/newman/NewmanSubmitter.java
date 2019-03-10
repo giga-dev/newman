@@ -24,7 +24,7 @@ import java.util.concurrent.*;
 public class NewmanSubmitter {
 
     private static final String NEWMAN_SUITES_FILE_LOCATION = "NEWMAN_SUITES_FILE_LOCATION";
-    private static final int MAX_THREADS = 20;
+    private static final int MAX_THREADS = 25;
     private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
     private static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
     public static final int DEFAULT_TIMEOUT_SECONDS = NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS;
