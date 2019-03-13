@@ -315,7 +315,7 @@ public class NewmanSuiteSubmitter {
             String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
             Criteria criteria = CriteriaBuilder.join(TestCriteria.createCriteriaByTestType("sgtest"),
-                    include(PatternCriteria.containsCriteria(".manager.")),
+                    include(PatternCriteria.containsCriteria(".manager."), PatternCriteria.containsCriteria(".examples.")),
                     exclude(PatternCriteria.containsCriteria(".manager.rest.security."))
             );
             suite.setCriteria(criteria);
