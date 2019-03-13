@@ -879,7 +879,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("kubernetes-tests-xap");
+            suite.setName("k8s-tests-xap");
             suite.setCustomVariables("SUITE_TYPE=kubernetes,SUITE_SUB_TYPE=XAP,THREADS_LIMIT=1");
             String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
@@ -895,12 +895,11 @@ public class NewmanSuiteSubmitter {
         }
     }
 
-
     public void manualSubmitKubernetesInsightedge() throws Exception {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("kubernetes-tests-insightedge");
+            suite.setName("k8s-tests-i9e");
             suite.setCustomVariables("SUITE_TYPE=kubernetes,SUITE_SUB_TYPE=InsightEdge,THREADS_LIMIT=1");
             String Requirements = "DOCKER,LINUX";
             suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
