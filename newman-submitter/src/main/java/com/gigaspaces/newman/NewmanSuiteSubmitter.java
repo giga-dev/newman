@@ -34,6 +34,7 @@ public class NewmanSuiteSubmitter {
     public static final String NEWMAN_CRITERIA_EXCLUDE_LIST = "NEWMAN_CRITERIA_EXCLUDE_LIST";
     public static final String NEWMAN_CRITERIA_PERMUTATION_URI = "NEWMAN_CRITERIA_PERMUTATION_URI";
     public static final String NEWMAN_SUITE_REQUIREMENTS = "newman.suite.requirements";
+
     /**
      * All input is done using environment variables.
      * @param args none are expected
@@ -43,7 +44,7 @@ public class NewmanSuiteSubmitter {
 
         NewmanSuiteSubmitter submitter = new NewmanSuiteSubmitter();
 //        submitter.submit();
-        submitter.manualSubmitCustomJetty9();
+        submitter.manualSubmitKubernetesInsightedge();
 //        String ssd_tests = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests";
 //        submitter.manualSubmitSSD(ssd_tests);
 //        submitter.manualSubmitTgridRocksDB();
@@ -194,8 +195,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -220,8 +220,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -249,8 +248,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -322,8 +320,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -344,8 +341,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -419,8 +415,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -441,8 +436,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -510,7 +504,7 @@ public class NewmanSuiteSubmitter {
             String fullPath = new File(NewmanSuiteSubmitter.class.getClassLoader().getResource("rocksDbPermutations.txt").getFile()).getAbsolutePath();
             Criteria criteria = CriteriaBuilder.join(
                     CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
-                    CriteriaBuilder.include(getTestCriteriasFromPermutationURI("file://"+fullPath))
+                    CriteriaBuilder.include(getTestCriteriasFromPermutationURI("file://" + fullPath))
             );
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);
@@ -853,8 +847,7 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
@@ -873,14 +866,53 @@ public class NewmanSuiteSubmitter {
             logger.info("Adding suite: " + suite);
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
-        }
-        finally {
+        } finally {
             newmanClient.close();
         }
     }
 
     private static NewmanClient getNewmanClient() throws Exception {
         return NewmanClientUtil.getNewmanClient(logger);
+    }
+
+    public void manualSubmitKubernetesXAP() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("k8s-tests-xap");
+            suite.setCustomVariables("SUITE_TYPE=kubernetes,SUITE_SUB_TYPE=XAP,THREADS_LIMIT=1");
+            String Requirements = "DOCKER,LINUX";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            Criteria criteria = CriteriaBuilder.include(
+                    PatternCriteria.containsCriteria("kubernetes.tests.insightedge.xap")
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        } finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitKubernetesInsightedge() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("k8s-tests-i9e");
+            suite.setCustomVariables("SUITE_TYPE=kubernetes,SUITE_SUB_TYPE=InsightEdge,THREADS_LIMIT=1");
+            String Requirements = "DOCKER,LINUX";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            Criteria criteria = CriteriaBuilder.include(
+                    PatternCriteria.containsCriteria("kubernetes.tests.insightedge")
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        } finally {
+            newmanClient.close();
+        }
     }
 
 }
