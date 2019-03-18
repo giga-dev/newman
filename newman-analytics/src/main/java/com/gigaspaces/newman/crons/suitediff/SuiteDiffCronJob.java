@@ -104,6 +104,7 @@ public class SuiteDiffCronJob implements CronJob {
         //calculate
         Map<String, Job> latest_mapSuite2Job = getJobsByBuildId(newmanClient, latestBuild.getId());
         Map<String, Job> previous_mapSuite2Job = getJobsByBuildId(newmanClient, previousBuild.getId());
+        Set<String> suitesThatDidNotParticipate = getSuitesThatDidNotParticipate(latest_mapSuite2Job, previous_mapSuite2Job);
         Set<DiffComparableData> suiteDiffs = compare(latest_mapSuite2Job, previous_mapSuite2Job);
         DiffSummaryData summary = getDiffSummary(suiteDiffs);
 
@@ -121,6 +122,11 @@ public class SuiteDiffCronJob implements CronJob {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM, HH:mm");
         StringTemplate htmlTemplate = createHtmlTemplate(properties);
         String buildRestUrl = newmanClient.getBaseURI() + "/elm/#build/";
+        htmlTemplate.setAttribute("suitesThatDidNotParticipate", suitesThatDidNotParticipate);
+        htmlTemplate.setAttribute("totalSuites", latestBuild.getBuildStatus().getSuitesIds().size());
+        htmlTemplate.setAttribute("totalPassed", latestBuild.getBuildStatus().getPassedTests());
+        htmlTemplate.setAttribute("totalFailed", latestBuild.getBuildStatus().getFailedTests());
+        htmlTemplate.setAttribute("totalFailedx", latestBuild.getBuildStatus().getFailed3TimesTests());
         htmlTemplate.setAttribute("summary", summary);
         htmlTemplate.setAttribute("diffs", suiteDiffs);
 
@@ -166,6 +172,18 @@ public class SuiteDiffCronJob implements CronJob {
         }
 
         saveToAuditLogFile(properties, latestBuild);
+    }
+
+    private Set<String> getSuitesThatDidNotParticipate(Map<String, Job> latest_mapSuite2Job, Map<String, Job> previous_mapSuite2Job) {
+        HashSet<String> suiteIdMapping = new HashSet<>(previous_mapSuite2Job.keySet());
+        suiteIdMapping.removeAll(latest_mapSuite2Job.keySet());
+
+        HashSet<String> suiteNameMapping = new HashSet<>();
+        for (String suiteId : suiteIdMapping) {
+            Job job = previous_mapSuite2Job.get(suiteId);
+            suiteNameMapping.add(job.getSuite().getName());
+        }
+        return suiteNameMapping;
     }
 
     private List<HistoryTestData> getTestsThatHaveAHistoryOfFailing(Map<String, Job> latest_mapSuite2Job, NewmanClient newmanClient) throws Exception {
@@ -302,7 +320,7 @@ public class SuiteDiffCronJob implements CronJob {
      * If file is found, and id's of previous and latest equals, no report will be generated.
      * Otherwise, returns previous build id
      */
-    private Build getPreviousBuildOrLatest(Properties properties, Build latestBuild, NewmanClient newmanClient) throws Exception {
+    private Build getPreviousBuildOrLatest(Properties properties, Build latestBuild, NewmanClient newmanClient) {
         Build previousBuild;
         try {
             previousBuild = getPreviousBuildFromFile(properties, latestBuild, newmanClient);
@@ -386,7 +404,7 @@ public class SuiteDiffCronJob implements CronJob {
         }
     }
 
-    private String getPreviousBuildFromAuditFile(Properties properties, Build latestBuild) throws Exception {
+    private String getPreviousBuildFromAuditFile(Properties properties, Build latestBuild) {
         String path = getResourcesPath(properties);
         String auditFile = getTrackedBuildFileName(latestBuild, AUDIT_FILE_SUFFIX); //e.g. xap-master.audit
         File file = new File(path, auditFile);

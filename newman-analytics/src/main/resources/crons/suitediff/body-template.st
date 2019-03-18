@@ -8,10 +8,20 @@
           }$
         </div>
         $endif$
+        $if(suitesThatDidNotParticipate)$
+        <div>
+        <p>Skipped Suites: &nbsp;
+          $suitesThatDidNotParticipate: {
+            $it$,
+          }$
+        </p></div>
+        $endif$
         <div><p>
           Summary:
           $if(summary.increasingDiff)$<font color=red>(+$summary.totalIncreasingDiff$ &uarr;)</font>$endif$
           $if(summary.decreasingDiff)$<font color=green>($summary.totalDecreasingDiff$ &darr;)</font>$endif$
+          <br>&nbsp; $totalSuites$ suites,
+          <br>&nbsp; $totalPassed$ passed, $totalFailed$ failed, $totalFailedx$ failedx3
         </p></div>
         <div class="styling">
         <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
