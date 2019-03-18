@@ -122,7 +122,9 @@ public class SuiteDiffCronJob implements CronJob {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM, HH:mm");
         StringTemplate htmlTemplate = createHtmlTemplate(properties);
         String buildRestUrl = newmanClient.getBaseURI() + "/elm/#build/";
-        htmlTemplate.setAttribute("suitesThatDidNotParticipate", suitesThatDidNotParticipate);
+        if (latestBuild.getTags().contains("NIGHTLY")) {
+            htmlTemplate.setAttribute("suitesThatDidNotParticipate", suitesThatDidNotParticipate);
+        }
         htmlTemplate.setAttribute("totalSuites", latestBuild.getBuildStatus().getSuitesIds().size());
         htmlTemplate.setAttribute("totalPassed", latestBuild.getBuildStatus().getPassedTests());
         htmlTemplate.setAttribute("totalFailed", latestBuild.getBuildStatus().getFailedTests());
