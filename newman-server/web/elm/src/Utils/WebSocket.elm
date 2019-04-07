@@ -53,7 +53,7 @@ type Event
     | ModifiedAgent Agent
     | CreatedOfflineAgent Agent
     | DeletedOfflineAgent String
-    | DeletedAgent String
+    | DeletedAgent Agent
     | CreatedTest Test
     | ModifiedTest Test
     | CreatedBuild Build
@@ -94,7 +94,7 @@ toEvent msg =
                                         parse ModifiedAgent decodeAgent
 
                                     "deleted-agent" ->
-                                        parse DeletedAgent string
+                                        parse DeletedAgent decodeAgent
 
                                     "created-offline-agent" ->
                                         parse CreatedOfflineAgent decodeAgent

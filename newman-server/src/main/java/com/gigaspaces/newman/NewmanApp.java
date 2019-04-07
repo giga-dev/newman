@@ -28,7 +28,7 @@ public class NewmanApp extends ResourceConfig {
 
 
     public NewmanApp() {
-        super(NewmanResource.class, BroadcasterResource.class, ResourceListingResource.class, RolesAllowedDynamicFeature.class,
+        super(SpotinstResource.class, NewmanResource.class, BroadcasterResource.class, ResourceListingResource.class, RolesAllowedDynamicFeature.class,
                 MultiPartFeature.class, DeclarativeLinkingFeature.class, LoggingFilter.class, SseFeature.class);
 //        property(ServerProperties.TRACING, "ALL");
         ObjectMapper mapper = new ObjectMapper();

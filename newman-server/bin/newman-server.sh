@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-
+set -x
+DIRNAME=`cd $(dirname ${BASH_SOURCE[0]}) && pwd`
+cd $DIRNAME
 # load env if config file exists
 source newman-server-env.sh
 
@@ -30,10 +32,20 @@ fi
 
 # System environment variables
 # Mongo host address to connect to from newman server
-#NEWMAN_MONGO_DB_HOST=localhost
+export NEWMAN_MONGO_DB_HOST=${NEWMAN_MONGO_DB_HOST="mongo-server"}
 
 # Mongo db name to access in database
-#NEWMAN_MONGO_DB_NAME=${USER}
+export NEWMAN_MONGO_DB_NAME=${NEWMAN_MONGO_DB_NAME="newman-db"}
 
+export NEWMAN_SERVER_SPOTINST_TOKEN=${NEWMAN_SERVER_SPOTINST_TOKEN=""}
+export NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=""}
 # run newman server
-java -Dnewman.mongo.db.host=${NEWMAN_MONGO_DB_HOST} -Dnewman.mongo.db.name=${NEWMAN_MONGO_DB_NAME} -Dnewman.server.realm-config-path=../config/realm.properties -Dnewman.keys-folder-path=../keys/server.keystore -Dnewman.server.web-folder-path=../web -jar ../target/newman-server-1.0.jar
+java -Dproduction=true \
+    -Dnewman.server.spotinst.token="${NEWMAN_SERVER_SPOTINST_TOKEN}" \
+    -Dnewman.server.spotinst.accountId="${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID}" \
+    -Dnewman.mongo.db.host=${NEWMAN_MONGO_DB_HOST} \
+    -Dnewman.mongo.db.name=${NEWMAN_MONGO_DB_NAME} \
+    -Dnewman.server.realm-config-path=../config/realm.properties \
+    -Dnewman.keys-folder-path=../keys/server.keystore \
+    -Dnewman.server.web-folder-path=../web -jar \
+    ../target/newman-server-1.0.jar 2>&1 > /tmp/newman.log

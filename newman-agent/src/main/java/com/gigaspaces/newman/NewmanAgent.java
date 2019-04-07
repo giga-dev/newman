@@ -47,7 +47,7 @@ public class NewmanAgent {
         }
     }
 
-    private static void createJobSetupEnv(String[] args, NewmanAgent agent) throws ExecutionException, InterruptedException, IOException {
+    private static void createJobSetupEnv(String[] args, NewmanAgent agent) throws ExecutionException, InterruptedException, IOException, TimeoutException {
         logger.info("performing job setup env");
         agent.initialize(false);
         if (args.length != 4) {
@@ -97,18 +97,18 @@ public class NewmanAgent {
         }
     }
 
-    private void prepareJobSetupEnv(String suiteId, String buildId,String configId) throws ExecutionException, InterruptedException, IOException {
-        Suite suite = client.getSuite(suiteId).toCompletableFuture().get();
+    private void prepareJobSetupEnv(String suiteId, String buildId,String configId) throws ExecutionException, InterruptedException, IOException, TimeoutException {
+        Suite suite = client.getSuite(suiteId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (suite == null) {
             throw new RuntimeException("no suite with id " + suiteId);
         }
 
-        Build build = client.getBuild(buildId).toCompletableFuture().get();
+        Build build = client.getBuild(buildId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (build == null) {
             throw new RuntimeException("no build with id " + buildId);
         }
 
-        JobConfig jobConfig = client.getConfigById(configId).toCompletableFuture().get();
+        JobConfig jobConfig = client.getConfigById(configId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (jobConfig == null) {
             throw new RuntimeException("no jobConfig with id " + configId);
         }
@@ -332,6 +332,7 @@ public class NewmanAgent {
         agent.setHost(config.getHostName());
         agent.setHostAddress(config.getHostAddress());
         agent.setPid(ProcessUtils.getProcessId("unknownPID"));
+        agent.setGroupName(config.getGroupName());
         String capabilities = config.getCapabilities();
         // TODO note - if set is empty, mongodb will NOT write that filed to DB
         agent.setCapabilities(CapabilitiesAndRequirements.parse(capabilities));
@@ -443,7 +444,7 @@ public class NewmanAgent {
         while (true) {
             try {
                 //update test removes Agent assignment
-                Test finishedTest = c.finishTest(testResult).toCompletableFuture().get();
+                Test finishedTest = c.finishTest(testResult).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 logger.info("finished test [{}].", finishedTest);
                 Path logs = append(config.getNewmanHome(), "logs");
                 Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
@@ -462,6 +463,7 @@ public class NewmanAgent {
                     c = getClient();
                     break;
                 } else {
+                    logger.warn("Got ExecutionException" , e);
                     c = onClientFailure(c);
                 }
             } catch (Exception e) {

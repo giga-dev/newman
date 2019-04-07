@@ -24,6 +24,7 @@ public class NewmanAgentConfig {
     private static final String NEWMAN_HOME = "newman.agent.home";
     private static final String NEWMAN_AGENT_HOST_NAME = "newman.agent.hostname";
     private static final String NEWMAN_AGENT_HOST_ADDRESS = "newman.agent.address";
+    private static final String NEWMAN_AGENT_GROUPNAME = "newman.agent.groupName";
     private static final String DEFAULT_NEWMAN_HOME = FileUtils.append(System.getProperty("user.home"), "newman-agent-" + UUID.randomUUID()).toString();
     private static final String NEWMAN_SERVER_HOST = "newman.agent.server-host";
     private static final String DEFAULT_NEWMAN_SERVER_HOST = "localhost";
@@ -53,6 +54,7 @@ public class NewmanAgentConfig {
         properties.putIfAbsent(NEWMAN_SERVER_REST_USER, getNonEmptySystemProperty(NEWMAN_SERVER_REST_USER, DEFAULT_NEWMAN_SERVER_REST_USER));
         properties.putIfAbsent(NEWMAN_SERVER_REST_PW, getNonEmptySystemProperty(NEWMAN_SERVER_REST_PW, DEFAULT_NEWMAN_SERVER_REST_PW));
         properties.putIfAbsent(NEWMAN_AGENT_CAPABILITIES, getNonEmptySystemProperty(NEWMAN_AGENT_CAPABILITIES, NEWMAN_AGENT_DEFAULT_CAPABILITIES));
+        properties.putIfAbsent(NEWMAN_AGENT_GROUPNAME, getNonEmptySystemProperty(NEWMAN_AGENT_GROUPNAME, "devGroup"));
     }
 
     private String loadHostName() {
@@ -138,6 +140,10 @@ public class NewmanAgentConfig {
 
     public String getHostAddress(){
         return properties.getProperty(NEWMAN_AGENT_HOST_ADDRESS);
+    }
+
+    public String getGroupName() {
+        return properties.getProperty(NEWMAN_AGENT_GROUPNAME);
     }
 
     public String getNewmanHome() {

@@ -1973,6 +1973,7 @@ public class NewmanResource {
             updateOps.set("capabilities", agent.getCapabilities());
         }
         updateOps.set("currentTests", new HashSet<String>());
+        updateOps.set("groupName", agent.getGroupName());
         if (job != null) {
             updateOps.set("jobId", job.getId());
             updateOps.set("state", Agent.State.PREPARING);
@@ -2875,7 +2876,7 @@ public class NewmanResource {
             String agentIp = agent.getHostAddress();
             offlineAgents.put(agentIp, new OfflineAgent(agentIp, agent.getHost(), agent.getHostAddress(), agent.getLastTouchTime()));
             agentDAO.getDatastore().findAndDelete(agentDAO.createIdQuery(toDelete.getId()));
-            broadcastMessage(DELETED_AGENT, toDelete.getId());
+            broadcastMessage(DELETED_AGENT, toDelete);
             broadcastMessage(CREATED_OFFLINE_AGENT, createAgentFromOfflineAgent(offlineAgents.get(agentIp)));
             broadcastMessage(MODIFIED_AGENTS_COUNT, agentDAO.count());
             //Delete agent from preparing agents in jobs

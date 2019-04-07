@@ -21,4 +21,12 @@ public class StringUtils {
             return def;
         }
     }
+
+    public static String getRequiredSystemProperty(String key) {
+        String val = System.getProperty(key);
+        if (val == null) {
+            throw new IllegalArgumentException("the system property " + key + " must be set");
+        }
+        return val;
+    }
 }

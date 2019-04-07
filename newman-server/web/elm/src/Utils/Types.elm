@@ -82,6 +82,7 @@ type alias Agent =
     , jobId : Maybe String
     , buildName : Maybe String
     , suiteName : Maybe String
+    , groupName : String
     }
 
 
@@ -443,7 +444,8 @@ decodeAgent =
         |> optionalAt [ "job", "id" ] (maybe string) Nothing
         |> optionalAt [ "job", "build", "name" ] (maybe string) Nothing
         |> optionalAt [ "job", "suite", "name" ] (maybe string) Nothing
-
+        |> optional "groupName" string "undefined"
+-- This is a temp fix ^|^
 
 decodeSuites : Decoder Suites
 decodeSuites =

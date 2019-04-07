@@ -34,7 +34,7 @@ public class NewmanServer {
     private static final String REALM_PROPERTIES_PATH = "newman.server.realm-config-path";
     private static final String DEFAULT_REALM_PROPERTIES_PATH = "src/test/resources/realm.properties";
     private static final String WEB_FOLDER_PATH = "newman.server.web-folder-path";
-    private static final String DEFAULT_WEB_FOLDER_PATH = "./web";
+    private static final String DEFAULT_WEB_FOLDER_PATH = "./web/elm";
     private static final String KEYS_PATH = "newman.keys-folder-path";
 
     public static void main(String[] args) throws Exception {

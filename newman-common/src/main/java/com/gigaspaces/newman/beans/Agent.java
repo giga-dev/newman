@@ -35,6 +35,7 @@ public class Agent {
     @Transient
     private Job job;
     private int setupRetries = 0;
+    private String groupName;
 
     public Agent() {
         currentTests = new HashSet<>();
@@ -105,6 +106,15 @@ public class Agent {
 
     public void setCurrentTests(Set<String> currentTests) {
         this.currentTests = currentTests;
+    }
+
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
     @Override
