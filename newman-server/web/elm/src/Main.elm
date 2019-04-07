@@ -676,4 +676,5 @@ subscriptions model =
                   ,
           SubmitNewJob.subscriptions model.submitNewJobModel |> Sub.map SubmitNewJobMsg
         , Jobs.subscriptions model.jobsModel |> Sub.map JobsMsg
+        , Agents.subscriptions model.agentsModel |> Sub.map AgentsMsg
         ]

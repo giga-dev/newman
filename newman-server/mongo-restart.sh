@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
-docker kill rest-mongo
-docker rm rest-mongo
-docker run -p 27017:27017 -v `pwd`/data/db:/data/db --name rest-mongo -d mongo
+MODE="-d"
+if [[ -n "$1" ]]; then
+        if [[ "$1" == "-iii" ]]; then
+                MODE=""
+        else
+                MODE="$1"
+        fi
+fi
+
+docker kill mongo-server
+docker rm mongo-server
+docker run --hostname=mongo-server --name mongo-server -p 27017:27017 -v `pwd`/data/db:/data/db --name mongo-server ${MODE} mongo

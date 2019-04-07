@@ -1337,10 +1337,10 @@ public class NewmanResource {
         try {
             saveFile(fileInputStream, filePath);
             Set<String> entries = extractZipEntries(filePath);
-            URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
+            String uri = uriInfo.getAbsolutePathBuilder().path(fileName).build().getPath();
             UpdateOperations<Test> updateOps = testDAO.createUpdateOperations();
             for (String entry : entries) {
-                updateOps.set("logs." + entry.replaceAll("\\.", "_"), uri.toASCIIString() + "!/" + entry);
+                updateOps.set("logs." + entry.replaceAll("\\.", "_"), uri + "!/" + entry);
                 //https://localhost:8443/api/newman/test/1/logBundle/logs.zip!/logs/pom_files/microsoft.owa.extendedmaillistview.mouse.js
             }
             Test test = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(testId), updateOps);
@@ -1973,6 +1973,7 @@ public class NewmanResource {
             updateOps.set("capabilities", agent.getCapabilities());
         }
         updateOps.set("currentTests", new HashSet<String>());
+        updateOps.set("groupName", agent.getGroupName());
         if (job != null) {
             updateOps.set("jobId", job.getId());
             updateOps.set("state", Agent.State.PREPARING);
@@ -2875,7 +2876,7 @@ public class NewmanResource {
             String agentIp = agent.getHostAddress();
             offlineAgents.put(agentIp, new OfflineAgent(agentIp, agent.getHost(), agent.getHostAddress(), agent.getLastTouchTime()));
             agentDAO.getDatastore().findAndDelete(agentDAO.createIdQuery(toDelete.getId()));
-            broadcastMessage(DELETED_AGENT, toDelete.getId());
+            broadcastMessage(DELETED_AGENT, toDelete);
             broadcastMessage(CREATED_OFFLINE_AGENT, createAgentFromOfflineAgent(offlineAgents.get(agentIp)));
             broadcastMessage(MODIFIED_AGENTS_COUNT, agentDAO.count());
             //Delete agent from preparing agents in jobs
