@@ -84,7 +84,7 @@ public class SuiteDiffCronJob implements CronJob {
 
     private void sendEmail(Properties properties, NewmanClient newmanClient) throws Exception {
 
-        String branch = properties.getProperty(CRONS_SUITEDIFF_BRANCH, DEFAULT_BRANCH);
+        String branch = properties.getProperty(CRONS_SUITEDIFF_BRANCH);
         String tag = properties.getProperty(CRONS_SUITEDIFF_TAG);
 
         logger.info("Branch:" + branch + ", tag:" + tag);
