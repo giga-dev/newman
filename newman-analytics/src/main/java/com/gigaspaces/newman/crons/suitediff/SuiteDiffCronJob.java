@@ -87,15 +87,13 @@ public class SuiteDiffCronJob implements CronJob {
         String branch = properties.getProperty(CRONS_SUITEDIFF_BRANCH, DEFAULT_BRANCH);
         String tag = properties.getProperty(CRONS_SUITEDIFF_TAG);
 
-        logger.info("Before calling to method newmanClient.getLatestBuilds:");
         logger.info("Branch:" + branch + ", tag:" + tag);
 
-        Batch<Build> historyBuildsBatch = newmanClient.getLatestBuilds( branch, tag, 5, true ).
+        Batch<Build> historyBuildsBatch = newmanClient.getLatestBuilds( branch, tag, 10, true ).
                                             toCompletableFuture().get(1, TimeUnit.MINUTES);
         List<Build> historyBuilds = historyBuildsBatch.getValues();
-        if (historyBuilds.size() == 0) {
-            logger.info("No history builds to generate report");
-            return;
+        if (historyBuilds.isEmpty()) {
+            throw new IllegalStateException("No history builds to generate report");
         }
 
         Build latestBuild = getLatestBuild(properties, historyBuilds, newmanClient);
@@ -146,8 +144,8 @@ public class SuiteDiffCronJob implements CronJob {
 
         final String productName = getProductNameFromTags(latestBuild.getTags());
         if (productName.equals("xap")) {
-            htmlTemplate.setAttribute("xapOpenChangeset", getChangeSet("xap-open", previousBuild, latestBuild));
-            htmlTemplate.setAttribute("xapChangeset", getChangeSet("xap", previousBuild, latestBuild));
+            htmlTemplate.setAttribute("xapOpenChangeset", getChangeSet("xap", previousBuild, latestBuild));
+            htmlTemplate.setAttribute("xapChangeset", getChangeSet("xap-premium", previousBuild, latestBuild));
         } else if (productName.equals("insightEdge")) {
             htmlTemplate.setAttribute("insightEdgeChangeset", getChangeSet("InsightEdge", previousBuild, latestBuild));
         }
@@ -222,6 +220,10 @@ public class SuiteDiffCronJob implements CronJob {
         } else {
             String previousCommit = previousBuild.getShas().get(repository);
             String latestCommit = latestBuild.getShas().get(repository);
+            if (previousCommit == null || latestCommit == null) {
+                logger.warn("no changeset for repository="+repository + " previousCommit="+previousCommit + " latestCommit="+latestCommit);
+                return "invalid-url";
+            }
             if (previousCommit.equals(latestCommit)) {
                 changeSet = latestCommit;
             } else {
@@ -285,27 +287,18 @@ public class SuiteDiffCronJob implements CronJob {
         String tag = properties.getProperty(CRONS_SUITEDIFF_TAG);
         Build latestMatch = null;
 
-        logger.info(">>>> getLatestBuild, branch=" + branch +
-                    ", tag=" + tag +
-                    ", historyBuilds size=" + historyBuilds.size() );
-
         for (Build history : historyBuilds) {
             //Get full build details since history build object has some columns removed
             history = newmanClient.getBuild(history.getId()).toCompletableFuture().get();
-            logger.info("history=" + history );
             if (history.getBranch().equals(branch)) {
-                logger.info("Before checking for not empty" );
                 if (StringUtils.notEmpty(tag)) {
                     Set<String> tagsToMatch = new HashSet<>(Arrays.asList(tag.split(",")));
-                    logger.info("Before checking for contains tag" );
                     if (history.getTags().containsAll(tagsToMatch)) {
-                        logger.info("Within checking for contains tag, latestMatch=" + latestMatch );
                         latestMatch = history;
                         break;
                     }
                 } else {
                     latestMatch = history;
-                    logger.info("Within else, latestMatch=" + latestMatch );
                     break;
                 }
             }
