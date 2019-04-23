@@ -33,7 +33,6 @@ public class SuiteDiffCronJob implements CronJob {
     private static final String CRONS_SUITEDIFF_PREVIOUS_BUILD_ID = "crons.suitediff.previousBuildId";
     private static final String CRONS_SUITEDIFF_TRACK_LATEST = "crons.suitediff.trackLatest";
     private static final Logger logger = LoggerFactory.getLogger(SuiteDiffCronJob.class);
-    private static final String DEFAULT_BRANCH = "master";
     private static final String BID_FILE_SUFFIX = ".bid";
     private static final String AUDIT_FILE_SUFFIX = ".audit";
     private static final String CRONS_SUITEDIFF_BRANCH = "crons.suitediff.branch";
@@ -283,22 +282,21 @@ public class SuiteDiffCronJob implements CronJob {
             }
             return build;
         }
-        String branch = properties.getProperty(CRONS_SUITEDIFF_BRANCH, DEFAULT_BRANCH);
+        String branch = properties.getProperty(CRONS_SUITEDIFF_BRANCH);
         String tag = properties.getProperty(CRONS_SUITEDIFF_TAG);
         Build latestMatch = null;
 
-        for (Build history : historyBuilds) {
+        for (Build historyBuild : historyBuilds) {
             //Get full build details since history build object has some columns removed
-            history = newmanClient.getBuild(history.getId()).toCompletableFuture().get();
-            if (history.getBranch().equals(branch)) {
-                if (StringUtils.notEmpty(tag)) {
-                    Set<String> tagsToMatch = new HashSet<>(Arrays.asList(tag.split(",")));
-                    if (history.getTags().containsAll(tagsToMatch)) {
-                        latestMatch = history;
-                        break;
-                    }
-                } else {
-                    latestMatch = history;
+            Build build = newmanClient.getBuild(historyBuild.getId()).toCompletableFuture().get();
+            if (build.getBranch().equals(branch)) {
+                if (hasMatchByTag(tag, build)) {
+                    latestMatch = build;
+                    break;
+                }
+            } else if (branch == null) {
+                if (hasMatchByTag(tag, build)) {
+                    latestMatch = build;
                     break;
                 }
             }
@@ -308,6 +306,15 @@ public class SuiteDiffCronJob implements CronJob {
             return latestMatch;
         }
         throw new IllegalStateException("No build matching branch: " + branch + " and tags: "+ tag);
+    }
+
+    private boolean hasMatchByTag(String tag, Build build) {
+        if (StringUtils.notEmpty(tag)) {
+            Set<String> tagsToMatch = new HashSet<>(Arrays.asList(tag.split(",")));
+            return build.getTags().containsAll(tagsToMatch);
+        } else {
+            return true;
+        }
     }
 
     /**
