@@ -110,6 +110,9 @@ public class NewmanAgentConfig {
                 if(ni.getName().contains("docker")) {
                     continue;
                 }
+                if (ni.getName().startsWith("br-")) {
+                    continue;
+                }
                 Enumeration<InetAddress> addresses = ni.getInetAddresses();
                 while(addresses.hasMoreElements()) {
                     InetAddress address = addresses.nextElement();
