@@ -1337,10 +1337,10 @@ public class NewmanResource {
         try {
             saveFile(fileInputStream, filePath);
             Set<String> entries = extractZipEntries(filePath);
-            URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
+            String uri = uriInfo.getAbsolutePathBuilder().path(fileName).build().getPath();
             UpdateOperations<Test> updateOps = testDAO.createUpdateOperations();
             for (String entry : entries) {
-                updateOps.set("logs." + entry.replaceAll("\\.", "_"), uri.toASCIIString() + "!/" + entry);
+                updateOps.set("logs." + entry.replaceAll("\\.", "_"), uri + "!/" + entry);
                 //https://localhost:8443/api/newman/test/1/logBundle/logs.zip!/logs/pom_files/microsoft.owa.extendedmaillistview.mouse.js
             }
             Test test = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(testId), updateOps);
