@@ -491,6 +491,7 @@ filterQuery query filterFailingAgents agent =
             || String.startsWith query agent.state
             || String.contains query agent.host
             || String.startsWith query agent.pid
+            || String.startsWith query agent.groupName
             || jobIdCheck)
     then
         True
