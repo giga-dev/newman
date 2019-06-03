@@ -13,21 +13,24 @@ fi
 # make sure realm properties exist, if not create a for development
 mkdir -p ../config
 if [ ! -a "../config/realm.properties" ]; then
-   echo "root: root, admin" >> ../config/realm.properties
-   echo "tamirs: tamirs, user" >> ../config/realm.properties
-   echo "yohana: yohana, user" >> ../config/realm.properties
-   echo "yechiel: yechiel, user" >> ../config/realm.properties
-   echo "evgeny: evgeny, user" >> ../config/realm.properties
-   echo "niv: niv, user" >> ../config/realm.properties
-   echo "moran: moran, user" >> ../config/realm.properties
-   echo "barak: barak, user" >> ../config/realm.properties
-   echo "ester: ester, user" >> ../config/realm.properties
-   echo "yuval: yuval, user" >> ../config/realm.properties
-   echo "inbar: inbar, user" >> ../config/realm.properties
-   echo "rotem: rotem, user" >> ../config/realm.properties
-   echo "talm: talm, user" >> ../config/realm.properties
-   echo "livnats: livnats, user" >> ../config/realm.properties
-   echo "alons: alons, user" >> ../config/realm.properties
+cat  << '_EOF' >> ../config/realm.properties
+meshi=meshi, user
+ester=ester, user
+yuval=yuval, user
+inbar=inbar, user
+yohana=yohana, user
+yechiel=yechiel, user
+evgeny=evgeny, user
+niv=niv, user
+moran=moran, user
+barak=barak, user
+yael=yael, user
+alons=alons, user
+ayelet=ayelet, user
+root=root, admin
+support=support, user
+_EOF
+
 fi
 
 # System environment variables
@@ -47,5 +50,5 @@ java -Dproduction=true \
     -Dnewman.mongo.db.name=${NEWMAN_MONGO_DB_NAME} \
     -Dnewman.server.realm-config-path=../config/realm.properties \
     -Dnewman.keys-folder-path=../keys/server.keystore \
-    -Dnewman.server.web-folder-path=../web -jar \
+    -Dnewman.server.web-folder-path=../web/elm -jar \
     ../target/newman-server-1.0.jar 2>&1 > /tmp/newman.log
