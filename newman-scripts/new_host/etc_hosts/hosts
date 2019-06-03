@@ -2,4 +2,6 @@
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 
 192.168.10.2 xap-newman
-192.168.33.204 hercules
+192.168.33.204 hercules hercules.gspaces.com
+192.168.33.204 gigaspaces-releases-eu.s3.amazonaws.com
+
