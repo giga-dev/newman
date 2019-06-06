@@ -11,4 +11,4 @@ if [[ -n "$1" ]]; then
 fi
 
 
-docker run ${MODE} --link mongo-server -v "${DIRNAME}/..":"/newman" --name newman-server --user $(id -u) -p 8443:8443 newman "/newman/newman-server/bin/newman-server.sh"
+docker run ${MODE} --link mongo-server --rm -v "${DIRNAME}/..":"/newman" --name newman-server --user $(id -u) -p 8443:8443 newman "/newman/newman-server/bin/newman-server.sh"
