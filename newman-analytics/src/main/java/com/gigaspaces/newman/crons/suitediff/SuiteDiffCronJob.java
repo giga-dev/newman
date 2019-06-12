@@ -118,7 +118,7 @@ public class SuiteDiffCronJob implements CronJob {
         //create body
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM, HH:mm");
         StringTemplate htmlTemplate = createHtmlTemplate(properties);
-        String buildRestUrl = newmanClient.getBaseURI() + "/elm/#build/";
+        String buildRestUrl = newmanClient.getBaseURI() + "/#build/";
         if (latestBuild.getTags().contains("NIGHTLY")) {
             htmlTemplate.setAttribute("suitesThatDidNotParticipate", suitesThatDidNotParticipate);
         }
@@ -209,7 +209,7 @@ public class SuiteDiffCronJob implements CronJob {
     }
 
     private void addTestToListOfFailingTestsWithHistory(NewmanClient newmanClient, List<HistoryTestData> failingTests, Job job, Test test) {
-        failingTests.add(new HistoryTestData(test, job.getSuite(), newmanClient.getBaseURI() + "/elm/#test/" + test.getId()));
+        failingTests.add(new HistoryTestData(test, job.getSuite(), newmanClient.getBaseURI() + "/#test/" + test.getId()));
     }
 
     private String getChangeSet(String repository, Build previousBuild, Build latestBuild) {
