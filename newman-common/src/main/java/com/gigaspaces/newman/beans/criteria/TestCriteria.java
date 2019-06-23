@@ -4,6 +4,7 @@ import com.gigaspaces.newman.beans.Test;
 import com.gigaspaces.newman.utils.ToStringBuilder;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * A test criteria for matching (test name, arguments, type). Only non-null field are matched.
@@ -42,6 +43,12 @@ public class TestCriteria implements Criteria {
     public static TestCriteria createCriteriaByTestArgs(String... testArgs) {
         Test test = new Test();
         test.setArguments(Arrays.asList(testArgs));
+        return new TestCriteria(test);
+    }
+
+    public static TestCriteria createCriteriaByTestArgs(List<String> testArgs) {
+        Test test = new Test();
+        test.setArguments(testArgs);
         return new TestCriteria(test);
     }
 

@@ -3,6 +3,7 @@ package com.gigaspaces.newman;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.beans.criteria.*;
 import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.config.Config;
 import com.gigaspaces.newman.dao.*;
@@ -2841,7 +2842,107 @@ public class NewmanResource {
         return updatedAgent;
     }
 
+    private Suite createSuiteFromFailingTests(String jobId, String newSuiteName) throws Exception {
+        if (jobId == null || newSuiteName == null || newSuiteName.length() == 0) {
+            throw new Exception("Required parameters are not valid");
 
+        }
+        Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
+
+        if (job == null) {
+            throw new Exception("Job ["+jobId+"] does not exist");
+        }
+
+        Suite existingSuite = suiteDAO.findOne(suiteDAO.createQuery().field("name").equal(newSuiteName));
+        if (existingSuite != null) {
+            throw new Exception("Suite ["+newSuiteName+"] already exists");
+        }
+
+        Query<Test> failedTestsQuery = testDAO.createQuery().field("jobId").equal(jobId).field("status").equal(Test.Status.FAIL);
+        List<Test> failedTests = testDAO.find(failedTestsQuery).asList();
+
+        if (failedTests.size() == 0) {
+            throw new Exception("Job ["+jobId+"] has no failed tests");
+        }
+
+        HashMap<String, List<String>> uniqueFailedTests = new HashMap<>();
+        for (Test test : failedTests) {
+            if (!uniqueFailedTests.containsKey(test.getName())) {
+                uniqueFailedTests.put(test.getName(), test.getArguments());
+            }
+        }
+
+        List<Criteria> criteriaList = new LinkedList<>();
+        for (List<String> testArguments : uniqueFailedTests.values()) {
+            TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(testArguments);
+            criteriaList.add(criteria);
+        }
+
+        Suite suite = job.getSuite();
+
+        String testType = getTestType(suite.getCriteria());
+
+        if (testType == null) {
+            throw new Exception("Could not analyze testType from suite");
+        }
+
+
+        suite.setId(null);
+        suite.setName(newSuiteName);
+
+        Criteria criteria = CriteriaBuilder.join(
+                CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                CriteriaBuilder.include(criteriaList));
+        suite.setCriteria(criteria);
+
+        return suite;
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("suite/failedTests")
+    public Response restCreateSuiteFromFailingTests(@QueryParam("jobId") String jobId, @QueryParam("suiteName") String newSuiteName) {
+        try {
+            Suite suite = createSuiteFromFailingTests(jobId, newSuiteName);
+
+            addSuite(suite);
+
+            logger.info("Created suite: " + suite);
+            return Response.ok(suite).build();
+        } catch (Exception e) {
+            logger.info("Failed to create suite ",  e);
+
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+    }
+
+
+    private String getTestType(Criteria criteria) {
+        if (criteria instanceof TestCriteria) {
+            TestCriteria tmp = (TestCriteria) criteria;
+            return tmp.getTest().getTestType();
+        }
+        if (criteria instanceof AndCriteria) {
+            AndCriteria tmp = (AndCriteria) criteria;
+            for (Criteria c : tmp.getCriterias()) {
+                String res = getTestType(c);
+                if (res != null) {
+                    return res;
+                }
+            }
+        }
+        if (criteria instanceof OrCriteria) {
+            OrCriteria orCriteria = (OrCriteria) criteria;
+            for (Criteria c : orCriteria.getCriterias()) {
+                String res = getTestType(c);
+                if (res != null) {
+                    return res;
+                }
+            }
+        }
+        return null;
+    }
     // events
 
     private void broadcastMessage(String type, Object value) {

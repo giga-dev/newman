@@ -1,6 +1,7 @@
 package com.gigaspaces.newman.beans.criteria;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by moran on 5/20/15.
@@ -16,6 +17,12 @@ public class CriteriaBuilder {
     public static Criteria include(Criteria... criterias) {
         OrCriteria orCriteria = new OrCriteria();
         orCriteria.setCriterias(Arrays.asList(criterias));
+        return orCriteria;
+    }
+
+    public static Criteria include(List<Criteria> criterias) {
+        OrCriteria orCriteria = new OrCriteria();
+        orCriteria.setCriterias(criterias);
         return orCriteria;
     }
 
