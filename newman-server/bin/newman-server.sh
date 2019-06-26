@@ -12,8 +12,9 @@ fi
 
 # make sure realm properties exist, if not create a for development
 mkdir -p ../config
-if [ ! -a "../config/realm.properties" ]; then
+if [ ! -e "../config/realm.properties" ]; then
 cat  << '_EOF' >> ../config/realm.properties
+efrat,efrat, user
 meshi=meshi, user
 ester=ester, user
 yuval=yuval, user
