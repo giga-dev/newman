@@ -3,16 +3,15 @@ module Pages.Job exposing (..)
 import Bootstrap.Badge as Badge
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
+import Bootstrap.Modal as Modal
 import Bootstrap.Progress as Progress exposing (..)
 import Date
 import DateFormat
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
 import Http exposing (..)
 import Json.Decode
-import Json.Decode.Pipeline exposing (decode)
 import Task
 import Time exposing (Time)
 import UrlParser exposing (Parser)
@@ -20,6 +19,8 @@ import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.TestsTable as TestsTable
 import Utils.Common as Common
+import Views.NewmanModal as NewmanModal
+
 
 type alias Model =
     { maybeJob : Maybe Job
@@ -27,6 +28,9 @@ type alias Model =
     , testsTable : TestsTable.Model
     , currTime : Maybe Time
     , statusState : RadioState
+    , confirmationState : Modal.State
+    , newSuiteName: Maybe String
+    , newSuiteMessage: Maybe (Result String String)
     }
 
 
@@ -44,6 +48,12 @@ type Msg
     | ReceiveTime Time
     | WebSocketEvent WebSocket.Event
     | StatusMsg RadioState
+    | NewmanModalMsg Modal.State
+    | OnNewSuiteConfirm String
+    | OnNewSuiteCreateButton
+    | CreateSuiteResponse (Result Http.Error Suite)
+    | OnNewSuiteNameChanged String
+
 
 
 
@@ -65,6 +75,9 @@ initModel jobId state =
     , testsTable = TestsTable.init jobId [] state
     , currTime = Nothing
     , statusState = state
+    , confirmationState = Modal.hiddenState
+    , newSuiteName = Nothing
+    , newSuiteMessage = Nothing
     }
 
 
@@ -185,6 +198,9 @@ viewHeader model job =
                 [ jobSetupButton
                 , jobSetupLogsData
                 ]
+        createSuiteButton =
+                Button.button [ Button.onClick OnNewSuiteCreateButton , Button.outlinePrimary, Button.attrs [ style [("vertical-align", "top"), ( "margin-left" , "10px")] ]   ] [ text "Create suite" ]
+
 
         headerRows =
             [ ( "Suite", a [ href  <| "#suite/" ++ job.suiteId] [ text job.suiteName ] )
@@ -195,7 +211,7 @@ viewHeader model job =
             , ( "# Agents", text <| toString <| List.length job.agents )
             , ( "# Prep. Agents", text <| toString <| List.length job.preparingAgents )
             , ( "Submitted by", text <| job.submittedBy )
-            , ( "Status", div [] [ testsStatus ] )
+            , ( "Status", div [] [ testsStatus, createSuiteButton ] )
             , ( "Job Setup Logs", jobSetupLogs )
             ]
 
@@ -228,6 +244,7 @@ view model =
                 [ h2 [ class "text" ] [ text <| "Details for job " ++ job.id ]
                 , viewHeader model job
                 , viewBody model
+                , NewmanModal.createSuiteForFailedTestsModal model.newSuiteName model.newSuiteMessage NewmanModalMsg OnNewSuiteNameChanged OnNewSuiteConfirm model.confirmationState
                 ]
 
         Nothing ->
@@ -300,6 +317,56 @@ update msg model =
             in
                 ( { model | statusState = state , testsTable = newSubModel } , newCmd |> Cmd.map TestsTableMsg )
 
+        OnNewSuiteCreateButton ->
+            let
+                suiteName = case model.newSuiteName of
+                        Just suiteName ->
+                            suiteName
+                        Nothing ->
+                            case (model.currTime, model.maybeJob) of
+                                (Just time, Just job) ->
+                                    "dev-failing-" ++ job.suiteName ++ "-" ++ (DateFormat.format Common.timestamp <| Date.fromTime time)
+                                (_, _) ->
+                                    "..."
+            in
+                ( {model | confirmationState = Modal.visibleState, newSuiteName = Just suiteName } , Cmd.none )
+        NewmanModalMsg newState ->
+            let
+                cleanup = (newState == Modal.hiddenState)
+                newModel = { model | confirmationState = newState }
+            in
+                if (cleanup) then
+                    ( { newModel | newSuiteName = Nothing, newSuiteMessage = Nothing }, Cmd.none )
+                else
+                    ( newModel , Cmd.none )
+        OnNewSuiteConfirm suiteName ->
+            case model.maybeJob of
+                Just job ->
+                    if (String.startsWith "dev-" suiteName) then
+                        ( { model | newSuiteMessage = Just <| Err "Sending request..." } , createSuiteCmd suiteName job.id)
+                    else
+                        ( { model | newSuiteMessage = Just <| Ok "Suite name does not start with 'dev-'" } , Cmd.none)
+
+                Nothing ->
+                    ( { model |confirmationState = Modal.hiddenState, newSuiteName = Nothing, newSuiteMessage = Nothing } , Cmd.none )
+
+        CreateSuiteResponse result ->
+            case result of
+                Ok suite ->
+                    ({ model | newSuiteMessage = Just <| Ok <| "Suite with id ["++suite.id++"] has been created"} , Cmd.none)
+                Err err ->
+                    let
+                        errMsg = case err of
+                            BadStatus msg ->
+                                msg.body
+                            _ ->
+                                toString err
+                    in
+                        ({model | newSuiteMessage = Just <| Ok errMsg }, Cmd.none)
+        OnNewSuiteNameChanged newName ->
+            ( { model | newSuiteName = Just newName } , Cmd.none)
+
+
 getJobInfoCmd : JobId -> Cmd Msg
 getJobInfoCmd jobId =
     Http.send GetJobInfoCompleted <|
@@ -324,3 +391,8 @@ handleEvent event =
         [ event => WebSocketEvent
         , TestsTable.handleEvent event |> Cmd.map TestsTableMsg
         ]
+
+
+createSuiteCmd : String -> JobId -> Cmd Msg
+createSuiteCmd suiteName jobId =
+    Http.send CreateSuiteResponse <| Http.post ("/api/newman/suite/failedTests?jobId=" ++ jobId++"&suiteName="++suiteName) Http.emptyBody decodeSuite
