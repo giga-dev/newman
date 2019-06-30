@@ -158,6 +158,7 @@ type alias TestHistoryTestView =
     , startTime : Int
     , endTime : Int
     , runNumber : Int
+    , assignedAgent: String
     }
 
 
@@ -600,7 +601,7 @@ decodeTestHistoryTestView =
         |> required "startTime" int
         |> required "endTime" int
         |> required "runNumber" int
-
+        |> required "assignedAgent" string
 
 decodeTestHistoryJobView : Json.Decode.Decoder TestHistoryJobView
 decodeTestHistoryJobView =

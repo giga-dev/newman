@@ -147,7 +147,8 @@ viewTable model =
                     , th [ width 65 ] [ text "End Time" ]
                     , th [ width 50 ] [ text "Duration" ]
                     , th [ width 30 ] [ text "Run Num" ]
-                    , th [ width 50 ] [ text "Status" ]
+                    , th [ width 70 ] [ text "Agent ID" ]
+                    , th [ width 30 ] [ text "Status" ]
                     , th [ width 155 ] [ text "Error Message" ]
                     ]
                 ]
@@ -199,6 +200,7 @@ viewRecord testHistory =
         , td [] [ text <| dateFormat testHistory.test.endTime ]
         , td [] [ text durationText ]
         , td [] [ text (toString testHistory.test.runNumber)]
+        , td [] [ text testHistory.test.assignedAgent ]
         , td [] [ status [] [ text testHistory.test.status ] ]
         , td [] [ span [ title testHistory.test.errorMessage ] [ text testHistory.test.errorMessage ] ]
         ]
@@ -237,6 +239,7 @@ filterQuery query testHistory =
             || String.startsWith query testHistory.test.jobId
             || String.startsWith query testHistory.job.buildName
             || String.startsWith query testHistory.job.buildBranch
+            || String.startsWith query testHistory.test.assignedAgent
     then
         True
     else
