@@ -130,7 +130,7 @@ view model =
 
         createRow elasticGroup =
             Table.tr [ rowOpt elasticGroup ]
-                                                    [ Table.td [] [ text <| (elasticGroup.description.groupName ++ " (" ++ elasticGroup.id ++ ")") ]
+                                                    [ Table.td [] [ text <| (elasticGroup.tags.groupName ++ " (" ++ elasticGroup.id ++ ")") ]
                                                     , Table.td [] [ text <| toString elasticGroup.capacity.target ]
                                                     , Table.td [] [ text <| toString elasticGroup.runningVMs ]
                                                     , Table.td [] [ text <| toString elasticGroup.connectedAgents ]
@@ -180,12 +180,12 @@ viewModal model =
             in
             Modal.config AnimateModal
                         |> Modal.large
-                        |> Modal.h3 [] [ text <| "Update capacity for group - " ++ elasticGroup.description.groupName ]
+                        |> Modal.h3 [] [ text <| "Update capacity for group - " ++ elasticGroup.tags.groupName ]
                         |> Modal.body [] [
                               Grid.containerFluid [ ]
                                                   [ twoColsRow "Id" elasticGroup.id
-                                                    ,twoColsRow "Name" elasticGroup.description.groupName
-                                                    ,twoColsRow "Description" elasticGroup.description.description
+                                                    ,twoColsRow "Name" elasticGroup.tags.groupName
+                                                    ,twoColsRow "Description" elasticGroup.tags.description
                                                     ,twoColsRow "Capacity" <| "Minimum: " ++ (toString elasticGroup.capacity.minimum) ++ ", Maximum: " ++ (toString elasticGroup.capacity.maximum)
                                                     ,Grid.row [ ]
                                                       [ Grid.col
@@ -231,7 +231,7 @@ updateElasticGroupCmd elasticGroup newCapacity =
 type alias ElasticGroup =
     { id: String
     , name: String
-    , description: ElasticGroupDescription
+    , tags: ElasticGroupTags
     , capacity : ElasticGroupCapacity
     , connectedAgents: Int
     , runningVMs : Int
@@ -242,7 +242,7 @@ type alias ElasticGroupCapacity =
     , maximum: Int
     , target: Int
     }
-type alias ElasticGroupDescription =
+type alias ElasticGroupTags =
     { groupName: String
     , description: String
     , owner: String
@@ -253,7 +253,7 @@ decodeElasticGroup =
     decode ElasticGroup
         |> required "id" string
         |> required "name" string
-        |> required "description" decodeElasticGroupDescription
+        |> required "tags" decodeElasticGroupTags
         |> required "capacity" decodeElasticGroupCapacity
         |> required "connectedAgents" int
         |> required "runningVMs" int
@@ -265,9 +265,9 @@ decodeElasticGroupCapacity =
         |> required "maximum" int
         |> required "target" int
 
-decodeElasticGroupDescription : Decoder ElasticGroupDescription
-decodeElasticGroupDescription =
-    decode ElasticGroupDescription
+decodeElasticGroupTags : Decoder ElasticGroupTags
+decodeElasticGroupTags =
+    decode ElasticGroupTags
         |> required "groupName" string
         |> required "description" string
         |> required "owner" string

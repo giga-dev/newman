@@ -1,17 +1,11 @@
 package com.gigaspaces.newman.spotinst;
 
-public class ElasticGroupDescription {
+public class  ElasticGroupTags {
     private String groupName;
     private String description;
     private String owner;
 
-    public ElasticGroupDescription() {
-    }
-
-    public ElasticGroupDescription(String groupName, String description, String owner) {
-        this.groupName = groupName;
-        this.description = description;
-        this.owner = owner;
+    public ElasticGroupTags() {
     }
 
     public String getGroupName() {
@@ -40,7 +34,7 @@ public class ElasticGroupDescription {
 
     @Override
     public String toString() {
-        return "ElasticGroupDescription{" +
+        return "ElasticGroupTags{" +
                 "groupName='" + groupName + '\'' +
                 ", description='" + description + '\'' +
                 ", owner='" + owner + '\'' +

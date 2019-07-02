@@ -1,11 +1,15 @@
 package com.gigaspaces.newman.spotinst;
 
 
+import com.google.gson.annotations.SerializedName;
+
 public class ElasticGroup {
     private String name;
     private String id;
-    private ElasticGroupDescription description;
+
     private ElasticGroupCapacity capacity;
+    @SerializedName("compute")
+    private ElasticGroupTags tags;
     private int connectedAgents;
     private int runningVMs;
 
@@ -26,14 +30,6 @@ public class ElasticGroup {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public ElasticGroupDescription getDescription() {
-        return description;
-    }
-
-    public void setDescription(ElasticGroupDescription description) {
-        this.description = description;
     }
 
     public ElasticGroupCapacity getCapacity() {
@@ -60,13 +56,21 @@ public class ElasticGroup {
         this.runningVMs = runningVMs;
     }
 
+    public ElasticGroupTags getTags() {
+        return tags;
+    }
+
+    public void setTags(ElasticGroupTags tags) {
+        this.tags = tags;
+    }
+
     @Override
     public String toString() {
         return "ElasticGroup{" +
                 "name='" + name + '\'' +
                 ", id='" + id + '\'' +
-                ", description='" + description + '\'' +
                 ", capacity=" + capacity +
+                ", tags=" + tags +
                 ", connectedAgents=" + connectedAgents +
                 ", runningVMs=" + runningVMs +
                 '}';

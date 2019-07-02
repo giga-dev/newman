@@ -65,7 +65,7 @@ public class SpotinstResource {
 
 
         return spotinstClient.getAgentsElasticGroups().stream().map(elasticGroup    -> {
-            QueryResults<Agent> res = agentDAO.find(agentDAO.createQuery().field("groupName").equal(elasticGroup.getDescription().getGroupName()));
+            QueryResults<Agent> res = agentDAO.find(agentDAO.createQuery().field("groupName").equal(elasticGroup.getTags().getGroupName()));
             elasticGroup.setConnectedAgents(res.asList().size());
             try {
                 elasticGroup.setRunningVMs(spotinstClient.getInstancesCountForElasticGroup(elasticGroup.getId()));

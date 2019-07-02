@@ -1,10 +1,7 @@
 package com.gigaspaces.newman;
 
 
-import com.gigaspaces.newman.spotinst.ElasticGroup;
-import com.gigaspaces.newman.spotinst.ElasticGroupDescription;
-import com.gigaspaces.newman.spotinst.ElasticGroupDescriptionDeserializer;
-import com.gigaspaces.newman.spotinst.UpdateCapacityRequest;
+import com.gigaspaces.newman.spotinst.*;
 import com.google.gson.*;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -31,7 +28,9 @@ public class SpotinstClient {
 
     private final CloseableHttpClient client;
     private final String ACCOUNT_ID;
-    private static Gson gson = new GsonBuilder().registerTypeAdapter(ElasticGroupDescription.class, new ElasticGroupDescriptionDeserializer()).create();
+    private static Gson gson = new GsonBuilder()
+            .registerTypeAdapter(ElasticGroupTags.class, new ElasticGroupTagsDeserializer())
+            .create();
     private static JsonParser parser = new JsonParser();
 
 
@@ -48,11 +47,7 @@ public class SpotinstClient {
 
     public void test() throws IOException {
         getAgentsElasticGroups().stream().forEach(group -> {
-            try {
-                System.out.println(getInstancesCountForElasticGroup(group.getId()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            System.out.println(group);
         });
     }
 
