@@ -23,8 +23,8 @@ public class ElasticGroupTagsDeserializer implements JsonDeserializer<ElasticGro
         tags.forEach(element -> {
             String key = getKey(element);
             String value = getValue(element);
-            if (key.equals("GroupName")) {
-                elasticGroupTags.setGroupName(value);
+            if (key.equals("Name")) {
+                elasticGroupTags.setName(value);
             } else if (key.equals("Description")) {
                 elasticGroupTags.setDescription(value);
             } else if (key.equals("Owner")) {

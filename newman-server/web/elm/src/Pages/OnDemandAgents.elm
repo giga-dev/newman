@@ -130,7 +130,7 @@ view model =
 
         createRow elasticGroup =
             Table.tr [ rowOpt elasticGroup ]
-                                                    [ Table.td [] [ text <| (elasticGroup.tags.groupName ++ " (" ++ elasticGroup.id ++ ")") ]
+                                                    [ Table.td [] [ text <| (elasticGroup.tags.name ++ " (" ++ elasticGroup.id ++ ")") ]
                                                     , Table.td [] [ text <| toString elasticGroup.capacity.target ]
                                                     , Table.td [] [ text <| toString elasticGroup.runningVMs ]
                                                     , Table.td [] [ text <| toString elasticGroup.connectedAgents ]
@@ -180,11 +180,11 @@ viewModal model =
             in
             Modal.config AnimateModal
                         |> Modal.large
-                        |> Modal.h3 [] [ text <| "Update capacity for group - " ++ elasticGroup.tags.groupName ]
+                        |> Modal.h3 [] [ text <| "Update capacity for group - " ++ elasticGroup.tags.name ]
                         |> Modal.body [] [
                               Grid.containerFluid [ ]
                                                   [ twoColsRow "Id" elasticGroup.id
-                                                    ,twoColsRow "Name" elasticGroup.tags.groupName
+                                                    ,twoColsRow "Name" elasticGroup.tags.name
                                                     ,twoColsRow "Description" elasticGroup.tags.description
                                                     ,twoColsRow "Capacity" <| "Minimum: " ++ (toString elasticGroup.capacity.minimum) ++ ", Maximum: " ++ (toString elasticGroup.capacity.maximum)
                                                     ,Grid.row [ ]
@@ -243,7 +243,7 @@ type alias ElasticGroupCapacity =
     , target: Int
     }
 type alias ElasticGroupTags =
-    { groupName: String
+    { name: String
     , description: String
     , owner: String
     }
@@ -268,6 +268,6 @@ decodeElasticGroupCapacity =
 decodeElasticGroupTags : Decoder ElasticGroupTags
 decodeElasticGroupTags =
     decode ElasticGroupTags
-        |> required "groupName" string
+        |> required "name" string
         |> required "description" string
         |> required "owner" string
