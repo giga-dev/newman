@@ -11,4 +11,4 @@ fi
 
 docker kill mongo-server
 docker rm mongo-server
-docker run --hostname=mongo-server --name mongo-server -p 27017:27017 -v `pwd`/data/db:/data/db --name mongo-server ${MODE} mongo
+docker run --hostname=mongo-server --name mongo-server -p 27017:27017 -v `pwd`/data/db:/data/db --name mongo-server ${MODE} mongo --nounixsocket
