@@ -20,6 +20,7 @@ public class TestView {
     private Double testScore;
     private String historyStats;
     private String assignedAgent;
+    private String agentGroup;
     private Date startTime;
     private Date endTime;
     private int progressPercent;
@@ -36,6 +37,7 @@ public class TestView {
         testScore = test.getTestScore();
         historyStats = test.getHistoryStats();
         assignedAgent = test.getAssignedAgent();
+        agentGroup = test.getAgentGroup();
         startTime = test.getStartTime();
         endTime = test.getEndTime();
         progressPercent = test.getProgressPercent();
@@ -66,6 +68,10 @@ public class TestView {
     public void setArguments(List<String> arguments) {
         this.arguments = arguments;
     }
+
+    public String getAgentGroup() { return agentGroup; }
+
+    public void setAgentGroup(String agentGroup) { this.agentGroup = agentGroup; }
 
     public String getJobId() {
         return jobId;
@@ -176,6 +182,7 @@ public class TestView {
                 .append("status", status)
                 .append("errorMessage", errorMessage)
                 .append("assignedAgent", assignedAgent)
+                .append("agentGroup", agentGroup)
                 .append("startTime", startTime)
                 .append("endTime", endTime)
                 .toString();

@@ -15,7 +15,7 @@ import Navigation
 import Paginate exposing (PaginatedList)
 import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
-import Utils.Types exposing (JobId, RadioState(..), Test, TestStatus(..), decodeTest, radioStateToString, testStatusToString)
+import Utils.Types exposing (JobId, RadioState(..), Test, TestStatus(..), agentGroupTestFormat, decodeTest, radioStateToString, testStatusToString)
 import Utils.WebSocket as WebSocket exposing (..)
 
 
@@ -139,12 +139,13 @@ viewTable model currTime =
         , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
             [ thead []
                 [ tr []
-                    [ th [ style [ ( "width", "35%" ) ] ] [ text "Name" ]
+                    [ th [ style [ ( "width", "25%" ) ] ] [ text "Name" ]
                     , th [ width 65 ] [ text "Status" ]
                     , th [ width 105 ] [ text "History Stats" ]
                     , th [ width 65 ] [ text "History" ]
                     , th [ width 210 ] [ text "Error Message" ]
                     , th [ width 210 ] [ text "Assigned Agent" ]
+                    , th [ width 80 ] [ text "Agent Group" ]
                     , th [ width 100 ] [ text "Duration" ]
                     ]
                 ]
@@ -238,6 +239,7 @@ viewTest currTime test =
         , td [] [ a [ href <| "#test-history/" ++ test.id ] [ text "History" ] ]
         , td [] [ span [ title test.errorMessage ] [ text test.errorMessage ] ]
         , td [] [ text test.assignedAgent ]
+        , td [title <| agentGroupTestFormat test.agentGroup test.assignedAgent] [ text <| agentGroupTestFormat test.agentGroup test.assignedAgent ]
         , td [] [ text durationText ]
         ]
 
@@ -315,7 +317,7 @@ updateAllTests f model =
             f model.all
 
         filtered =
-            List.filter (filterQuery model.query) newList
+            filterTests newList model.query model.filterState
 
         newPaginated =
             Paginate.map (\_ -> filtered) model.paginated

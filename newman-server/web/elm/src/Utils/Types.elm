@@ -20,6 +20,7 @@ type alias Job =
     , state : JobState
     , preparingAgents : List String
     , agents : List String
+    , agentGroups : List String
     , buildId : String
     , buildName : String
     , buildBranch : String
@@ -132,10 +133,8 @@ type alias JobConfig =
     , javaVersion : String
     }
 
-
 type alias JobConfigs =
     List JobConfig
-
 
 type alias User =
     { userName : String
@@ -159,6 +158,7 @@ type alias TestHistoryTestView =
     , endTime : Int
     , runNumber : Int
     , assignedAgent: String
+    , agentGroup: String
     }
 
 
@@ -242,6 +242,7 @@ decodeJob =
         |> required "state" decodeJobState
         |> required "preparingAgents" (list string)
         |> required "agents" (list string)
+        |> optional "agentGroups" (list string) []
         |> requiredAt [ "build", "id" ] string
         |> requiredAt [ "build", "name" ] string
         |> requiredAt [ "build", "branch" ] string
@@ -271,6 +272,7 @@ decodeJobView =
         |> required "state" decodeJobState
         |> required "preparingAgents" (list string)
         |> optional "agents" (list string) []
+        |> optional "agentGroups" (list string) []
         |> required "buildId" string
         |> required "buildName" string
         |> required "buildBranch" string
@@ -355,6 +357,7 @@ type alias FutureJob =
     , suiteId : String
     , suiteName : String
     , author : String
+    , agentGroups : List String
     , submitTime : Int
     }
 
@@ -404,6 +407,7 @@ decodeFutureJob =
         |> required "suiteID" string
         |> required "suiteName" string
         |> required "author" string
+        |> required "agentGroups" (list string)
         |> required "submitTime" int
 
 
@@ -483,6 +487,10 @@ decodeJobConfig =
         |> required "name" string
         |> optional "javaVersion" string "N/A"
 
+decodeAgentGroups : Decoder (List String)
+decodeAgentGroups =
+    Json.Decode.list Json.Decode.string
+
 
 type alias TestId =
     String
@@ -525,6 +533,7 @@ type alias Test =
     , historyStats : String
     , logs : Dict String String
     , assignedAgent : String
+    , agentGroup : String
     , startTime : Maybe Int
     , endTime : Maybe Int
     , scheduledAt : Int
@@ -548,6 +557,7 @@ decodeTest =
         |> optional "historyStats" string ""
         |> required "logs" (dict string)
         |> optional "assignedAgent" string ""
+        |> optional "agentGroup" string ""
         |> required "startTime" (nullable int)
         |> required "endTime" (nullable int)
         |> required "scheduledAt" int
@@ -570,6 +580,7 @@ decodeTestView =
         |> optional "historyStats" string ""
         |> optional "logs" (dict string) Dict.empty
         |> optional "assignedAgent" string ""
+        |> optional "agentGroup" string ""
         |> optional "startTime" (nullable int) Nothing
         |> optional "endTime" (nullable int) Nothing
         |> optional "scheduledAt" int 0
@@ -602,6 +613,7 @@ decodeTestHistoryTestView =
         |> required "endTime" int
         |> required "runNumber" int
         |> required "assignedAgent" string
+        |> optional "agentGroup" string ""
 
 decodeTestHistoryJobView : Json.Decode.Decoder TestHistoryJobView
 decodeTestHistoryJobView =
@@ -635,3 +647,20 @@ encodeListOfStrings lst =
 decodeStatus : Decoder String
 decodeStatus =
     at [ "status" ] string
+
+agentGroupsJobFormat agentGroups =
+            case agentGroups of
+                       [] ->
+                            "N/A"
+
+                       _ ->
+                            String.join ", " agentGroups
+
+agentGroupTestFormat agentGroup assignedAgent =
+            if assignedAgent /= "" then
+                if agentGroup == "" then
+                    "N/A"
+                else
+                    agentGroup
+            else
+                ""

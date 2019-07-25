@@ -1,7 +1,6 @@
 package com.gigaspaces.newman.beans;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.gigaspaces.newman.utils.ToStringBuilder;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -28,6 +27,8 @@ public class Job {
 
     @Embedded(concreteClass = Suite.class) //Why isn't this @Reference?, it should be reference!
     private Suite suite;
+
+    private Set<String> agentGroups;
 
     @Indexed
     private Date submitTime;
@@ -58,6 +59,12 @@ public class Job {
 
     public Job() {
         state = State.READY;
+    }
+
+    public void setAgentGroups(Set<String> agentGroups) { this.agentGroups = agentGroups; }
+
+    public Set<String> getAgentGroups() {
+        return agentGroups;
     }
 
     public String getId() {
@@ -240,6 +247,7 @@ public class Job {
                 ", lastTimeZombie=" + lastTimeZombie +
                 ", preparingAgents=" + preparingAgents +
                 ", agents=" + agents +
+                ", agentGroups=" + agentGroups +
                 ", jobSetupLogs=" + jobSetupLogs +
                 ", jobConfig=" + jobConfig +
                 '}';

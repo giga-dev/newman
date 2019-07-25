@@ -120,6 +120,7 @@ viewTable model =
                         ++ nextButtons
                     )
                 ]
+
     in
     div []
         [ div [ class "form-inline" ]
@@ -141,13 +142,14 @@ viewTable model =
             [ thead []
                 [ tr []
                     [ th [ width 65 ] [ text "Test Id" ]
-                    , th [ width 105 ] [ text "Job Id" ]
+                    , th [ width 65 ] [ text "Job Id" ]
                     , th [ width 65 ] [ text "Build" ]
                     , th [ width 65 ] [ text "Job Configuration" ]
                     , th [ width 65 ] [ text "End Time" ]
                     , th [ width 50 ] [ text "Duration" ]
                     , th [ width 30 ] [ text "Run Num" ]
                     , th [ width 70 ] [ text "Agent ID" ]
+                    , th [ width 40 ] [ text "Agent Group" ]
                     , th [ width 30 ] [ text "Status" ]
                     , th [ width 155 ] [ text "Error Message" ]
                     ]
@@ -191,6 +193,7 @@ viewRecord testHistory =
 
         dateFormat date =
             DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat date))
+
     in
     tr []
         [ td [] [ a [ href <| "#test/" ++ testHistory.test.id ] [ text testHistory.test.id ] ]
@@ -201,6 +204,7 @@ viewRecord testHistory =
         , td [] [ text durationText ]
         , td [] [ text (toString testHistory.test.runNumber)]
         , td [] [ text testHistory.test.assignedAgent ]
+        , td [title <| agentGroupTestFormat testHistory.test.agentGroup testHistory.test.assignedAgent] [ text <| agentGroupTestFormat testHistory.test.agentGroup testHistory.test.assignedAgent ]
         , td [] [ status [] [ text testHistory.test.status ] ]
         , td [] [ span [ title testHistory.test.errorMessage ] [ text testHistory.test.errorMessage ] ]
         ]

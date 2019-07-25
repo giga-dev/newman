@@ -3,7 +3,9 @@ package com.gigaspaces.newman.beans;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * Created by tamirs
@@ -24,11 +26,12 @@ public class FutureJob {
     private String configName;
     private String author;
     private Date submitTime;
+    private Set<String> agentGroups;
 
     public FutureJob() {
     }
 
-    public FutureJob(String buildID, String buildName, String buildBranch, String suiteID, String suiteName, String configID, String configName, String author) {
+    public FutureJob(String buildID, String buildName, String buildBranch, String suiteID, String suiteName, String configID, String configName, String author, Set<String> agentGroups) {
         this.buildID = buildID;
         this.buildName = buildName;
         this.buildBranch = buildBranch;
@@ -38,6 +41,7 @@ public class FutureJob {
         this.submitTime = new Date();
         this.configID = configID;
         this.configName = configName;
+        this.agentGroups = agentGroups;
     }
 
     public String getSuiteID() {
@@ -120,6 +124,13 @@ public class FutureJob {
         this.configName = configName;
     }
 
+    public Set<String> getAgentGroups() {
+        return agentGroups;
+    }
+
+    public void setAgentGroups(Set<String> agentGroups) {
+        this.agentGroups = agentGroups;
+    }
 
     @Override
     public String toString() {
@@ -134,6 +145,7 @@ public class FutureJob {
                 ", configName='" + configName + '\'' +
                 ", author='" + author + '\'' +
                 ", submitTime=" + submitTime +
+                ", agentGroups:" + agentGroups +
                 '}';
     }
 

@@ -44,7 +44,7 @@ public class NewmanSuiteSubmitter {
 
         NewmanSuiteSubmitter submitter = new NewmanSuiteSubmitter();
 //        submitter.submit();
-        submitter.manualSubmitKubernetesInsightedge();
+//        submitter.manualSubmitKubernetesInsightedge();
 //        String ssd_tests = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests";
 //        submitter.manualSubmitSSD(ssd_tests);
 //        submitter.manualSubmitTgridRocksDB();

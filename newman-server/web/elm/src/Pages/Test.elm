@@ -7,7 +7,7 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
-import Utils.Types exposing (Test, TestId, decodeTest, TestStatus(..), testStatusToString)
+import Utils.Types exposing (Test, TestId, TestStatus(..), agentGroupTestFormat, decodeTest, testStatusToString)
 import Utils.WebSocket as WebSocket exposing (..)
 import Utils.Common as Common
 
@@ -129,6 +129,7 @@ viewTest test =
             , ( "Error Message", text test.errorMessage )
             , ( "Logs", logsRow )
             , ( "Assigned Agent", text test.assignedAgent )
+            , ( "Agent Group", text <| agentGroupTestFormat test.agentGroup test.assignedAgent)
             , ( "Start Time", text <| formatDate test.startTime )
             , ( "End Time", text <| formatDate test.endTime )
             , ( "Scheduled At", text <| formatDate <| Just test.scheduledAt )

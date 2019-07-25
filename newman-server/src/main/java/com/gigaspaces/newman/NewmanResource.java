@@ -171,7 +171,7 @@ public class NewmanResource {
     private void handleHangingJob() {
         Job potentialJob = getPotentialJob();
         if (potentialJob == null) {
-            // might happand when there are no Jobs that should run (Ready/Running)
+            // might happened when there are no Jobs that should run (Ready/Running)
             return;
         }
         if (!handleSetupProblem(potentialJob)) {
@@ -238,7 +238,7 @@ public class NewmanResource {
     private Job getPotentialJob() {
         Set<String> allCapabilities = allNecessaryCapabilities();
         Query<Job> basicDummyQuery = basicJobQuery();
-        return findJob(allCapabilities, basicDummyQuery);
+        return findJob(allCapabilities, basicDummyQuery, null);
     }
 
     private Query<Job> basicJobQuery() {
@@ -283,9 +283,10 @@ public class NewmanResource {
         QueryResults<Agent> agents = agentDAO.find(agentDAO.createQuery());
         // check if there is an agent in the system that can execute this job
         for (Agent agent : agents) {
-            if (job.getSuite().getRequirements().isEmpty()
+            if ((job.getSuite().getRequirements().isEmpty()
                     || job.getSuite().getRequirements() == null
-                    || agent.getCapabilities().containsAll(job.getSuite().getRequirements())) {
+                    || agent.getCapabilities().containsAll(job.getSuite().getRequirements()))
+                    && job.getAgentGroups().contains(agent.getGroupName())) {
                 return false;
             }
         }
@@ -450,7 +451,7 @@ public class NewmanResource {
     private void addRequiredJobTableColumns(Query<Job> query) {
         query.retrievedFields(true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name", "jobConfig.id", "jobConfig.name",
                 "submitTime", "startTime", "endTime", "testURI", "submittedBy", "state", "totalTests",
-                "passedTests", "failedTests", "failed3TimesTests", "runningTests", "numOfTestRetries", "preparingAgents");
+                "passedTests", "failedTests", "failed3TimesTests", "runningTests", "numOfTestRetries", "preparingAgents", "agentGroups");
     }
 
 
@@ -580,6 +581,7 @@ public class NewmanResource {
             job.setState(State.READY);
             job.setSubmitTime(new Date());
             job.setSubmittedBy(jobRequest.getAuthor());
+            job.setAgentGroups(jobRequest.getAgentGroups());
             if(jobConfig !=null) {
                 job.setJobConfig(jobConfig);
             }
@@ -597,48 +599,6 @@ public class NewmanResource {
         }
     }
 
-    @POST
-    @Path("futureJob/{buildId}/{suiteId}/{configId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public FutureJob createFutureJob(
-            @PathParam("buildId") String buildId,
-            @PathParam("suiteId") String suiteId,
-            @PathParam("configId") String configId,
-            @QueryParam("author") String authorOpt,
-            @Context SecurityContext sc) {
-        checkServerStatus();
-
-        String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
-        Build build = null;
-        Suite suite = null;
-        JobConfig jobConfig = null;
-
-        if (buildId != null) {
-            build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
-            if (build == null) {
-                throw new BadRequestException("invalid build id in create FutureJob: " + buildId);
-            }
-        }
-        if (suiteId != null) {
-            suite = suiteDAO.findOne(suiteDAO.createIdQuery(suiteId));
-            if (suite == null) {
-                throw new BadRequestException("invalid suite id in create FutureJob: " + suiteId);
-            }
-        }
-        if (configId != null) {
-            jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(configId));
-            if (jobConfig == null) {
-                throw new BadRequestException("invalid config id in create FutureJob: " + configId);
-            }
-        }
-
-        //noinspection ConstantConditions
-        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(),jobConfig.getId(),jobConfig.getName(), author);
-
-        futureJobDAO.save(futureJob);
-        broadcastMessage(CREATE_FUTURE_JOB, futureJob);
-        return futureJob;
-    }
 
     @POST
     @Path("futureJob")
@@ -646,16 +606,17 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public List<FutureJob> createFutureJobs(
             FutureJobsRequest futureJobsRequest,
-            @QueryParam("author") String authorOpt,
             @Context SecurityContext sc) {
         checkServerStatus();
 
+        String authorOpt = futureJobsRequest.getAuthor();
         String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
         Build build = null;
         JobConfig jobConfig = null;
         List<String> suites = futureJobsRequest.getSuites();
         String buildId = futureJobsRequest.getBuildId();
         String configId = futureJobsRequest.getConfigId();
+        Set<String> agentGroups = futureJobsRequest.getAgentGroups();
 
         if (buildId != null) {
             build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
@@ -678,7 +639,7 @@ public class NewmanResource {
                 }
 
                 //noinspection ConstantConditions
-                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), jobConfig.getId(),jobConfig.getName(),author);
+                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), jobConfig.getId(), jobConfig.getName(), author, agentGroups);
                 response.add(futureJob);
 
                 futureJobDAO.save(futureJob);
@@ -1865,7 +1826,7 @@ public class NewmanResource {
             query = testDAO.createQuery();
             query.and(query.criteria("jobId").equal(jobId), query.criteria("status").equal(Test.Status.PENDING));
             updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
-                    .set("assignedAgent", name).set("startTime", new Date());
+                    .set("assignedAgent", name).set("agentGroup", agent.getGroupName()).set("startTime", new Date());
             result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
         }
 
@@ -1963,7 +1924,7 @@ public class NewmanResource {
                 basicQuery.criteria("preparingAgents").doesNotExist()
         );
 
-        Job job = findJob(agent.getCapabilities(), basicQuery);
+        Job job = findJob(agent.getCapabilities(), basicQuery, agent.getGroupName());
 
         UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
                 .set("lastTouchTime", new Date());
@@ -2014,21 +1975,34 @@ public class NewmanResource {
         return Response.ok(job).build();
     }
 
-    private Job findJob(Set<String> capabilities, Query<Job> basicQuery) {
+    private Job findJob(Set<String> capabilities, Query<Job> basicQuery, String agentGroup) {
         List<Job> jobs = null;
         Job job = null;
+
         if (!capabilities.isEmpty()) { // if agent has capabilities
             Query<Job> requirementsQuery = basicQuery.cloneQuery();
             jobs = requirementsQuery.field("suite.requirements").in(capabilities).asList();
         }
         if (jobs != null && jobs.size() > 0) { // if found jobs with match requirements
             List<Job> jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByCapabilities(jobs, capabilities); // filter jobs with not supported requirements
-            job = jobsFilterByCapabilities.get(0);
+            if (jobsFilterByCapabilities != null && !jobsFilterByCapabilities.isEmpty() && agentGroup != null) {
+                jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByGroupNames(jobsFilterByCapabilities, agentGroup);// filter jobs with not suitable agent groups
+            }
+            if (jobsFilterByCapabilities != null && !jobsFilterByCapabilities.isEmpty()) {
+                job = jobsFilterByCapabilities.get(0);
+            }
         }
+
         if (job == null) { // search for jobs without requirements
             Query<Job> noRequirementsQuery = basicQuery.cloneQuery();
             noRequirementsQuery.field("suite.requirements").doesNotExist();
-            job = jobDAO.findOne(noRequirementsQuery);
+            jobs = jobDAO.find(noRequirementsQuery).asList();
+            if(agentGroup != null) {
+                jobs = CapabilitiesAndRequirements.filterByGroupNames(jobs, agentGroup);
+            }
+            if(!jobs.isEmpty()) {
+                job = jobs.get(0);
+            }
         }
         return job;
     }
@@ -2462,6 +2436,15 @@ public class NewmanResource {
         }
 
         return new Batch<>(suiteViews, offset, limit, all, orderBy, uriInfo);
+    }
+
+    @GET
+    @Path("availableAgentGroups")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<String> getAvailableAgentGroups() {
+        List<Agent> agents = agentDAO.find(agentDAO.createQuery()).asList();
+        Set<String> availableAgentGroups = agents.stream().map(Agent::getGroupName).collect(Collectors.toSet());
+        return availableAgentGroups;
     }
 
     @POST
@@ -3001,7 +2984,7 @@ public class NewmanResource {
         for (String testId : agent.getCurrentTests()) {
             Test found = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(testId).field("status").equal(Test.Status.RUNNING)
                             .field("assignedAgent").equal(agent.getName()),
-                    testDAO.createUpdateOperations().unset("assignedAgent").unset("startTime").set("status", Test.Status.PENDING));
+                    testDAO.createUpdateOperations().unset("assignedAgent").unset("agentGroup").unset("startTime").set("status", Test.Status.PENDING));
             if (found != null) {
                 logger.warn("test {} was released since agent {} not seen for a long time", found.getId(), agent.getName());
                 tests.add(found);
@@ -3046,5 +3029,4 @@ public class NewmanResource {
             }
         }
     }
-
 }
