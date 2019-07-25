@@ -21,6 +21,7 @@ import java.io.File;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -82,16 +83,8 @@ public class NewmanClient {
         return restClient.target(uri).path("job").request().rx().put(Entity.json(jobRequest), Job.class);
     }
 
-    public CompletionStage<FutureJob> createFutureJob(String buildId, String suiteId, String configId, String authorOpt) {
-        RxWebTarget<RxCompletionStageInvoker> req = restClient.target(uri).path("futureJob").
-                path(buildId).
-                path(suiteId).
-                path(configId);
-        if (authorOpt != null) {
-            req = req.queryParam("author", authorOpt);
-        }
-        return req.
-                request().rx().post(Entity.text(""), FutureJob.class);
+    public CompletionStage<List<FutureJob>> createFutureJob(FutureJobsRequest futureJobRequest) {
+       return restClient.target(uri).path("futureJob").request().rx().post(Entity.json(futureJobRequest),new GenericType<List<FutureJob>>(){});
     }
 
     public CompletionStage<Test> createTest(Test test) {
@@ -240,6 +233,10 @@ public class NewmanClient {
 
     public CompletionStage<JobConfig> getConfigById(String id) {
         return restClient.target(uri).path("job-config-by-id").path(id).request().rx().get(JobConfig.class);
+    }
+
+    public CompletionStage<Set<String>> getAvailableAgentGroups() {
+        return restClient.target(uri).path("availableAgentGroups").request().rx().get(new GenericType<Set<String>>(){});
     }
 
     public CompletionStage<List<JobConfig>> getAllConfigs() {

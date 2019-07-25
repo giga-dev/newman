@@ -132,10 +132,8 @@ type alias JobConfig =
     , javaVersion : String
     }
 
-
 type alias JobConfigs =
     List JobConfig
-
 
 type alias User =
     { userName : String
@@ -483,6 +481,26 @@ decodeJobConfig =
         |> required "name" string
         |> optional "javaVersion" string "N/A"
 
+decodeAgentGroups : Json.Decode.Decoder (List String)
+decodeAgentGroups =
+    Json.Decode.list decodeAgentGroup
+
+
+decodeAgentGroup : Json.Decode.Decoder Agent
+decodeAgentGroup =
+    decode Agent
+           |> Json.Decode.Pipeline.required "groupName" Json.Decode.string
+
+{-
+decodeAgentGroups : Decoder Agents
+decodeAgentGroups =
+    Json.Decode.list decodeAgentGroup
+
+decodeAgentGroup : Decoder Agent
+decodeAgentGroup =
+    decode Agent
+        |> required "groupName" string
+-}
 
 type alias TestId =
     String

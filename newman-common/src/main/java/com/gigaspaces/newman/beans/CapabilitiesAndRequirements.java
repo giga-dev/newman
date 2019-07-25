@@ -13,6 +13,10 @@ public class CapabilitiesAndRequirements {
         return jobs.stream().filter(job -> capabilities.containsAll(job.getSuite().getRequirements())).collect(Collectors.toList());
     }
 
+    public static List<Job> filterByGroupNames(List<Job> jobs, String groupAgent){
+        return jobs.stream().filter(job -> job.getRequiredAgentGroups().isEmpty() || job.getRequiredAgentGroups().contains(groupAgent)).collect(Collectors.toList());
+    }
+
     public static Set<String> parse(String input){
         Set<String> output =  new TreeSet<>();
         if(input  != null) {

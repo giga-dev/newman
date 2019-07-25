@@ -27,7 +27,8 @@ public class NewmanSubmitter {
     private static final int MAX_THREADS = 30;
     private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
     private static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
-    public static final int DEFAULT_TIMEOUT_SECONDS = NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS;
+    private static final String NEWMAN_AGENT_GROUPS = "NEWMAN_AGENT_GROUPS";
+    public static final int DEFAULT_TIMEOUT_SECONDS = 5;
     private static final String RETRY_MINS_INTERVAL_ON_SUSPENDED = "RETRY_MINS_INTERVAL_ON_SUSPENDED";
     private static final int DEFAULT_RETRY_MINS_INTERVAL_ON_SUSPENDED = 1;
     // modes = FORCE, REGULAR
@@ -72,22 +73,26 @@ public class NewmanSubmitter {
         String username = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_USER_NAME, logger);
         String password = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PASSWORD, logger);
 
-        properties = new Ini(new File(EnvUtils.getEnvironment(NEWMAN_SUITES_FILE_LOCATION, logger)));
+        //properties = new Ini(new File(EnvUtils.getEnvironment(NEWMAN_SUITES_FILE_LOCATION, logger))); Todo- fix it
+        properties = new Ini(new File("/home/user/repositories/giga-dev/newman/ansible/roles/submitter_deploy/files/submitter-env.ini"));
 
         NewmanSubmitter newmanSubmitter = new NewmanSubmitter(host, port, username, password);
         String branch = EnvUtils.getEnvironment(NEWMAN_BUILD_BRANCH, false, logger);
         String tags = EnvUtils.getEnvironment(NEWMAN_BUILD_TAGS, false, logger);
         String mode = EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
+        String requiredAgentGroups = EnvUtils.getEnvironment(NEWMAN_AGENT_GROUPS, false, logger);
+        Set<String> agentGroups = NewmanSubmitter.parse(requiredAgentGroups);
+
         if (mode == null || mode.length() == 0) {
             mode = "DAILY";
         }
 
-        int status = newmanSubmitter.start(branch, tags, mode);
+        int status = newmanSubmitter.start(branch, tags, mode, agentGroups);
 
         System.exit(status);
     }
 
-    private int start(String branch, String tags, String mode) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    private int start(String branch, String tags, String mode, Set<String> agentGroups) throws InterruptedException, ExecutionException, TimeoutException, IOException {
         while (true) {
             ServerStatus serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if (!serverStatus.getStatus().equals(ServerStatus.Status.RUNNING)) {
@@ -97,7 +102,7 @@ public class NewmanSubmitter {
             }
 
             if (mode.equals("NIGHTLY") && isNightlyRequired()) {
-                submitJobs(getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(),getConfigToSubmit(), mode);
+                submitJobs(getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(),getConfigToSubmit(), mode, agentGroups);
                 properties.get("main").put("LAST_NIGHTLY_RUN", DateTimeFormatter.ofPattern("yyy/MM/dd").format(LocalDate.now()));
                 properties.store();
                 return 0;
@@ -118,7 +123,7 @@ public class NewmanSubmitter {
                 if (buildToRun != null) {
                     int numOfRunningJobs = Integer.parseInt(newmanClient.hasRunningJobs().toCompletableFuture().get());
                     if (numOfRunningJobs == 0) {
-                        submitJobs(buildToRun, getDailySuiteToSubmit(),getConfigToSubmit(), mode);
+                        submitJobs(buildToRun, getDailySuiteToSubmit(),getConfigToSubmit(), mode, agentGroups);
                     }
                 }
                 return 0;
@@ -163,13 +168,13 @@ public class NewmanSubmitter {
         }
     }
 
-    private void submitJobs(Build buildToRun, List<String> suitesId, JobConfig jobConfig, String mode)  {
+    private void submitJobs(Build buildToRun, List<String> suitesId, JobConfig jobConfig, String mode, Set<String> agentGroups)  {
         List<Future<String>> submitted = new ArrayList<>();
         logger.info("build to run - name:[{}], id:[{}], branch:[{}], tags:[{}], mode:[{}].", buildToRun.getName(), buildToRun.getId(), buildToRun.getBranch(), buildToRun.getTags(), mode);
         // Submit jobs for suites
         try {
             for (String suiteId : filterSuites(suitesId, buildToRun.getId())) {
-                submitted.add(submitJobsByThreads(suiteId, buildToRun.getId(), jobConfig.getId(), username));
+                submitted.add(submitJobsByThreads(suiteId, buildToRun.getId(), jobConfig.getId(), username, agentGroups));
             }
         } catch (Exception ignored) {
             logger.error("could not submit job. build id- [" + buildToRun + "] on branch :[" + buildToRun.getBranch() + "]", ignored);
@@ -219,14 +224,14 @@ public class NewmanSubmitter {
         FutureJob futureJob = getAndDeleteFutureJob();
         logger.info("submitting future job - " + futureJob);
         while (futureJob != null) {
-            Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID(), futureJob.getConfigID(),futureJob.getAuthor());
+            Future<String> futureJobWorker = submitJobsByThreads(futureJob.getSuiteID(), futureJob.getBuildID(), futureJob.getConfigID(),futureJob.getAuthor(), futureJob.getAgentGroups());
             futureJobIds.add(futureJobWorker);
             futureJob = getAndDeleteFutureJob();
         }
         return futureJobIds;
     }
 
-    private Future<String> submitJobsByThreads(String suiteId, String buildId, String configId, String author) {
+    private Future<String> submitJobsByThreads(String suiteId, String buildId, String configId, String author, Set<String> agentGroups) {
         return workers.submit(() -> {
             Suite suite;
             try {
@@ -234,17 +239,18 @@ public class NewmanSubmitter {
                 if (suite == null) {
                     throw new IllegalArgumentException("job suite with id: " + suiteId + " does not exists");
                 }
-                final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password);
+                final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password, agentGroups);
 
                 String jobId = jobSubmitter.submitJob(author);
                 logger.info("submitted job ");
                 return jobId;
             } catch (Throwable e) {
-                logger.error("submit job faild. SuiteId: " + suiteId+", buildId: "+buildId+", configId: "+configId+", author: "+ author, e);
+                logger.error("submit job faild. SuiteId: " + suiteId+", buildId: "+buildId+", configId: "+configId+", author: "+ author+"agentGroups: "+ agentGroups, e);
                 throw e;
             }
         });
     }
+
 
     private FutureJob getAndDeleteFutureJob() throws InterruptedException, ExecutionException, TimeoutException {
         FutureJob futureJob;
@@ -344,6 +350,16 @@ public class NewmanSubmitter {
             logger.error("failed to find configuration in DB ",e);
             return null;
         }
+    }
+
+    private static Set<String> parse(String input){
+        Set<String> output =  new TreeSet<>();
+        if(input  != null) {
+            StringTokenizer st = new StringTokenizer(input, ",");
+            while (st.hasMoreTokens())
+                output.add(st.nextToken());
+        }
+        return output;
     }
 
 }

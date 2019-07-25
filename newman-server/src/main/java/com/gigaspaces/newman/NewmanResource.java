@@ -171,7 +171,7 @@ public class NewmanResource {
     private void handleHangingJob() {
         Job potentialJob = getPotentialJob();
         if (potentialJob == null) {
-            // might happand when there are no Jobs that should run (Ready/Running)
+            // might happened when there are no Jobs that should run (Ready/Running)
             return;
         }
         if (!handleSetupProblem(potentialJob)) {
@@ -238,7 +238,8 @@ public class NewmanResource {
     private Job getPotentialJob() {
         Set<String> allCapabilities = allNecessaryCapabilities();
         Query<Job> basicDummyQuery = basicJobQuery();
-        return findJob(allCapabilities, basicDummyQuery);
+        //return findJob(allCapabilities, basicDummyQuery);
+        return findJob(allCapabilities, basicDummyQuery, null);//Todo decide what is the function for agentGroup
     }
 
     private Query<Job> basicJobQuery() {
@@ -580,6 +581,7 @@ public class NewmanResource {
             job.setState(State.READY);
             job.setSubmitTime(new Date());
             job.setSubmittedBy(jobRequest.getAuthor());
+            job.setRequiredAgentGroups(jobRequest.getAgentGroups());
             if(jobConfig !=null) {
                 job.setJobConfig(jobConfig);
             }
@@ -604,6 +606,7 @@ public class NewmanResource {
             @PathParam("buildId") String buildId,
             @PathParam("suiteId") String suiteId,
             @PathParam("configId") String configId,
+            @QueryParam("agentGroups") String agentGroups,
             @QueryParam("author") String authorOpt,
             @Context SecurityContext sc) {
         checkServerStatus();
@@ -612,6 +615,7 @@ public class NewmanResource {
         Build build = null;
         Suite suite = null;
         JobConfig jobConfig = null;
+        Set<String> requestedAgentGroups = NewmanResource.parse(agentGroups);
 
         if (buildId != null) {
             build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
@@ -633,7 +637,7 @@ public class NewmanResource {
         }
 
         //noinspection ConstantConditions
-        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(),jobConfig.getId(),jobConfig.getName(), author);
+        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(),jobConfig.getId(),jobConfig.getName(), author, requestedAgentGroups);
 
         futureJobDAO.save(futureJob);
         broadcastMessage(CREATE_FUTURE_JOB, futureJob);
@@ -646,16 +650,17 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public List<FutureJob> createFutureJobs(
             FutureJobsRequest futureJobsRequest,
-            @QueryParam("author") String authorOpt,
             @Context SecurityContext sc) {
         checkServerStatus();
 
+        String authorOpt = futureJobsRequest.getAuthor();
         String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
         Build build = null;
         JobConfig jobConfig = null;
         List<String> suites = futureJobsRequest.getSuites();
         String buildId = futureJobsRequest.getBuildId();
         String configId = futureJobsRequest.getConfigId();
+        Set<String> agentGroups = futureJobsRequest.getAgentGroups();
 
         if (buildId != null) {
             build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
@@ -678,7 +683,7 @@ public class NewmanResource {
                 }
 
                 //noinspection ConstantConditions
-                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), jobConfig.getId(),jobConfig.getName(),author);
+                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), jobConfig.getId(),jobConfig.getName(),author, agentGroups);
                 response.add(futureJob);
 
                 futureJobDAO.save(futureJob);
@@ -1963,7 +1968,7 @@ public class NewmanResource {
                 basicQuery.criteria("preparingAgents").doesNotExist()
         );
 
-        Job job = findJob(agent.getCapabilities(), basicQuery);
+        Job job = findJob(agent.getCapabilities(), basicQuery, agent.getGroupName());
 
         UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
                 .set("lastTouchTime", new Date());
@@ -2014,7 +2019,7 @@ public class NewmanResource {
         return Response.ok(job).build();
     }
 
-    private Job findJob(Set<String> capabilities, Query<Job> basicQuery) {
+    private Job findJob(Set<String> capabilities, Query<Job> basicQuery, String agentGroup) {
         List<Job> jobs = null;
         Job job = null;
         if (!capabilities.isEmpty()) { // if agent has capabilities
@@ -2023,7 +2028,15 @@ public class NewmanResource {
         }
         if (jobs != null && jobs.size() > 0) { // if found jobs with match requirements
             List<Job> jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByCapabilities(jobs, capabilities); // filter jobs with not supported requirements
-            job = jobsFilterByCapabilities.get(0);
+            if (jobsFilterByCapabilities != null && !jobsFilterByCapabilities.isEmpty()) {
+                List<Job> jobsFilterByRequiredAgentGroups = CapabilitiesAndRequirements.filterByGroupNames(jobsFilterByCapabilities, agentGroup);// filter jobs with not suitable agent group
+                if(!jobsFilterByRequiredAgentGroups.isEmpty()){
+                    job = jobsFilterByRequiredAgentGroups.get(0);
+                }
+                else {
+                    return null;
+                }
+            }
         }
         if (job == null) { // search for jobs without requirements
             Query<Job> noRequirementsQuery = basicQuery.cloneQuery();
@@ -2462,6 +2475,15 @@ public class NewmanResource {
         }
 
         return new Batch<>(suiteViews, offset, limit, all, orderBy, uriInfo);
+    }
+
+    @GET
+    @Path("availableAgentGroups")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<String> getAvailableAgentGroups() {
+        List<Agent> agents = agentDAO.find(agentDAO.createQuery()).asList();
+        Set<String> availableAgentGroups = agents.stream().map(Agent::getGroupName).collect(Collectors.toSet());
+        return availableAgentGroups;
     }
 
     @POST
@@ -3045,6 +3067,16 @@ public class NewmanResource {
                 throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN_TYPE).entity("Server is suspended, please try again later.").build());
             }
         }
+    }
+
+    private static Set<String> parse(String input){
+        Set<String> output =  new TreeSet<>();
+        if(input  != null) {
+            StringTokenizer st = new StringTokenizer(input, ",");
+            while (st.hasMoreTokens())
+                output.add(st.nextToken());
+        }
+        return output;
     }
 
 }

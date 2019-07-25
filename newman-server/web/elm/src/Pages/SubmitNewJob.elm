@@ -15,14 +15,16 @@ import Maybe exposing (withDefault)
 import Multiselect
 import Views.NewmanModal as NewmanModal
 import Utils.WebSocket as WebSocket exposing (..)
-import Utils.Types as Types exposing (Build, Suite, JobConfig, decodeSuite, decodeJobConfigs)
+import Utils.Types as Types exposing (Agent, Agents, Build, JobConfig, Suite, decodeAgentGroups, decodeJobConfigs, decodeSuite)
 
 
 type Msg
     = GetBuildsAndSuitesCompleted (Result Http.Error BuildsAndSuites)
     | GetAllConfigsCompleted (Result Http.Error (List JobConfig))
+    | GetAllAgentGroupsCompleted (Result Http.Error (List String))
     | UpdateSelectedBuild String
     | UpdateSelectedConfig String
+    | UpdateSelectedAgentGroups String
     | SubmitNewJobCompleted (Result Http.Error (List FutureJob))
     | OnClickSubmit
     | MultiSelectMsg Multiselect.Msg
@@ -37,6 +39,8 @@ type alias Model =
     , selectedSuites : Multiselect.Model
     , configurations : List JobConfig
     , selectedConfig : String
+    , agentGroups : List String
+    , selectedAgentGroups : String
     , submittedFutureJobs : List FutureJob
     , isSelect : Bool
     , modalState : Modal.State
@@ -53,7 +57,6 @@ type alias BuildsAndSuites =
 type alias FutureJob =
     { id : String }
 
-
 init : ( Model, Cmd Msg )
 init =
     ( { buildsAndSuites = BuildsAndSuites [] []
@@ -61,6 +64,8 @@ init =
       , selectedSuites = Multiselect.initModel [] ""
       , selectedConfig = ""
       , configurations = []
+      , selectedAgentGroups = ""
+      , agentGroups = []
       , submittedFutureJobs = []
       , isSelect = True
       , modalState = Modal.hiddenState
@@ -69,6 +74,7 @@ init =
     , Cmd.batch
         [ getBuildsAndSuitesCmd
         , getAllConfigsCmd
+        , getAllAgentGroupsCmd
         ]
     )
 
@@ -97,12 +103,23 @@ update msg model =
                 Err err ->
                     -- log error
                     ( model, Cmd.none )
+        GetAllAgentGroupsCompleted result ->
+            case result of
+                 Ok data ->
+                     ( { model | agentGroups = data, selectedAgentGroups = Maybe.withDefault "" <| Maybe.map ( \v -> v.id ) <| List.head data }, Cmd.none )
+
+                 Err err ->
+                     -- log error
+                    ( model, Cmd.none )
 
         UpdateSelectedBuild build ->
             ( { model | selectedBuild = build }, Cmd.none )
 
         UpdateSelectedConfig config ->
             ( { model | selectedConfig = config }, Cmd.none )
+
+        UpdateSelectedAgentGroups agentGroups ->
+                    ( { model | selectedAgentGroups = agentGroups }, Cmd.none )
 
         MultiSelectMsg subMsg ->
             let
@@ -181,6 +198,9 @@ getBuildsAndSuitesCmd : Cmd Msg
 getBuildsAndSuitesCmd =
     Http.send GetBuildsAndSuitesCompleted <| Http.get "/api/newman/all-builds-and-suites" buildsAndSuitesDecoder
 
+getAllAgentGroupsCmd : Cmd Msg
+getAllAgentGroupsCmd =
+    Http.send GetAllAgentGroupsCompleted <| Http.get "/api/newman/agent?all=true" decodeAgentGroups
 
 getAllConfigsCmd : Cmd Msg
 getAllConfigsCmd =
@@ -236,6 +256,18 @@ view model =
                             (List.map toOption model.configurations)
                     ]
             , br [] []
+            {-, let
+                 toOption data =
+                    Select.item [ value data.groupName, selected <| model.selectedAgentGroups == data.groupName ] [ text <| data.name ]
+              in
+                 div
+                    []
+                    [ text "Select AgentGroups:"
+                    , Select.select
+                        [ Select.onChange UpdateSelectedConfig, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
+                           {- (List.map toOption model.agentGroups)-}
+                    ]
+            , br [] []-}
             , selectBuildView model
             , Button.button [ Button.secondary, Button.onClick OnClickSubmit, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Submit Future Job" ]
             , br [] []
@@ -307,6 +339,23 @@ decodeThinBuild =
         |> Json.Decode.Pipeline.required "branch" Json.Decode.string
         |> Json.Decode.Pipeline.required "tags" (Json.Decode.list Json.Decode.string)
 
+{-
+decodeAgentGroups: Json.Decode.Decoder (List Agent)
+decodeAgentGroups =
+    decode Agent
+            |> Json.Decode.Pipeline.required "groupName" Json.Decode.string
+-}
+
+{-decodeAgentGroups : Json.Decode.Decoder (List String)
+decodeAgentGroups =
+    Json.Decode.list decodeAgentGroup
+
+
+decodeAgentGroup : Json.Decode.Decoder Agent
+decodeAgentGroup =
+    decode Agent
+           |> Json.Decode.Pipeline.required "groupName" Json.Decode.string-}
+
 decodeFutureJobs : Json.Decode.Decoder (List FutureJob)
 decodeFutureJobs =
     Json.Decode.list futureJobDecoder
@@ -324,6 +373,12 @@ buildsAndSuitesDecoder =
         (Json.Decode.field "suites" (Json.Decode.list decodeSuite))
         (Json.Decode.field "builds" (Json.Decode.list decodeThinBuild))
 
+{-
+agentGroupsDecoder : Json.Decode.Decoder AgentGroups
+agentGroupsDecoder =
+    Json.Decode.map2 AgentGroups
+        (Json.Decode.field "suites" (Json.Decode.list decodeAgentGroup))
+-}
 
 
 subscriptions : Model -> Sub Msg

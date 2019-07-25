@@ -2,6 +2,8 @@ package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.utils.ToStringBuilder;
 
+import java.util.Set;
+
 /**
  * Created by Barak Bar Orion
  * 4/16/15.
@@ -12,6 +14,7 @@ public class JobRequest {
     private String suiteId;
     private String configId;
     private String author;
+    private Set<String> agentGroups;
 
     public JobRequest() {
     }
@@ -40,6 +43,10 @@ public class JobRequest {
         this.configId = configId;
     }
 
+    public void setAgentGroups(Set<String> agentGroups) { this.agentGroups = agentGroups; }
+
+    public Set<String> getAgentGroups() { return agentGroups; }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
@@ -47,6 +54,7 @@ public class JobRequest {
                 .append("suiteId", suiteId)
                 .append("configId", configId)
                 .append("author", author)
+                .append("agentGroups", agentGroups)
                 .toString();
     }
 

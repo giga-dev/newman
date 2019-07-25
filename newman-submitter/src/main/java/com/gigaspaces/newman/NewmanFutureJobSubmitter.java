@@ -5,8 +5,7 @@ import com.gigaspaces.newman.utils.EnvUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -21,24 +20,27 @@ public class NewmanFutureJobSubmitter {
     private static final String NEWMAN_BUILD_ID = "NEWMAN_BUILD_ID"; // for example: 56277de629f67f791db25554
     private static final String NEWMAN_SUITE_ID = "NEWMAN_SUITE_ID"; // for example: 55b0affe29f67f34809c6c7b
     private static final String NEWMAN_CONFIG_ID = "NEWMAN_CONFIG_ID"; // for example: 55b0affe29f67f34809c6c7b
+    private static final String NEWMAN_AGENT_GROUPS = "NEWMAN_AGENT_GROUPS"; // for example: "devGroup,imc-srv01"
     private static final String AUTHOR = "AUTHOR"; // for example: tamirs
 
+    private static NewmanClient newmanClient = getNewmanClient();
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, KeyManagementException, ExecutionException, InterruptedException, TimeoutException {
+    public static void main(String[] args) throws ExecutionException, InterruptedException, TimeoutException {
 
         // NOTE - need to pass system argument!
 
-        NewmanClient newmanClient;
         String build_id;
         String suite_id;
         String config_id;
         String author;
 
-        newmanClient = getNewmanClient();
         build_id = EnvUtils.getEnvironment(NEWMAN_BUILD_ID, true, logger);
         suite_id = EnvUtils.getEnvironment(NEWMAN_SUITE_ID, true, logger);
         config_id = EnvUtils.getEnvironment(NEWMAN_CONFIG_ID, true, logger);
         author = EnvUtils.getEnvironment(AUTHOR, true, logger);
+        List<String> suites = NewmanFutureJobSubmitter.parse(suite_id);
+        String requestedAgentGroups = EnvUtils.getEnvironment(NEWMAN_AGENT_GROUPS, false, logger);
+        Set<String> agentGroups = new TreeSet<>(NewmanFutureJobSubmitter.parse(requestedAgentGroups));
 
         ServerStatus serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (!serverStatus.getStatus().equals(ServerStatus.Status.RUNNING)) {
@@ -46,20 +48,36 @@ public class NewmanFutureJobSubmitter {
             System.exit(1);
         }
 
-        validBuildAndSuite(newmanClient, build_id, suite_id);
-        validateJobConfig(newmanClient,config_id);
-        FutureJob futureJob;
+        NewmanFutureJobSubmitter.validBuildAndSuite(build_id, suites.get(0));
+        NewmanFutureJobSubmitter.validateJobConfig(config_id);
+
+        NewmanFutureJobSubmitter futureJobSubmitter = new NewmanFutureJobSubmitter();
+
+        FutureJobsRequest futureJobRequest = new FutureJobsRequest();
+        futureJobRequest.setBuildId(build_id);
+        futureJobRequest.setSuites(suites);
+        futureJobRequest.setConfigId(config_id);
+        futureJobRequest.setAuthor(author);
+        futureJobRequest.setAgentGroups(agentGroups);
+
+        List<FutureJob> futureJobs = futureJobSubmitter.submitFutureJobs(futureJobRequest);
+
+        for(FutureJob futureJob: futureJobs){
+            logger.info("new futureJob was created: " + futureJob);
+        }
+    }
+
+    private List<FutureJob> submitFutureJobs (FutureJobsRequest futureJobRequest) throws ExecutionException, InterruptedException, TimeoutException {
         try {
-            futureJob = newmanClient.createFutureJob(build_id, suite_id, config_id, author).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            return newmanClient.createFutureJob(futureJobRequest).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             logger.error("can't create future job. execption: {}", e);
             throw e;
         }
-        logger.info("{} creates futureJob with id: {}, build id: {}, and suite id: {}.",futureJob.getAuthor(), futureJob.getId(), futureJob.getBuildID(), futureJob.getSuiteID());
     }
 
 
-    private static void validBuildAndSuite(NewmanClient newmanClient, String build_id, String suite_id){
+    private static void validBuildAndSuite(String build_id, String suite_id){
         try{
             newmanClient.getBuild(build_id).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }catch (Exception e){
@@ -72,7 +90,7 @@ public class NewmanFutureJobSubmitter {
         }
     }
 
-    private static void validateJobConfig(NewmanClient newmanClient,String configId){
+    private static void validateJobConfig(String configId){
         try{
             newmanClient.getConfigById(configId).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }catch (Exception e){
@@ -91,13 +109,20 @@ public class NewmanFutureJobSubmitter {
         try {
             nc = NewmanClient.create(host, port, username, password);
             //try to connect to fail fast when server is down
-            nc.getJobs().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            nc.getJobs().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS , TimeUnit.SECONDS);
         } catch (Exception e) {
             throw new RuntimeException("newmanClient did not connect, check if server up and arguments");
         }
         return nc;
     }
 
-
-
+    private static List<String> parse(String input){
+        List<String> output =  new ArrayList<>();
+        if(input  != null) {
+            StringTokenizer st = new StringTokenizer(input, ",");
+            while (st.hasMoreTokens())
+                output.add(st.nextToken());
+        }
+        return output;
+    }
 }
