@@ -5,6 +5,7 @@ import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (..)
 import Json.Encode
 import Paginate exposing (PaginatedList)
+import Set exposing (Set)
 
 
 type alias JobId =
@@ -481,26 +482,10 @@ decodeJobConfig =
         |> required "name" string
         |> optional "javaVersion" string "N/A"
 
-decodeAgentGroups : Json.Decode.Decoder (List String)
+decodeAgentGroups : Decoder (List String)
 decodeAgentGroups =
-    Json.Decode.list decodeAgentGroup
+    Json.Decode.list Json.Decode.string
 
-
-decodeAgentGroup : Json.Decode.Decoder Agent
-decodeAgentGroup =
-    decode Agent
-           |> Json.Decode.Pipeline.required "groupName" Json.Decode.string
-
-{-
-decodeAgentGroups : Decoder Agents
-decodeAgentGroups =
-    Json.Decode.list decodeAgentGroup
-
-decodeAgentGroup : Decoder Agent
-decodeAgentGroup =
-    decode Agent
-        |> required "groupName" string
--}
 
 type alias TestId =
     String

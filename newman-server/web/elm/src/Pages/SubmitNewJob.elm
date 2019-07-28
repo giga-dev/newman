@@ -24,9 +24,9 @@ type Msg
     | GetAllAgentGroupsCompleted (Result Http.Error (List String))
     | UpdateSelectedBuild String
     | UpdateSelectedConfig String
-    | UpdateSelectedAgentGroups String
     | SubmitNewJobCompleted (Result Http.Error (List FutureJob))
     | OnClickSubmit
+    | MultiSelectAgentGroups Multiselect.Msg
     | MultiSelectMsg Multiselect.Msg
     | UpdatedBuildSelection Bool
     | NewmanModalMsg Modal.State
@@ -40,7 +40,7 @@ type alias Model =
     , configurations : List JobConfig
     , selectedConfig : String
     , agentGroups : List String
-    , selectedAgentGroups : String
+    , selectedAgentGroups : Multiselect.Model
     , submittedFutureJobs : List FutureJob
     , isSelect : Bool
     , modalState : Modal.State
@@ -64,7 +64,7 @@ init =
       , selectedSuites = Multiselect.initModel [] ""
       , selectedConfig = ""
       , configurations = []
-      , selectedAgentGroups = ""
+      , selectedAgentGroups = Multiselect.initModel [] ""
       , agentGroups = []
       , submittedFutureJobs = []
       , isSelect = True
@@ -104,13 +104,18 @@ update msg model =
                     -- log error
                     ( model, Cmd.none )
         GetAllAgentGroupsCompleted result ->
-            case result of
+             case result of
                  Ok data ->
-                     ( { model | agentGroups = data, selectedAgentGroups = Maybe.withDefault "" <| Maybe.map ( \v -> v.id ) <| List.head data }, Cmd.none )
-
+                   {- ( { model | agentGroups = data, selectedAgentGroups = Maybe.withDefault "" <| List.head data }, Cmd.none )-}
+                    let
+                       agentGroups =
+                             List.map (\item -> ( item, item )) data
+                    in
+                        ( { model | agentGroups = data, selectedAgentGroups = Multiselect.initModel agentGroups "agentGroups" }, Cmd.none )
+                   {- ( { model | agentGroups = data, selectedAgentGroups = Multiselect.initModel data "groupName" }, Cmd.none )-}
                  Err err ->
                      -- log error
-                    ( model, Cmd.none )
+                     ( model, Cmd.none )
 
         UpdateSelectedBuild build ->
             ( { model | selectedBuild = build }, Cmd.none )
@@ -118,8 +123,13 @@ update msg model =
         UpdateSelectedConfig config ->
             ( { model | selectedConfig = config }, Cmd.none )
 
-        UpdateSelectedAgentGroups agentGroups ->
-                    ( { model | selectedAgentGroups = agentGroups }, Cmd.none )
+        MultiSelectAgentGroups agentGroups ->
+            let
+                ( subModel, subCmd, outMsg ) =
+                    Multiselect.update agentGroups model.selectedAgentGroups
+            in
+                ( { model | selectedAgentGroups = subModel }, Cmd.map MultiSelectAgentGroups subCmd )
+
 
         MultiSelectMsg subMsg ->
             let
@@ -200,7 +210,7 @@ getBuildsAndSuitesCmd =
 
 getAllAgentGroupsCmd : Cmd Msg
 getAllAgentGroupsCmd =
-    Http.send GetAllAgentGroupsCompleted <| Http.get "/api/newman/agent?all=true" decodeAgentGroups
+    Http.send GetAllAgentGroupsCompleted <| Http.get "/api/newman/availableAgentGroups" decodeAgentGroups
 
 getAllConfigsCmd : Cmd Msg
 getAllConfigsCmd =
@@ -339,22 +349,6 @@ decodeThinBuild =
         |> Json.Decode.Pipeline.required "branch" Json.Decode.string
         |> Json.Decode.Pipeline.required "tags" (Json.Decode.list Json.Decode.string)
 
-{-
-decodeAgentGroups: Json.Decode.Decoder (List Agent)
-decodeAgentGroups =
-    decode Agent
-            |> Json.Decode.Pipeline.required "groupName" Json.Decode.string
--}
-
-{-decodeAgentGroups : Json.Decode.Decoder (List String)
-decodeAgentGroups =
-    Json.Decode.list decodeAgentGroup
-
-
-decodeAgentGroup : Json.Decode.Decoder Agent
-decodeAgentGroup =
-    decode Agent
-           |> Json.Decode.Pipeline.required "groupName" Json.Decode.string-}
 
 decodeFutureJobs : Json.Decode.Decoder (List FutureJob)
 decodeFutureJobs =
@@ -373,18 +367,14 @@ buildsAndSuitesDecoder =
         (Json.Decode.field "suites" (Json.Decode.list decodeSuite))
         (Json.Decode.field "builds" (Json.Decode.list decodeThinBuild))
 
-{-
-agentGroupsDecoder : Json.Decode.Decoder AgentGroups
-agentGroupsDecoder =
-    Json.Decode.map2 AgentGroups
-        (Json.Decode.field "suites" (Json.Decode.list decodeAgentGroup))
--}
-
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.map MultiSelectMsg <| Multiselect.subscriptions model.selectedSuites
 
+{-subscriptionsAgentsGroups : Model -> Sub Msg
+subscriptionsAgentsGroups model =
+    Sub.map MultiSelectAgentGroups <| Multiselect.subscriptions model.selectedAgentGroups-}
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
