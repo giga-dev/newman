@@ -212,7 +212,7 @@ public class NewmanJobSubmitter {
         String suiteId = "5d2dbcdc2841c234d3d3ab05";
         String buildId = "5d19f01a4cedfd000cd81982";
         String configId = "5b4c9342b3859411ee82c265";
-        String requiredAgentGroups = "";
+        String requiredAgentGroups = "group2";
         Set<String> agentGroups = NewmanJobSubmitter.parse(requiredAgentGroups);
 
         String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, true /*required*/, logger);

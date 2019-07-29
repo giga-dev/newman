@@ -26,7 +26,7 @@ type Msg
     | UpdateSelectedConfig String
     | SubmitNewJobCompleted (Result Http.Error (List FutureJob))
     | OnClickSubmit
-    | MultiSelectAgentGroups Multiselect.Msg
+    | MultiSelectAgentGroupsMsg Multiselect.Msg
     | MultiSelectMsg Multiselect.Msg
     | UpdatedBuildSelection Bool
     | NewmanModalMsg Modal.State
@@ -106,13 +106,13 @@ update msg model =
         GetAllAgentGroupsCompleted result ->
              case result of
                  Ok data ->
-                   {- ( { model | agentGroups = data, selectedAgentGroups = Maybe.withDefault "" <| List.head data }, Cmd.none )-}
                     let
                        agentGroups =
                              List.map (\item -> ( item, item )) data
                     in
-                        ( { model | agentGroups = data, selectedAgentGroups = Multiselect.initModel agentGroups "agentGroups" }, Cmd.none )
-                   {- ( { model | agentGroups = data, selectedAgentGroups = Multiselect.initModel data "groupName" }, Cmd.none )-}
+                     {-   ( { model | agentGroups = data, selectedAgentGroups = Multiselect.initModel agentGroups "agentGroups" }, Cmd.none )-}
+                      ( { model | agentGroups = data,selectedAgentGroups = Multiselect.populateValues model.selectedAgentGroups agentGroups agentGroups }, Cmd.none )
+
                  Err err ->
                      -- log error
                      ( model, Cmd.none )
@@ -123,13 +123,12 @@ update msg model =
         UpdateSelectedConfig config ->
             ( { model | selectedConfig = config }, Cmd.none )
 
-        MultiSelectAgentGroups agentGroups ->
+        MultiSelectAgentGroupsMsg agentGroups ->
             let
                 ( subModel, subCmd, outMsg ) =
                     Multiselect.update agentGroups model.selectedAgentGroups
             in
-                ( { model | selectedAgentGroups = subModel }, Cmd.map MultiSelectAgentGroups subCmd )
-
+                ( { model | selectedAgentGroups = subModel }, Cmd.map MultiSelectAgentGroupsMsg subCmd )
 
         MultiSelectMsg subMsg ->
             let
@@ -140,21 +139,25 @@ update msg model =
 
         OnClickSubmit ->
             let
-                ( buildId, suitesList, configId ) =
-                    ( model.selectedBuild, List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites), model.selectedConfig )
+                ( buildId, suitesList, agentGroupsList, configId ) =
+                    ( model.selectedBuild, List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites),
+                    List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedAgentGroups), model.selectedConfig )
             in
-                case ( buildId, suitesList ,configId) of
-                    ( "", _ ,_) ->
+                case ( buildId, suitesList ,agentGroupsList, configId) of
+                    ( "", _ ,_ , _) ->
                         ( { model | errorMessage = "Please select a build", modalState = Modal.visibleState }, Cmd.none )
 
-                    ( _, [],_ ) ->
+                    ( _, [],_ ,_) ->
                         ( { model | errorMessage = "Please select one or more suites", modalState = Modal.visibleState }, Cmd.none )
 
-                    ( _, _ ,"") ->
+                    ( _, _ , [] ,_) ->
+                         ( { model | errorMessage = "Please select one or more agent groups", modalState = Modal.visibleState }, Cmd.none )
+
+                    ( _, _ ,_,"") ->
                         ( { model | errorMessage = "Please select a Job Configuration", modalState = Modal.visibleState }, Cmd.none )
 
                     _ ->
-                        ( model, submitFutureJobCmd buildId suitesList configId)
+                        ( model, submitFutureJobCmd buildId suitesList agentGroupsList configId)
 
         SubmitNewJobCompleted result ->
             case result of
@@ -217,20 +220,21 @@ getAllConfigsCmd =
     Http.send GetAllConfigsCompleted <| Http.get "/api/newman/job-config" decodeJobConfigs
 
 
-submitFutureJobCmd : String -> List String -> String -> Cmd Msg
-submitFutureJobCmd buildId suites configId=
+submitFutureJobCmd : String -> List String -> List String -> String -> Cmd Msg
+submitFutureJobCmd buildId suites agentGroups configId =
     let
         postReq =
-            postFutureJob buildId suites configId
+            postFutureJob buildId suites agentGroups configId
     in
         Http.send SubmitNewJobCompleted postReq
 
 
-postFutureJob : String -> List String -> String -> Http.Request (List FutureJob)
-postFutureJob buildId suites configId =
+postFutureJob : String -> List String -> List String -> String -> Http.Request (List FutureJob)
+postFutureJob buildId suites agentGroupsList configId =
     let
         jsonify =
-            Http.jsonBody <| Json.Encode.object [ ( "buildId", Json.Encode.string buildId ), ( "suites", Json.Encode.list <| List.map Json.Encode.string suites ), ("configId", Json.Encode.string configId ) ]
+            Http.jsonBody <| Json.Encode.object [ ( "buildId", Json.Encode.string buildId ), ( "suites", Json.Encode.list <| List.map Json.Encode.string suites ),
+            ( "agentGroups", Json.Encode.list <| List.map Json.Encode.string agentGroupsList ), ("configId", Json.Encode.string configId ) ]
     in
         Http.post "../api/newman/futureJob" jsonify decodeFutureJobs
 
@@ -244,7 +248,7 @@ view model =
                     ""
 
                 _ ->
-                    "submitted the folowing future jobs:"
+                    "submitted the following future jobs:"
     in
         div [ class "container-fluid" ]
             [ h2 [ class "page-header" ]
@@ -254,6 +258,11 @@ view model =
                 , Multiselect.view model.selectedSuites |> Html.map MultiSelectMsg
                 ]
             , br [] []
+            , div [ style [ ( "width", "500px" ) ] ]
+                            [ text "Select agent groups:"
+                            , Multiselect.view model.selectedAgentGroups |> Html.map MultiSelectAgentGroupsMsg
+                            ]
+                        , br [] []
             , let
                 toOption data =
                     Select.item [ value data.id, selected <| model.selectedConfig == data.id ] [ text <| data.name ]
@@ -266,18 +275,6 @@ view model =
                             (List.map toOption model.configurations)
                     ]
             , br [] []
-            {-, let
-                 toOption data =
-                    Select.item [ value data.groupName, selected <| model.selectedAgentGroups == data.groupName ] [ text <| data.name ]
-              in
-                 div
-                    []
-                    [ text "Select AgentGroups:"
-                    , Select.select
-                        [ Select.onChange UpdateSelectedConfig, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
-                           {- (List.map toOption model.agentGroups)-}
-                    ]
-            , br [] []-}
             , selectBuildView model
             , Button.button [ Button.secondary, Button.onClick OnClickSubmit, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Submit Future Job" ]
             , br [] []
@@ -372,9 +369,6 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.map MultiSelectMsg <| Multiselect.subscriptions model.selectedSuites
 
-{-subscriptionsAgentsGroups : Model -> Sub Msg
-subscriptionsAgentsGroups model =
-    Sub.map MultiSelectAgentGroups <| Multiselect.subscriptions model.selectedAgentGroups-}
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =

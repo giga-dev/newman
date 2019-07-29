@@ -276,6 +276,8 @@ viewFutureJobs futureJobs =
                 [ td [] [ a [ href <| "#build/" ++ futureJob.buildId ] [ text <| futureJob.buildName ++ " (" ++ futureJob.buildBranch ++ ")" ] ]
                 , td [] [ a [ href <| "#suite/" ++ futureJob.suiteId ] [ text futureJob.suiteName ] ]
                 , td [] [ text futureJob.author ]
+                {-, td [] [ a [ href <| "#agent/" ++ futureJob.agentGroups] [ text futureJob.agentGroups ] ]-}
+                , td [] [ a [ href <| "#agent/" ++ futureJob.suiteId ] [ text futureJob.suiteName ] ]
                 , td [] [ text <| formatTime futureJob.submitTime ]
                 , td []
                     [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickDropFutureJob futureJob.id ]
@@ -291,6 +293,7 @@ viewFutureJobs futureJobs =
                     [ th [] [ text "Build" ]
                     , th [] [ text "Suite Name" ]
                     , th [] [ text "Author" ]
+                    , th [] [ text "Required AgentGroups" ]
                     , th [] [ text "Submit Time" ]
                     , th [] [ text "Actions" ]
                     ]

@@ -683,7 +683,7 @@ public class NewmanResource {
                 }
 
                 //noinspection ConstantConditions
-                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), jobConfig.getId(),jobConfig.getName(),author, agentGroups);
+                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), jobConfig.getId(), jobConfig.getName(), author, agentGroups);
                 response.add(futureJob);
 
                 futureJobDAO.save(futureJob);
@@ -2032,6 +2032,7 @@ public class NewmanResource {
                 List<Job> jobsFilterByRequiredAgentGroups = CapabilitiesAndRequirements.filterByGroupNames(jobsFilterByCapabilities, agentGroup);// filter jobs with not suitable agent group
                 if(!jobsFilterByRequiredAgentGroups.isEmpty()){
                     job = jobsFilterByRequiredAgentGroups.get(0);
+                    System.out.println("after filtering job found with required group : " + job.getRequiredAgentGroups() + " agent group is: " + agentGroup + " job id is: " + job.getId()); //Todo -delete the printing
                 }
                 else {
                     return null;

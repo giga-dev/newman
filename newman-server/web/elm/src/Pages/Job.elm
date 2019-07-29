@@ -209,6 +209,7 @@ viewHeader model job =
             , ( "Start Time", text <| dateFormat job.startTime )
             , ( "End Time", text <| dateFormat job.endTime )
             , ( "# Agents", text <| toString <| List.length job.agents )
+            , ( "# requiredAgentGroups", text <| toString <| List.length job.requiredAgentGroups )
             , ( "# Prep. Agents", text <| toString <| List.length job.preparingAgents )
             , ( "Submitted by", text <| job.submittedBy )
             , ( "Status", div [] [ testsStatus, createSuiteButton ] )
