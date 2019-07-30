@@ -1,0 +1,8 @@
+var _rluiten$elm_date_extra$Date_Extra_TypeAlias$TimeFromFields = F4(
+	function (a, b, c, d) {
+		return {hour: a, minute: b, second: c, millisecond: d};
+	});
+var _rluiten$elm_date_extra$Date_Extra_TypeAlias$DateFromFields = F7(
+	function (a, b, c, d, e, f, g) {
+		return {year: a, month: b, day: c, hour: d, minute: e, second: f, millisecond: g};
+	});

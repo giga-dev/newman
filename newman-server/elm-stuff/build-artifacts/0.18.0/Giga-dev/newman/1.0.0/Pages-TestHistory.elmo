@@ -1,0 +1,116 @@
+var _Giga_dev$newman$Pages_TestHistory$initModel = {
+	table: _Giga_dev$newman$Views_TestHistoryTable$init(
+		{ctor: '[]'}),
+	$arguments: {ctor: '[]'}
+};
+var _Giga_dev$newman$Pages_TestHistory$parseBuildId = _evancz$url_parser$UrlParser$string;
+var _Giga_dev$newman$Pages_TestHistory$Model = F2(
+	function (a, b) {
+		return {table: a, $arguments: b};
+	});
+var _Giga_dev$newman$Pages_TestHistory$TestHistoryTableMsg = function (a) {
+	return {ctor: 'TestHistoryTableMsg', _0: a};
+};
+var _Giga_dev$newman$Pages_TestHistory$view = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('container-fluid'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h2,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('text'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Test History'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$h4,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'Arguments: ',
+								A2(_elm_lang$core$String$join, ' ', model.$arguments))),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$map,
+						_Giga_dev$newman$Pages_TestHistory$TestHistoryTableMsg,
+						_Giga_dev$newman$Views_TestHistoryTable$viewTable(model.table)),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+var _Giga_dev$newman$Pages_TestHistory$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		if (_p0.ctor === 'GetTestHistoryCompleted') {
+			var _p1 = _p0._0;
+			if (_p1.ctor === 'Ok') {
+				var _p3 = _p1._0;
+				var $arguments = function () {
+					var _p2 = _elm_lang$core$List$head(_p3);
+					if (_p2.ctor === 'Just') {
+						return _p2._0.test.$arguments;
+					} else {
+						return {ctor: '[]'};
+					}
+				}();
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							$arguments: $arguments,
+							table: _Giga_dev$newman$Views_TestHistoryTable$init(_p3)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			} else {
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
+		} else {
+			var _p4 = A2(_Giga_dev$newman$Views_TestHistoryTable$update, _p0._0, model.table);
+			var updatedTableModel = _p4._0;
+			var cmd = _p4._1;
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_Utils.update(
+					model,
+					{table: updatedTableModel}),
+				_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Pages_TestHistory$TestHistoryTableMsg, cmd)
+			};
+		}
+	});
+var _Giga_dev$newman$Pages_TestHistory$GetTestHistoryCompleted = function (a) {
+	return {ctor: 'GetTestHistoryCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_TestHistory$getTestHistory = function (testId) {
+	return A2(
+		_elm_lang$http$Http$send,
+		_Giga_dev$newman$Pages_TestHistory$GetTestHistoryCompleted,
+		A2(
+			_elm_lang$http$Http$get,
+			A2(_elm_lang$core$Basics_ops['++'], '/api/newman/test-history?id=', testId),
+			_Giga_dev$newman$Utils_Types$decodeTestHistoryItems));
+};
+var _Giga_dev$newman$Pages_TestHistory$initCmd = function (buildId) {
+	return _Giga_dev$newman$Pages_TestHistory$getTestHistory(buildId);
+};

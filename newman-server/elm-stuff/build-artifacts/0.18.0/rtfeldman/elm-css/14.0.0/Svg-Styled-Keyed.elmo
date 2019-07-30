@@ -1,0 +1,8 @@
+var _rtfeldman$elm_css$Svg_Styled_Keyed$node = F3(
+	function (name, attrs, children) {
+		return A3(
+			_rtfeldman$elm_css$VirtualDom_Styled$keyedNode,
+			name,
+			{ctor: '::', _0: _rtfeldman$elm_css$Svg_Styled_Internal$svgNamespace, _1: attrs},
+			children);
+	});

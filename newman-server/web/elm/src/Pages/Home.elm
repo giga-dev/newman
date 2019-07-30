@@ -276,8 +276,7 @@ viewFutureJobs futureJobs =
                 [ td [] [ a [ href <| "#build/" ++ futureJob.buildId ] [ text <| futureJob.buildName ++ " (" ++ futureJob.buildBranch ++ ")" ] ]
                 , td [] [ a [ href <| "#suite/" ++ futureJob.suiteId ] [ text futureJob.suiteName ] ]
                 , td [] [ text futureJob.author ]
-                {-, td [] [ a [ href <| "#agent/" ++ futureJob.agentGroups] [ text futureJob.agentGroups ] ]-}
-                , td [] [ a [ href <| "#agent/" ++ futureJob.suiteId ] [ text futureJob.suiteName ] ]
+                , td [] [ text (String.join "," futureJob.agentGroups)]
                 , td [] [ text <| formatTime futureJob.submitTime ]
                 , td []
                     [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickDropFutureJob futureJob.id ]

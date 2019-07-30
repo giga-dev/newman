@@ -1,0 +1,230 @@
+var _MadonnaMat$elm_select_two$SelectTwo_Private$uncurry3 = F2(
+	function (f, _p0) {
+		var _p1 = _p0;
+		return A3(f, _p1._0, _p1._1, _p1._2);
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Private$defaultParams = function (filter) {
+	return {page: 1, term: filter, more: false, loading: true};
+};
+var _MadonnaMat$elm_select_two$SelectTwo_Private$asTuple = F3(
+	function (f1, f2, a) {
+		return {
+			ctor: '_Tuple2',
+			_0: f1(a),
+			_1: f2(a)
+		};
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Private$decodeIf = F3(
+	function (pred, inDec, outDec) {
+		var cond = function (x) {
+			return pred(x) ? outDec : _elm_lang$core$Json_Decode$fail('');
+		};
+		return A2(_elm_lang$core$Json_Decode$andThen, cond, inDec);
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Private$className = A2(
+	_elm_lang$core$Json_Decode$field,
+	'className',
+	_elm_lang$core$Json_Decode$maybe(_elm_lang$core$Json_Decode$string));
+var _MadonnaMat$elm_select_two$SelectTwo_Private$hasClass = function ($class) {
+	return A2(
+		_MadonnaMat$elm_select_two$SelectTwo_Private$decodeIf,
+		function (_p2) {
+			return A2(
+				_elm_lang$core$Maybe$withDefault,
+				false,
+				A2(
+					_elm_lang$core$Maybe$map,
+					function (_p3) {
+						return A2(
+							_elm_lang$core$List$member,
+							$class,
+							A2(_elm_lang$core$String$split, ' ', _p3));
+					},
+					_p2));
+		},
+		_MadonnaMat$elm_select_two$SelectTwo_Private$className);
+};
+var _MadonnaMat$elm_select_two$SelectTwo_Private$closest = F2(
+	function ($class, decoder) {
+		var body = function (_p4) {
+			var _p5 = _p4;
+			return _elm_lang$core$Json_Decode$oneOf(
+				{
+					ctor: '::',
+					_0: A2(_MadonnaMat$elm_select_two$SelectTwo_Private$hasClass, $class, decoder),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$core$Json_Decode$field,
+							'parentElement',
+							A2(_MadonnaMat$elm_select_two$SelectTwo_Private$closest, $class, decoder)),
+						_1: {ctor: '[]'}
+					}
+				});
+		};
+		return _elm_lang$core$Json_Decode$lazy(body);
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Private$px = function (_p6) {
+	return A3(
+		_elm_lang$core$Basics$flip,
+		F2(
+			function (x, y) {
+				return A2(_elm_lang$core$Basics_ops['++'], x, y);
+			}),
+		'px',
+		_elm_lang$core$Basics$toString(_p6));
+};
+var _MadonnaMat$elm_select_two$SelectTwo_Private$buildDropdown = F8(
+	function (id_, defaults, list, showSearch, ajax, delay, noResultsMessage, _p7) {
+		var _p8 = _p7;
+		return {id_: id_, defaults: defaults, list: list, showSearch: showSearch, x: _p8._0._0, y: _p8._0._1, width: _p8._1, ajax: ajax, delay: delay, noResultsMessage: noResultsMessage};
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Private$parentSize = F2(
+	function (dir, oldParents) {
+		var uncons = _elm_community$list_extra$List_Extra$uncons(oldParents);
+		var _p9 = uncons;
+		if (_p9.ctor === 'Just') {
+			var _p12 = _p9._0._0;
+			return A3(
+				_elm_lang$core$Json_Decode$map2,
+				F2(
+					function (x, y) {
+						return x + y;
+					}),
+				A2(_MadonnaMat$elm_select_two$SelectTwo_Private$parentSize, dir, _p9._0._1),
+				A3(
+					_elm_lang$core$Json_Decode$map2,
+					F2(
+						function (x, y) {
+							return x - y;
+						}),
+					function (_p10) {
+						return A2(
+							_MadonnaMat$elm_select_two$SelectTwo_Private$closest,
+							_p12,
+							A2(
+								_elm_lang$core$Json_Decode$field,
+								A2(_elm_lang$core$Basics_ops['++'], 'offset', dir),
+								_p10));
+					}(_elm_lang$core$Json_Decode$float),
+					function (_p11) {
+						return A2(
+							_MadonnaMat$elm_select_two$SelectTwo_Private$closest,
+							_p12,
+							A2(
+								_elm_lang$core$Json_Decode$field,
+								A2(_elm_lang$core$Basics_ops['++'], 'scroll', dir),
+								_p11));
+					}(_elm_lang$core$Json_Decode$float)));
+		} else {
+			return A2(_elm_lang$core$Json_Decode$field, 'scrollTop', _elm_lang$core$Json_Decode$float);
+		}
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Private$location = F9(
+	function (id_, sender, defaults, list, parents, showSearch, noResultsMessage, ajax, delay) {
+		return function (_p13) {
+			return A2(
+				_elm_lang$core$Json_Decode$field,
+				'target',
+				A2(_MadonnaMat$elm_select_two$SelectTwo_Private$closest, 'select2', _p13));
+		}(
+			A2(
+				_elm_lang$core$Json_Decode$map,
+				function (_p14) {
+					return sender(
+						A2(_MadonnaMat$elm_select_two$SelectTwo_Types$SelectTwoTrigger, parents, _p14));
+				},
+				A2(
+					_elm_lang$core$Json_Decode$map,
+					A7(_MadonnaMat$elm_select_two$SelectTwo_Private$buildDropdown, id_, defaults, list, showSearch, ajax, delay, noResultsMessage),
+					A3(
+						_elm_lang$core$Json_Decode$map2,
+						F2(
+							function (v0, v1) {
+								return {ctor: '_Tuple2', _0: v0, _1: v1};
+							}),
+						A3(
+							_elm_lang$core$Json_Decode$map2,
+							F2(
+								function (v0, v1) {
+									return {ctor: '_Tuple2', _0: v0, _1: v1};
+								}),
+							A3(
+								_elm_lang$core$Json_Decode$map2,
+								F2(
+									function (x, y) {
+										return x + y;
+									}),
+								A2(
+									_elm_lang$core$Json_Decode$at,
+									{
+										ctor: '::',
+										_0: 'offsetLeft',
+										_1: {ctor: '[]'}
+									},
+									_elm_lang$core$Json_Decode$float),
+								A2(_MadonnaMat$elm_select_two$SelectTwo_Private$parentSize, 'Left', parents)),
+							A3(
+								_elm_lang$core$Json_Decode$map2,
+								F2(
+									function (x, y) {
+										return x + y;
+									}),
+								A2(
+									_elm_lang$core$Json_Decode$at,
+									{
+										ctor: '::',
+										_0: 'clientHeight',
+										_1: {ctor: '[]'}
+									},
+									_elm_lang$core$Json_Decode$float),
+								A3(
+									_elm_lang$core$Json_Decode$map2,
+									F2(
+										function (x, y) {
+											return x + y;
+										}),
+									A2(
+										_elm_lang$core$Json_Decode$at,
+										{
+											ctor: '::',
+											_0: 'offsetTop',
+											_1: {ctor: '[]'}
+										},
+										_elm_lang$core$Json_Decode$float),
+									A2(_MadonnaMat$elm_select_two$SelectTwo_Private$parentSize, 'Top', parents)))),
+						A2(
+							_elm_lang$core$Json_Decode$at,
+							{
+								ctor: '::',
+								_0: 'offsetWidth',
+								_1: {ctor: '[]'}
+							},
+							_elm_lang$core$Json_Decode$float)))));
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Private$filterList = F2(
+	function (filter, _p15) {
+		var _p16 = _p15;
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			true,
+			A2(
+				_elm_lang$core$Maybe$andThen,
+				function (_p17) {
+					return _elm_lang$core$Maybe$Just(
+						A3(
+							_elm_lang$core$Basics$flip,
+							_elm_lang$core$String$contains,
+							_elm_lang$core$String$toLower(_p16._1),
+							_elm_lang$core$String$toLower(_p17)));
+				},
+				filter));
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Private$filterGroup = F2(
+	function (filter, list) {
+		return A2(
+			_elm_lang$core$Tuple$mapSecond,
+			_elm_lang$core$List$filter(
+				_MadonnaMat$elm_select_two$SelectTwo_Private$filterList(filter)),
+			list);
+	});

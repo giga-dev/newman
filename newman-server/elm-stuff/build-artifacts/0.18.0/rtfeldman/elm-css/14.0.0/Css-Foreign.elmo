@@ -1,0 +1,333 @@
+var _rtfeldman$elm_css$Css_Foreign$collectSelectors = function (declarations) {
+	collectSelectors:
+	while (true) {
+		var _p0 = declarations;
+		if (_p0.ctor === '[]') {
+			return {ctor: '[]'};
+		} else {
+			if (_p0._0.ctor === 'StyleBlockDeclaration') {
+				return A2(
+					_elm_lang$core$Basics_ops['++'],
+					{
+						ctor: '::',
+						_0: A2(_rtfeldman$elm_css$Css_Foreign$unwrapSelector, _p0._0._0._0, _p0._0._0._2),
+						_1: _p0._0._0._1
+					},
+					_rtfeldman$elm_css$Css_Foreign$collectSelectors(_p0._1));
+			} else {
+				var _v1 = _p0._1;
+				declarations = _v1;
+				continue collectSelectors;
+			}
+		}
+	}
+};
+var _rtfeldman$elm_css$Css_Foreign$unwrapSelector = F2(
+	function (_p1, styles) {
+		var _p2 = _p1;
+		var unwrapCombinatorSelector = F2(
+			function (style, cs) {
+				var _p3 = style;
+				if (_p3.ctor === 'NestSnippet') {
+					return A2(
+						_elm_lang$core$List$append,
+						cs,
+						A2(
+							_elm_lang$core$List$map,
+							function (_p4) {
+								var _p5 = _p4;
+								return {ctor: '_Tuple2', _0: _p3._0, _1: _p5._0};
+							},
+							A2(
+								_elm_lang$core$List$concatMap,
+								function (_p6) {
+									return _rtfeldman$elm_css$Css_Foreign$collectSelectors(
+										_rtfeldman$elm_css$Css_Preprocess$unwrapSnippet(_p6));
+								},
+								_p3._1)));
+				} else {
+					return cs;
+				}
+			});
+		var unwrapSequenceSelector = F2(
+			function (style, s) {
+				var _p7 = style;
+				if (_p7.ctor === 'ExtendSelector') {
+					return A3(
+						_elm_lang$core$List$foldr,
+						unwrapSequenceSelector,
+						A2(_rtfeldman$elm_css$Css_Structure$appendRepeatable, _p7._0, s),
+						_p7._1);
+				} else {
+					return s;
+				}
+			});
+		return A3(
+			_rtfeldman$elm_css$Css_Structure$Selector,
+			A3(_elm_lang$core$List$foldr, unwrapSequenceSelector, _p2._0, styles),
+			A3(_elm_lang$core$List$foldr, unwrapCombinatorSelector, _p2._1, styles),
+			_p2._2);
+	});
+var _rtfeldman$elm_css$Css_Foreign$typeSelector = F2(
+	function (selectorStr, styles) {
+		var sequence = A2(
+			_rtfeldman$elm_css$Css_Structure$TypeSelectorSequence,
+			_rtfeldman$elm_css$Css_Structure$TypeSelector(selectorStr),
+			{ctor: '[]'});
+		var selector = A3(
+			_rtfeldman$elm_css$Css_Structure$Selector,
+			sequence,
+			{ctor: '[]'},
+			_elm_lang$core$Maybe$Nothing);
+		return _rtfeldman$elm_css$Css_Preprocess$Snippet(
+			{
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css_Preprocess$StyleBlockDeclaration(
+					A3(
+						_rtfeldman$elm_css$Css_Preprocess$StyleBlock,
+						selector,
+						{ctor: '[]'},
+						styles)),
+				_1: {ctor: '[]'}
+			});
+	});
+var _rtfeldman$elm_css$Css_Foreign$html = _rtfeldman$elm_css$Css_Foreign$typeSelector('html');
+var _rtfeldman$elm_css$Css_Foreign$body = _rtfeldman$elm_css$Css_Foreign$typeSelector('body');
+var _rtfeldman$elm_css$Css_Foreign$article = _rtfeldman$elm_css$Css_Foreign$typeSelector('article');
+var _rtfeldman$elm_css$Css_Foreign$header = _rtfeldman$elm_css$Css_Foreign$typeSelector('header');
+var _rtfeldman$elm_css$Css_Foreign$footer = _rtfeldman$elm_css$Css_Foreign$typeSelector('footer');
+var _rtfeldman$elm_css$Css_Foreign$h1 = _rtfeldman$elm_css$Css_Foreign$typeSelector('h1');
+var _rtfeldman$elm_css$Css_Foreign$h2 = _rtfeldman$elm_css$Css_Foreign$typeSelector('h2');
+var _rtfeldman$elm_css$Css_Foreign$h3 = _rtfeldman$elm_css$Css_Foreign$typeSelector('h3');
+var _rtfeldman$elm_css$Css_Foreign$h4 = _rtfeldman$elm_css$Css_Foreign$typeSelector('h4');
+var _rtfeldman$elm_css$Css_Foreign$h5 = _rtfeldman$elm_css$Css_Foreign$typeSelector('h5');
+var _rtfeldman$elm_css$Css_Foreign$h6 = _rtfeldman$elm_css$Css_Foreign$typeSelector('h6');
+var _rtfeldman$elm_css$Css_Foreign$nav = _rtfeldman$elm_css$Css_Foreign$typeSelector('nav');
+var _rtfeldman$elm_css$Css_Foreign$menu = _rtfeldman$elm_css$Css_Foreign$typeSelector('menu');
+var _rtfeldman$elm_css$Css_Foreign$section = _rtfeldman$elm_css$Css_Foreign$typeSelector('section');
+var _rtfeldman$elm_css$Css_Foreign$aside = _rtfeldman$elm_css$Css_Foreign$typeSelector('aside');
+var _rtfeldman$elm_css$Css_Foreign$time = _rtfeldman$elm_css$Css_Foreign$typeSelector('time');
+var _rtfeldman$elm_css$Css_Foreign$div = _rtfeldman$elm_css$Css_Foreign$typeSelector('div');
+var _rtfeldman$elm_css$Css_Foreign$hr = _rtfeldman$elm_css$Css_Foreign$typeSelector('hr');
+var _rtfeldman$elm_css$Css_Foreign$li = _rtfeldman$elm_css$Css_Foreign$typeSelector('li');
+var _rtfeldman$elm_css$Css_Foreign$main_ = _rtfeldman$elm_css$Css_Foreign$typeSelector('main');
+var _rtfeldman$elm_css$Css_Foreign$ol = _rtfeldman$elm_css$Css_Foreign$typeSelector('ol');
+var _rtfeldman$elm_css$Css_Foreign$p = _rtfeldman$elm_css$Css_Foreign$typeSelector('p');
+var _rtfeldman$elm_css$Css_Foreign$ul = _rtfeldman$elm_css$Css_Foreign$typeSelector('ul');
+var _rtfeldman$elm_css$Css_Foreign$pre = _rtfeldman$elm_css$Css_Foreign$typeSelector('pre');
+var _rtfeldman$elm_css$Css_Foreign$dl = _rtfeldman$elm_css$Css_Foreign$typeSelector('dl');
+var _rtfeldman$elm_css$Css_Foreign$dt = _rtfeldman$elm_css$Css_Foreign$typeSelector('dt');
+var _rtfeldman$elm_css$Css_Foreign$dd = _rtfeldman$elm_css$Css_Foreign$typeSelector('dd');
+var _rtfeldman$elm_css$Css_Foreign$a = _rtfeldman$elm_css$Css_Foreign$typeSelector('a');
+var _rtfeldman$elm_css$Css_Foreign$code = _rtfeldman$elm_css$Css_Foreign$typeSelector('code');
+var _rtfeldman$elm_css$Css_Foreign$small = _rtfeldman$elm_css$Css_Foreign$typeSelector('small');
+var _rtfeldman$elm_css$Css_Foreign$span = _rtfeldman$elm_css$Css_Foreign$typeSelector('span');
+var _rtfeldman$elm_css$Css_Foreign$strong = _rtfeldman$elm_css$Css_Foreign$typeSelector('strong');
+var _rtfeldman$elm_css$Css_Foreign$i = _rtfeldman$elm_css$Css_Foreign$typeSelector('i');
+var _rtfeldman$elm_css$Css_Foreign$em = _rtfeldman$elm_css$Css_Foreign$typeSelector('em');
+var _rtfeldman$elm_css$Css_Foreign$q = _rtfeldman$elm_css$Css_Foreign$typeSelector('q');
+var _rtfeldman$elm_css$Css_Foreign$img = _rtfeldman$elm_css$Css_Foreign$typeSelector('img');
+var _rtfeldman$elm_css$Css_Foreign$audio = _rtfeldman$elm_css$Css_Foreign$typeSelector('audio');
+var _rtfeldman$elm_css$Css_Foreign$video = _rtfeldman$elm_css$Css_Foreign$typeSelector('video');
+var _rtfeldman$elm_css$Css_Foreign$canvas = _rtfeldman$elm_css$Css_Foreign$typeSelector('canvas');
+var _rtfeldman$elm_css$Css_Foreign$caption = _rtfeldman$elm_css$Css_Foreign$typeSelector('caption');
+var _rtfeldman$elm_css$Css_Foreign$col = _rtfeldman$elm_css$Css_Foreign$typeSelector('col');
+var _rtfeldman$elm_css$Css_Foreign$colgroup = _rtfeldman$elm_css$Css_Foreign$typeSelector('colgroup');
+var _rtfeldman$elm_css$Css_Foreign$table = _rtfeldman$elm_css$Css_Foreign$typeSelector('table');
+var _rtfeldman$elm_css$Css_Foreign$tbody = _rtfeldman$elm_css$Css_Foreign$typeSelector('tbody');
+var _rtfeldman$elm_css$Css_Foreign$td = _rtfeldman$elm_css$Css_Foreign$typeSelector('td');
+var _rtfeldman$elm_css$Css_Foreign$tfoot = _rtfeldman$elm_css$Css_Foreign$typeSelector('tfoot');
+var _rtfeldman$elm_css$Css_Foreign$th = _rtfeldman$elm_css$Css_Foreign$typeSelector('th');
+var _rtfeldman$elm_css$Css_Foreign$thead = _rtfeldman$elm_css$Css_Foreign$typeSelector('thead');
+var _rtfeldman$elm_css$Css_Foreign$tr = _rtfeldman$elm_css$Css_Foreign$typeSelector('tr');
+var _rtfeldman$elm_css$Css_Foreign$button = _rtfeldman$elm_css$Css_Foreign$typeSelector('button');
+var _rtfeldman$elm_css$Css_Foreign$fieldset = _rtfeldman$elm_css$Css_Foreign$typeSelector('fieldset');
+var _rtfeldman$elm_css$Css_Foreign$form = _rtfeldman$elm_css$Css_Foreign$typeSelector('form');
+var _rtfeldman$elm_css$Css_Foreign$input = _rtfeldman$elm_css$Css_Foreign$typeSelector('input');
+var _rtfeldman$elm_css$Css_Foreign$label = _rtfeldman$elm_css$Css_Foreign$typeSelector('label');
+var _rtfeldman$elm_css$Css_Foreign$legend = _rtfeldman$elm_css$Css_Foreign$typeSelector('legend');
+var _rtfeldman$elm_css$Css_Foreign$optgroup = _rtfeldman$elm_css$Css_Foreign$typeSelector('optgroup');
+var _rtfeldman$elm_css$Css_Foreign$option = _rtfeldman$elm_css$Css_Foreign$typeSelector('option');
+var _rtfeldman$elm_css$Css_Foreign$progress = _rtfeldman$elm_css$Css_Foreign$typeSelector('progress');
+var _rtfeldman$elm_css$Css_Foreign$select = _rtfeldman$elm_css$Css_Foreign$typeSelector('select');
+var _rtfeldman$elm_css$Css_Foreign$textarea = _rtfeldman$elm_css$Css_Foreign$typeSelector('textarea');
+var _rtfeldman$elm_css$Css_Foreign$blockquote = _rtfeldman$elm_css$Css_Foreign$typeSelector('blockquote');
+var _rtfeldman$elm_css$Css_Foreign$svg = _rtfeldman$elm_css$Css_Foreign$typeSelector('svg');
+var _rtfeldman$elm_css$Css_Foreign$path = _rtfeldman$elm_css$Css_Foreign$typeSelector('path');
+var _rtfeldman$elm_css$Css_Foreign$rect = _rtfeldman$elm_css$Css_Foreign$typeSelector('rect');
+var _rtfeldman$elm_css$Css_Foreign$circle = _rtfeldman$elm_css$Css_Foreign$typeSelector('circle');
+var _rtfeldman$elm_css$Css_Foreign$ellipse = _rtfeldman$elm_css$Css_Foreign$typeSelector('ellipse');
+var _rtfeldman$elm_css$Css_Foreign$line = _rtfeldman$elm_css$Css_Foreign$typeSelector('line');
+var _rtfeldman$elm_css$Css_Foreign$polyline = _rtfeldman$elm_css$Css_Foreign$typeSelector('polyline');
+var _rtfeldman$elm_css$Css_Foreign$polygon = _rtfeldman$elm_css$Css_Foreign$typeSelector('polygon');
+var _rtfeldman$elm_css$Css_Foreign$each = F2(
+	function (snippetCreators, styles) {
+		var selectorsToSnippet = function (selectors) {
+			var _p8 = selectors;
+			if (_p8.ctor === '[]') {
+				return _rtfeldman$elm_css$Css_Preprocess$Snippet(
+					{ctor: '[]'});
+			} else {
+				return _rtfeldman$elm_css$Css_Preprocess$Snippet(
+					{
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css_Preprocess$StyleBlockDeclaration(
+							A3(_rtfeldman$elm_css$Css_Preprocess$StyleBlock, _p8._0, _p8._1, styles)),
+						_1: {ctor: '[]'}
+					});
+			}
+		};
+		return selectorsToSnippet(
+			_rtfeldman$elm_css$Css_Foreign$collectSelectors(
+				A2(
+					_elm_lang$core$List$concatMap,
+					_rtfeldman$elm_css$Css_Preprocess$unwrapSnippet,
+					A2(
+						_elm_lang$core$List$map,
+						F2(
+							function (x, y) {
+								return y(x);
+							})(
+							{ctor: '[]'}),
+						snippetCreators))));
+	});
+var _rtfeldman$elm_css$Css_Foreign$generalSiblings = _rtfeldman$elm_css$Css_Preprocess$NestSnippet(_rtfeldman$elm_css$Css_Structure$GeneralSibling);
+var _rtfeldman$elm_css$Css_Foreign$adjacentSiblings = _rtfeldman$elm_css$Css_Preprocess$NestSnippet(_rtfeldman$elm_css$Css_Structure$AdjacentSibling);
+var _rtfeldman$elm_css$Css_Foreign$descendants = _rtfeldman$elm_css$Css_Preprocess$NestSnippet(_rtfeldman$elm_css$Css_Structure$Descendant);
+var _rtfeldman$elm_css$Css_Foreign$withClass = function ($class) {
+	return _rtfeldman$elm_css$Css_Preprocess$ExtendSelector(
+		_rtfeldman$elm_css$Css_Structure$ClassSelector(
+			A2(_rtfeldman$elm_css_util$Css_Helpers$identifierToString, '', $class)));
+};
+var _rtfeldman$elm_css$Css_Foreign$children = _rtfeldman$elm_css$Css_Preprocess$NestSnippet(_rtfeldman$elm_css$Css_Structure$Child);
+var _rtfeldman$elm_css$Css_Foreign$media = F2(
+	function (queries, snippets) {
+		var nestedMediaRules = function (declarations) {
+			nestedMediaRules:
+			while (true) {
+				var _p9 = declarations;
+				if (_p9.ctor === '[]') {
+					return {ctor: '[]'};
+				} else {
+					switch (_p9._0.ctor) {
+						case 'StyleBlockDeclaration':
+							var _v8 = _p9._1;
+							declarations = _v8;
+							continue nestedMediaRules;
+						case 'MediaRule':
+							return {
+								ctor: '::',
+								_0: A2(
+									_rtfeldman$elm_css$Css_Preprocess$MediaRule,
+									A2(_elm_lang$core$List$append, queries, _p9._0._0),
+									_p9._0._1),
+								_1: nestedMediaRules(_p9._1)
+							};
+						default:
+							return {
+								ctor: '::',
+								_0: _p9._0,
+								_1: nestedMediaRules(_p9._1)
+							};
+					}
+				}
+			}
+		};
+		var extractStyleBlocks = function (declarations) {
+			extractStyleBlocks:
+			while (true) {
+				var _p10 = declarations;
+				if (_p10.ctor === '[]') {
+					return {ctor: '[]'};
+				} else {
+					if (_p10._0.ctor === 'StyleBlockDeclaration') {
+						return {
+							ctor: '::',
+							_0: _p10._0._0,
+							_1: extractStyleBlocks(_p10._1)
+						};
+					} else {
+						var _v10 = _p10._1;
+						declarations = _v10;
+						continue extractStyleBlocks;
+					}
+				}
+			}
+		};
+		var snippetDeclarations = A2(_elm_lang$core$List$concatMap, _rtfeldman$elm_css$Css_Preprocess$unwrapSnippet, snippets);
+		var mediaRuleFromStyleBlocks = A2(
+			_rtfeldman$elm_css$Css_Preprocess$MediaRule,
+			queries,
+			extractStyleBlocks(snippetDeclarations));
+		return _rtfeldman$elm_css$Css_Preprocess$Snippet(
+			{
+				ctor: '::',
+				_0: mediaRuleFromStyleBlocks,
+				_1: nestedMediaRules(snippetDeclarations)
+			});
+	});
+var _rtfeldman$elm_css$Css_Foreign$mediaQuery = F2(
+	function (stringQueries, snippets) {
+		return A2(
+			_rtfeldman$elm_css$Css_Foreign$media,
+			A2(_elm_lang$core$List$map, _rtfeldman$elm_css$Css_Structure$CustomQuery, stringQueries),
+			snippets);
+	});
+var _rtfeldman$elm_css$Css_Foreign$everything = function (styles) {
+	return A2(
+		_rtfeldman$elm_css$VirtualDom_Styled$makeSnippet,
+		styles,
+		_rtfeldman$elm_css$Css_Structure$UniversalSelectorSequence(
+			{ctor: '[]'}));
+};
+var _rtfeldman$elm_css$Css_Foreign$selector = F2(
+	function (selectorStr, styles) {
+		return A2(
+			_rtfeldman$elm_css$VirtualDom_Styled$makeSnippet,
+			styles,
+			A2(
+				_rtfeldman$elm_css$Css_Structure$CustomSelector,
+				selectorStr,
+				{ctor: '[]'}));
+	});
+var _rtfeldman$elm_css$Css_Foreign$class = F2(
+	function ($class, styles) {
+		return A2(
+			_rtfeldman$elm_css$VirtualDom_Styled$makeSnippet,
+			styles,
+			_rtfeldman$elm_css$Css_Structure$UniversalSelectorSequence(
+				{
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css_Structure$ClassSelector(
+						A2(_rtfeldman$elm_css_util$Css_Helpers$identifierToString, '', $class)),
+					_1: {ctor: '[]'}
+				}));
+	});
+var _rtfeldman$elm_css$Css_Foreign$id = F2(
+	function (identifier, styles) {
+		return A2(
+			_rtfeldman$elm_css$VirtualDom_Styled$makeSnippet,
+			styles,
+			_rtfeldman$elm_css$Css_Structure$UniversalSelectorSequence(
+				{
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css_Structure$IdSelector(
+						A2(_rtfeldman$elm_css_util$Css_Helpers$identifierToString, '', identifier)),
+					_1: {ctor: '[]'}
+				}));
+	});
+var _rtfeldman$elm_css$Css_Foreign$global = function (snippets) {
+	return _rtfeldman$elm_css$VirtualDom_Styled$unstyledNode(
+		A3(
+			_elm_lang$virtual_dom$VirtualDom$node,
+			'style',
+			{ctor: '[]'},
+			_elm_lang$core$List$singleton(
+				_elm_lang$virtual_dom$VirtualDom$text(
+					function (_) {
+						return _.css;
+					}(
+						_rtfeldman$elm_css$Css_Preprocess_Resolve$compile(
+							_elm_lang$core$List$singleton(
+								_rtfeldman$elm_css$Css_Preprocess$stylesheet(snippets))))))));
+};

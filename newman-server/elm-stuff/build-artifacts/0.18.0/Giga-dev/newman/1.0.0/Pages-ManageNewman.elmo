@@ -1,0 +1,202 @@
+var _Giga_dev$newman$Pages_ManageNewman$statusToString = function (status) {
+	var _p0 = status;
+	switch (_p0.ctor) {
+		case 'RUNNING':
+			return 'RUNNING';
+		case 'SUSPENDING':
+			return 'SUSPENDING';
+		case 'SUSPENDED':
+			return 'SUSPENDED';
+		case 'SUSPEND_FAILED':
+			return 'SUSPEND_FAILED';
+		default:
+			return 'Received Wrong Status';
+	}
+};
+var _Giga_dev$newman$Pages_ManageNewman$Model = function (a) {
+	return {currentStatus: a};
+};
+var _Giga_dev$newman$Pages_ManageNewman$WrongStatus = {ctor: 'WrongStatus'};
+var _Giga_dev$newman$Pages_ManageNewman$SUSPEND_FAILED = {ctor: 'SUSPEND_FAILED'};
+var _Giga_dev$newman$Pages_ManageNewman$SUSPENDED = {ctor: 'SUSPENDED'};
+var _Giga_dev$newman$Pages_ManageNewman$SUSPENDING = {ctor: 'SUSPENDING'};
+var _Giga_dev$newman$Pages_ManageNewman$RUNNING = {ctor: 'RUNNING'};
+var _Giga_dev$newman$Pages_ManageNewman$stringToStatus = function (str) {
+	var _p1 = str;
+	switch (_p1) {
+		case 'RUNNING':
+			return _Giga_dev$newman$Pages_ManageNewman$RUNNING;
+		case 'SUSPENDING':
+			return _Giga_dev$newman$Pages_ManageNewman$SUSPENDING;
+		case 'SUSPENDED':
+			return _Giga_dev$newman$Pages_ManageNewman$SUSPENDED;
+		case 'SUSPEND_FAILED':
+			return _Giga_dev$newman$Pages_ManageNewman$SUSPEND_FAILED;
+		default:
+			return _Giga_dev$newman$Pages_ManageNewman$WrongStatus;
+	}
+};
+var _Giga_dev$newman$Pages_ManageNewman$WebSocketEvent = function (a) {
+	return {ctor: 'WebSocketEvent', _0: a};
+};
+var _Giga_dev$newman$Pages_ManageNewman$handleEvent = function (event) {
+	return A2(_Giga_dev$newman$Utils_WebSocket_ops['=>'], event, _Giga_dev$newman$Pages_ManageNewman$WebSocketEvent);
+};
+var _Giga_dev$newman$Pages_ManageNewman$SuspendRequestCompleted = function (a) {
+	return {ctor: 'SuspendRequestCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_ManageNewman$onClickButtonCmd = function (model) {
+	var op = function () {
+		var _p2 = model.currentStatus;
+		if (_p2.ctor === 'RUNNING') {
+			return 'suspend';
+		} else {
+			return 'unsuspend';
+		}
+	}();
+	return A2(
+		_elm_lang$http$Http$send,
+		_Giga_dev$newman$Pages_ManageNewman$SuspendRequestCompleted,
+		_elm_lang$http$Http$request(
+			{
+				method: 'POST',
+				headers: {ctor: '[]'},
+				url: A2(_elm_lang$core$Basics_ops['++'], '/api/newman/', op),
+				body: _elm_lang$http$Http$emptyBody,
+				expect: _elm_lang$http$Http$expectString,
+				timeout: _elm_lang$core$Maybe$Nothing,
+				withCredentials: false
+			}));
+};
+var _Giga_dev$newman$Pages_ManageNewman$update = F2(
+	function (msg, model) {
+		var _p3 = msg;
+		switch (_p3.ctor) {
+			case 'GotNewmanStatus':
+				var _p4 = _p3._0;
+				if (_p4.ctor === 'Err') {
+					var _p5 = A2(_elm_lang$core$Debug$log, 'error', _p4._0);
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentStatus: _Giga_dev$newman$Pages_ManageNewman$stringToStatus(_p4._0)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+			case 'WebSocketEvent':
+				var _p6 = _p3._0;
+				if (_p6.ctor === 'ModifiedServerStatus') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentStatus: _Giga_dev$newman$Pages_ManageNewman$stringToStatus(_p6._0)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'OnClickSuspendButton':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _Giga_dev$newman$Pages_ManageNewman$onClickButtonCmd(model)
+				};
+			default:
+				var _p7 = _p3._0;
+				if (_p7.ctor === 'Err') {
+					var _p8 = A2(_elm_lang$core$Debug$log, 'error', _p7._0);
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+		}
+	});
+var _Giga_dev$newman$Pages_ManageNewman$GotNewmanStatus = function (a) {
+	return {ctor: 'GotNewmanStatus', _0: a};
+};
+var _Giga_dev$newman$Pages_ManageNewman$getNewmanStatusCmd = A2(
+	_elm_lang$http$Http$send,
+	_Giga_dev$newman$Pages_ManageNewman$GotNewmanStatus,
+	A2(_elm_lang$http$Http$get, '/api/newman/status', _Giga_dev$newman$Utils_Types$decodeStatus));
+var _Giga_dev$newman$Pages_ManageNewman$init = {
+	ctor: '_Tuple2',
+	_0: {currentStatus: _Giga_dev$newman$Pages_ManageNewman$RUNNING},
+	_1: _Giga_dev$newman$Pages_ManageNewman$getNewmanStatusCmd
+};
+var _Giga_dev$newman$Pages_ManageNewman$OnClickSuspendButton = {ctor: 'OnClickSuspendButton'};
+var _Giga_dev$newman$Pages_ManageNewman$view = function (model) {
+	var buttonColor = _elm_lang$core$Native_Utils.eq(model.currentStatus, _Giga_dev$newman$Pages_ManageNewman$RUNNING) ? _rundis$elm_bootstrap$Bootstrap_Button$danger : _rundis$elm_bootstrap$Bootstrap_Button$success;
+	var updateButtonText = _elm_lang$core$Native_Utils.eq(model.currentStatus, _Giga_dev$newman$Pages_ManageNewman$RUNNING) ? 'Suspend' : 'Unsuspend';
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('container-fluid'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h2,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('text'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Newman Status - ',
+							_Giga_dev$newman$Pages_ManageNewman$statusToString(model.currentStatus))),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Button$button,
+					{
+						ctor: '::',
+						_0: _rundis$elm_bootstrap$Bootstrap_Button$primary,
+						_1: {
+							ctor: '::',
+							_0: buttonColor,
+							_1: {
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(_Giga_dev$newman$Pages_ManageNewman$OnClickSuspendButton),
+								_1: {
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Button$attrs(
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$style(
+												{
+													ctor: '::',
+													_0: {ctor: '_Tuple2', _0: 'margin-top', _1: '15px'},
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(updateButtonText),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		});
+};

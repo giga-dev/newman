@@ -1,0 +1,515 @@
+var _Giga_dev$newman$Views_NewmanModal$viewError = F3(
+	function (txt, toMsg, modalState) {
+		return A2(
+			_rundis$elm_bootstrap$Bootstrap_Modal$view,
+			modalState,
+			A3(
+				_rundis$elm_bootstrap$Bootstrap_Modal$footer,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Button$button,
+						{
+							ctor: '::',
+							_0: _rundis$elm_bootstrap$Bootstrap_Button$outlinePrimary,
+							_1: {
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+									toMsg(_rundis$elm_bootstrap$Bootstrap_Modal$hiddenState)),
+								_1: {ctor: '[]'}
+							}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Close'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				},
+				A3(
+					_rundis$elm_bootstrap$Bootstrap_Modal$body,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$p,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(txt),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					},
+					A3(
+						_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Error occurred!'),
+							_1: {ctor: '[]'}
+						},
+						_rundis$elm_bootstrap$Bootstrap_Modal$small(
+							_rundis$elm_bootstrap$Bootstrap_Modal$config(toMsg))))));
+	});
+var _Giga_dev$newman$Views_NewmanModal$createSuiteForFailedTestsModal = F6(
+	function (maybeSuiteName, maybeMessage, toMsg, onInput, onConfirm, modalState) {
+		var _p0 = maybeSuiteName;
+		if (_p0.ctor === 'Just') {
+			var _p4 = _p0._0;
+			var _p1 = function () {
+				var _p2 = maybeMessage;
+				if (_p2.ctor === 'Just') {
+					var _p3 = _p2._0;
+					if (_p3.ctor === 'Ok') {
+						return {ctor: '_Tuple2', _0: false, _1: _p3._0};
+					} else {
+						return {ctor: '_Tuple2', _0: true, _1: _p3._0};
+					}
+				} else {
+					return {ctor: '_Tuple2', _0: false, _1: ''};
+				}
+			}();
+			var createButtonDisabled = _p1._0;
+			var message = _p1._1;
+			return A2(
+				_rundis$elm_bootstrap$Bootstrap_Modal$view,
+				modalState,
+				A3(
+					_rundis$elm_bootstrap$Bootstrap_Modal$footer,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$style(
+									{
+										ctor: '::',
+										_0: {ctor: '_Tuple2', _0: 'width', _1: '100%'},
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(message),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Button$button,
+								{
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Button$success,
+									_1: {
+										ctor: '::',
+										_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+											onConfirm(_p4)),
+										_1: {
+											ctor: '::',
+											_0: _rundis$elm_bootstrap$Bootstrap_Button$disabled(createButtonDisabled),
+											_1: {ctor: '[]'}
+										}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Create'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Button$button,
+									{
+										ctor: '::',
+										_0: _rundis$elm_bootstrap$Bootstrap_Button$outlinePrimary,
+										_1: {
+											ctor: '::',
+											_0: _rundis$elm_bootstrap$Bootstrap_Button$disabled(createButtonDisabled),
+											_1: {
+												ctor: '::',
+												_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+													toMsg(_rundis$elm_bootstrap$Bootstrap_Modal$hiddenState)),
+												_1: {ctor: '[]'}
+											}
+										}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Close'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					},
+					A3(
+						_rundis$elm_bootstrap$Bootstrap_Modal$body,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$p,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('This will create a suite of all failing tests in this job'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Form$group,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Form$label,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$for('suiteName'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Suite Name:'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {
+											ctor: '::',
+											_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$text(
+												{
+													ctor: '::',
+													_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(onInput),
+													_1: {
+														ctor: '::',
+														_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$id('suiteName'),
+														_1: {
+															ctor: '::',
+															_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$defaultValue(_p4),
+															_1: {
+																ctor: '::',
+																_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$disabled(createButtonDisabled),
+																_1: {ctor: '[]'}
+															}
+														}
+													}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_rundis$elm_bootstrap$Bootstrap_Form$help,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('Make sure it starts with \'dev-\' prefix.'),
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}
+						},
+						A3(
+							_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Create Suite'),
+								_1: {ctor: '[]'}
+							},
+							_rundis$elm_bootstrap$Bootstrap_Modal$large(
+								_rundis$elm_bootstrap$Bootstrap_Modal$config(toMsg))))));
+		} else {
+			return A3(_Giga_dev$newman$Views_NewmanModal$viewError, 'Suite name was not passed', toMsg, modalState);
+		}
+	});
+var _Giga_dev$newman$Views_NewmanModal$confirmAgentDrop = F4(
+	function (maybeAgent, toMsg, confirmMsg, modalState) {
+		var _p5 = maybeAgent;
+		if (_p5 === 'agentNotFound') {
+			return A2(
+				_rundis$elm_bootstrap$Bootstrap_Modal$view,
+				modalState,
+				A3(
+					_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Error: Agent is not defined'),
+						_1: {ctor: '[]'}
+					},
+					_rundis$elm_bootstrap$Bootstrap_Modal$large(
+						_rundis$elm_bootstrap$Bootstrap_Modal$config(toMsg))));
+		} else {
+			var _p6 = _p5;
+			return A2(
+				_rundis$elm_bootstrap$Bootstrap_Modal$view,
+				modalState,
+				A3(
+					_rundis$elm_bootstrap$Bootstrap_Modal$footer,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Button$button,
+							{
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Button$danger,
+								_1: {
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+										confirmMsg(_p6)),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Confirm'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Button$button,
+								{
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Button$outlinePrimary,
+									_1: {
+										ctor: '::',
+										_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+											toMsg(_rundis$elm_bootstrap$Bootstrap_Modal$hiddenState)),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Close'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					},
+					A3(
+						_rundis$elm_bootstrap$Bootstrap_Modal$body,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$p,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										A2(_elm_lang$core$Basics_ops['++'], 'Are you sure you want to delete agent ', _p6)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						},
+						A3(
+							_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Confirmation is required'),
+								_1: {ctor: '[]'}
+							},
+							_rundis$elm_bootstrap$Bootstrap_Modal$large(
+								_rundis$elm_bootstrap$Bootstrap_Modal$config(toMsg))))));
+		}
+	});
+var _Giga_dev$newman$Views_NewmanModal$confirmFutureJobDrop = F4(
+	function (maybeJob, toMsg, confirmMsg, modalState) {
+		var _p7 = maybeJob;
+		if (_p7.ctor === 'Just') {
+			var _p8 = _p7._0;
+			return A2(
+				_rundis$elm_bootstrap$Bootstrap_Modal$view,
+				modalState,
+				A3(
+					_rundis$elm_bootstrap$Bootstrap_Modal$footer,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Button$button,
+							{
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Button$danger,
+								_1: {
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+										confirmMsg(_p8)),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Confirm'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Button$button,
+								{
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Button$outlinePrimary,
+									_1: {
+										ctor: '::',
+										_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+											toMsg(_rundis$elm_bootstrap$Bootstrap_Modal$hiddenState)),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Close'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					},
+					A3(
+						_rundis$elm_bootstrap$Bootstrap_Modal$body,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$p,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										A2(_elm_lang$core$Basics_ops['++'], 'Are you sure you want to delete future job ', _p8)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						},
+						A3(
+							_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Confirmation is required'),
+								_1: {ctor: '[]'}
+							},
+							_rundis$elm_bootstrap$Bootstrap_Modal$large(
+								_rundis$elm_bootstrap$Bootstrap_Modal$config(toMsg))))));
+		} else {
+			return A2(
+				_rundis$elm_bootstrap$Bootstrap_Modal$view,
+				modalState,
+				A3(
+					_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Error: Future Job is not defined'),
+						_1: {ctor: '[]'}
+					},
+					_rundis$elm_bootstrap$Bootstrap_Modal$large(
+						_rundis$elm_bootstrap$Bootstrap_Modal$config(toMsg))));
+		}
+	});
+var _Giga_dev$newman$Views_NewmanModal$confirmJobDrop = F4(
+	function (maybeJob, toMsg, confirmMsg, modalState) {
+		var _p9 = maybeJob;
+		if (_p9.ctor === 'Just') {
+			var _p10 = _p9._0;
+			return A2(
+				_rundis$elm_bootstrap$Bootstrap_Modal$view,
+				modalState,
+				A3(
+					_rundis$elm_bootstrap$Bootstrap_Modal$footer,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Button$button,
+							{
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Button$danger,
+								_1: {
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+										confirmMsg(_p10)),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Confirm'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Button$button,
+								{
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Button$outlinePrimary,
+									_1: {
+										ctor: '::',
+										_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+											toMsg(_rundis$elm_bootstrap$Bootstrap_Modal$hiddenState)),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Close'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					},
+					A3(
+						_rundis$elm_bootstrap$Bootstrap_Modal$body,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$p,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										A2(_elm_lang$core$Basics_ops['++'], 'Are you sure you want to delete job ', _p10)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						},
+						A3(
+							_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Confirmation is required'),
+								_1: {ctor: '[]'}
+							},
+							_rundis$elm_bootstrap$Bootstrap_Modal$large(
+								_rundis$elm_bootstrap$Bootstrap_Modal$config(toMsg))))));
+		} else {
+			return A2(
+				_rundis$elm_bootstrap$Bootstrap_Modal$view,
+				modalState,
+				A3(
+					_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Error: Job is not defined'),
+						_1: {ctor: '[]'}
+					},
+					_rundis$elm_bootstrap$Bootstrap_Modal$large(
+						_rundis$elm_bootstrap$Bootstrap_Modal$config(toMsg))));
+		}
+	});

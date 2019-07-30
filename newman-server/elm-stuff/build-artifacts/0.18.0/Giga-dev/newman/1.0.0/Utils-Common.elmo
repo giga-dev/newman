@@ -1,0 +1,52 @@
+var _Giga_dev$newman$Utils_Common$timestamp = {
+	ctor: '::',
+	_0: _ryannhg$elm_date_format$DateFormat$yearNumber,
+	_1: {
+		ctor: '::',
+		_0: _ryannhg$elm_date_format$DateFormat$monthFixed,
+		_1: {
+			ctor: '::',
+			_0: _ryannhg$elm_date_format$DateFormat$dayOfMonthFixed,
+			_1: {ctor: '[]'}
+		}
+	}
+};
+var _Giga_dev$newman$Utils_Common$hourStringFormat = '%H:%M:%S';
+var _Giga_dev$newman$Utils_Common$dateTimeDateFormat = {
+	ctor: '::',
+	_0: _ryannhg$elm_date_format$DateFormat$monthNameFirstThree,
+	_1: {
+		ctor: '::',
+		_0: _ryannhg$elm_date_format$DateFormat$text(' '),
+		_1: {
+			ctor: '::',
+			_0: _ryannhg$elm_date_format$DateFormat$dayOfMonthNumber,
+			_1: {
+				ctor: '::',
+				_0: _ryannhg$elm_date_format$DateFormat$text(', '),
+				_1: {
+					ctor: '::',
+					_0: _ryannhg$elm_date_format$DateFormat$hourMilitaryNumber,
+					_1: {
+						ctor: '::',
+						_0: _ryannhg$elm_date_format$DateFormat$text(':'),
+						_1: {
+							ctor: '::',
+							_0: _ryannhg$elm_date_format$DateFormat$minuteFixed,
+							_1: {
+								ctor: '::',
+								_0: _ryannhg$elm_date_format$DateFormat$text(':'),
+								_1: {
+									ctor: '::',
+									_0: _ryannhg$elm_date_format$DateFormat$secondFixed,
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var _Giga_dev$newman$Utils_Common$dayTimeStringFormat = '%b %d, %H:%M:%S';

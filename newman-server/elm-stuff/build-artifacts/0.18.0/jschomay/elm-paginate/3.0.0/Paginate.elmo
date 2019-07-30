@@ -1,0 +1,30 @@
+var _jschomay$elm_paginate$Paginate$pager = _jschomay$elm_paginate$Paginate_Custom$pager;
+var _jschomay$elm_paginate$Paginate$page = _jschomay$elm_paginate$Paginate_Custom$page(
+	F2(
+		function (from, to) {
+			return function (_p0) {
+				return A2(
+					_elm_lang$core$List$take,
+					to - from,
+					A2(_elm_lang$core$List$drop, from, _p0));
+			};
+		}));
+var _jschomay$elm_paginate$Paginate$foldMap = _jschomay$elm_paginate$Paginate_Custom$foldMap;
+var _jschomay$elm_paginate$Paginate$allItems = _jschomay$elm_paginate$Paginate_Custom$foldMap(_elm_lang$core$Basics$identity);
+var _jschomay$elm_paginate$Paginate$totalPages = _jschomay$elm_paginate$Paginate_Custom$totalPages;
+var _jschomay$elm_paginate$Paginate$itemsPerPage = _jschomay$elm_paginate$Paginate_Custom$itemsPerPage;
+var _jschomay$elm_paginate$Paginate$currentPage = _jschomay$elm_paginate$Paginate_Custom$currentPage;
+var _jschomay$elm_paginate$Paginate$length = _jschomay$elm_paginate$Paginate_Custom$foldMap(_elm_lang$core$List$length);
+var _jschomay$elm_paginate$Paginate$isLast = _jschomay$elm_paginate$Paginate_Custom$isLast;
+var _jschomay$elm_paginate$Paginate$isFirst = _jschomay$elm_paginate$Paginate_Custom$isFirst;
+var _jschomay$elm_paginate$Paginate$last = _jschomay$elm_paginate$Paginate_Custom$last;
+var _jschomay$elm_paginate$Paginate$first = _jschomay$elm_paginate$Paginate_Custom$first;
+var _jschomay$elm_paginate$Paginate$prev = _jschomay$elm_paginate$Paginate_Custom$prev;
+var _jschomay$elm_paginate$Paginate$next = _jschomay$elm_paginate$Paginate_Custom$next;
+var _jschomay$elm_paginate$Paginate$goTo = _jschomay$elm_paginate$Paginate_Custom$goTo;
+var _jschomay$elm_paginate$Paginate$changeItemsPerPage = _jschomay$elm_paginate$Paginate_Custom$changeItemsPerPage(_elm_lang$core$List$length);
+var _jschomay$elm_paginate$Paginate$map = _jschomay$elm_paginate$Paginate_Custom$map(_elm_lang$core$List$length);
+var _jschomay$elm_paginate$Paginate$fromList = F2(
+	function (a, b) {
+		return A3(_jschomay$elm_paginate$Paginate_Custom$init, _elm_lang$core$List$length, a, b);
+	});

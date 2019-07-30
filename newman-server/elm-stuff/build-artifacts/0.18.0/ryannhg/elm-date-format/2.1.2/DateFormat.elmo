@@ -1,0 +1,564 @@
+var _ryannhg$elm_date_format$DateFormat$toSuffix = function (num) {
+	var suffix = function () {
+		var _p0 = num;
+		switch (_p0) {
+			case 11:
+				return 'th';
+			case 12:
+				return 'th';
+			case 13:
+				return 'th';
+			default:
+				var _p1 = A2(_elm_lang$core$Basics_ops['%'], num, 10);
+				switch (_p1) {
+					case 1:
+						return 'st';
+					case 2:
+						return 'nd';
+					case 3:
+						return 'rd';
+					default:
+						return 'th';
+				}
+		}
+	}();
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(num),
+		suffix);
+};
+var _ryannhg$elm_date_format$DateFormat$toFixedLength = F2(
+	function (totalChars, num) {
+		var numStr = _elm_lang$core$Basics$toString(num);
+		var numZerosNeeded = totalChars - _elm_lang$core$String$length(numStr);
+		var zeros = A2(
+			_elm_lang$core$String$join,
+			'',
+			A2(
+				_elm_lang$core$List$map,
+				function (_p2) {
+					return '0';
+				},
+				A2(_elm_lang$core$List$range, 1, numZerosNeeded)));
+		return A2(_elm_lang$core$Basics_ops['++'], zeros, numStr);
+	});
+var _ryannhg$elm_date_format$DateFormat$toNonMilitary = function (num) {
+	return _elm_lang$core$Native_Utils.eq(num, 0) ? 12 : ((_elm_lang$core$Native_Utils.cmp(num, 12) < 1) ? num : (num - 12));
+};
+var _ryannhg$elm_date_format$DateFormat$amPm = function (date) {
+	return (_elm_lang$core$Native_Utils.cmp(
+		_elm_lang$core$Date$hour(date),
+		11) > 0) ? 'pm' : 'am';
+};
+var _ryannhg$elm_date_format$DateFormat$year = function (date) {
+	return _elm_lang$core$Basics$toString(
+		_elm_lang$core$Date$year(date));
+};
+var _ryannhg$elm_date_format$DateFormat$firstDayOfYear = function (date) {
+	var _p3 = _elm_lang$core$Date$fromString(
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Basics$toString(
+				_elm_lang$core$Date$year(date)),
+			'-01-01T00:00:00.000Z'));
+	if (_p3.ctor === 'Ok') {
+		return _p3._0;
+	} else {
+		return date;
+	}
+};
+var _ryannhg$elm_date_format$DateFormat$dayOfWeekName = function (date) {
+	var _p4 = _elm_lang$core$Date$dayOfWeek(date);
+	switch (_p4.ctor) {
+		case 'Mon':
+			return 'Monday';
+		case 'Tue':
+			return 'Tuesday';
+		case 'Wed':
+			return 'Wednesday';
+		case 'Thu':
+			return 'Thursday';
+		case 'Fri':
+			return 'Friday';
+		case 'Sat':
+			return 'Saturday';
+		default:
+			return 'Sunday';
+	}
+};
+var _ryannhg$elm_date_format$DateFormat$dayOfMonth = _elm_lang$core$Date$day;
+var _ryannhg$elm_date_format$DateFormat$isLeapYear = function (year) {
+	return (!_elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$Basics_ops['%'], year, 4),
+		0)) ? false : ((!_elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$Basics_ops['%'], year, 100),
+		0)) ? true : ((!_elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$Basics_ops['%'], year, 400),
+		0)) ? false : true));
+};
+var _ryannhg$elm_date_format$DateFormat$daysInMonth = F2(
+	function (year, month) {
+		var _p5 = month;
+		switch (_p5.ctor) {
+			case 'Jan':
+				return 31;
+			case 'Feb':
+				return _ryannhg$elm_date_format$DateFormat$isLeapYear(year) ? 29 : 28;
+			case 'Mar':
+				return 31;
+			case 'Apr':
+				return 30;
+			case 'May':
+				return 31;
+			case 'Jun':
+				return 30;
+			case 'Jul':
+				return 31;
+			case 'Aug':
+				return 31;
+			case 'Sep':
+				return 30;
+			case 'Oct':
+				return 31;
+			case 'Nov':
+				return 30;
+			default:
+				return 31;
+		}
+	});
+var _ryannhg$elm_date_format$DateFormat$fullMonthName = function (date) {
+	var _p6 = _elm_lang$core$Date$month(date);
+	switch (_p6.ctor) {
+		case 'Jan':
+			return 'January';
+		case 'Feb':
+			return 'February';
+		case 'Mar':
+			return 'March';
+		case 'Apr':
+			return 'April';
+		case 'May':
+			return 'May';
+		case 'Jun':
+			return 'June';
+		case 'Jul':
+			return 'July';
+		case 'Aug':
+			return 'August';
+		case 'Sep':
+			return 'September';
+		case 'Oct':
+			return 'October';
+		case 'Nov':
+			return 'November';
+		default:
+			return 'December';
+	}
+};
+var _ryannhg$elm_date_format$DateFormat$days = {
+	ctor: '::',
+	_0: _elm_lang$core$Date$Sun,
+	_1: {
+		ctor: '::',
+		_0: _elm_lang$core$Date$Mon,
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$core$Date$Tue,
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$core$Date$Wed,
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$core$Date$Thu,
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$core$Date$Fri,
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$core$Date$Sat,
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var _ryannhg$elm_date_format$DateFormat$dayOfWeek = function (date) {
+	return function (_p7) {
+		var _p8 = _p7;
+		return _p8._0;
+	}(
+		A2(
+			_elm_lang$core$Maybe$withDefault,
+			{ctor: '_Tuple2', _0: 0, _1: _elm_lang$core$Date$Sun},
+			_elm_lang$core$List$head(
+				A2(
+					_elm_lang$core$List$filter,
+					function (_p9) {
+						var _p10 = _p9;
+						return _elm_lang$core$Native_Utils.eq(
+							_p10._1,
+							_elm_lang$core$Date$dayOfWeek(date));
+					},
+					A2(
+						_elm_lang$core$List$indexedMap,
+						F2(
+							function (v0, v1) {
+								return {ctor: '_Tuple2', _0: v0, _1: v1};
+							}),
+						_ryannhg$elm_date_format$DateFormat$days)))));
+};
+var _ryannhg$elm_date_format$DateFormat$months = {
+	ctor: '::',
+	_0: _elm_lang$core$Date$Jan,
+	_1: {
+		ctor: '::',
+		_0: _elm_lang$core$Date$Feb,
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$core$Date$Mar,
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$core$Date$Apr,
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$core$Date$May,
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$core$Date$Jun,
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$core$Date$Jul,
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$core$Date$Aug,
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$core$Date$Sep,
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$core$Date$Oct,
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$core$Date$Nov,
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$core$Date$Dec,
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var _ryannhg$elm_date_format$DateFormat$monthPair = function (date) {
+	return A2(
+		_elm_lang$core$Maybe$withDefault,
+		{ctor: '_Tuple2', _0: 0, _1: _elm_lang$core$Date$Jan},
+		_elm_lang$core$List$head(
+			A2(
+				_elm_lang$core$List$filter,
+				function (_p11) {
+					var _p12 = _p11;
+					return _elm_lang$core$Native_Utils.eq(
+						_p12._1,
+						_elm_lang$core$Date$month(date));
+				},
+				A2(
+					_elm_lang$core$List$indexedMap,
+					F2(
+						function (v0, v1) {
+							return {ctor: '_Tuple2', _0: v0, _1: v1};
+						}),
+					_ryannhg$elm_date_format$DateFormat$months))));
+};
+var _ryannhg$elm_date_format$DateFormat$monthNumber_ = function (date) {
+	return A2(
+		F2(
+			function (x, y) {
+				return x + y;
+			}),
+		1,
+		function (_p13) {
+			var _p14 = _p13;
+			return _p14._0;
+		}(
+			_ryannhg$elm_date_format$DateFormat$monthPair(date)));
+};
+var _ryannhg$elm_date_format$DateFormat$quarter = function (date) {
+	return (_ryannhg$elm_date_format$DateFormat$monthNumber_(date) / 4) | 0;
+};
+var _ryannhg$elm_date_format$DateFormat$dayOfYear = function (date) {
+	var monthsBeforeThisOne = A2(
+		_elm_lang$core$List$take,
+		_ryannhg$elm_date_format$DateFormat$monthNumber_(date) - 1,
+		_ryannhg$elm_date_format$DateFormat$months);
+	var daysBeforeThisMonth = _elm_lang$core$List$sum(
+		A2(
+			_elm_lang$core$List$map,
+			_ryannhg$elm_date_format$DateFormat$daysInMonth(
+				_elm_lang$core$Date$year(date)),
+			monthsBeforeThisOne));
+	return daysBeforeThisMonth + _ryannhg$elm_date_format$DateFormat$dayOfMonth(date);
+};
+var _ryannhg$elm_date_format$DateFormat$weekOfYear = function (date) {
+	var firstDay = _ryannhg$elm_date_format$DateFormat$firstDayOfYear(date);
+	var firstDayOffset = _ryannhg$elm_date_format$DateFormat$dayOfWeek(firstDay);
+	var daysSoFar = _ryannhg$elm_date_format$DateFormat$dayOfYear(date);
+	return (((daysSoFar + firstDayOffset) / 7) | 0) + 1;
+};
+var _ryannhg$elm_date_format$DateFormat$piece = F2(
+	function (date, token) {
+		var _p15 = token;
+		switch (_p15.ctor) {
+			case 'MonthNumber':
+				return _elm_lang$core$Basics$toString(
+					_ryannhg$elm_date_format$DateFormat$monthNumber_(date));
+			case 'MonthSuffix':
+				return _ryannhg$elm_date_format$DateFormat$toSuffix(
+					_ryannhg$elm_date_format$DateFormat$monthNumber_(date));
+			case 'MonthFixed':
+				return A2(
+					_ryannhg$elm_date_format$DateFormat$toFixedLength,
+					2,
+					_ryannhg$elm_date_format$DateFormat$monthNumber_(date));
+			case 'MonthNameFirst':
+				return A2(
+					_elm_lang$core$String$left,
+					_p15._0,
+					_ryannhg$elm_date_format$DateFormat$fullMonthName(date));
+			case 'MonthNameFull':
+				return _ryannhg$elm_date_format$DateFormat$fullMonthName(date);
+			case 'QuarterNumber':
+				return _elm_lang$core$Basics$toString(
+					A2(
+						F2(
+							function (x, y) {
+								return x + y;
+							}),
+						1,
+						_ryannhg$elm_date_format$DateFormat$quarter(date)));
+			case 'QuarterSuffix':
+				return _ryannhg$elm_date_format$DateFormat$toSuffix(
+					A2(
+						F2(
+							function (x, y) {
+								return x + y;
+							}),
+						1,
+						_ryannhg$elm_date_format$DateFormat$quarter(date)));
+			case 'DayOfMonthNumber':
+				return _elm_lang$core$Basics$toString(
+					_ryannhg$elm_date_format$DateFormat$dayOfMonth(date));
+			case 'DayOfMonthSuffix':
+				return _ryannhg$elm_date_format$DateFormat$toSuffix(
+					_ryannhg$elm_date_format$DateFormat$dayOfMonth(date));
+			case 'DayOfMonthFixed':
+				return A2(
+					_ryannhg$elm_date_format$DateFormat$toFixedLength,
+					2,
+					_ryannhg$elm_date_format$DateFormat$dayOfMonth(date));
+			case 'DayOfYearNumber':
+				return _elm_lang$core$Basics$toString(
+					_ryannhg$elm_date_format$DateFormat$dayOfYear(date));
+			case 'DayOfYearSuffix':
+				return _ryannhg$elm_date_format$DateFormat$toSuffix(
+					_ryannhg$elm_date_format$DateFormat$dayOfYear(date));
+			case 'DayOfYearFixed':
+				return A2(
+					_ryannhg$elm_date_format$DateFormat$toFixedLength,
+					3,
+					_ryannhg$elm_date_format$DateFormat$dayOfYear(date));
+			case 'DayOfWeekNumber':
+				return _elm_lang$core$Basics$toString(
+					_ryannhg$elm_date_format$DateFormat$dayOfWeek(date));
+			case 'DayOfWeekSuffix':
+				return _ryannhg$elm_date_format$DateFormat$toSuffix(
+					_ryannhg$elm_date_format$DateFormat$dayOfWeek(date));
+			case 'DayOfWeekNameFirst':
+				return A2(
+					_elm_lang$core$String$left,
+					_p15._0,
+					_ryannhg$elm_date_format$DateFormat$dayOfWeekName(date));
+			case 'DayOfWeekNameFull':
+				return _ryannhg$elm_date_format$DateFormat$dayOfWeekName(date);
+			case 'WeekOfYearNumber':
+				return _elm_lang$core$Basics$toString(
+					_ryannhg$elm_date_format$DateFormat$weekOfYear(date));
+			case 'WeekOfYearSuffix':
+				return _ryannhg$elm_date_format$DateFormat$toSuffix(
+					_ryannhg$elm_date_format$DateFormat$weekOfYear(date));
+			case 'WeekOfYearFixed':
+				return A2(
+					_ryannhg$elm_date_format$DateFormat$toFixedLength,
+					2,
+					_ryannhg$elm_date_format$DateFormat$weekOfYear(date));
+			case 'YearNumberLastTwo':
+				return A2(
+					_elm_lang$core$String$right,
+					2,
+					_ryannhg$elm_date_format$DateFormat$year(date));
+			case 'YearNumber':
+				return _ryannhg$elm_date_format$DateFormat$year(date);
+			case 'AmPmUppercase':
+				return _elm_lang$core$String$toUpper(
+					_ryannhg$elm_date_format$DateFormat$amPm(date));
+			case 'AmPmLowercase':
+				return _elm_lang$core$String$toLower(
+					_ryannhg$elm_date_format$DateFormat$amPm(date));
+			case 'HourMilitaryNumber':
+				return _elm_lang$core$Basics$toString(
+					_elm_lang$core$Date$hour(date));
+			case 'HourMilitaryFixed':
+				return A2(
+					_ryannhg$elm_date_format$DateFormat$toFixedLength,
+					2,
+					_elm_lang$core$Date$hour(date));
+			case 'HourNumber':
+				return _elm_lang$core$Basics$toString(
+					_ryannhg$elm_date_format$DateFormat$toNonMilitary(
+						_elm_lang$core$Date$hour(date)));
+			case 'HourFixed':
+				return A2(
+					_ryannhg$elm_date_format$DateFormat$toFixedLength,
+					2,
+					_ryannhg$elm_date_format$DateFormat$toNonMilitary(
+						_elm_lang$core$Date$hour(date)));
+			case 'HourMilitaryFromOneNumber':
+				return _elm_lang$core$Basics$toString(
+					A2(
+						F2(
+							function (x, y) {
+								return x + y;
+							}),
+						1,
+						_elm_lang$core$Date$hour(date)));
+			case 'HourMilitaryFromOneFixed':
+				return A2(
+					_ryannhg$elm_date_format$DateFormat$toFixedLength,
+					2,
+					A2(
+						F2(
+							function (x, y) {
+								return x + y;
+							}),
+						1,
+						_elm_lang$core$Date$hour(date)));
+			case 'MinuteNumber':
+				return _elm_lang$core$Basics$toString(
+					_elm_lang$core$Date$minute(date));
+			case 'MinuteFixed':
+				return A2(
+					_ryannhg$elm_date_format$DateFormat$toFixedLength,
+					2,
+					_elm_lang$core$Date$minute(date));
+			case 'SecondNumber':
+				return _elm_lang$core$Basics$toString(
+					_elm_lang$core$Date$second(date));
+			case 'SecondFixed':
+				return A2(
+					_ryannhg$elm_date_format$DateFormat$toFixedLength,
+					2,
+					_elm_lang$core$Date$second(date));
+			default:
+				return _p15._0;
+		}
+	});
+var _ryannhg$elm_date_format$DateFormat$format = F2(
+	function (tokens, date) {
+		return A2(
+			_elm_lang$core$String$join,
+			'',
+			A2(
+				_elm_lang$core$List$map,
+				_ryannhg$elm_date_format$DateFormat$piece(date),
+				tokens));
+	});
+var _ryannhg$elm_date_format$DateFormat$SimpleDate = F3(
+	function (a, b, c) {
+		return {month: a, day: b, year: c};
+	});
+var _ryannhg$elm_date_format$DateFormat$Text = function (a) {
+	return {ctor: 'Text', _0: a};
+};
+var _ryannhg$elm_date_format$DateFormat$text = _ryannhg$elm_date_format$DateFormat$Text;
+var _ryannhg$elm_date_format$DateFormat$SecondFixed = {ctor: 'SecondFixed'};
+var _ryannhg$elm_date_format$DateFormat$secondFixed = _ryannhg$elm_date_format$DateFormat$SecondFixed;
+var _ryannhg$elm_date_format$DateFormat$SecondNumber = {ctor: 'SecondNumber'};
+var _ryannhg$elm_date_format$DateFormat$secondNumber = _ryannhg$elm_date_format$DateFormat$SecondNumber;
+var _ryannhg$elm_date_format$DateFormat$MinuteFixed = {ctor: 'MinuteFixed'};
+var _ryannhg$elm_date_format$DateFormat$minuteFixed = _ryannhg$elm_date_format$DateFormat$MinuteFixed;
+var _ryannhg$elm_date_format$DateFormat$MinuteNumber = {ctor: 'MinuteNumber'};
+var _ryannhg$elm_date_format$DateFormat$minuteNumber = _ryannhg$elm_date_format$DateFormat$MinuteNumber;
+var _ryannhg$elm_date_format$DateFormat$HourMilitaryFromOneFixed = {ctor: 'HourMilitaryFromOneFixed'};
+var _ryannhg$elm_date_format$DateFormat$hourMilitaryFromOneFixed = _ryannhg$elm_date_format$DateFormat$HourMilitaryFromOneFixed;
+var _ryannhg$elm_date_format$DateFormat$HourMilitaryFromOneNumber = {ctor: 'HourMilitaryFromOneNumber'};
+var _ryannhg$elm_date_format$DateFormat$hourMilitaryFromOneNumber = _ryannhg$elm_date_format$DateFormat$HourMilitaryFromOneNumber;
+var _ryannhg$elm_date_format$DateFormat$HourFixed = {ctor: 'HourFixed'};
+var _ryannhg$elm_date_format$DateFormat$hourFixed = _ryannhg$elm_date_format$DateFormat$HourFixed;
+var _ryannhg$elm_date_format$DateFormat$HourNumber = {ctor: 'HourNumber'};
+var _ryannhg$elm_date_format$DateFormat$hourNumber = _ryannhg$elm_date_format$DateFormat$HourNumber;
+var _ryannhg$elm_date_format$DateFormat$HourMilitaryFixed = {ctor: 'HourMilitaryFixed'};
+var _ryannhg$elm_date_format$DateFormat$hourMilitaryFixed = _ryannhg$elm_date_format$DateFormat$HourMilitaryFixed;
+var _ryannhg$elm_date_format$DateFormat$HourMilitaryNumber = {ctor: 'HourMilitaryNumber'};
+var _ryannhg$elm_date_format$DateFormat$hourMilitaryNumber = _ryannhg$elm_date_format$DateFormat$HourMilitaryNumber;
+var _ryannhg$elm_date_format$DateFormat$AmPmLowercase = {ctor: 'AmPmLowercase'};
+var _ryannhg$elm_date_format$DateFormat$amPmLowercase = _ryannhg$elm_date_format$DateFormat$AmPmLowercase;
+var _ryannhg$elm_date_format$DateFormat$AmPmUppercase = {ctor: 'AmPmUppercase'};
+var _ryannhg$elm_date_format$DateFormat$amPmUppercase = _ryannhg$elm_date_format$DateFormat$AmPmUppercase;
+var _ryannhg$elm_date_format$DateFormat$WeekOfYearFixed = {ctor: 'WeekOfYearFixed'};
+var _ryannhg$elm_date_format$DateFormat$weekOfYearFixed = _ryannhg$elm_date_format$DateFormat$WeekOfYearFixed;
+var _ryannhg$elm_date_format$DateFormat$WeekOfYearSuffix = {ctor: 'WeekOfYearSuffix'};
+var _ryannhg$elm_date_format$DateFormat$weekOfYearSuffix = _ryannhg$elm_date_format$DateFormat$WeekOfYearSuffix;
+var _ryannhg$elm_date_format$DateFormat$WeekOfYearNumber = {ctor: 'WeekOfYearNumber'};
+var _ryannhg$elm_date_format$DateFormat$weekOfYearNumber = _ryannhg$elm_date_format$DateFormat$WeekOfYearNumber;
+var _ryannhg$elm_date_format$DateFormat$QuarterSuffix = {ctor: 'QuarterSuffix'};
+var _ryannhg$elm_date_format$DateFormat$quarterSuffix = _ryannhg$elm_date_format$DateFormat$QuarterSuffix;
+var _ryannhg$elm_date_format$DateFormat$QuarterNumber = {ctor: 'QuarterNumber'};
+var _ryannhg$elm_date_format$DateFormat$quarterNumber = _ryannhg$elm_date_format$DateFormat$QuarterNumber;
+var _ryannhg$elm_date_format$DateFormat$YearNumber = {ctor: 'YearNumber'};
+var _ryannhg$elm_date_format$DateFormat$yearNumber = _ryannhg$elm_date_format$DateFormat$YearNumber;
+var _ryannhg$elm_date_format$DateFormat$YearNumberLastTwo = {ctor: 'YearNumberLastTwo'};
+var _ryannhg$elm_date_format$DateFormat$yearNumberLastTwo = _ryannhg$elm_date_format$DateFormat$YearNumberLastTwo;
+var _ryannhg$elm_date_format$DateFormat$DayOfWeekNameFull = {ctor: 'DayOfWeekNameFull'};
+var _ryannhg$elm_date_format$DateFormat$dayOfWeekNameFull = _ryannhg$elm_date_format$DateFormat$DayOfWeekNameFull;
+var _ryannhg$elm_date_format$DateFormat$DayOfWeekNameFirst = function (a) {
+	return {ctor: 'DayOfWeekNameFirst', _0: a};
+};
+var _ryannhg$elm_date_format$DateFormat$dayOfWeekNameFirstTwo = _ryannhg$elm_date_format$DateFormat$DayOfWeekNameFirst(2);
+var _ryannhg$elm_date_format$DateFormat$dayOfWeekNameFirstThree = _ryannhg$elm_date_format$DateFormat$DayOfWeekNameFirst(3);
+var _ryannhg$elm_date_format$DateFormat$DayOfWeekSuffix = {ctor: 'DayOfWeekSuffix'};
+var _ryannhg$elm_date_format$DateFormat$dayOfWeekSuffix = _ryannhg$elm_date_format$DateFormat$DayOfWeekSuffix;
+var _ryannhg$elm_date_format$DateFormat$DayOfWeekNumber = {ctor: 'DayOfWeekNumber'};
+var _ryannhg$elm_date_format$DateFormat$dayOfWeekNumber = _ryannhg$elm_date_format$DateFormat$DayOfWeekNumber;
+var _ryannhg$elm_date_format$DateFormat$DayOfYearFixed = {ctor: 'DayOfYearFixed'};
+var _ryannhg$elm_date_format$DateFormat$dayOfYearFixed = _ryannhg$elm_date_format$DateFormat$DayOfYearFixed;
+var _ryannhg$elm_date_format$DateFormat$DayOfYearSuffix = {ctor: 'DayOfYearSuffix'};
+var _ryannhg$elm_date_format$DateFormat$dayOfYearSuffix = _ryannhg$elm_date_format$DateFormat$DayOfYearSuffix;
+var _ryannhg$elm_date_format$DateFormat$DayOfYearNumber = {ctor: 'DayOfYearNumber'};
+var _ryannhg$elm_date_format$DateFormat$dayOfYearNumber = _ryannhg$elm_date_format$DateFormat$DayOfYearNumber;
+var _ryannhg$elm_date_format$DateFormat$DayOfMonthFixed = {ctor: 'DayOfMonthFixed'};
+var _ryannhg$elm_date_format$DateFormat$dayOfMonthFixed = _ryannhg$elm_date_format$DateFormat$DayOfMonthFixed;
+var _ryannhg$elm_date_format$DateFormat$DayOfMonthSuffix = {ctor: 'DayOfMonthSuffix'};
+var _ryannhg$elm_date_format$DateFormat$dayOfMonthSuffix = _ryannhg$elm_date_format$DateFormat$DayOfMonthSuffix;
+var _ryannhg$elm_date_format$DateFormat$DayOfMonthNumber = {ctor: 'DayOfMonthNumber'};
+var _ryannhg$elm_date_format$DateFormat$dayOfMonthNumber = _ryannhg$elm_date_format$DateFormat$DayOfMonthNumber;
+var _ryannhg$elm_date_format$DateFormat$MonthNameFull = {ctor: 'MonthNameFull'};
+var _ryannhg$elm_date_format$DateFormat$monthNameFull = _ryannhg$elm_date_format$DateFormat$MonthNameFull;
+var _ryannhg$elm_date_format$DateFormat$MonthNameFirst = function (a) {
+	return {ctor: 'MonthNameFirst', _0: a};
+};
+var _ryannhg$elm_date_format$DateFormat$monthNameFirstThree = _ryannhg$elm_date_format$DateFormat$MonthNameFirst(3);
+var _ryannhg$elm_date_format$DateFormat$MonthFixed = {ctor: 'MonthFixed'};
+var _ryannhg$elm_date_format$DateFormat$monthFixed = _ryannhg$elm_date_format$DateFormat$MonthFixed;
+var _ryannhg$elm_date_format$DateFormat$MonthSuffix = {ctor: 'MonthSuffix'};
+var _ryannhg$elm_date_format$DateFormat$monthSuffix = _ryannhg$elm_date_format$DateFormat$MonthSuffix;
+var _ryannhg$elm_date_format$DateFormat$MonthNumber = {ctor: 'MonthNumber'};
+var _ryannhg$elm_date_format$DateFormat$monthNumber = _ryannhg$elm_date_format$DateFormat$MonthNumber;

@@ -1,0 +1,166 @@
+var _Giga_dev$newman$Pages_JobConfig$update = F2(
+	function (msg, model) {
+		var d = A2(
+			_elm_lang$core$Debug$log,
+			'JobConfig.update',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'was called',
+				_elm_lang$core$Basics$toString(msg)));
+		var _p0 = msg;
+		var _p1 = _p0._0;
+		if (_p1.ctor === 'Ok') {
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						maybeJobConfig: _elm_lang$core$Maybe$Just(_p1._0)
+					}),
+				_1: _elm_lang$core$Platform_Cmd$none
+			};
+		} else {
+			return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+var _Giga_dev$newman$Pages_JobConfig$viewJobConfig = function (jobConfig) {
+	var viewRow = function (_p2) {
+		var _p3 = _p2;
+		return A2(
+			_elm_lang$html$Html$tr,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$height(50),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$td,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$width(150),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(_p3._0),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$td,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _p3._1,
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	};
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('container-fluid'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h2,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('text'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Job Configuration'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$table,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: viewRow(
+							{
+								ctor: '_Tuple2',
+								_0: 'Name',
+								_1: _elm_lang$html$Html$text(jobConfig.name)
+							}),
+						_1: {
+							ctor: '::',
+							_0: viewRow(
+								{
+									ctor: '_Tuple2',
+									_0: 'Id',
+									_1: _elm_lang$html$Html$text(jobConfig.id)
+								}),
+							_1: {
+								ctor: '::',
+								_0: viewRow(
+									{
+										ctor: '_Tuple2',
+										_0: 'Java Version',
+										_1: _elm_lang$html$Html$text(jobConfig.javaVersion)
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					}),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _Giga_dev$newman$Pages_JobConfig$view = function (model) {
+	var _p4 = model.maybeJobConfig;
+	if (_p4.ctor === 'Just') {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _Giga_dev$newman$Pages_JobConfig$viewJobConfig(_p4._0),
+				_1: {ctor: '[]'}
+			});
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('Loading jobConfig...'),
+				_1: {ctor: '[]'}
+			});
+	}
+};
+var _Giga_dev$newman$Pages_JobConfig$parseJobConfigId = _evancz$url_parser$UrlParser$string;
+var _Giga_dev$newman$Pages_JobConfig$Model = function (a) {
+	return {maybeJobConfig: a};
+};
+var _Giga_dev$newman$Pages_JobConfig$GetJobConfigInfoCompleted = function (a) {
+	return {ctor: 'GetJobConfigInfoCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_JobConfig$getJobConfigInfoCmd = function (jobConfigId) {
+	return A2(
+		_elm_lang$http$Http$send,
+		_Giga_dev$newman$Pages_JobConfig$GetJobConfigInfoCompleted,
+		A2(
+			_elm_lang$http$Http$get,
+			A2(_elm_lang$core$Basics_ops['++'], '/api/newman/job-config-by-id/', jobConfigId),
+			_Giga_dev$newman$Utils_Types$decodeJobConfig));
+};
+var _Giga_dev$newman$Pages_JobConfig$init = function (jobConfigId) {
+	return {
+		ctor: '_Tuple2',
+		_0: _Giga_dev$newman$Pages_JobConfig$Model(_elm_lang$core$Maybe$Nothing),
+		_1: _Giga_dev$newman$Pages_JobConfig$getJobConfigInfoCmd(jobConfigId)
+	};
+};

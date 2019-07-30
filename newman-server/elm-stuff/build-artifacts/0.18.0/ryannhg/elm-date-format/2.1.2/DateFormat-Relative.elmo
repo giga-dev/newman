@@ -1,0 +1,160 @@
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeYears = function (years) {
+	return (_elm_lang$core$Native_Utils.cmp(years, 2) < 0) ? 'in a year' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		'in ',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Basics$toString(years),
+			' years'));
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeMonths = function (months) {
+	return (_elm_lang$core$Native_Utils.cmp(months, 2) < 0) ? 'in a month' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		'in ',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Basics$toString(months),
+			' months'));
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeDays = function (days) {
+	return (_elm_lang$core$Native_Utils.cmp(days, 2) < 0) ? 'tomorrow' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		'in ',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Basics$toString(days),
+			' days'));
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeHours = function (hours) {
+	return (_elm_lang$core$Native_Utils.cmp(hours, 2) < 0) ? 'in an hour' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		'in ',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Basics$toString(hours),
+			' hours'));
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeMinutes = function (minutes) {
+	return (_elm_lang$core$Native_Utils.cmp(minutes, 2) < 0) ? 'in a minute' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		'in ',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Basics$toString(minutes),
+			' minutes'));
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeSeconds = function (seconds) {
+	return (_elm_lang$core$Native_Utils.cmp(seconds, 30) < 0) ? 'in a few seconds' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		'in ',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Basics$toString(seconds),
+			' seconds'));
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeYearsAgo = function (years) {
+	return (_elm_lang$core$Native_Utils.cmp(years, 2) < 0) ? 'last year' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(years),
+		' years ago');
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeMonthsAgo = function (months) {
+	return (_elm_lang$core$Native_Utils.cmp(months, 2) < 0) ? 'last month' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(months),
+		' months ago');
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeDaysAgo = function (days) {
+	return (_elm_lang$core$Native_Utils.cmp(days, 2) < 0) ? 'yesterday' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(days),
+		' days ago');
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeHoursAgo = function (hours) {
+	return (_elm_lang$core$Native_Utils.cmp(hours, 2) < 0) ? 'an hour ago' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(hours),
+		' hours ago');
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeMinutesAgo = function (minutes) {
+	return (_elm_lang$core$Native_Utils.cmp(minutes, 2) < 0) ? 'a minute ago' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(minutes),
+		' minutes ago');
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeSecondsAgo = function (seconds) {
+	return (_elm_lang$core$Native_Utils.cmp(seconds, 30) < 0) ? 'just now' : A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(seconds),
+		' seconds ago');
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$relativeTimeWithFunctions = F2(
+	function (time, functions) {
+		return (_elm_lang$core$Native_Utils.cmp(
+			_elm_lang$core$Time$inMinutes(time),
+			1) < 0) ? functions.seconds(
+			_elm_lang$core$Basics$floor(
+				_elm_lang$core$Time$inSeconds(time))) : ((_elm_lang$core$Native_Utils.cmp(
+			_elm_lang$core$Time$inHours(time),
+			1) < 0) ? functions.minutes(
+			_elm_lang$core$Basics$floor(
+				_elm_lang$core$Time$inMinutes(time))) : ((_elm_lang$core$Native_Utils.cmp(
+			_elm_lang$core$Time$inHours(time),
+			24) < 0) ? functions.hours(
+			_elm_lang$core$Basics$floor(
+				_elm_lang$core$Time$inHours(time) / 1)) : ((_elm_lang$core$Native_Utils.cmp(
+			_elm_lang$core$Time$inHours(time),
+			24 * 30) < 0) ? functions.days(
+			_elm_lang$core$Basics$floor(
+				_elm_lang$core$Time$inHours(time) / 24)) : ((_elm_lang$core$Native_Utils.cmp(
+			_elm_lang$core$Time$inHours(time),
+			24 * 365) < 0) ? functions.months(
+			_elm_lang$core$Basics$floor(
+				(_elm_lang$core$Time$inHours(time) / 24) / 12)) : functions.years(
+			_elm_lang$core$Basics$floor(
+				(_elm_lang$core$Time$inHours(time) / 24) / 365))))));
+	});
+var _ryannhg$elm_date_format$DateFormat_Relative$toSeconds = function (date) {
+	return _elm_lang$core$Time$inSeconds(
+		_elm_lang$core$Date$toTime(date));
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$defaultRelativeOptions = {someSecondsAgo: _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeSecondsAgo, someMinutesAgo: _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeMinutesAgo, someHoursAgo: _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeHoursAgo, someDaysAgo: _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeDaysAgo, someMonthsAgo: _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeMonthsAgo, someYearsAgo: _ryannhg$elm_date_format$DateFormat_Relative$defaultSomeYearsAgo, inSomeSeconds: _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeSeconds, inSomeMinutes: _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeMinutes, inSomeHours: _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeHours, inSomeDays: _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeDays, inSomeMonths: _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeMonths, inSomeYears: _ryannhg$elm_date_format$DateFormat_Relative$defaultInSomeYears};
+var _ryannhg$elm_date_format$DateFormat_Relative$RelativeTimeOptions = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return function (l) {
+												return {someSecondsAgo: a, someMinutesAgo: b, someHoursAgo: c, someDaysAgo: d, someMonthsAgo: e, someYearsAgo: f, inSomeSeconds: g, inSomeMinutes: h, inSomeHours: i, inSomeDays: j, inSomeMonths: k, inSomeYears: l};
+											};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _ryannhg$elm_date_format$DateFormat_Relative$RelativeTimeFunctions = F6(
+	function (a, b, c, d, e, f) {
+		return {seconds: a, minutes: b, hours: c, days: d, months: e, years: f};
+	});
+var _ryannhg$elm_date_format$DateFormat_Relative$relativeTimeWithOptions = F3(
+	function (options, start, end) {
+		var differenceInSeconds = _ryannhg$elm_date_format$DateFormat_Relative$toSeconds(end) - _ryannhg$elm_date_format$DateFormat_Relative$toSeconds(start);
+		var time = _elm_lang$core$Time$second * _elm_lang$core$Basics$abs(differenceInSeconds);
+		return A2(
+			_ryannhg$elm_date_format$DateFormat_Relative$relativeTimeWithFunctions,
+			time,
+			(_elm_lang$core$Native_Utils.cmp(differenceInSeconds, 0) < 0) ? A6(_ryannhg$elm_date_format$DateFormat_Relative$RelativeTimeFunctions, options.someSecondsAgo, options.someMinutesAgo, options.someHoursAgo, options.someDaysAgo, options.someMonthsAgo, options.someYearsAgo) : A6(_ryannhg$elm_date_format$DateFormat_Relative$RelativeTimeFunctions, options.inSomeSeconds, options.inSomeMinutes, options.inSomeHours, options.inSomeDays, options.inSomeMonths, options.inSomeYears));
+	});
+var _ryannhg$elm_date_format$DateFormat_Relative$relativeTime = _ryannhg$elm_date_format$DateFormat_Relative$relativeTimeWithOptions(_ryannhg$elm_date_format$DateFormat_Relative$defaultRelativeOptions);

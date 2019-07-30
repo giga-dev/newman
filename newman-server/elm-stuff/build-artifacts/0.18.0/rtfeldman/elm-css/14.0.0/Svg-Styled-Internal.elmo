@@ -1,0 +1,9 @@
+var _rtfeldman$elm_css$Svg_Styled_Internal$svgNamespace = A2(
+	_rtfeldman$elm_css$VirtualDom_Styled$property,
+	'namespace',
+	_elm_lang$core$Json_Encode$string('http://www.w3.org/2000/svg'));
+var _rtfeldman$elm_css$Svg_Styled_Internal$css = function (styles) {
+	var classname = _rtfeldman$elm_css$VirtualDom_Styled$getClassname(styles);
+	var classAttribute = A2(_elm_lang$virtual_dom$VirtualDom$attribute, 'class', classname);
+	return A3(_rtfeldman$elm_css$VirtualDom_Styled$Property, classAttribute, styles, classname);
+};

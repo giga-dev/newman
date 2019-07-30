@@ -1,0 +1,101 @@
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_nb_no$dayOfMonthWithSuffix = F2(
+	function (pad, day) {
+		var _p0 = day;
+		return _elm_lang$core$Basics$toString(day);
+	});
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_nb_no$monthName = function (month) {
+	var _p1 = month;
+	switch (_p1.ctor) {
+		case 'Jan':
+			return 'januar';
+		case 'Feb':
+			return 'februar';
+		case 'Mar':
+			return 'mars';
+		case 'Apr':
+			return 'april';
+		case 'May':
+			return 'mai';
+		case 'Jun':
+			return 'juni';
+		case 'Jul':
+			return 'juli';
+		case 'Aug':
+			return 'august';
+		case 'Sep':
+			return 'september';
+		case 'Oct':
+			return 'oktober';
+		case 'Nov':
+			return 'november';
+		default:
+			return 'desember';
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_nb_no$monthShort = function (month) {
+	var _p2 = month;
+	switch (_p2.ctor) {
+		case 'Jan':
+			return 'jan';
+		case 'Feb':
+			return 'feb';
+		case 'Mar':
+			return 'mar';
+		case 'Apr':
+			return 'apr';
+		case 'May':
+			return 'mai';
+		case 'Jun':
+			return 'jun';
+		case 'Jul':
+			return 'jul';
+		case 'Aug':
+			return 'aug';
+		case 'Sep':
+			return 'sep';
+		case 'Oct':
+			return 'okt';
+		case 'Nov':
+			return 'nov';
+		default:
+			return 'des';
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_nb_no$dayName = function (day) {
+	var _p3 = day;
+	switch (_p3.ctor) {
+		case 'Mon':
+			return 'mandag';
+		case 'Tue':
+			return 'tisdag';
+		case 'Wed':
+			return 'onsdag';
+		case 'Thu':
+			return 'torsdag';
+		case 'Fri':
+			return 'fredag';
+		case 'Sat':
+			return 'lørdag';
+		default:
+			return 'søndag';
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_nb_no$dayShort = function (day) {
+	var _p4 = day;
+	switch (_p4.ctor) {
+		case 'Mon':
+			return 'man';
+		case 'Tue':
+			return 'tir';
+		case 'Wed':
+			return 'ons';
+		case 'Thu':
+			return 'tor';
+		case 'Fri':
+			return 'fre';
+		case 'Sat':
+			return 'lør';
+		default:
+			return 'søn';
+	}
+};

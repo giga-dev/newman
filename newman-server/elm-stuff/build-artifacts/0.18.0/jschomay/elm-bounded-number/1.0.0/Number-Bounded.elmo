@@ -1,0 +1,58 @@
+var _jschomay$elm_bounded_number$Number_Bounded$maxBound = function (_p0) {
+	var _p1 = _p0;
+	return _p1._0.max;
+};
+var _jschomay$elm_bounded_number$Number_Bounded$minBound = function (_p2) {
+	var _p3 = _p2;
+	return _p3._0.min;
+};
+var _jschomay$elm_bounded_number$Number_Bounded$value = function (_p4) {
+	var _p5 = _p4;
+	return _p5._0.value;
+};
+var _jschomay$elm_bounded_number$Number_Bounded$Bounded = function (a) {
+	return {ctor: 'Bounded', _0: a};
+};
+var _jschomay$elm_bounded_number$Number_Bounded$between = F2(
+	function (a, b) {
+		return (_elm_lang$core$Native_Utils.cmp(a, b) < 0) ? _jschomay$elm_bounded_number$Number_Bounded$Bounded(
+			{min: a, max: b, value: a}) : _jschomay$elm_bounded_number$Number_Bounded$Bounded(
+			{min: b, max: a, value: b});
+	});
+var _jschomay$elm_bounded_number$Number_Bounded$set = F2(
+	function (value, _p6) {
+		var _p7 = _p6;
+		var _p9 = _p7._0.min;
+		var _p8 = _p7._0.max;
+		return _jschomay$elm_bounded_number$Number_Bounded$Bounded(
+			{
+				min: _p9,
+				max: _p8,
+				value: A2(
+					_elm_lang$core$Basics$max,
+					_p9,
+					A2(_elm_lang$core$Basics$min, _p8, value))
+			});
+	});
+var _jschomay$elm_bounded_number$Number_Bounded$inc = F2(
+	function (by, _p10) {
+		var _p11 = _p10;
+		var _p12 = _p11._0.max;
+		return _jschomay$elm_bounded_number$Number_Bounded$Bounded(
+			{
+				min: _p11._0.min,
+				max: _p12,
+				value: A2(_elm_lang$core$Basics$min, _p12, _p11._0.value + by)
+			});
+	});
+var _jschomay$elm_bounded_number$Number_Bounded$dec = F2(
+	function (by, _p13) {
+		var _p14 = _p13;
+		var _p15 = _p14._0.min;
+		return _jschomay$elm_bounded_number$Number_Bounded$Bounded(
+			{
+				min: _p15,
+				max: _p14._0.max,
+				value: A2(_elm_lang$core$Basics$max, _p15, _p14._0.value - by)
+			});
+	});

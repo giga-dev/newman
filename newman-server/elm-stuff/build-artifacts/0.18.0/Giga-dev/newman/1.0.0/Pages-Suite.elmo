@@ -1,0 +1,264 @@
+var _Giga_dev$newman$Pages_Suite$updateSuite = F2(
+	function (suite, modelSuite) {
+		return _elm_lang$core$Maybe$Just(
+			_elm_lang$core$Native_Utils.update(
+				modelSuite,
+				{customVariables: suite.customVariables}));
+	});
+var _Giga_dev$newman$Pages_Suite$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		if (_p0.ctor === 'GetSuiteInfoCompleted') {
+			var _p1 = _p0._0;
+			if (_p1.ctor === 'Ok') {
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							maybeSuite: _elm_lang$core$Maybe$Just(_p1._0)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			} else {
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
+		} else {
+			var _p2 = _p0._0;
+			if (_p2.ctor === 'ModifiedSuite') {
+				var _p5 = _p2._0;
+				var _p3 = model.maybeSuite;
+				if (_p3.ctor === 'Just') {
+					var _p4 = _p3._0;
+					return _elm_lang$core$Native_Utils.eq(_p4.id, _p5.id) ? {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								maybeSuite: A2(_Giga_dev$newman$Pages_Suite$updateSuite, _p5, _p4)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			} else {
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
+		}
+	});
+var _Giga_dev$newman$Pages_Suite$viewSuite = function (suite) {
+	var viewCriteria = A2(
+		_elm_lang$html$Html$tr,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$td,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Criteria'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$td,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$textarea,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$readonly(true),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$style(
+										{
+											ctor: '::',
+											_0: {ctor: '_Tuple2', _0: 'margin', _1: '0px'},
+											_1: {
+												ctor: '::',
+												_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'auto'},
+												_1: {
+													ctor: '::',
+													_0: {ctor: '_Tuple2', _0: 'resize', _1: 'both'},
+													_1: {ctor: '[]'}
+												}
+											}
+										}),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(suite.criteria),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		});
+	var viewRow = function (_p6) {
+		var _p7 = _p6;
+		return A2(
+			_elm_lang$html$Html$tr,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$height(50),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$td,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$width(150),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(_p7._0),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$td,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _p7._1,
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	};
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('container-fluid'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h2,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('text'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Suite'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$table,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: viewRow(
+							{
+								ctor: '_Tuple2',
+								_0: 'Name',
+								_1: _elm_lang$html$Html$text(suite.name)
+							}),
+						_1: {
+							ctor: '::',
+							_0: viewRow(
+								{
+									ctor: '_Tuple2',
+									_0: 'Id',
+									_1: _elm_lang$html$Html$text(suite.id)
+								}),
+							_1: {
+								ctor: '::',
+								_0: viewRow(
+									{
+										ctor: '_Tuple2',
+										_0: 'Custome Variables',
+										_1: _elm_lang$html$Html$text(suite.customVariables)
+									}),
+								_1: {
+									ctor: '::',
+									_0: viewCriteria,
+									_1: {
+										ctor: '::',
+										_0: viewRow(
+											{
+												ctor: '_Tuple2',
+												_0: 'Requirements',
+												_1: _elm_lang$html$Html$text(
+													A2(_elm_lang$core$String$join, ',', suite.requirements))
+											}),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}
+					}),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _Giga_dev$newman$Pages_Suite$view = function (model) {
+	var _p8 = model.maybeSuite;
+	if (_p8.ctor === 'Just') {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _Giga_dev$newman$Pages_Suite$viewSuite(_p8._0),
+				_1: {ctor: '[]'}
+			});
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('Loading suite...'),
+				_1: {ctor: '[]'}
+			});
+	}
+};
+var _Giga_dev$newman$Pages_Suite$parseSuiteId = _evancz$url_parser$UrlParser$string;
+var _Giga_dev$newman$Pages_Suite$Model = function (a) {
+	return {maybeSuite: a};
+};
+var _Giga_dev$newman$Pages_Suite$WebSocketEvent = function (a) {
+	return {ctor: 'WebSocketEvent', _0: a};
+};
+var _Giga_dev$newman$Pages_Suite$handleEvent = function (event) {
+	return A2(_Giga_dev$newman$Utils_WebSocket_ops['=>'], event, _Giga_dev$newman$Pages_Suite$WebSocketEvent);
+};
+var _Giga_dev$newman$Pages_Suite$GetSuiteInfoCompleted = function (a) {
+	return {ctor: 'GetSuiteInfoCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_Suite$getSuiteInfoCmd = function (suiteId) {
+	return A2(
+		_elm_lang$http$Http$send,
+		_Giga_dev$newman$Pages_Suite$GetSuiteInfoCompleted,
+		A2(
+			_elm_lang$http$Http$get,
+			A2(_elm_lang$core$Basics_ops['++'], '/api/newman/suite/', suiteId),
+			_Giga_dev$newman$Utils_Types$decodeSuiteWithCriteria));
+};
+var _Giga_dev$newman$Pages_Suite$init = function (suiteId) {
+	return {
+		ctor: '_Tuple2',
+		_0: _Giga_dev$newman$Pages_Suite$Model(_elm_lang$core$Maybe$Nothing),
+		_1: _Giga_dev$newman$Pages_Suite$getSuiteInfoCmd(suiteId)
+	};
+};

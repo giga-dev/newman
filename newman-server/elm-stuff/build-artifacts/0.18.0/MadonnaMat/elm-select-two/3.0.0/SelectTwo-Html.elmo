@@ -1,0 +1,772 @@
+var _MadonnaMat$elm_select_two$SelectTwo_Html$runCustomHtml = F2(
+	function (customHtml, option) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			_elm_lang$html$Html$text(
+				_Fresheyeball$elm_tuple_extra$Tuple3$second(option)),
+			A2(
+				_elm_lang$core$Maybe$andThen,
+				function (ch) {
+					return ch(option);
+				},
+				customHtml));
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$widthGuess = F2(
+	function (font, list) {
+		return _MadonnaMat$elm_select_two$SelectTwo_Private$px(
+			A2(
+				F2(
+					function (x, y) {
+						return x + y;
+					}),
+				30,
+				A2(
+					F2(
+						function (x, y) {
+							return x * y;
+						}),
+					font / 1.5,
+					_elm_lang$core$Basics$toFloat(
+						A2(
+							_elm_lang$core$Maybe$withDefault,
+							0,
+							_elm_lang$core$List$maximum(
+								A2(
+									_elm_lang$core$List$map,
+									_elm_lang$core$String$length,
+									A2(
+										_elm_lang$core$List$map,
+										_Fresheyeball$elm_tuple_extra$Tuple3$second,
+										A2(_elm_lang$core$List$concatMap, _elm_lang$core$Tuple$second, list)))))))));
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$preventScrolling = F2(
+	function (name, model) {
+		var prevent = A2(
+			_elm_lang$core$List$member,
+			name,
+			A2(
+				_elm_lang$core$Maybe$withDefault,
+				{ctor: '[]'},
+				A2(
+					_elm_lang$core$Maybe$map,
+					function (_) {
+						return _.parents;
+					},
+					model.selectTwo)));
+		return prevent ? {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
+			_1: {ctor: '[]'}
+		} : {ctor: '[]'};
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$preventAndStop = {preventDefault: true, stopPropagation: true};
+var _MadonnaMat$elm_select_two$SelectTwo_Html$noResultsFound = function (noResults) {
+	return A2(
+		_elm_lang$html$Html$li,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$classList(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'select2-results__option', _1: true},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'select2-results__message', _1: true},
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(
+				A2(_elm_lang$core$Maybe$withDefault, 'No Results Found', noResults)),
+			_1: {ctor: '[]'}
+		});
+};
+var _MadonnaMat$elm_select_two$SelectTwo_Html$select2ListItem = F5(
+	function (sender, defaults, hovered, customHtml, option) {
+		var _p0 = option;
+		var msg = _p0._0;
+		var display = _p0._1;
+		var enabled = _p0._2;
+		return A2(
+			_elm_lang$html$Html$li,
+			A2(
+				_elm_lang$core$List$concatMap,
+				_elm_lang$core$Basics$identity,
+				{
+					ctor: '::',
+					_0: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$classList(
+							{
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'select2-results__option', _1: true},
+								_1: {
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'select2-results__option--highlighted',
+										_1: _elm_lang$core$Native_Utils.eq(msg, hovered)
+									},
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onMouseOver(
+								sender(
+									_MadonnaMat$elm_select_two$SelectTwo_Types$SelectTwoHovered(msg))),
+							_1: {ctor: '[]'}
+						}
+					},
+					_1: {
+						ctor: '::',
+						_0: enabled ? {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(
+								sender(
+									_MadonnaMat$elm_select_two$SelectTwo_Types$SelectTwoSelected(msg))),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html_Attributes$attribute,
+									'aria-selected',
+									_elm_lang$core$String$toLower(
+										_elm_lang$core$Basics$toString(
+											A2(_elm_lang$core$List$member, option, defaults)))),
+								_1: {ctor: '[]'}
+							}
+						} : {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html_Attributes$attribute,
+								'aria-disabled',
+								_elm_lang$core$String$toLower(
+									_elm_lang$core$Basics$toString(!enabled))),
+							_1: {ctor: '[]'}
+						},
+						_1: {ctor: '[]'}
+					}
+				}),
+			{
+				ctor: '::',
+				_0: A2(_MadonnaMat$elm_select_two$SelectTwo_Html$runCustomHtml, customHtml, option),
+				_1: {ctor: '[]'}
+			});
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$selectTwoUniq = function (_p1) {
+	var _p2 = _p1;
+	return {
+		ctor: '_Tuple3',
+		_0: _elm_lang$core$Basics$toString(_p2._0),
+		_1: _p2._1,
+		_2: _elm_lang$core$Basics$toString(_p2._2)
+	};
+};
+var _MadonnaMat$elm_select_two$SelectTwo_Html$select2ListGroup = F5(
+	function (sender, defaults, hovered, customHtml, _p3) {
+		var _p4 = _p3;
+		return A2(
+			_elm_lang$html$Html$li,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('select2-results__option'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$strong,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('select2-results__group'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(_p4._0),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$ul,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('select2-results__options select2-results__options--nested'),
+							_1: {ctor: '[]'}
+						},
+						A2(
+							_elm_lang$core$List$map,
+							A4(_MadonnaMat$elm_select_two$SelectTwo_Html$select2ListItem, sender, defaults, hovered, customHtml),
+							A2(_elm_community$list_extra$List_Extra$uniqueBy, _MadonnaMat$elm_select_two$SelectTwo_Html$selectTwoUniq, _p4._1))),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$listOrGroup = F6(
+	function (sender, defaults, list, hovered, search, customHtml) {
+		return (_elm_lang$core$Native_Utils.eq(
+			_elm_lang$core$List$length(list),
+			1) && _elm_lang$core$Native_Utils.eq(
+			A2(
+				_elm_lang$core$Maybe$withDefault,
+				'',
+				A2(
+					_elm_lang$core$Maybe$map,
+					_elm_lang$core$Tuple$first,
+					_elm_lang$core$List$head(list))),
+			'')) ? A2(
+			_elm_lang$core$Maybe$withDefault,
+			{ctor: '[]'},
+			A2(
+				_elm_lang$core$Maybe$map,
+				_elm_lang$core$List$map(
+					A4(_MadonnaMat$elm_select_two$SelectTwo_Html$select2ListItem, sender, defaults, hovered, customHtml)),
+				A2(
+					_elm_lang$core$Maybe$map,
+					_elm_community$list_extra$List_Extra$uniqueBy(_MadonnaMat$elm_select_two$SelectTwo_Html$selectTwoUniq),
+					A2(
+						_elm_lang$core$Maybe$map,
+						_elm_lang$core$List$filter(
+							_MadonnaMat$elm_select_two$SelectTwo_Private$filterList(search)),
+						A2(
+							_elm_lang$core$Maybe$map,
+							_elm_lang$core$Tuple$second,
+							_elm_lang$core$List$head(list)))))) : A2(
+			_elm_lang$core$List$map,
+			A4(_MadonnaMat$elm_select_two$SelectTwo_Html$select2ListGroup, sender, defaults, hovered, customHtml),
+			A2(
+				_elm_lang$core$List$map,
+				_MadonnaMat$elm_select_two$SelectTwo_Private$filterGroup(search),
+				list));
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$scrollPosition = function (wrapper) {
+	return A2(
+		_elm_lang$core$Json_Decode$map,
+		wrapper,
+		A3(
+			_elm_lang$core$Json_Decode$map2,
+			_MadonnaMat$elm_select_two$SelectTwo_Types$ScrollInfo,
+			A2(
+				_elm_lang$core$Json_Decode$at,
+				{
+					ctor: '::',
+					_0: 'target',
+					_1: {
+						ctor: '::',
+						_0: 'scrollHeight',
+						_1: {ctor: '[]'}
+					}
+				},
+				_elm_lang$core$Json_Decode$int),
+			A3(
+				_elm_lang$core$Json_Decode$map2,
+				F2(
+					function (x, y) {
+						return x + y;
+					}),
+				A2(
+					_elm_lang$core$Json_Decode$at,
+					{
+						ctor: '::',
+						_0: 'target',
+						_1: {
+							ctor: '::',
+							_0: 'scrollTop',
+							_1: {ctor: '[]'}
+						}
+					},
+					_elm_lang$core$Json_Decode$int),
+				A2(
+					_elm_lang$core$Json_Decode$at,
+					{
+						ctor: '::',
+						_0: 'target',
+						_1: {
+							ctor: '::',
+							_0: 'clientHeight',
+							_1: {ctor: '[]'}
+						}
+					},
+					_elm_lang$core$Json_Decode$int))));
+};
+var _MadonnaMat$elm_select_two$SelectTwo_Html$select2DropdownDraw = F7(
+	function (sender, _p5, hovered, search, ajaxList, ajaxParams, customHtml) {
+		var _p6 = _p5;
+		var _p11 = _p6.ajax;
+		var theList = _p11 ? ((A2(
+			_elm_lang$core$Maybe$withDefault,
+			false,
+			A2(
+				_elm_lang$core$Maybe$map,
+				function (_p7) {
+					var _p8 = _p7;
+					return _p8.loading;
+				},
+				ajaxParams)) && _elm_lang$core$List$isEmpty(ajaxList)) ? {
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: '',
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple3', _0: _elm_lang$core$Maybe$Nothing, _1: 'Searching', _2: false},
+					_1: {ctor: '[]'}
+				}
+			},
+			_1: {ctor: '[]'}
+		} : ajaxList) : _p6.list;
+		return A2(
+			_elm_lang$html$Html$span,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('elm-select2 select2-container select2-container--default select2-container--open'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$style(
+						{
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'position', _1: 'absolute'},
+							_1: {
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'left',
+									_1: _MadonnaMat$elm_select_two$SelectTwo_Private$px(_p6.x)
+								},
+								_1: {
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'top',
+										_1: _MadonnaMat$elm_select_two$SelectTwo_Private$px(_p6.y)
+									},
+									_1: {
+										ctor: '::',
+										_0: {
+											ctor: '_Tuple2',
+											_0: 'width',
+											_1: _MadonnaMat$elm_select_two$SelectTwo_Private$px(_p6.width)
+										},
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}),
+					_1: {ctor: '[]'}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$span,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('select2-dropdown select2-dropdown--below'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$core$Native_Utils.eq(_p6.showSearch, true) ? A2(
+							_elm_lang$html$Html$span,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('select2-search select2-search--dropdown'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$input,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('select2-search__field'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$id(
+												A2(_elm_lang$core$Basics_ops['++'], _p6.id_, '--search')),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$html$Html_Events$onInput(
+													function (_p9) {
+														return sender(
+															_MadonnaMat$elm_select_two$SelectTwo_Types$SetSelectTwoSearch(_p9));
+													}),
+												_1: {
+													ctor: '::',
+													_0: A3(
+														_elm_lang$html$Html_Events$onWithOptions,
+														'click',
+														_MadonnaMat$elm_select_two$SelectTwo_Html$preventAndStop,
+														_elm_lang$core$Json_Decode$succeed(
+															sender(_MadonnaMat$elm_select_two$SelectTwo_Types$STNull))),
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									},
+									{ctor: '[]'}),
+								_1: {ctor: '[]'}
+							}) : _elm_lang$html$Html$text(''),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$span,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('select2-results'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$ul,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('select2-results__options'),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html_Events$on,
+													'scroll',
+													_MadonnaMat$elm_select_two$SelectTwo_Html$scrollPosition(
+														function (_p10) {
+															return sender(
+																_MadonnaMat$elm_select_two$SelectTwo_Types$ResultScroll(_p10));
+														})),
+												_1: {ctor: '[]'}
+											}
+										},
+										(_p11 && (_elm_lang$core$Native_Utils.eq(
+											theList,
+											{
+												ctor: '::',
+												_0: {
+													ctor: '_Tuple2',
+													_0: '',
+													_1: {ctor: '[]'}
+												},
+												_1: {ctor: '[]'}
+											}) || _elm_lang$core$List$isEmpty(theList))) ? {
+											ctor: '::',
+											_0: _MadonnaMat$elm_select_two$SelectTwo_Html$noResultsFound(_p6.noResultsMessage),
+											_1: {ctor: '[]'}
+										} : A6(_MadonnaMat$elm_select_two$SelectTwo_Html$listOrGroup, sender, _p6.defaults, theList, hovered, search, customHtml)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$select2Dropdown = F3(
+	function (sender, customHtml, model) {
+		var _p12 = model.selectTwo;
+		if (_p12.ctor === 'Just') {
+			return A7(_MadonnaMat$elm_select_two$SelectTwo_Html$select2DropdownDraw, sender, _p12._0.dropdown, _p12._0.hovered, _p12._0.search, _p12._0.list, _p12._0.ajaxParams, customHtml);
+		} else {
+			return _elm_lang$html$Html$text('');
+		}
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$multiSelectSpan = F8(
+	function (sender, id_, defaults, list, clearMsg, disabled, placeholder, ajax) {
+		var theList = ajax ? {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: '', _1: defaults},
+			_1: {ctor: '[]'}
+		} : list;
+		return A2(
+			_elm_lang$html$Html$span,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('select2-selection select2-selection--multiple'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$ul,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('select2-selection__rendered'),
+						_1: {ctor: '[]'}
+					},
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						A2(
+							_elm_lang$core$List$map,
+							function (_p13) {
+								var _p14 = _p13;
+								return A2(
+									_elm_lang$html$Html$li,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('select2-selection__choice'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: function () {
+											var _p15 = clearMsg;
+											if (_p15.ctor === 'Just') {
+												return A2(
+													_elm_lang$html$Html$span,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$class('select2-selection__choice__remove'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$html$Html_Events$onClick(
+																_p15._0(_p14._0)),
+															_1: {ctor: '[]'}
+														}
+													},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('×'),
+														_1: {ctor: '[]'}
+													});
+											} else {
+												return _elm_lang$html$Html$text('');
+											}
+										}(),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(_p14._1),
+											_1: {ctor: '[]'}
+										}
+									});
+							},
+							A2(
+								_elm_lang$core$List$filter,
+								A2(_elm_lang$core$Basics$flip, _elm_lang$core$List$member, defaults),
+								A2(_elm_lang$core$List$concatMap, _elm_lang$core$Tuple$second, theList))),
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$li,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('select2-search select2-search--inline'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: (!disabled) ? A2(
+										_elm_lang$html$Html$input,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('select2-search__field'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$html$Html_Events$onInput(
+													function (_p16) {
+														return sender(
+															_MadonnaMat$elm_select_two$SelectTwo_Types$SetSelectTwoSearch(_p16));
+													}),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$id(
+														A2(_elm_lang$core$Basics_ops['++'], id_, '--search')),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$placeholder(
+															(_elm_lang$core$Native_Utils.cmp(
+																_elm_lang$core$List$length(defaults),
+																0) > 0) ? '' : placeholder),
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										},
+										{ctor: '[]'}) : _elm_lang$html$Html$text(''),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						})),
+				_1: {ctor: '[]'}
+			});
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$singleSelectSpan = F3(
+	function ($default, clearMsg, placeholder) {
+		var _p17 = A2(
+			_elm_lang$core$Maybe$withDefault,
+			{ctor: '_Tuple3', _0: _elm_lang$core$Maybe$Nothing, _1: '', _2: false},
+			$default);
+		var defaultMsg = _p17._0;
+		var defaultText = _p17._1;
+		return A2(
+			_elm_lang$html$Html$span,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('select2-selection select2-selection--single'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$span,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('select2-selection__rendered'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: function () {
+							if (_elm_lang$core$Native_Utils.eq(defaultText, '')) {
+								return A2(
+									_elm_lang$html$Html$span,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('select2-selection__placeholder'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text(placeholder),
+										_1: {ctor: '[]'}
+									});
+							} else {
+								var _p18 = clearMsg;
+								if (_p18.ctor === 'Just') {
+									return A2(
+										_elm_lang$html$Html$span,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('select2-selection__clear'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$html$Html_Events$onClick(
+													_p18._0(defaultMsg)),
+												_1: {ctor: '[]'}
+											}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('×'),
+											_1: {ctor: '[]'}
+										});
+								} else {
+									return _elm_lang$html$Html$text('');
+								}
+							}
+						}(),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(defaultText),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$span,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('select2-selection__arrow'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$b,
+								{ctor: '[]'},
+								{ctor: '[]'}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$select2 = F2(
+	function (sender, _p19) {
+		var _p20 = _p19;
+		var _p28 = _p20.placeholder;
+		var _p27 = _p20.multiSelect;
+		var _p26 = _p20.list;
+		var _p25 = _p20.id_;
+		var _p24 = _p20.disabled;
+		var _p23 = _p20.defaults;
+		var _p22 = _p20.clearMsg;
+		var _p21 = _p20.ajax;
+		return A2(
+			_elm_lang$html$Html$span,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$classList(
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'select2 elm-select2 select2-container select2-container--default select2-container--below select2-container--focus', _1: true},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'select2-container--disabled', _1: _p24},
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$id(_p25),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$style(
+							{
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'width', _1: _p20.width},
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: (!_p24) ? A3(
+								_elm_lang$html$Html_Events$onWithOptions,
+								'click',
+								_MadonnaMat$elm_select_two$SelectTwo_Html$preventAndStop,
+								A9(_MadonnaMat$elm_select_two$SelectTwo_Private$location, _p25, sender, _p23, _p26, _p20.parents, _p20.showSearch && (!_p27), _p20.noResultsMessage, _p21, _p20.delay)) : A2(_elm_lang$html$Html_Attributes$attribute, 'data-blank', ''),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$span,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('selection'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _p27 ? A8(_MadonnaMat$elm_select_two$SelectTwo_Html$multiSelectSpan, sender, _p25, _p23, _p26, _p22, _p24, _p28, _p21) : A3(
+							_MadonnaMat$elm_select_two$SelectTwo_Html$singleSelectSpan,
+							_elm_lang$core$List$head(_p23),
+							_p22,
+							_p28),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+var _MadonnaMat$elm_select_two$SelectTwo_Html$select2Close = function (sender) {
+	return _elm_lang$html$Html_Events$onClick(
+		sender(
+			_MadonnaMat$elm_select_two$SelectTwo_Types$SelectTwoSelected(_elm_lang$core$Maybe$Nothing)));
+};
+var _MadonnaMat$elm_select_two$SelectTwo_Html$select2Css = A3(
+	_elm_lang$html$Html$node,
+	'link',
+	{
+		ctor: '::',
+		_0: _elm_lang$html$Html_Attributes$rel('stylesheet'),
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$href('//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css'),
+			_1: {ctor: '[]'}
+		}
+	},
+	{ctor: '[]'});

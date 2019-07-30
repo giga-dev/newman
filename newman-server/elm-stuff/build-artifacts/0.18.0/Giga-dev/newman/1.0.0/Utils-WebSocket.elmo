@@ -1,0 +1,180 @@
+var _Giga_dev$newman$Utils_WebSocket_ops = _Giga_dev$newman$Utils_WebSocket_ops || {};
+_Giga_dev$newman$Utils_WebSocket_ops['=>'] = F2(
+	function (d, msg) {
+		return A2(
+			_elm_lang$core$Task$perform,
+			msg,
+			_elm_lang$core$Task$succeed(d));
+	});
+var _Giga_dev$newman$Utils_WebSocket$Model = function (a) {
+	return {serverAddress: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$initModel = function (location) {
+	var protocol = function () {
+		var _p0 = location.protocol;
+		if (_p0 === 'https:') {
+			return 'wss';
+		} else {
+			return 'ws';
+		}
+	}();
+	return _Giga_dev$newman$Utils_WebSocket$Model(
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			protocol,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'://',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					location.hostname,
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						':',
+						A2(_elm_lang$core$Basics_ops['++'], location.port_, '/events'))))));
+};
+var _Giga_dev$newman$Utils_WebSocket$WebSocketData = F2(
+	function (a, b) {
+		return {id: a, content: b};
+	});
+var _Giga_dev$newman$Utils_WebSocket$decodeWebSocketData = A3(
+	_elm_lang$core$Json_Decode$map2,
+	_Giga_dev$newman$Utils_WebSocket$WebSocketData,
+	A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'content', _elm_lang$core$Json_Decode$value));
+var _Giga_dev$newman$Utils_WebSocket$NewMessage = function (a) {
+	return {ctor: 'NewMessage', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$batch(
+		{
+			ctor: '::',
+			_0: A2(_elm_lang$websocket$WebSocket$listen, model.serverAddress, _Giga_dev$newman$Utils_WebSocket$NewMessage),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$websocket$WebSocket$keepAlive(model.serverAddress),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _Giga_dev$newman$Utils_WebSocket$ModifiedFailingAgents = function (a) {
+	return {ctor: 'ModifiedFailingAgents', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$ModifiedAgentsCount = function (a) {
+	return {ctor: 'ModifiedAgentsCount', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$ModifiedServerStatus = function (a) {
+	return {ctor: 'ModifiedServerStatus', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$DeletedFutureJob = function (a) {
+	return {ctor: 'DeletedFutureJob', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$CreatedFutureJob = function (a) {
+	return {ctor: 'CreatedFutureJob', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$CreatedJobConfig = function (a) {
+	return {ctor: 'CreatedJobConfig', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$ModifiedSuite = function (a) {
+	return {ctor: 'ModifiedSuite', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$CreatedSuite = function (a) {
+	return {ctor: 'CreatedSuite', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$ModifiedBuild = function (a) {
+	return {ctor: 'ModifiedBuild', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$CreatedBuild = function (a) {
+	return {ctor: 'CreatedBuild', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$ModifiedTest = function (a) {
+	return {ctor: 'ModifiedTest', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$CreatedTest = function (a) {
+	return {ctor: 'CreatedTest', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$DeletedAgent = function (a) {
+	return {ctor: 'DeletedAgent', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$DeletedOfflineAgent = function (a) {
+	return {ctor: 'DeletedOfflineAgent', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$CreatedOfflineAgent = function (a) {
+	return {ctor: 'CreatedOfflineAgent', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$ModifiedAgent = function (a) {
+	return {ctor: 'ModifiedAgent', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$ModifiedJob = function (a) {
+	return {ctor: 'ModifiedJob', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$CreatedJob = function (a) {
+	return {ctor: 'CreatedJob', _0: a};
+};
+var _Giga_dev$newman$Utils_WebSocket$toEvent = function (msg) {
+	var _p1 = msg;
+	var json = A2(_elm_lang$core$Json_Decode$decodeString, _Giga_dev$newman$Utils_WebSocket$decodeWebSocketData, _p1._0);
+	var _p2 = json;
+	if (_p2.ctor === 'Ok') {
+		var _p5 = _p2._0;
+		var parse = F2(
+			function (msg, decoder) {
+				return A2(
+					_elm_lang$core$Result$map,
+					msg,
+					A2(_elm_lang$core$Json_Decode$decodeValue, decoder, _p5.content));
+			});
+		var bodyRes = function () {
+			var _p3 = _p5.id;
+			switch (_p3) {
+				case 'created-job':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$CreatedJob, _Giga_dev$newman$Utils_Types$decodeJob);
+				case 'modified-job':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$ModifiedJob, _Giga_dev$newman$Utils_Types$decodeJob);
+				case 'modified-agent':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$ModifiedAgent, _Giga_dev$newman$Utils_Types$decodeAgent);
+				case 'deleted-agent':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$DeletedAgent, _Giga_dev$newman$Utils_Types$decodeAgent);
+				case 'created-offline-agent':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$CreatedOfflineAgent, _Giga_dev$newman$Utils_Types$decodeAgent);
+				case 'deleted-offline-agent':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$DeletedOfflineAgent, _elm_lang$core$Json_Decode$string);
+				case 'modified-agents-count':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$ModifiedAgentsCount, _elm_lang$core$Json_Decode$int);
+				case 'modified-failing-agents':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$ModifiedFailingAgents, _elm_lang$core$Json_Decode$int);
+				case 'created-test':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$CreatedTest, _Giga_dev$newman$Utils_Types$decodeTestView);
+				case 'modified-test':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$ModifiedTest, _Giga_dev$newman$Utils_Types$decodeTestView);
+				case 'created-build':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$CreatedBuild, _Giga_dev$newman$Utils_Types$decodeBuild);
+				case 'modified-build':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$ModifiedBuild, _Giga_dev$newman$Utils_Types$decodeBuild);
+				case 'created-suite':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$CreatedSuite, _Giga_dev$newman$Utils_Types$decodeSuite);
+				case 'modified-suite':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$ModifiedSuite, _Giga_dev$newman$Utils_Types$decodeSuite);
+				case 'created-job-config':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$CreatedJobConfig, _Giga_dev$newman$Utils_Types$decodeJobConfig);
+				case 'created-future-job':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$CreatedFutureJob, _Giga_dev$newman$Utils_Types$decodeFutureJob);
+				case 'deleted-future-job':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$DeletedFutureJob, _Giga_dev$newman$Utils_Types$decodeFutureJob);
+				case 'modified-server-status':
+					return A2(parse, _Giga_dev$newman$Utils_WebSocket$ModifiedServerStatus, _Giga_dev$newman$Utils_Types$decodeStatus);
+				default:
+					return _elm_lang$core$Result$Err(
+						A2(_elm_lang$core$Basics_ops['++'], 'Unhandled event id: ', _p3));
+			}
+		}();
+		var _p4 = bodyRes;
+		if (_p4.ctor === 'Ok') {
+			return _elm_lang$core$Result$Ok(_p4._0);
+		} else {
+			return _elm_lang$core$Result$Err(_p4._0);
+		}
+	} else {
+		return _elm_lang$core$Result$Err(_p2._0);
+	}
+};

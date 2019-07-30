@@ -1,0 +1,135 @@
+var _jschomay$elm_paginate$Paginate_Custom$pager = F2(
+	function (f, _p0) {
+		var _p1 = _p0;
+		var _p2 = _p1._0.currentPage;
+		return A2(
+			_elm_lang$core$List$map,
+			function (i) {
+				return A2(
+					f,
+					i,
+					_elm_lang$core$Native_Utils.eq(
+						i,
+						_jschomay$elm_bounded_number$Number_Bounded$value(_p2)));
+			},
+			A2(
+				_elm_lang$core$List$range,
+				1,
+				_jschomay$elm_bounded_number$Number_Bounded$maxBound(_p2)));
+	});
+var _jschomay$elm_paginate$Paginate_Custom$page = F2(
+	function (sliceFn, _p3) {
+		var _p4 = _p3;
+		var _p5 = _p4._0.itemsPerPage;
+		var from = (_jschomay$elm_bounded_number$Number_Bounded$value(_p4._0.currentPage) - 1) * _p5;
+		var to = from + _p5;
+		return A3(sliceFn, from, to, _p4._0.items);
+	});
+var _jschomay$elm_paginate$Paginate_Custom$foldMap = F2(
+	function (f, _p6) {
+		var _p7 = _p6;
+		return f(_p7._0.items);
+	});
+var _jschomay$elm_paginate$Paginate_Custom$totalPages = function (_p8) {
+	var _p9 = _p8;
+	return _jschomay$elm_bounded_number$Number_Bounded$maxBound(_p9._0.currentPage);
+};
+var _jschomay$elm_paginate$Paginate_Custom$itemsPerPage = function (_p10) {
+	var _p11 = _p10;
+	return _p11._0.itemsPerPage;
+};
+var _jschomay$elm_paginate$Paginate_Custom$currentPage = function (_p12) {
+	var _p13 = _p12;
+	return _jschomay$elm_bounded_number$Number_Bounded$value(_p13._0.currentPage);
+};
+var _jschomay$elm_paginate$Paginate_Custom$isLast = function (_p14) {
+	var _p15 = _p14;
+	var _p16 = _p15._0.currentPage;
+	return _elm_lang$core$Native_Utils.eq(
+		_jschomay$elm_bounded_number$Number_Bounded$value(_p16),
+		_jschomay$elm_bounded_number$Number_Bounded$maxBound(_p16));
+};
+var _jschomay$elm_paginate$Paginate_Custom$isFirst = function (_p17) {
+	var _p18 = _p17;
+	return _elm_lang$core$Native_Utils.eq(
+		_jschomay$elm_bounded_number$Number_Bounded$value(_p18._0.currentPage),
+		1);
+};
+var _jschomay$elm_paginate$Paginate_Custom$Paginated = function (a) {
+	return {ctor: 'Paginated', _0: a};
+};
+var _jschomay$elm_paginate$Paginate_Custom$init = F3(
+	function (lengthFn, itemsPerPage, items) {
+		var max = _elm_lang$core$Native_Utils.eq(
+			lengthFn(items),
+			0) ? 1 : _elm_lang$core$Basics$ceiling(
+			_elm_lang$core$Basics$toFloat(
+				lengthFn(items)) / _elm_lang$core$Basics$toFloat(
+				A2(_elm_lang$core$Basics$max, 1, itemsPerPage)));
+		return _jschomay$elm_paginate$Paginate_Custom$Paginated(
+			{
+				itemsPerPage: A2(_elm_lang$core$Basics$max, 1, itemsPerPage),
+				currentPage: A2(_jschomay$elm_bounded_number$Number_Bounded$between, 1, max),
+				items: items
+			});
+	});
+var _jschomay$elm_paginate$Paginate_Custom$goTo = F2(
+	function (i, _p19) {
+		var _p20 = _p19;
+		var _p21 = _p20._0;
+		return _jschomay$elm_paginate$Paginate_Custom$Paginated(
+			_elm_lang$core$Native_Utils.update(
+				_p21,
+				{
+					currentPage: A2(_jschomay$elm_bounded_number$Number_Bounded$set, i, _p21.currentPage)
+				}));
+	});
+var _jschomay$elm_paginate$Paginate_Custom$map = F3(
+	function (lengthFn, f, _p22) {
+		var _p23 = _p22;
+		return A2(
+			_jschomay$elm_paginate$Paginate_Custom$goTo,
+			_jschomay$elm_bounded_number$Number_Bounded$value(_p23._0.currentPage),
+			A3(
+				_jschomay$elm_paginate$Paginate_Custom$init,
+				lengthFn,
+				_p23._0.itemsPerPage,
+				f(_p23._0.items)));
+	});
+var _jschomay$elm_paginate$Paginate_Custom$changeItemsPerPage = F3(
+	function (lengthFn, newItemsPerPage, _p24) {
+		var _p25 = _p24;
+		return A2(
+			_jschomay$elm_paginate$Paginate_Custom$goTo,
+			_jschomay$elm_bounded_number$Number_Bounded$value(_p25._0.currentPage),
+			A3(_jschomay$elm_paginate$Paginate_Custom$init, lengthFn, newItemsPerPage, _p25._0.items));
+	});
+var _jschomay$elm_paginate$Paginate_Custom$first = function (paginatedList) {
+	return A2(_jschomay$elm_paginate$Paginate_Custom$goTo, 1, paginatedList);
+};
+var _jschomay$elm_paginate$Paginate_Custom$last = function (paginatedList) {
+	return A2(
+		_jschomay$elm_paginate$Paginate_Custom$goTo,
+		_jschomay$elm_paginate$Paginate_Custom$totalPages(paginatedList),
+		paginatedList);
+};
+var _jschomay$elm_paginate$Paginate_Custom$next = function (_p26) {
+	var _p27 = _p26;
+	var _p28 = _p27._0;
+	return _jschomay$elm_paginate$Paginate_Custom$Paginated(
+		_elm_lang$core$Native_Utils.update(
+			_p28,
+			{
+				currentPage: A2(_jschomay$elm_bounded_number$Number_Bounded$inc, 1, _p28.currentPage)
+			}));
+};
+var _jschomay$elm_paginate$Paginate_Custom$prev = function (_p29) {
+	var _p30 = _p29;
+	var _p31 = _p30._0;
+	return _jschomay$elm_paginate$Paginate_Custom$Paginated(
+		_elm_lang$core$Native_Utils.update(
+			_p31,
+			{
+				currentPage: A2(_jschomay$elm_bounded_number$Number_Bounded$dec, 1, _p31.currentPage)
+			}));
+};

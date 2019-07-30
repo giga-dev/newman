@@ -1,0 +1,1179 @@
+var _Giga_dev$newman$Utils_Types$decodeStatus = A2(
+	_elm_lang$core$Json_Decode$at,
+	{
+		ctor: '::',
+		_0: 'status',
+		_1: {ctor: '[]'}
+	},
+	_elm_lang$core$Json_Decode$string);
+var _Giga_dev$newman$Utils_Types$encodeListOfStrings = function (lst) {
+	return _elm_lang$core$Json_Encode$list(
+		A2(_elm_lang$core$List$map, _elm_lang$core$Json_Encode$string, lst));
+};
+var _Giga_dev$newman$Utils_Types$testStatusToString = function (ts) {
+	var _p0 = ts;
+	switch (_p0.ctor) {
+		case 'TEST_RUNNING':
+			return 'Running';
+		case 'TEST_SUCCESS':
+			return 'Success';
+		case 'TEST_FAIL':
+			return 'Fail';
+		default:
+			return 'Pending';
+	}
+};
+var _Giga_dev$newman$Utils_Types$decodeAgentGroups = _elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string);
+var _Giga_dev$newman$Utils_Types$jobStateToString = function (jState) {
+	var _p1 = jState;
+	switch (_p1.ctor) {
+		case 'READY':
+			return 'Ready';
+		case 'RUNNING':
+			return 'RUNNING';
+		case 'DONE':
+			return 'DONE';
+		case 'PAUSED':
+			return 'PAUSED';
+		default:
+			return 'BROKEN';
+	}
+};
+var _Giga_dev$newman$Utils_Types$radioStateToString = function (state) {
+	var _p2 = state;
+	switch (_p2.ctor) {
+		case 'STATUS_RUNNING':
+			return 'RUNNING';
+		case 'STATUS_SUCCESS':
+			return 'SUCCESS';
+		case 'STATUS_FAIL':
+			return 'FAIL';
+		case 'STATUS_FAILED3TIMES':
+			return 'FAILED3TIMES';
+		default:
+			return 'ALL';
+	}
+};
+var _Giga_dev$newman$Utils_Types$Job = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return function (l) {
+												return function (m) {
+													return function (n) {
+														return function (o) {
+															return function (p) {
+																return function (q) {
+																	return function (r) {
+																		return function (s) {
+																			return function (t) {
+																				return function (u) {
+																					return function (v) {
+																						return function (w) {
+																							return {id: a, submitTime: b, submittedBy: c, state: d, preparingAgents: e, agents: f, requiredAgentGroups: g, buildId: h, buildName: i, buildBranch: j, suiteId: k, suiteName: l, jobConfigId: m, jobConfigName: n, totalTests: o, failedTests: p, failed3TimesTests: q, passedTests: r, runningTests: s, numOfTestRetries: t, startTime: u, endTime: v, jobSetupLogs: w};
+																						};
+																					};
+																				};
+																			};
+																		};
+																	};
+																};
+															};
+														};
+													};
+												};
+											};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _Giga_dev$newman$Utils_Types$Build = F9(
+	function (a, b, c, d, e, f, g, h, i) {
+		return {id: a, name: b, branch: c, tags: d, buildTime: e, buildStatus: f, resources: g, testsMetadata: h, shas: i};
+	});
+var _Giga_dev$newman$Utils_Types$Agent = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return function (l) {
+												return function (m) {
+													return function (n) {
+														return {id: a, name: b, host: c, hostAddress: d, lastTouchTime: e, currentTests: f, state: g, capabilities: h, pid: i, setupRetries: j, jobId: k, buildName: l, suiteName: m, groupName: n};
+													};
+												};
+											};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _Giga_dev$newman$Utils_Types$decodeAgent = A4(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+	'groupName',
+	_elm_lang$core$Json_Decode$string,
+	'undefined',
+	A4(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optionalAt,
+		{
+			ctor: '::',
+			_0: 'job',
+			_1: {
+				ctor: '::',
+				_0: 'suite',
+				_1: {
+					ctor: '::',
+					_0: 'name',
+					_1: {ctor: '[]'}
+				}
+			}
+		},
+		_elm_lang$core$Json_Decode$maybe(_elm_lang$core$Json_Decode$string),
+		_elm_lang$core$Maybe$Nothing,
+		A4(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optionalAt,
+			{
+				ctor: '::',
+				_0: 'job',
+				_1: {
+					ctor: '::',
+					_0: 'build',
+					_1: {
+						ctor: '::',
+						_0: 'name',
+						_1: {ctor: '[]'}
+					}
+				}
+			},
+			_elm_lang$core$Json_Decode$maybe(_elm_lang$core$Json_Decode$string),
+			_elm_lang$core$Maybe$Nothing,
+			A4(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optionalAt,
+				{
+					ctor: '::',
+					_0: 'job',
+					_1: {
+						ctor: '::',
+						_0: 'id',
+						_1: {ctor: '[]'}
+					}
+				},
+				_elm_lang$core$Json_Decode$maybe(_elm_lang$core$Json_Decode$string),
+				_elm_lang$core$Maybe$Nothing,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'setupRetries',
+					_elm_lang$core$Json_Decode$int,
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'pid',
+						_elm_lang$core$Json_Decode$string,
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'capabilities',
+							_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+								'state',
+								_elm_lang$core$Json_Decode$string,
+								A3(
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+									'currentTests',
+									_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+									A3(
+										_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+										'lastTouchTime',
+										_elm_lang$core$Json_Decode$int,
+										A3(
+											_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+											'hostAddress',
+											_elm_lang$core$Json_Decode$string,
+											A3(
+												_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+												'host',
+												_elm_lang$core$Json_Decode$string,
+												A3(
+													_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+													'name',
+													_elm_lang$core$Json_Decode$string,
+													A3(
+														_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+														'id',
+														_elm_lang$core$Json_Decode$string,
+														_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$Agent)))))))))))))));
+var _Giga_dev$newman$Utils_Types$decodeAgents = A2(
+	_elm_lang$core$Json_Decode$field,
+	'values',
+	_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeAgent));
+var _Giga_dev$newman$Utils_Types$decodeAgentList = _elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeAgent);
+var _Giga_dev$newman$Utils_Types$Suite = F3(
+	function (a, b, c) {
+		return {id: a, name: b, customVariables: c};
+	});
+var _Giga_dev$newman$Utils_Types$decodeSuite = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'customVariables',
+	_elm_lang$core$Json_Decode$string,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'name',
+		_elm_lang$core$Json_Decode$string,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'id',
+			_elm_lang$core$Json_Decode$string,
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$Suite))));
+var _Giga_dev$newman$Utils_Types$decodeSuites = A2(
+	_elm_lang$core$Json_Decode$field,
+	'values',
+	_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeSuite));
+var _Giga_dev$newman$Utils_Types$SuiteWithCriteria = F5(
+	function (a, b, c, d, e) {
+		return {id: a, name: b, customVariables: c, requirements: d, criteria: e};
+	});
+var _Giga_dev$newman$Utils_Types$decodeSuiteWithCriteria = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'criteria',
+	A2(
+		_elm_lang$core$Json_Decode$map,
+		_elm_lang$core$Json_Encode$encode(4),
+		_elm_lang$core$Json_Decode$value),
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'requirements',
+		_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'customVariables',
+			_elm_lang$core$Json_Decode$string,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'name',
+				_elm_lang$core$Json_Decode$string,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'id',
+					_elm_lang$core$Json_Decode$string,
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$SuiteWithCriteria))))));
+var _Giga_dev$newman$Utils_Types$JobConfig = F3(
+	function (a, b, c) {
+		return {id: a, name: b, javaVersion: c};
+	});
+var _Giga_dev$newman$Utils_Types$decodeJobConfig = A4(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+	'javaVersion',
+	_elm_lang$core$Json_Decode$string,
+	'N/A',
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'name',
+		_elm_lang$core$Json_Decode$string,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'id',
+			_elm_lang$core$Json_Decode$string,
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$JobConfig))));
+var _Giga_dev$newman$Utils_Types$decodeJobConfigs = _elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeJobConfig);
+var _Giga_dev$newman$Utils_Types$User = function (a) {
+	return {userName: a};
+};
+var _Giga_dev$newman$Utils_Types$decodeUser = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'userName',
+	_elm_lang$core$Json_Decode$string,
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$User));
+var _Giga_dev$newman$Utils_Types$TestHistoryItem = F2(
+	function (a, b) {
+		return {test: a, job: b};
+	});
+var _Giga_dev$newman$Utils_Types$TestHistoryTestView = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return {id: a, jobId: b, name: c, $arguments: d, status: e, errorMessage: f, startTime: g, endTime: h, runNumber: i, assignedAgent: j};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _Giga_dev$newman$Utils_Types$decodeTestHistoryTestView = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'assignedAgent',
+	_elm_lang$core$Json_Decode$string,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'runNumber',
+		_elm_lang$core$Json_Decode$int,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'endTime',
+			_elm_lang$core$Json_Decode$int,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'startTime',
+				_elm_lang$core$Json_Decode$int,
+				A4(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+					'errorMessage',
+					_elm_lang$core$Json_Decode$string,
+					'',
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'status',
+						_elm_lang$core$Json_Decode$string,
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'arguments',
+							_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+								'name',
+								_elm_lang$core$Json_Decode$string,
+								A3(
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+									'jobId',
+									_elm_lang$core$Json_Decode$string,
+									A3(
+										_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+										'id',
+										_elm_lang$core$Json_Decode$string,
+										_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$TestHistoryTestView)))))))))));
+var _Giga_dev$newman$Utils_Types$TestHistoryJobView = F6(
+	function (a, b, c, d, e, f) {
+		return {id: a, buildId: b, buildName: c, buildBranch: d, jobConfigName: e, jobConfigId: f};
+	});
+var _Giga_dev$newman$Utils_Types$decodeTestHistoryJobView = A4(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+	'jobConfigId',
+	_elm_lang$core$Json_Decode$string,
+	'',
+	A4(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+		'jobConfigName',
+		_elm_lang$core$Json_Decode$string,
+		'',
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'buildBranch',
+			_elm_lang$core$Json_Decode$string,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'buildName',
+				_elm_lang$core$Json_Decode$string,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'buildId',
+					_elm_lang$core$Json_Decode$string,
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'id',
+						_elm_lang$core$Json_Decode$string,
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$TestHistoryJobView)))))));
+var _Giga_dev$newman$Utils_Types$decodeTestHistoryItem = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'job',
+	_Giga_dev$newman$Utils_Types$decodeTestHistoryJobView,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'test',
+		_Giga_dev$newman$Utils_Types$decodeTestHistoryTestView,
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$TestHistoryItem)));
+var _Giga_dev$newman$Utils_Types$decodeTestHistoryItems = A2(
+	_elm_lang$core$Json_Decode$field,
+	'values',
+	_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeTestHistoryItem));
+var _Giga_dev$newman$Utils_Types$DashboardJob = F9(
+	function (a, b, c, d, e, f, g, h, i) {
+		return {id: a, suiteId: b, suiteName: c, totalTests: d, failedTests: e, failed3TimesTests: f, passedTests: g, runningTests: h, numOfTestRetries: i};
+	});
+var _Giga_dev$newman$Utils_Types$decodeDashboardJob = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'numOfTestRetries',
+	_elm_lang$core$Json_Decode$int,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'runningTests',
+		_elm_lang$core$Json_Decode$int,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'passedTests',
+			_elm_lang$core$Json_Decode$int,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'failed3TimesTests',
+				_elm_lang$core$Json_Decode$int,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'failedTests',
+					_elm_lang$core$Json_Decode$int,
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'totalTests',
+						_elm_lang$core$Json_Decode$int,
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt,
+							{
+								ctor: '::',
+								_0: 'suite',
+								_1: {
+									ctor: '::',
+									_0: 'name',
+									_1: {ctor: '[]'}
+								}
+							},
+							_elm_lang$core$Json_Decode$string,
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt,
+								{
+									ctor: '::',
+									_0: 'suite',
+									_1: {
+										ctor: '::',
+										_0: 'id',
+										_1: {ctor: '[]'}
+									}
+								},
+								_elm_lang$core$Json_Decode$string,
+								A3(
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+									'id',
+									_elm_lang$core$Json_Decode$string,
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$DashboardJob))))))))));
+var _Giga_dev$newman$Utils_Types$DashboardData = F5(
+	function (a, b, c, d, e) {
+		return {historyBuilds: a, futureJobs: b, pendingBuilds: c, activeBuilds: d, activeJobs: e};
+	});
+var _Giga_dev$newman$Utils_Types$FutureJob = F9(
+	function (a, b, c, d, e, f, g, h, i) {
+		return {id: a, buildId: b, buildName: c, buildBranch: d, suiteId: e, suiteName: f, author: g, agentGroups: h, submitTime: i};
+	});
+var _Giga_dev$newman$Utils_Types$decodeFutureJob = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'submitTime',
+	_elm_lang$core$Json_Decode$int,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'agentGroups',
+		_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'author',
+			_elm_lang$core$Json_Decode$string,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'suiteName',
+				_elm_lang$core$Json_Decode$string,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'suiteID',
+					_elm_lang$core$Json_Decode$string,
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'buildBranch',
+						_elm_lang$core$Json_Decode$string,
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'buildName',
+							_elm_lang$core$Json_Decode$string,
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+								'buildID',
+								_elm_lang$core$Json_Decode$string,
+								A3(
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+									'id',
+									_elm_lang$core$Json_Decode$string,
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$FutureJob))))))))));
+var _Giga_dev$newman$Utils_Types$DashboardBuildStatus = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return function (l) {
+												return function (m) {
+													return {totalTests: a, passedTests: b, failedTests: c, failed3TimesTests: d, runningTests: e, numOfTestRetries: f, totalJobs: g, pendingJobs: h, runningJobs: i, doneJobs: j, brokenJobs: k, suitesNames: l, suitesIds: m};
+												};
+											};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _Giga_dev$newman$Utils_Types$decodeDashboardBuildStatus = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'suitesIds',
+	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'suitesNames',
+		_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'brokenJobs',
+			_elm_lang$core$Json_Decode$int,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'doneJobs',
+				_elm_lang$core$Json_Decode$int,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'runningJobs',
+					_elm_lang$core$Json_Decode$int,
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'pendingJobs',
+						_elm_lang$core$Json_Decode$int,
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'totalJobs',
+							_elm_lang$core$Json_Decode$int,
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+								'runningTests',
+								_elm_lang$core$Json_Decode$int,
+								A3(
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+									'numOfTestRetries',
+									_elm_lang$core$Json_Decode$int,
+									A3(
+										_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+										'failed3TimesTests',
+										_elm_lang$core$Json_Decode$int,
+										A3(
+											_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+											'failedTests',
+											_elm_lang$core$Json_Decode$int,
+											A3(
+												_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+												'passedTests',
+												_elm_lang$core$Json_Decode$int,
+												A3(
+													_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+													'totalTests',
+													_elm_lang$core$Json_Decode$int,
+													_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$DashboardBuildStatus))))))))))))));
+var _Giga_dev$newman$Utils_Types$decodeBuild = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'shas',
+	_elm_lang$core$Json_Decode$dict(_elm_lang$core$Json_Decode$string),
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'testsMetadata',
+		_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'resources',
+			_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'buildStatus',
+				_Giga_dev$newman$Utils_Types$decodeDashboardBuildStatus,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'buildTime',
+					_elm_lang$core$Json_Decode$int,
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'tags',
+						_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'branch',
+							_elm_lang$core$Json_Decode$string,
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+								'name',
+								_elm_lang$core$Json_Decode$string,
+								A3(
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+									'id',
+									_elm_lang$core$Json_Decode$string,
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$Build))))))))));
+var _Giga_dev$newman$Utils_Types$decodeDashboardData = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'activeJobs',
+	_elm_lang$core$Json_Decode$dict(
+		_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeDashboardJob)),
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'activeBuilds',
+		_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeBuild),
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'pendingBuilds',
+			_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeBuild),
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'futureJobs',
+				_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeFutureJob),
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'historyBuilds',
+					_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeBuild),
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$DashboardData))))));
+var _Giga_dev$newman$Utils_Types$decodeBuilds = A2(
+	_elm_lang$core$Json_Decode$field,
+	'values',
+	_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeBuild));
+var _Giga_dev$newman$Utils_Types$Test = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return function (l) {
+												return function (m) {
+													return function (n) {
+														return function (o) {
+															return function (p) {
+																return function (q) {
+																	return {id: a, jobId: b, name: c, $arguments: d, testType: e, timeout: f, status: g, errorMessage: h, testScore: i, historyStats: j, logs: k, assignedAgent: l, startTime: m, endTime: n, scheduledAt: o, progressPercent: p, runNumber: q};
+																};
+															};
+														};
+													};
+												};
+											};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _Giga_dev$newman$Utils_Types$STATUS_ALL = {ctor: 'STATUS_ALL'};
+var _Giga_dev$newman$Utils_Types$STATUS_FAILED3TIMES = {ctor: 'STATUS_FAILED3TIMES'};
+var _Giga_dev$newman$Utils_Types$STATUS_FAIL = {ctor: 'STATUS_FAIL'};
+var _Giga_dev$newman$Utils_Types$STATUS_SUCCESS = {ctor: 'STATUS_SUCCESS'};
+var _Giga_dev$newman$Utils_Types$STATUS_RUNNING = {ctor: 'STATUS_RUNNING'};
+var _Giga_dev$newman$Utils_Types$stringToRadioState = function (state) {
+	var _p3 = state;
+	switch (_p3) {
+		case 'RUNNING':
+			return _Giga_dev$newman$Utils_Types$STATUS_RUNNING;
+		case 'SUCCESS':
+			return _Giga_dev$newman$Utils_Types$STATUS_SUCCESS;
+		case 'FAIL':
+			return _Giga_dev$newman$Utils_Types$STATUS_FAIL;
+		case 'FAILED3TIMES':
+			return _Giga_dev$newman$Utils_Types$STATUS_FAILED3TIMES;
+		case 'ALL':
+			return _Giga_dev$newman$Utils_Types$STATUS_ALL;
+		default:
+			return _Giga_dev$newman$Utils_Types$STATUS_ALL;
+	}
+};
+var _Giga_dev$newman$Utils_Types$BROKEN = {ctor: 'BROKEN'};
+var _Giga_dev$newman$Utils_Types$PAUSED = {ctor: 'PAUSED'};
+var _Giga_dev$newman$Utils_Types$DONE = {ctor: 'DONE'};
+var _Giga_dev$newman$Utils_Types$RUNNING = {ctor: 'RUNNING'};
+var _Giga_dev$newman$Utils_Types$READY = {ctor: 'READY'};
+var _Giga_dev$newman$Utils_Types$decodeJobState = A2(
+	_elm_lang$core$Json_Decode$andThen,
+	function (str) {
+		var _p4 = str;
+		switch (_p4) {
+			case 'READY':
+				return _elm_lang$core$Json_Decode$succeed(_Giga_dev$newman$Utils_Types$READY);
+			case 'RUNNING':
+				return _elm_lang$core$Json_Decode$succeed(_Giga_dev$newman$Utils_Types$RUNNING);
+			case 'DONE':
+				return _elm_lang$core$Json_Decode$succeed(_Giga_dev$newman$Utils_Types$DONE);
+			case 'PAUSED':
+				return _elm_lang$core$Json_Decode$succeed(_Giga_dev$newman$Utils_Types$PAUSED);
+			case 'BROKEN':
+				return _elm_lang$core$Json_Decode$succeed(_Giga_dev$newman$Utils_Types$BROKEN);
+			default:
+				return _elm_lang$core$Json_Decode$fail(
+					A2(_elm_lang$core$Basics_ops['++'], 'unknown job state: ', str));
+		}
+	},
+	_elm_lang$core$Json_Decode$string);
+var _Giga_dev$newman$Utils_Types$decodeJob = A4(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+	'jobSetupLogs',
+	_elm_lang$core$Json_Decode$dict(_elm_lang$core$Json_Decode$string),
+	_elm_lang$core$Dict$empty,
+	A4(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+		'endTime',
+		_elm_lang$core$Json_Decode$nullable(_elm_lang$core$Json_Decode$int),
+		_elm_lang$core$Maybe$Nothing,
+		A4(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+			'startTime',
+			_elm_lang$core$Json_Decode$nullable(_elm_lang$core$Json_Decode$int),
+			_elm_lang$core$Maybe$Nothing,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'numOfTestRetries',
+				_elm_lang$core$Json_Decode$int,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'runningTests',
+					_elm_lang$core$Json_Decode$int,
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'passedTests',
+						_elm_lang$core$Json_Decode$int,
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'failed3TimesTests',
+							_elm_lang$core$Json_Decode$int,
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+								'failedTests',
+								_elm_lang$core$Json_Decode$int,
+								A3(
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+									'totalTests',
+									_elm_lang$core$Json_Decode$int,
+									A4(
+										_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optionalAt,
+										{
+											ctor: '::',
+											_0: 'jobConfig',
+											_1: {
+												ctor: '::',
+												_0: 'name',
+												_1: {ctor: '[]'}
+											}
+										},
+										_elm_lang$core$Json_Decode$string,
+										'',
+										A4(
+											_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optionalAt,
+											{
+												ctor: '::',
+												_0: 'jobConfig',
+												_1: {
+													ctor: '::',
+													_0: 'id',
+													_1: {ctor: '[]'}
+												}
+											},
+											_elm_lang$core$Json_Decode$string,
+											'',
+											A3(
+												_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt,
+												{
+													ctor: '::',
+													_0: 'suite',
+													_1: {
+														ctor: '::',
+														_0: 'name',
+														_1: {ctor: '[]'}
+													}
+												},
+												_elm_lang$core$Json_Decode$string,
+												A3(
+													_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt,
+													{
+														ctor: '::',
+														_0: 'suite',
+														_1: {
+															ctor: '::',
+															_0: 'id',
+															_1: {ctor: '[]'}
+														}
+													},
+													_elm_lang$core$Json_Decode$string,
+													A3(
+														_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt,
+														{
+															ctor: '::',
+															_0: 'build',
+															_1: {
+																ctor: '::',
+																_0: 'branch',
+																_1: {ctor: '[]'}
+															}
+														},
+														_elm_lang$core$Json_Decode$string,
+														A3(
+															_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt,
+															{
+																ctor: '::',
+																_0: 'build',
+																_1: {
+																	ctor: '::',
+																	_0: 'name',
+																	_1: {ctor: '[]'}
+																}
+															},
+															_elm_lang$core$Json_Decode$string,
+															A3(
+																_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$requiredAt,
+																{
+																	ctor: '::',
+																	_0: 'build',
+																	_1: {
+																		ctor: '::',
+																		_0: 'id',
+																		_1: {ctor: '[]'}
+																	}
+																},
+																_elm_lang$core$Json_Decode$string,
+																A3(
+																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																	'requiredAgentGroups',
+																	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+																	A3(
+																		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																		'agents',
+																		_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+																		A3(
+																			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																			'preparingAgents',
+																			_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+																			A3(
+																				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																				'state',
+																				_Giga_dev$newman$Utils_Types$decodeJobState,
+																				A3(
+																					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																					'submittedBy',
+																					_elm_lang$core$Json_Decode$string,
+																					A3(
+																						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																						'submitTime',
+																						_elm_lang$core$Json_Decode$int,
+																						A3(
+																							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																							'id',
+																							_elm_lang$core$Json_Decode$string,
+																							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$Job))))))))))))))))))))))));
+var _Giga_dev$newman$Utils_Types$decodeJobList = _elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeJob);
+var _Giga_dev$newman$Utils_Types$decodeJobView = A4(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+	'jobSetupLogs',
+	_elm_lang$core$Json_Decode$dict(_elm_lang$core$Json_Decode$string),
+	_elm_lang$core$Dict$empty,
+	A4(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+		'endTime',
+		_elm_lang$core$Json_Decode$nullable(_elm_lang$core$Json_Decode$int),
+		_elm_lang$core$Maybe$Nothing,
+		A4(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+			'startTime',
+			_elm_lang$core$Json_Decode$nullable(_elm_lang$core$Json_Decode$int),
+			_elm_lang$core$Maybe$Nothing,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'numOfTestRetries',
+				_elm_lang$core$Json_Decode$int,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'runningTests',
+					_elm_lang$core$Json_Decode$int,
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'passedTests',
+						_elm_lang$core$Json_Decode$int,
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'failed3TimesTests',
+							_elm_lang$core$Json_Decode$int,
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+								'failedTests',
+								_elm_lang$core$Json_Decode$int,
+								A3(
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+									'totalTests',
+									_elm_lang$core$Json_Decode$int,
+									A4(
+										_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+										'jobConfigName',
+										_elm_lang$core$Json_Decode$string,
+										'',
+										A4(
+											_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+											'jobConfigId',
+											_elm_lang$core$Json_Decode$string,
+											'',
+											A3(
+												_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+												'suiteName',
+												_elm_lang$core$Json_Decode$string,
+												A3(
+													_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+													'suiteId',
+													_elm_lang$core$Json_Decode$string,
+													A3(
+														_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+														'buildBranch',
+														_elm_lang$core$Json_Decode$string,
+														A3(
+															_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+															'buildName',
+															_elm_lang$core$Json_Decode$string,
+															A3(
+																_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																'buildId',
+																_elm_lang$core$Json_Decode$string,
+																A3(
+																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																	'requiredAgentGroups',
+																	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+																	A4(
+																		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+																		'agents',
+																		_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+																		{ctor: '[]'},
+																		A3(
+																			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																			'preparingAgents',
+																			_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+																			A3(
+																				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																				'state',
+																				_Giga_dev$newman$Utils_Types$decodeJobState,
+																				A3(
+																					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																					'submittedBy',
+																					_elm_lang$core$Json_Decode$string,
+																					A3(
+																						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																						'submitTime',
+																						_elm_lang$core$Json_Decode$int,
+																						A3(
+																							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																							'id',
+																							_elm_lang$core$Json_Decode$string,
+																							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$Job))))))))))))))))))))))));
+var _Giga_dev$newman$Utils_Types$TEST_PENDING = {ctor: 'TEST_PENDING'};
+var _Giga_dev$newman$Utils_Types$TEST_FAIL = {ctor: 'TEST_FAIL'};
+var _Giga_dev$newman$Utils_Types$TEST_SUCCESS = {ctor: 'TEST_SUCCESS'};
+var _Giga_dev$newman$Utils_Types$TEST_RUNNING = {ctor: 'TEST_RUNNING'};
+var _Giga_dev$newman$Utils_Types$decodeTestStatus = A2(
+	_elm_lang$core$Json_Decode$andThen,
+	function (str) {
+		var _p5 = str;
+		switch (_p5) {
+			case 'RUNNING':
+				return _elm_lang$core$Json_Decode$succeed(_Giga_dev$newman$Utils_Types$TEST_RUNNING);
+			case 'SUCCESS':
+				return _elm_lang$core$Json_Decode$succeed(_Giga_dev$newman$Utils_Types$TEST_SUCCESS);
+			case 'FAIL':
+				return _elm_lang$core$Json_Decode$succeed(_Giga_dev$newman$Utils_Types$TEST_FAIL);
+			case 'PENDING':
+				return _elm_lang$core$Json_Decode$succeed(_Giga_dev$newman$Utils_Types$TEST_PENDING);
+			default:
+				return _elm_lang$core$Json_Decode$fail(
+					A2(_elm_lang$core$Basics_ops['++'], 'unknown test state ', str));
+		}
+	},
+	_elm_lang$core$Json_Decode$string);
+var _Giga_dev$newman$Utils_Types$decodeTest = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'runNumber',
+	_elm_lang$core$Json_Decode$int,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'progressPercent',
+		_elm_lang$core$Json_Decode$int,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'scheduledAt',
+			_elm_lang$core$Json_Decode$int,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'endTime',
+				_elm_lang$core$Json_Decode$nullable(_elm_lang$core$Json_Decode$int),
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'startTime',
+					_elm_lang$core$Json_Decode$nullable(_elm_lang$core$Json_Decode$int),
+					A4(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+						'assignedAgent',
+						_elm_lang$core$Json_Decode$string,
+						'',
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'logs',
+							_elm_lang$core$Json_Decode$dict(_elm_lang$core$Json_Decode$string),
+							A4(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+								'historyStats',
+								_elm_lang$core$Json_Decode$string,
+								'',
+								A4(
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+									'testScore',
+									_elm_lang$core$Json_Decode$int,
+									-1,
+									A4(
+										_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+										'errorMessage',
+										_elm_lang$core$Json_Decode$string,
+										'',
+										A3(
+											_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+											'status',
+											_Giga_dev$newman$Utils_Types$decodeTestStatus,
+											A3(
+												_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+												'timeout',
+												_elm_lang$core$Json_Decode$int,
+												A3(
+													_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+													'testType',
+													_elm_lang$core$Json_Decode$string,
+													A3(
+														_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+														'arguments',
+														_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+														A3(
+															_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+															'name',
+															_elm_lang$core$Json_Decode$string,
+															A3(
+																_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																'jobId',
+																_elm_lang$core$Json_Decode$string,
+																A3(
+																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																	'id',
+																	_elm_lang$core$Json_Decode$string,
+																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$Test))))))))))))))))));
+var _Giga_dev$newman$Utils_Types$decodeTestView = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'runNumber',
+	_elm_lang$core$Json_Decode$int,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'progressPercent',
+		_elm_lang$core$Json_Decode$int,
+		A4(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+			'scheduledAt',
+			_elm_lang$core$Json_Decode$int,
+			0,
+			A4(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+				'endTime',
+				_elm_lang$core$Json_Decode$nullable(_elm_lang$core$Json_Decode$int),
+				_elm_lang$core$Maybe$Nothing,
+				A4(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+					'startTime',
+					_elm_lang$core$Json_Decode$nullable(_elm_lang$core$Json_Decode$int),
+					_elm_lang$core$Maybe$Nothing,
+					A4(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+						'assignedAgent',
+						_elm_lang$core$Json_Decode$string,
+						'',
+						A4(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+							'logs',
+							_elm_lang$core$Json_Decode$dict(_elm_lang$core$Json_Decode$string),
+							_elm_lang$core$Dict$empty,
+							A4(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+								'historyStats',
+								_elm_lang$core$Json_Decode$string,
+								'',
+								A4(
+									_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+									'testScore',
+									_elm_lang$core$Json_Decode$int,
+									-1,
+									A4(
+										_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+										'errorMessage',
+										_elm_lang$core$Json_Decode$string,
+										'',
+										A3(
+											_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+											'status',
+											_Giga_dev$newman$Utils_Types$decodeTestStatus,
+											A4(
+												_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+												'timeout',
+												_elm_lang$core$Json_Decode$int,
+												0,
+												A4(
+													_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+													'testType',
+													_elm_lang$core$Json_Decode$string,
+													'',
+													A3(
+														_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+														'arguments',
+														_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+														A3(
+															_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+															'name',
+															_elm_lang$core$Json_Decode$string,
+															A4(
+																_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
+																'jobId',
+																_elm_lang$core$Json_Decode$string,
+																'',
+																A3(
+																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																	'id',
+																	_elm_lang$core$Json_Decode$string,
+																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Utils_Types$Test))))))))))))))))));

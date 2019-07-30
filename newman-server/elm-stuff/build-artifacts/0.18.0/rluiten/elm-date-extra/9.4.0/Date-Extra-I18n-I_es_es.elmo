@@ -1,0 +1,101 @@
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_es_es$dayOfMonthWithSuffix = F2(
+	function (pad, day) {
+		var _p0 = day;
+		return _elm_lang$core$Basics$toString(day);
+	});
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_es_es$monthName = function (month) {
+	var _p1 = month;
+	switch (_p1.ctor) {
+		case 'Jan':
+			return 'Enero';
+		case 'Feb':
+			return 'Febrero';
+		case 'Mar':
+			return 'Marzo';
+		case 'Apr':
+			return 'Abril';
+		case 'May':
+			return 'Mayo';
+		case 'Jun':
+			return 'Junio';
+		case 'Jul':
+			return 'Julio';
+		case 'Aug':
+			return 'Agosto';
+		case 'Sep':
+			return 'Septiembre';
+		case 'Oct':
+			return 'Octubre';
+		case 'Nov':
+			return 'Noviembre';
+		default:
+			return 'Diciembre';
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_es_es$monthShort = function (month) {
+	var _p2 = month;
+	switch (_p2.ctor) {
+		case 'Jan':
+			return 'Ene';
+		case 'Feb':
+			return 'Feb';
+		case 'Mar':
+			return 'Mar';
+		case 'Apr':
+			return 'Abr';
+		case 'May':
+			return 'May';
+		case 'Jun':
+			return 'Jun';
+		case 'Jul':
+			return 'Jul';
+		case 'Aug':
+			return 'Ago';
+		case 'Sep':
+			return 'Sep';
+		case 'Oct':
+			return 'Oct';
+		case 'Nov':
+			return 'Nov';
+		default:
+			return 'Dic';
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_es_es$dayName = function (day) {
+	var _p3 = day;
+	switch (_p3.ctor) {
+		case 'Mon':
+			return 'Lunes';
+		case 'Tue':
+			return 'Martes';
+		case 'Wed':
+			return 'Miércoles';
+		case 'Thu':
+			return 'Jueves';
+		case 'Fri':
+			return 'Viernes';
+		case 'Sat':
+			return 'Sábado';
+		default:
+			return 'Domingo';
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_es_es$dayShort = function (day) {
+	var _p4 = day;
+	switch (_p4.ctor) {
+		case 'Mon':
+			return 'Lun';
+		case 'Tue':
+			return 'Mar';
+		case 'Wed':
+			return 'Mié';
+		case 'Thu':
+			return 'Jue';
+		case 'Fri':
+			return 'Vie';
+		case 'Sat':
+			return 'Sáb';
+		default:
+			return 'Dom';
+	}
+};

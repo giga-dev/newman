@@ -1,0 +1,864 @@
+var _Giga_dev$newman$Pages_Builds$filterQuery = F2(
+	function (query, build) {
+		return (_elm_lang$core$Native_Utils.eq(
+			_elm_lang$core$String$length(query),
+			0) || (A2(_elm_lang$core$String$startsWith, query, build.id) || (A2(_elm_lang$core$String$startsWith, query, build.name) || (A2(_elm_lang$core$String$contains, query, build.branch) || A2(
+			_elm_lang$core$List$member,
+			true,
+			A2(
+				_elm_lang$core$List$map,
+				_elm_lang$core$String$startsWith(query),
+				build.tags)))))) ? true : false;
+	});
+var _Giga_dev$newman$Pages_Builds$viewBuild = function (build) {
+	var buildTests = {
+		ctor: '::',
+		_0: A2(
+			_rundis$elm_bootstrap$Bootstrap_Badge$badgeSuccess,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(
+					_elm_lang$core$Basics$toString(build.buildStatus.passedTests)),
+				_1: {ctor: '[]'}
+			}),
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(' '),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Badge$badgeDanger,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							_elm_lang$core$Basics$toString(build.buildStatus.failedTests)),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(' '),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Badge$badgeWarning,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$style(
+									{
+										ctor: '::',
+										_0: {ctor: '_Tuple2', _0: 'background-color', _1: 'DarkRed'},
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									_elm_lang$core$Basics$toString(build.buildStatus.failed3TimesTests)),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(' '),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		}
+	};
+	var buildTags = A2(_elm_lang$core$String$join, ',', build.tags);
+	var buildDate = A2(
+		_ryannhg$elm_date_format$DateFormat$format,
+		_Giga_dev$newman$Utils_Common$dateTimeDateFormat,
+		_elm_lang$core$Date$fromTime(
+			_elm_lang$core$Basics$toFloat(build.buildTime)));
+	var buildName = A2(
+		_elm_lang$core$Basics_ops['++'],
+		build.name,
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'(',
+			A2(_elm_lang$core$Basics_ops['++'], build.branch, ')')));
+	return A2(
+		_elm_lang$html$Html$tr,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$td,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$a,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$href(
+								A2(_elm_lang$core$Basics_ops['++'], '#build/', build.id)),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(buildName),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$td,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(buildTags),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$td,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(build.id),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$td,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(buildDate),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$td,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('tests-data'),
+									_1: {ctor: '[]'}
+								},
+								buildTests),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		});
+};
+var _Giga_dev$newman$Pages_Builds$updateAll = F2(
+	function (f, model) {
+		var newList = f(model.allBuilds);
+		var filtered = A2(
+			_elm_lang$core$List$filter,
+			_Giga_dev$newman$Pages_Builds$filterQuery(model.query),
+			newList);
+		var newPaginated = A2(
+			_jschomay$elm_paginate$Paginate$map,
+			function (_p0) {
+				return filtered;
+			},
+			model.builds);
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{builds: newPaginated, allBuilds: newList});
+	});
+var _Giga_dev$newman$Pages_Builds$updateBuildAdded = F2(
+	function (model, addedBuild) {
+		return A2(
+			_Giga_dev$newman$Pages_Builds$updateAll,
+			function (list) {
+				return {ctor: '::', _0: addedBuild, _1: list};
+			},
+			model);
+	});
+var _Giga_dev$newman$Pages_Builds$Model = F5(
+	function (a, b, c, d, e) {
+		return {allBuilds: a, builds: b, pageSize: c, compareBuildsModel: d, query: e};
+	});
+var _Giga_dev$newman$Pages_Builds$WebSocketEvent = function (a) {
+	return {ctor: 'WebSocketEvent', _0: a};
+};
+var _Giga_dev$newman$Pages_Builds$CompareBuildsMsg = function (a) {
+	return {ctor: 'CompareBuildsMsg', _0: a};
+};
+var _Giga_dev$newman$Pages_Builds$update = F2(
+	function (msg, model) {
+		var _p1 = msg;
+		switch (_p1.ctor) {
+			case 'GetBuildsCompleted':
+				var _p2 = _p1._0;
+				if (_p2.ctor === 'Ok') {
+					var _p3 = _p2._0;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								builds: A2(_jschomay$elm_paginate$Paginate$fromList, model.pageSize, _p3),
+								allBuilds: _p3,
+								compareBuildsModel: _Giga_dev$newman$Views_CompareBuilds$init(_p3)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'First':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							builds: _jschomay$elm_paginate$Paginate$first(model.builds)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'Last':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							builds: _jschomay$elm_paginate$Paginate$last(model.builds)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'Next':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							builds: _jschomay$elm_paginate$Paginate$next(model.builds)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'Prev':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							builds: _jschomay$elm_paginate$Paginate$prev(model.builds)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'GoTo':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							builds: A2(_jschomay$elm_paginate$Paginate$goTo, _p1._0, model.builds)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'FilterQuery':
+				var _p4 = _p1._0;
+				var filteredList = A2(
+					_elm_lang$core$List$filter,
+					_Giga_dev$newman$Pages_Builds$filterQuery(_p4),
+					model.allBuilds);
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							query: _p4,
+							builds: A2(_jschomay$elm_paginate$Paginate$fromList, model.pageSize, filteredList)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'CompareBuildsMsg':
+				var _p5 = A2(_Giga_dev$newman$Views_CompareBuilds$update, _p1._0, model.compareBuildsModel);
+				var updatedModel = _p5._0;
+				var cmd = _p5._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{compareBuildsModel: updatedModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Pages_Builds$CompareBuildsMsg, cmd)
+				};
+			default:
+				var _p6 = _p1._0;
+				if (_p6.ctor === 'CreatedBuild') {
+					return {
+						ctor: '_Tuple2',
+						_0: A2(_Giga_dev$newman$Pages_Builds$updateBuildAdded, model, _p6._0),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+		}
+	});
+var _Giga_dev$newman$Pages_Builds$handleEvent = function (event) {
+	return _elm_lang$core$Platform_Cmd$batch(
+		{
+			ctor: '::',
+			_0: A2(_Giga_dev$newman$Utils_WebSocket_ops['=>'], event, _Giga_dev$newman$Pages_Builds$WebSocketEvent),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$core$Platform_Cmd$map,
+					_Giga_dev$newman$Pages_Builds$CompareBuildsMsg,
+					_Giga_dev$newman$Views_CompareBuilds$handleEvent(event)),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _Giga_dev$newman$Pages_Builds$FilterQuery = function (a) {
+	return {ctor: 'FilterQuery', _0: a};
+};
+var _Giga_dev$newman$Pages_Builds$GoTo = function (a) {
+	return {ctor: 'GoTo', _0: a};
+};
+var _Giga_dev$newman$Pages_Builds$Prev = {ctor: 'Prev'};
+var _Giga_dev$newman$Pages_Builds$Next = {ctor: 'Next'};
+var _Giga_dev$newman$Pages_Builds$Last = {ctor: 'Last'};
+var _Giga_dev$newman$Pages_Builds$First = {ctor: 'First'};
+var _Giga_dev$newman$Pages_Builds$view = function (model) {
+	var pagerButtonView = F2(
+		function (index, isActive) {
+			var _p7 = isActive;
+			if (_p7 === true) {
+				return A2(
+					_elm_lang$html$Html$li,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('page-item active'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$button,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('page-link'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									_elm_lang$core$Basics$toString(index)),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$span,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('sr-only'),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('(current)'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {ctor: '[]'}
+					});
+			} else {
+				return A2(
+					_elm_lang$html$Html$li,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('page-item'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(
+								_Giga_dev$newman$Pages_Builds$GoTo(index)),
+							_1: {ctor: '[]'}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$button,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('page-link'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									_elm_lang$core$Basics$toString(index)),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					});
+			}
+		});
+	var nextButtons = {
+		ctor: '::',
+		_0: A2(
+			_elm_lang$html$Html$li,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('page-item'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$classList(
+						{
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'disabled',
+								_1: _jschomay$elm_paginate$Paginate$isLast(model.builds)
+							},
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(_Giga_dev$newman$Pages_Builds$Next),
+						_1: {ctor: '[]'}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$button,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('page-link'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('›'),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$li,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('page-item'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$classList(
+							{
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'disabled',
+									_1: _jschomay$elm_paginate$Paginate$isLast(model.builds)
+								},
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(_Giga_dev$newman$Pages_Builds$Last),
+							_1: {ctor: '[]'}
+						}
+					}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$button,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('page-link'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('»'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		}
+	};
+	var prevButtons = {
+		ctor: '::',
+		_0: A2(
+			_elm_lang$html$Html$li,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('page-item'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$classList(
+						{
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'disabled',
+								_1: _jschomay$elm_paginate$Paginate$isFirst(model.builds)
+							},
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(_Giga_dev$newman$Pages_Builds$First),
+						_1: {ctor: '[]'}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$button,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('page-link'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('«'),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$li,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('page-item'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$classList(
+							{
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'disabled',
+									_1: _jschomay$elm_paginate$Paginate$isFirst(model.builds)
+								},
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(_Giga_dev$newman$Pages_Builds$Prev),
+							_1: {ctor: '[]'}
+						}
+					}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$button,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('page-link'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('‹'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		}
+	};
+	var pagination = A2(
+		_elm_lang$html$Html$nav,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$ul,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('pagination '),
+					_1: {ctor: '[]'}
+				},
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					prevButtons,
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						A2(_jschomay$elm_paginate$Paginate$pager, pagerButtonView, model.builds),
+						nextButtons))),
+			_1: {ctor: '[]'}
+		});
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('container-fluid'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h2,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('text'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Builds'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$map,
+					_Giga_dev$newman$Pages_Builds$CompareBuildsMsg,
+					_Giga_dev$newman$Views_CompareBuilds$view(model.compareBuildsModel)),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$br,
+						{ctor: '[]'},
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('form-inline'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$div,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('form-group'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$text(
+													{
+														ctor: '::',
+														_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_Giga_dev$newman$Pages_Builds$FilterQuery),
+														_1: {
+															ctor: '::',
+															_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$placeholder('Filter'),
+															_1: {
+																ctor: '::',
+																_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$value(model.query),
+																_1: {ctor: '[]'}
+															}
+														}
+													}),
+												_1: {ctor: '[]'}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$div,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$class('form-group'),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: pagination,
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$table,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('table table-sm table-bordered table-striped table-nowrap table-hover builds-table'),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$thead,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$tr,
+														{ctor: '[]'},
+														{
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$th,
+																{ctor: '[]'},
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text('Build'),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$html$Html$th,
+																	{ctor: '[]'},
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html$text('Tags'),
+																		_1: {ctor: '[]'}
+																	}),
+																_1: {
+																	ctor: '::',
+																	_0: A2(
+																		_elm_lang$html$Html$th,
+																		{ctor: '[]'},
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html$text('Id'),
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {
+																		ctor: '::',
+																		_0: A2(
+																			_elm_lang$html$Html$th,
+																			{ctor: '[]'},
+																			{
+																				ctor: '::',
+																				_0: _elm_lang$html$Html$text('Build Date'),
+																				_1: {ctor: '[]'}
+																			}),
+																		_1: {
+																			ctor: '::',
+																			_0: A2(
+																				_elm_lang$html$Html$th,
+																				{ctor: '[]'},
+																				{
+																					ctor: '::',
+																					_0: A2(
+																						_rundis$elm_bootstrap$Bootstrap_Badge$badgeSuccess,
+																						{ctor: '[]'},
+																						{
+																							ctor: '::',
+																							_0: _elm_lang$html$Html$text('Passed'),
+																							_1: {ctor: '[]'}
+																						}),
+																					_1: {
+																						ctor: '::',
+																						_0: _elm_lang$html$Html$text(' '),
+																						_1: {
+																							ctor: '::',
+																							_0: A2(
+																								_rundis$elm_bootstrap$Bootstrap_Badge$badgeDanger,
+																								{ctor: '[]'},
+																								{
+																									ctor: '::',
+																									_0: _elm_lang$html$Html$text('Failed'),
+																									_1: {ctor: '[]'}
+																								}),
+																							_1: {
+																								ctor: '::',
+																								_0: _elm_lang$html$Html$text(' '),
+																								_1: {
+																									ctor: '::',
+																									_0: A2(
+																										_rundis$elm_bootstrap$Bootstrap_Badge$badgeWarning,
+																										{
+																											ctor: '::',
+																											_0: _elm_lang$html$Html_Attributes$style(
+																												{
+																													ctor: '::',
+																													_0: {ctor: '_Tuple2', _0: 'background-color', _1: 'DarkRed'},
+																													_1: {ctor: '[]'}
+																												}),
+																											_1: {ctor: '[]'}
+																										},
+																										{
+																											ctor: '::',
+																											_0: _elm_lang$html$Html$text('Failedx3'),
+																											_1: {ctor: '[]'}
+																										}),
+																									_1: {ctor: '[]'}
+																								}
+																							}
+																						}
+																					}
+																				}),
+																			_1: {ctor: '[]'}
+																		}
+																	}
+																}
+															}
+														}),
+													_1: {ctor: '[]'}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$tbody,
+													{ctor: '[]'},
+													A2(
+														_elm_lang$core$List$map,
+														_Giga_dev$newman$Pages_Builds$viewBuild,
+														_jschomay$elm_paginate$Paginate$page(model.builds))),
+												_1: {ctor: '[]'}
+											}
+										}),
+									_1: {
+										ctor: '::',
+										_0: pagination,
+										_1: {ctor: '[]'}
+									}
+								}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		});
+};
+var _Giga_dev$newman$Pages_Builds$GetBuildsCompleted = function (a) {
+	return {ctor: 'GetBuildsCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_Builds$getBuildsCmd = A2(
+	_elm_lang$http$Http$send,
+	_Giga_dev$newman$Pages_Builds$GetBuildsCompleted,
+	A2(_elm_lang$http$Http$get, '/api/newman/build?orderBy=-buildTime', _Giga_dev$newman$Utils_Types$decodeBuilds));
+var _Giga_dev$newman$Pages_Builds$init = function () {
+	var pageSize = 20;
+	return {
+		ctor: '_Tuple2',
+		_0: {
+			allBuilds: {ctor: '[]'},
+			builds: A2(
+				_jschomay$elm_paginate$Paginate$fromList,
+				pageSize,
+				{ctor: '[]'}),
+			pageSize: pageSize,
+			compareBuildsModel: _Giga_dev$newman$Views_CompareBuilds$init(
+				{ctor: '[]'}),
+			query: ''
+		},
+		_1: _Giga_dev$newman$Pages_Builds$getBuildsCmd
+	};
+}();

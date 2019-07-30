@@ -1,0 +1,447 @@
+var _Giga_dev$newman$Pages_Test$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		if (_p0.ctor === 'GetTestDataCompleted') {
+			var _p1 = _p0._0;
+			if (_p1.ctor === 'Ok') {
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							test: _elm_lang$core$Maybe$Just(_p1._0)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			} else {
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
+		} else {
+			var _p2 = _p0._0;
+			if (_p2.ctor === 'ModifiedTest') {
+				var _p4 = _p2._0;
+				var _p3 = model.test;
+				if (_p3.ctor === 'Just') {
+					return _elm_lang$core$Native_Utils.eq(_p4.id, _p3._0.id) ? {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								test: _elm_lang$core$Maybe$Just(_p4)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			} else {
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
+		}
+	});
+var _Giga_dev$newman$Pages_Test$viewTest = function (test) {
+	var historyStatsClass = _elm_lang$core$Native_Utils.eq(test.status, _Giga_dev$newman$Utils_Types$TEST_SUCCESS) ? 'black-column' : ((_elm_lang$core$Native_Utils.cmp(test.testScore, 3) < 1) ? 'red-column' : ((_elm_lang$core$Native_Utils.cmp(test.testScore, 3) > 0) ? 'blue-column' : ''));
+	var historyStats = function () {
+		var shorten = function (txt) {
+			return A3(_elm_lang$core$String$slice, 0, 18, txt);
+		};
+		var delimiter = '_';
+		var splitted = A2(_elm_lang$core$String$split, delimiter, test.historyStats);
+		var _p5 = splitted;
+		_v4_2:
+		do {
+			if (_p5.ctor === '::') {
+				if (_p5._1.ctor === '::') {
+					if (_p5._1._1.ctor === '[]') {
+						return {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'History Stats branch',
+								_1: _elm_lang$html$Html$text(
+									shorten(_p5._0))
+							},
+							_1: {
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'History Stats master',
+									_1: _elm_lang$html$Html$text(
+										shorten(_p5._1._0))
+								},
+								_1: {ctor: '[]'}
+							}
+						};
+					} else {
+						break _v4_2;
+					}
+				} else {
+					return {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'History Stats master',
+							_1: _elm_lang$html$Html$text(
+								shorten(_p5._0))
+						},
+						_1: {ctor: '[]'}
+					};
+				}
+			} else {
+				break _v4_2;
+			}
+		} while(false);
+		return {ctor: '[]'};
+	}();
+	var formatDate = function (maybe) {
+		var _p6 = maybe;
+		if (_p6.ctor === 'Just') {
+			return A2(
+				_ryannhg$elm_date_format$DateFormat$format,
+				_Giga_dev$newman$Utils_Common$dateTimeDateFormat,
+				_elm_lang$core$Date$fromTime(
+					_elm_lang$core$Basics$toFloat(_p6._0)));
+		} else {
+			return 'N/A';
+		}
+	};
+	var logsRow = function () {
+		var toLogRow = function (_p7) {
+			var _p8 = _p7;
+			var _p9 = _p8._1;
+			return A2(
+				_elm_lang$html$Html$li,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$a,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$href(_p9),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$target('_blank'),
+								_1: {ctor: '[]'}
+							}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(_p8._0),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(' '),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$a,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$href(
+										A2(_elm_lang$core$Basics_ops['++'], _p9, '?download=true')),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('[Download]'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+		};
+		return A2(
+			_elm_lang$html$Html$ul,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'font-size', _1: '14px'},
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			},
+			A2(
+				_elm_lang$core$List$map,
+				toLogRow,
+				_elm_lang$core$Dict$toList(test.logs)));
+	}();
+	var toBadge = function (status) {
+		var _p10 = status;
+		switch (_p10.ctor) {
+			case 'TEST_RUNNING':
+				return _rundis$elm_bootstrap$Bootstrap_Badge$badgeInfo;
+			case 'TEST_FAIL':
+				return _rundis$elm_bootstrap$Bootstrap_Badge$badgeDanger;
+			case 'TEST_SUCCESS':
+				return _rundis$elm_bootstrap$Bootstrap_Badge$badgeSuccess;
+			default:
+				return _rundis$elm_bootstrap$Bootstrap_Badge$badge;
+		}
+	};
+	var rows = A2(
+		_elm_lang$core$Basics_ops['++'],
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'Status',
+				_1: A3(
+					toBadge,
+					test.status,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							_Giga_dev$newman$Utils_Types$testStatusToString(test.status)),
+						_1: {ctor: '[]'}
+					})
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'Run Num',
+					_1: _elm_lang$html$Html$text(
+						_elm_lang$core$Basics$toString(test.runNumber))
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'Id',
+						_1: _elm_lang$html$Html$text(test.id)
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'Job Id',
+							_1: _elm_lang$html$Html$text(test.jobId)
+						},
+						_1: {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'Arguments',
+								_1: _elm_lang$html$Html$text(
+									A2(_elm_lang$core$String$join, ' ', test.$arguments))
+							},
+							_1: {
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'Test Type',
+									_1: _elm_lang$html$Html$text(test.testType)
+								},
+								_1: {
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'Timeout',
+										_1: _elm_lang$html$Html$text(
+											_elm_lang$core$Basics$toString(test.timeout))
+									},
+									_1: {
+										ctor: '::',
+										_0: {
+											ctor: '_Tuple2',
+											_0: 'Error Message',
+											_1: _elm_lang$html$Html$text(test.errorMessage)
+										},
+										_1: {
+											ctor: '::',
+											_0: {ctor: '_Tuple2', _0: 'Logs', _1: logsRow},
+											_1: {
+												ctor: '::',
+												_0: {
+													ctor: '_Tuple2',
+													_0: 'Assigned Agent',
+													_1: _elm_lang$html$Html$text(test.assignedAgent)
+												},
+												_1: {
+													ctor: '::',
+													_0: {
+														ctor: '_Tuple2',
+														_0: 'Start Time',
+														_1: _elm_lang$html$Html$text(
+															formatDate(test.startTime))
+													},
+													_1: {
+														ctor: '::',
+														_0: {
+															ctor: '_Tuple2',
+															_0: 'End Time',
+															_1: _elm_lang$html$Html$text(
+																formatDate(test.endTime))
+														},
+														_1: {
+															ctor: '::',
+															_0: {
+																ctor: '_Tuple2',
+																_0: 'Scheduled At',
+																_1: _elm_lang$html$Html$text(
+																	formatDate(
+																		_elm_lang$core$Maybe$Just(test.scheduledAt)))
+															},
+															_1: {
+																ctor: '::',
+																_0: {
+																	ctor: '_Tuple2',
+																	_0: 'History',
+																	_1: A2(
+																		_elm_lang$html$Html$a,
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Attributes$href(
+																				A2(_elm_lang$core$Basics_ops['++'], '#test-history/', test.id)),
+																			_1: {ctor: '[]'}
+																		},
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html$text('History'),
+																			_1: {ctor: '[]'}
+																		})
+																},
+																_1: {ctor: '[]'}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		historyStats);
+	var viewRow = function (_p11) {
+		var _p12 = _p11;
+		return A2(
+			_elm_lang$html$Html$tr,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$td,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$width(180),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(_p12._0),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$td,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _p12._1,
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	};
+	return A2(
+		_elm_lang$html$Html$table,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('job-view'),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'margin-bottom', _1: '50px'},
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		},
+		A2(_elm_lang$core$List$map, viewRow, rows));
+};
+var _Giga_dev$newman$Pages_Test$view = function (model) {
+	var _p13 = model.test;
+	if (_p13.ctor === 'Nothing') {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('Loading data...'),
+				_1: {ctor: '[]'}
+			});
+	} else {
+		var _p14 = _p13._0;
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('container-fluid'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$h2,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('text'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'Details for test ',
+								A2(_elm_lang$core$String$join, ' ', _p14.$arguments))),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: _Giga_dev$newman$Pages_Test$viewTest(_p14),
+					_1: {ctor: '[]'}
+				}
+			});
+	}
+};
+var _Giga_dev$newman$Pages_Test$initModel = {test: _elm_lang$core$Maybe$Nothing};
+var _Giga_dev$newman$Pages_Test$Model = function (a) {
+	return {test: a};
+};
+var _Giga_dev$newman$Pages_Test$WebSocketEvent = function (a) {
+	return {ctor: 'WebSocketEvent', _0: a};
+};
+var _Giga_dev$newman$Pages_Test$handleEvent = function (event) {
+	return A2(_Giga_dev$newman$Utils_WebSocket_ops['=>'], event, _Giga_dev$newman$Pages_Test$WebSocketEvent);
+};
+var _Giga_dev$newman$Pages_Test$GetTestDataCompleted = function (a) {
+	return {ctor: 'GetTestDataCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_Test$getTestDataCmd = function (testId) {
+	return A2(
+		_elm_lang$http$Http$send,
+		_Giga_dev$newman$Pages_Test$GetTestDataCompleted,
+		A2(
+			_elm_lang$http$Http$get,
+			A2(_elm_lang$core$Basics_ops['++'], '/api/newman/test/', testId),
+			_Giga_dev$newman$Utils_Types$decodeTest));
+};
+var _Giga_dev$newman$Pages_Test$initCmd = function (testId) {
+	return _Giga_dev$newman$Pages_Test$getTestDataCmd(testId);
+};

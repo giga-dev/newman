@@ -1,0 +1,1388 @@
+var _Giga_dev$newman$Main$bodyWrapper = function (inner) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id('page-wrapper'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('container-fluid'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('row'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('col-lg-12'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$h1,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('page-header'),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Header here'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('row'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: inner,
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {ctor: '[]'}
+		});
+};
+var _Giga_dev$newman$Main$routeToString = function (route) {
+	var pieces = function () {
+		var _p0 = route;
+		switch (_p0.ctor) {
+			case 'HomeRoute':
+				return {ctor: '[]'};
+			case 'SubmitNewJobRoute':
+				return {
+					ctor: '::',
+					_0: 'submit-new-job',
+					_1: {ctor: '[]'}
+				};
+			case 'JobsRoute':
+				return {
+					ctor: '::',
+					_0: 'jobs',
+					_1: {ctor: '[]'}
+				};
+			case 'BuildsRoute':
+				return {
+					ctor: '::',
+					_0: 'builds',
+					_1: {ctor: '[]'}
+				};
+			case 'SuitesRoute':
+				return {
+					ctor: '::',
+					_0: 'suites',
+					_1: {ctor: '[]'}
+				};
+			case 'AgentsRoute':
+				return {
+					ctor: '::',
+					_0: 'agents',
+					_1: {ctor: '[]'}
+				};
+			case 'JobConfigsRoute':
+				return {
+					ctor: '::',
+					_0: 'jobConfigs',
+					_1: {ctor: '[]'}
+				};
+			case 'ManageNewmanRoute':
+				return {
+					ctor: '::',
+					_0: 'manageNewman',
+					_1: {ctor: '[]'}
+				};
+			case 'NewJobConfigsRoute':
+				return {
+					ctor: '::',
+					_0: 'newJobConfig',
+					_1: {ctor: '[]'}
+				};
+			case 'JobConfigRoute':
+				return {
+					ctor: '::',
+					_0: 'jobConfig',
+					_1: {
+						ctor: '::',
+						_0: _p0._0,
+						_1: {ctor: '[]'}
+					}
+				};
+			case 'JobRoute':
+				return {
+					ctor: '::',
+					_0: 'job',
+					_1: {
+						ctor: '::',
+						_0: _p0._0,
+						_1: {
+							ctor: '::',
+							_0: _p0._1,
+							_1: {ctor: '[]'}
+						}
+					}
+				};
+			case 'BuildRoute':
+				return {
+					ctor: '::',
+					_0: 'build',
+					_1: {
+						ctor: '::',
+						_0: _p0._0,
+						_1: {ctor: '[]'}
+					}
+				};
+			case 'SuiteRoute':
+				return {
+					ctor: '::',
+					_0: 'suite',
+					_1: {
+						ctor: '::',
+						_0: _p0._0,
+						_1: {ctor: '[]'}
+					}
+				};
+			case 'TestRoute':
+				return {
+					ctor: '::',
+					_0: 'test',
+					_1: {
+						ctor: '::',
+						_0: _p0._0,
+						_1: {ctor: '[]'}
+					}
+				};
+			default:
+				return {
+					ctor: '::',
+					_0: 'test-history',
+					_1: {
+						ctor: '::',
+						_0: _p0._0,
+						_1: {ctor: '[]'}
+					}
+				};
+		}
+	}();
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		'#',
+		A2(_elm_lang$core$String$join, '/', pieces));
+};
+var _Giga_dev$newman$Main$Model = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return function (l) {
+												return function (m) {
+													return {currentPage: a, currentRoute: b, submitNewJobModel: c, jobsModel: d, buildsModel: e, agentsModel: f, homeModel: g, suitesModel: h, jobConfigsModel: i, newJobConfigsModel: j, manageNewmanModel: k, topBarModel: l, webSocketModel: m};
+												};
+											};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _Giga_dev$newman$Main$TestHistoryRoute = function (a) {
+	return {ctor: 'TestHistoryRoute', _0: a};
+};
+var _Giga_dev$newman$Main$TestRoute = function (a) {
+	return {ctor: 'TestRoute', _0: a};
+};
+var _Giga_dev$newman$Main$SuiteRoute = function (a) {
+	return {ctor: 'SuiteRoute', _0: a};
+};
+var _Giga_dev$newman$Main$BuildRoute = function (a) {
+	return {ctor: 'BuildRoute', _0: a};
+};
+var _Giga_dev$newman$Main$JobRoute = F2(
+	function (a, b) {
+		return {ctor: 'JobRoute', _0: a, _1: b};
+	});
+var _Giga_dev$newman$Main$JobConfigRoute = function (a) {
+	return {ctor: 'JobConfigRoute', _0: a};
+};
+var _Giga_dev$newman$Main$ManageNewmanRoute = {ctor: 'ManageNewmanRoute'};
+var _Giga_dev$newman$Main$NewJobConfigsRoute = {ctor: 'NewJobConfigsRoute'};
+var _Giga_dev$newman$Main$JobConfigsRoute = {ctor: 'JobConfigsRoute'};
+var _Giga_dev$newman$Main$SuitesRoute = {ctor: 'SuitesRoute'};
+var _Giga_dev$newman$Main$AgentsRoute = {ctor: 'AgentsRoute'};
+var _Giga_dev$newman$Main$BuildsRoute = {ctor: 'BuildsRoute'};
+var _Giga_dev$newman$Main$JobsRoute = {ctor: 'JobsRoute'};
+var _Giga_dev$newman$Main$SubmitNewJobRoute = {ctor: 'SubmitNewJobRoute'};
+var _Giga_dev$newman$Main$HomeRoute = {ctor: 'HomeRoute'};
+var _Giga_dev$newman$Main$route = _evancz$url_parser$UrlParser$oneOf(
+	{
+		ctor: '::',
+		_0: A2(
+			_evancz$url_parser$UrlParser$map,
+			_Giga_dev$newman$Main$HomeRoute,
+			_evancz$url_parser$UrlParser$s('')),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_evancz$url_parser$UrlParser$map,
+				_Giga_dev$newman$Main$JobsRoute,
+				_evancz$url_parser$UrlParser$s('jobs')),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_evancz$url_parser$UrlParser$map,
+					_Giga_dev$newman$Main$SubmitNewJobRoute,
+					_evancz$url_parser$UrlParser$s('submit-new-job')),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_evancz$url_parser$UrlParser$map,
+						_Giga_dev$newman$Main$BuildsRoute,
+						_evancz$url_parser$UrlParser$s('builds')),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_evancz$url_parser$UrlParser$map,
+							_Giga_dev$newman$Main$AgentsRoute,
+							_evancz$url_parser$UrlParser$s('agents')),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_evancz$url_parser$UrlParser$map,
+								_Giga_dev$newman$Main$SuitesRoute,
+								_evancz$url_parser$UrlParser$s('suites')),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_evancz$url_parser$UrlParser$map,
+									_Giga_dev$newman$Main$JobConfigsRoute,
+									_evancz$url_parser$UrlParser$s('jobConfigs')),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_evancz$url_parser$UrlParser$map,
+										_Giga_dev$newman$Main$ManageNewmanRoute,
+										_evancz$url_parser$UrlParser$s('manageNewman')),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_evancz$url_parser$UrlParser$map,
+											_Giga_dev$newman$Main$JobConfigRoute,
+											A2(
+												_evancz$url_parser$UrlParser_ops['</>'],
+												_evancz$url_parser$UrlParser$s('NewmanManageConfig'),
+												_Giga_dev$newman$Pages_JobConfig$parseJobConfigId)),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_evancz$url_parser$UrlParser$map,
+												_Giga_dev$newman$Main$NewJobConfigsRoute,
+												_evancz$url_parser$UrlParser$s('newJobConfig')),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_evancz$url_parser$UrlParser$map,
+													_Giga_dev$newman$Main$JobConfigRoute,
+													A2(
+														_evancz$url_parser$UrlParser_ops['</>'],
+														_evancz$url_parser$UrlParser$s('jobConfig'),
+														_Giga_dev$newman$Pages_JobConfig$parseJobConfigId)),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_evancz$url_parser$UrlParser$map,
+														_Giga_dev$newman$Main$JobRoute,
+														A2(
+															_evancz$url_parser$UrlParser_ops['</>'],
+															_evancz$url_parser$UrlParser$s('job'),
+															A2(_evancz$url_parser$UrlParser_ops['</>'], _Giga_dev$newman$Pages_Job$parseJobId, _Giga_dev$newman$Pages_Job$parseRadioState))),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_evancz$url_parser$UrlParser$map,
+															_Giga_dev$newman$Main$BuildRoute,
+															A2(
+																_evancz$url_parser$UrlParser_ops['</>'],
+																_evancz$url_parser$UrlParser$s('build'),
+																_Giga_dev$newman$Pages_Build$parseBuildId)),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_evancz$url_parser$UrlParser$map,
+																_Giga_dev$newman$Main$SuiteRoute,
+																A2(
+																	_evancz$url_parser$UrlParser_ops['</>'],
+																	_evancz$url_parser$UrlParser$s('suite'),
+																	_Giga_dev$newman$Pages_Suite$parseSuiteId)),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_evancz$url_parser$UrlParser$map,
+																	_Giga_dev$newman$Main$TestRoute,
+																	A2(
+																		_evancz$url_parser$UrlParser_ops['</>'],
+																		_evancz$url_parser$UrlParser$s('test'),
+																		_evancz$url_parser$UrlParser$string)),
+																_1: {
+																	ctor: '::',
+																	_0: A2(
+																		_evancz$url_parser$UrlParser$map,
+																		_Giga_dev$newman$Main$TestHistoryRoute,
+																		A2(
+																			_evancz$url_parser$UrlParser_ops['</>'],
+																			_evancz$url_parser$UrlParser$s('test-history'),
+																			_evancz$url_parser$UrlParser$string)),
+																	_1: {ctor: '[]'}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _Giga_dev$newman$Main$fromLocation = function (location) {
+	return _elm_lang$core$String$isEmpty(location.hash) ? _elm_lang$core$Maybe$Just(_Giga_dev$newman$Main$HomeRoute) : A2(_evancz$url_parser$UrlParser$parseHash, _Giga_dev$newman$Main$route, location);
+};
+var _Giga_dev$newman$Main$TestHistoryPage = function (a) {
+	return {ctor: 'TestHistoryPage', _0: a};
+};
+var _Giga_dev$newman$Main$TestPage = function (a) {
+	return {ctor: 'TestPage', _0: a};
+};
+var _Giga_dev$newman$Main$SuitePage = function (a) {
+	return {ctor: 'SuitePage', _0: a};
+};
+var _Giga_dev$newman$Main$BuildPage = function (a) {
+	return {ctor: 'BuildPage', _0: a};
+};
+var _Giga_dev$newman$Main$JobPage = function (a) {
+	return {ctor: 'JobPage', _0: a};
+};
+var _Giga_dev$newman$Main$JobConfigPage = function (a) {
+	return {ctor: 'JobConfigPage', _0: a};
+};
+var _Giga_dev$newman$Main$NewJobConfigsPage = {ctor: 'NewJobConfigsPage'};
+var _Giga_dev$newman$Main$ManageNewmanPage = {ctor: 'ManageNewmanPage'};
+var _Giga_dev$newman$Main$JobConfigsPage = {ctor: 'JobConfigsPage'};
+var _Giga_dev$newman$Main$SuitesPage = {ctor: 'SuitesPage'};
+var _Giga_dev$newman$Main$AgentsPage = {ctor: 'AgentsPage'};
+var _Giga_dev$newman$Main$BuildsPage = {ctor: 'BuildsPage'};
+var _Giga_dev$newman$Main$JobsPage = {ctor: 'JobsPage'};
+var _Giga_dev$newman$Main$SubmitNewJobPage = {ctor: 'SubmitNewJobPage'};
+var _Giga_dev$newman$Main$HomePage = {ctor: 'HomePage'};
+var _Giga_dev$newman$Main$routeToPage = function (route) {
+	var _p1 = route;
+	switch (_p1.ctor) {
+		case 'HomeRoute':
+			return _Giga_dev$newman$Main$HomePage;
+		case 'SubmitNewJobRoute':
+			return _Giga_dev$newman$Main$SubmitNewJobPage;
+		case 'JobsRoute':
+			return _Giga_dev$newman$Main$JobsPage;
+		case 'BuildsRoute':
+			return _Giga_dev$newman$Main$BuildsPage;
+		case 'SuitesRoute':
+			return _Giga_dev$newman$Main$SuitesPage;
+		case 'AgentsRoute':
+			return _Giga_dev$newman$Main$AgentsPage;
+		case 'JobConfigsRoute':
+			return _Giga_dev$newman$Main$JobConfigsPage;
+		case 'NewJobConfigsRoute':
+			return _Giga_dev$newman$Main$NewJobConfigsPage;
+		case 'ManageNewmanRoute':
+			return _Giga_dev$newman$Main$ManageNewmanPage;
+		case 'JobConfigRoute':
+			return _Giga_dev$newman$Main$JobConfigPage(
+				_Giga_dev$newman$Pages_JobConfig$Model(_elm_lang$core$Maybe$Nothing));
+		case 'JobRoute':
+			return _Giga_dev$newman$Main$JobPage(
+				A2(
+					_Giga_dev$newman$Pages_Job$initModel,
+					_p1._0,
+					_Giga_dev$newman$Utils_Types$stringToRadioState(_p1._1)));
+		case 'BuildRoute':
+			return _Giga_dev$newman$Main$BuildPage(_Giga_dev$newman$Pages_Build$initModel);
+		case 'SuiteRoute':
+			return _Giga_dev$newman$Main$SuitePage(
+				_Giga_dev$newman$Pages_Suite$Model(_elm_lang$core$Maybe$Nothing));
+		case 'TestRoute':
+			return _Giga_dev$newman$Main$TestPage(_Giga_dev$newman$Pages_Test$initModel);
+		default:
+			return _Giga_dev$newman$Main$TestHistoryPage(_Giga_dev$newman$Pages_TestHistory$initModel);
+	}
+};
+var _Giga_dev$newman$Main$WebSocketMsg = function (a) {
+	return {ctor: 'WebSocketMsg', _0: a};
+};
+var _Giga_dev$newman$Main$TestHistoryMsg = function (a) {
+	return {ctor: 'TestHistoryMsg', _0: a};
+};
+var _Giga_dev$newman$Main$TopBarMsg = function (a) {
+	return {ctor: 'TopBarMsg', _0: a};
+};
+var _Giga_dev$newman$Main$TestMsg = function (a) {
+	return {ctor: 'TestMsg', _0: a};
+};
+var _Giga_dev$newman$Main$SuiteMsg = function (a) {
+	return {ctor: 'SuiteMsg', _0: a};
+};
+var _Giga_dev$newman$Main$BuildMsg = function (a) {
+	return {ctor: 'BuildMsg', _0: a};
+};
+var _Giga_dev$newman$Main$JobMsg = function (a) {
+	return {ctor: 'JobMsg', _0: a};
+};
+var _Giga_dev$newman$Main$ManageNewmanMsg = function (a) {
+	return {ctor: 'ManageNewmanMsg', _0: a};
+};
+var _Giga_dev$newman$Main$HomeMsg = function (a) {
+	return {ctor: 'HomeMsg', _0: a};
+};
+var _Giga_dev$newman$Main$JobConfigMsg = function (a) {
+	return {ctor: 'JobConfigMsg', _0: a};
+};
+var _Giga_dev$newman$Main$NewJobConfigMsg = function (a) {
+	return {ctor: 'NewJobConfigMsg', _0: a};
+};
+var _Giga_dev$newman$Main$JobConfigsMsg = function (a) {
+	return {ctor: 'JobConfigsMsg', _0: a};
+};
+var _Giga_dev$newman$Main$SuitesMsg = function (a) {
+	return {ctor: 'SuitesMsg', _0: a};
+};
+var _Giga_dev$newman$Main$AgentsMsg = function (a) {
+	return {ctor: 'AgentsMsg', _0: a};
+};
+var _Giga_dev$newman$Main$BuildsMsg = function (a) {
+	return {ctor: 'BuildsMsg', _0: a};
+};
+var _Giga_dev$newman$Main$JobsMsg = function (a) {
+	return {ctor: 'JobsMsg', _0: a};
+};
+var _Giga_dev$newman$Main$SubmitNewJobMsg = function (a) {
+	return {ctor: 'SubmitNewJobMsg', _0: a};
+};
+var _Giga_dev$newman$Main$init = function (location) {
+	var _p2 = _Giga_dev$newman$Views_TopBar$init;
+	var topBarModel = _p2._0;
+	var topBarCmd = _p2._1;
+	var _p3 = _Giga_dev$newman$Pages_ManageNewman$init;
+	var manageNewmanModel = _p3._0;
+	var manageNewmanCmd = _p3._1;
+	var _p4 = _Giga_dev$newman$Pages_Home$init;
+	var homeModel = _p4._0;
+	var homeCmd = _p4._1;
+	var _p5 = _Giga_dev$newman$Pages_NewJobConfig$init;
+	var newJobConfigsModel = _p5._0;
+	var newJobConfigsCmd = _p5._1;
+	var _p6 = _Giga_dev$newman$Pages_JobConfigs$init;
+	var jobConfigsModel = _p6._0;
+	var jobConfigsCmd = _p6._1;
+	var _p7 = _Giga_dev$newman$Pages_Suites$init;
+	var suitesModel = _p7._0;
+	var suitesCmd = _p7._1;
+	var _p8 = _Giga_dev$newman$Pages_Agents$init;
+	var agentsModel = _p8._0;
+	var agentsCmd = _p8._1;
+	var _p9 = _Giga_dev$newman$Pages_Builds$init;
+	var buildsModel = _p9._0;
+	var buildsCmd = _p9._1;
+	var _p10 = _Giga_dev$newman$Pages_Jobs$init;
+	var jobsModel = _p10._0;
+	var jobsCmd = _p10._1;
+	var _p11 = _Giga_dev$newman$Pages_SubmitNewJob$init;
+	var submitNewJobModel = _p11._0;
+	var submitNewJobCmd = _p11._1;
+	var currentRoute = function () {
+		var _p12 = _Giga_dev$newman$Main$fromLocation(location);
+		if (_p12.ctor === 'Just') {
+			return _p12._0;
+		} else {
+			return _Giga_dev$newman$Main$HomeRoute;
+		}
+	}();
+	var currentPage = _Giga_dev$newman$Main$routeToPage(currentRoute);
+	var moreCmd = function () {
+		var _p13 = currentRoute;
+		switch (_p13.ctor) {
+			case 'JobRoute':
+				return A2(
+					_elm_lang$core$Platform_Cmd$map,
+					_Giga_dev$newman$Main$JobMsg,
+					_Giga_dev$newman$Pages_Job$initCmd(_p13._0));
+			case 'JobConfigRoute':
+				return A2(
+					_elm_lang$core$Platform_Cmd$map,
+					_Giga_dev$newman$Main$JobConfigMsg,
+					_Giga_dev$newman$Pages_JobConfig$getJobConfigInfoCmd(_p13._0));
+			case 'BuildRoute':
+				return A2(
+					_elm_lang$core$Platform_Cmd$map,
+					_Giga_dev$newman$Main$BuildMsg,
+					_Giga_dev$newman$Pages_Build$initCmd(_p13._0));
+			case 'SuiteRoute':
+				return A2(
+					_elm_lang$core$Platform_Cmd$map,
+					_Giga_dev$newman$Main$SuiteMsg,
+					_Giga_dev$newman$Pages_Suite$getSuiteInfoCmd(_p13._0));
+			case 'TestRoute':
+				return A2(
+					_elm_lang$core$Platform_Cmd$map,
+					_Giga_dev$newman$Main$TestMsg,
+					_Giga_dev$newman$Pages_Test$getTestDataCmd(_p13._0));
+			case 'TestHistoryRoute':
+				return A2(
+					_elm_lang$core$Platform_Cmd$map,
+					_Giga_dev$newman$Main$TestHistoryMsg,
+					_Giga_dev$newman$Pages_TestHistory$initCmd(_p13._0));
+			default:
+				return _elm_lang$core$Platform_Cmd$none;
+		}
+	}();
+	return {
+		ctor: '_Tuple2',
+		_0: {
+			currentPage: currentPage,
+			currentRoute: currentRoute,
+			submitNewJobModel: submitNewJobModel,
+			jobsModel: jobsModel,
+			buildsModel: buildsModel,
+			agentsModel: agentsModel,
+			homeModel: homeModel,
+			manageNewmanModel: manageNewmanModel,
+			suitesModel: suitesModel,
+			jobConfigsModel: jobConfigsModel,
+			newJobConfigsModel: newJobConfigsModel,
+			topBarModel: topBarModel,
+			webSocketModel: _Giga_dev$newman$Utils_WebSocket$initModel(location)
+		},
+		_1: _elm_lang$core$Platform_Cmd$batch(
+			{
+				ctor: '::',
+				_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$SubmitNewJobMsg, submitNewJobCmd),
+				_1: {
+					ctor: '::',
+					_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$JobsMsg, jobsCmd),
+					_1: {
+						ctor: '::',
+						_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$BuildsMsg, buildsCmd),
+						_1: {
+							ctor: '::',
+							_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$AgentsMsg, agentsCmd),
+							_1: {
+								ctor: '::',
+								_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$JobConfigsMsg, jobConfigsCmd),
+								_1: {
+									ctor: '::',
+									_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$NewJobConfigMsg, newJobConfigsCmd),
+									_1: {
+										ctor: '::',
+										_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$HomeMsg, homeCmd),
+										_1: {
+											ctor: '::',
+											_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$ManageNewmanMsg, manageNewmanCmd),
+											_1: {
+												ctor: '::',
+												_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$SuitesMsg, suitesCmd),
+												_1: {
+													ctor: '::',
+													_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$TopBarMsg, topBarCmd),
+													_1: {
+														ctor: '::',
+														_0: moreCmd,
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			})
+	};
+};
+var _Giga_dev$newman$Main$update = F2(
+	function (msg, model) {
+		var _p14 = {ctor: '_Tuple2', _0: msg, _1: model.currentPage};
+		switch (_p14._0.ctor) {
+			case 'GoTo':
+				var _p15 = _p14._0._0;
+				if (_p15.ctor === 'Just') {
+					var _p18 = _p15._0;
+					var _p16 = {ctor: '_Tuple2', _0: _p18, _1: model.currentRoute};
+					if ((_p16._0.ctor === 'JobRoute') && (_p16._1.ctor === 'JobRoute')) {
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					} else {
+						var newPage = _Giga_dev$newman$Main$routeToPage(_p18);
+						var newModel = _elm_lang$core$Native_Utils.update(
+							model,
+							{currentRoute: _p18, currentPage: newPage});
+						var _p17 = _p18;
+						switch (_p17.ctor) {
+							case 'JobRoute':
+								return {
+									ctor: '_Tuple2',
+									_0: newModel,
+									_1: A2(
+										_elm_lang$core$Platform_Cmd$map,
+										_Giga_dev$newman$Main$JobMsg,
+										_Giga_dev$newman$Pages_Job$getJobInfoCmd(_p17._0))
+								};
+							case 'JobConfigRoute':
+								return {
+									ctor: '_Tuple2',
+									_0: newModel,
+									_1: A2(
+										_elm_lang$core$Platform_Cmd$map,
+										_Giga_dev$newman$Main$JobConfigMsg,
+										_Giga_dev$newman$Pages_JobConfig$getJobConfigInfoCmd(_p17._0))
+								};
+							case 'BuildRoute':
+								return {
+									ctor: '_Tuple2',
+									_0: newModel,
+									_1: A2(
+										_elm_lang$core$Platform_Cmd$map,
+										_Giga_dev$newman$Main$BuildMsg,
+										_Giga_dev$newman$Pages_Build$getBuildInfoCmd(_p17._0))
+								};
+							case 'SuiteRoute':
+								return {
+									ctor: '_Tuple2',
+									_0: newModel,
+									_1: A2(
+										_elm_lang$core$Platform_Cmd$map,
+										_Giga_dev$newman$Main$SuiteMsg,
+										_Giga_dev$newman$Pages_Suite$getSuiteInfoCmd(_p17._0))
+								};
+							case 'TestRoute':
+								return {
+									ctor: '_Tuple2',
+									_0: newModel,
+									_1: A2(
+										_elm_lang$core$Platform_Cmd$map,
+										_Giga_dev$newman$Main$TestMsg,
+										_Giga_dev$newman$Pages_Test$getTestDataCmd(_p17._0))
+								};
+							case 'TestHistoryRoute':
+								return {
+									ctor: '_Tuple2',
+									_0: newModel,
+									_1: A2(
+										_elm_lang$core$Platform_Cmd$map,
+										_Giga_dev$newman$Main$TestHistoryMsg,
+										_Giga_dev$newman$Pages_TestHistory$getTestHistory(_p17._0))
+								};
+							default:
+								return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
+						}
+					}
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'SubmitNewJobMsg':
+				var _p19 = A2(_Giga_dev$newman$Pages_SubmitNewJob$update, _p14._0._0, model.submitNewJobModel);
+				var updatedSubModel = _p19._0;
+				var subCmd = _p19._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{submitNewJobModel: updatedSubModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$SubmitNewJobMsg, subCmd)
+				};
+			case 'JobsMsg':
+				var _p20 = A2(_Giga_dev$newman$Pages_Jobs$update, _p14._0._0, model.jobsModel);
+				var updatedSubModel = _p20._0;
+				var subCmd = _p20._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{jobsModel: updatedSubModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$JobsMsg, subCmd)
+				};
+			case 'JobMsg':
+				if (_p14._1.ctor === 'JobPage') {
+					var _p21 = A2(_Giga_dev$newman$Pages_Job$update, _p14._0._0, _p14._1._0);
+					var updatedSubModel = _p21._0;
+					var subCmd = _p21._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentPage: _Giga_dev$newman$Main$JobPage(updatedSubModel)
+							}),
+						_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$JobMsg, subCmd)
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'BuildsMsg':
+				var _p22 = A2(_Giga_dev$newman$Pages_Builds$update, _p14._0._0, model.buildsModel);
+				var updatedBuildsModel = _p22._0;
+				var buildsCmd = _p22._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{buildsModel: updatedBuildsModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$BuildsMsg, buildsCmd)
+				};
+			case 'BuildMsg':
+				if (_p14._1.ctor === 'BuildPage') {
+					if ((_p14._0._0.ctor === 'JobsTableMsg') && (_p14._0._0._0.ctor === 'RequestCompletedToggleJobs')) {
+						var theMsg = _Giga_dev$newman$Views_JobsTable$RequestCompletedToggleJobs(_p14._0._0._0._0);
+						var _p23 = A2(
+							_Giga_dev$newman$Pages_Build$update,
+							_Giga_dev$newman$Pages_Build$JobsTableMsg(theMsg),
+							_p14._1._0);
+						var updatedSubModel = _p23._0;
+						var subCmd = _p23._1;
+						var _p24 = A2(
+							_Giga_dev$newman$Pages_Jobs$update,
+							_Giga_dev$newman$Pages_Jobs$JobsTableMsg(theMsg),
+							model.jobsModel);
+						var updatedJobsModel = _p24._0;
+						var jobsSubCmd = _p24._1;
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									currentPage: _Giga_dev$newman$Main$BuildPage(updatedSubModel),
+									jobsModel: updatedJobsModel
+								}),
+							_1: _elm_lang$core$Platform_Cmd$batch(
+								{
+									ctor: '::',
+									_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$BuildMsg, subCmd),
+									_1: {
+										ctor: '::',
+										_0: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$JobsMsg, jobsSubCmd),
+										_1: {ctor: '[]'}
+									}
+								})
+						};
+					} else {
+						var _p25 = A2(_Giga_dev$newman$Pages_Build$update, _p14._0._0, _p14._1._0);
+						var updatedSubModel = _p25._0;
+						var subCmd = _p25._1;
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									currentPage: _Giga_dev$newman$Main$BuildPage(updatedSubModel)
+								}),
+							_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$BuildMsg, subCmd)
+						};
+					}
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'AgentsMsg':
+				var _p26 = A2(_Giga_dev$newman$Pages_Agents$update, _p14._0._0, model.agentsModel);
+				var updatedAgentsModel = _p26._0;
+				var agentsCmd = _p26._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{agentsModel: updatedAgentsModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$AgentsMsg, agentsCmd)
+				};
+			case 'JobConfigsMsg':
+				var _p27 = A2(_Giga_dev$newman$Pages_JobConfigs$update, _p14._0._0, model.jobConfigsModel);
+				var updatedJobConfigsModel = _p27._0;
+				var jobConfigsCmd = _p27._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{jobConfigsModel: updatedJobConfigsModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$JobConfigsMsg, jobConfigsCmd)
+				};
+			case 'NewJobConfigMsg':
+				var _p28 = A2(_Giga_dev$newman$Pages_NewJobConfig$update, _p14._0._0, model.newJobConfigsModel);
+				var updatedNewJobConfigsModel = _p28._0;
+				var newJobConfigsCmd = _p28._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{newJobConfigsModel: updatedNewJobConfigsModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$NewJobConfigMsg, newJobConfigsCmd)
+				};
+			case 'JobConfigMsg':
+				if (_p14._1.ctor === 'JobConfigPage') {
+					var _p29 = A2(_Giga_dev$newman$Pages_JobConfig$update, _p14._0._0, _p14._1._0);
+					var updatedSubModel = _p29._0;
+					var subCmd = _p29._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentPage: _Giga_dev$newman$Main$JobConfigPage(updatedSubModel)
+							}),
+						_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$JobConfigMsg, subCmd)
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'SuitesMsg':
+				var _p30 = A2(_Giga_dev$newman$Pages_Suites$update, _p14._0._0, model.suitesModel);
+				var updatedSuitesModel = _p30._0;
+				var suitesCmd = _p30._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{suitesModel: updatedSuitesModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$SuitesMsg, suitesCmd)
+				};
+			case 'HomeMsg':
+				var _p32 = A2(_Giga_dev$newman$Pages_Home$update, _p14._0._0, model.homeModel);
+				var updatedSubModel = _p32._0;
+				var subCmd = _p32._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{homeModel: updatedSubModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$HomeMsg, subCmd)
+				};
+			case 'ManageNewmanMsg':
+				var _p33 = A2(_Giga_dev$newman$Pages_ManageNewman$update, _p14._0._0, model.manageNewmanModel);
+				var updatedManageNewmanModel = _p33._0;
+				var manageNewmanCmd = _p33._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{manageNewmanModel: updatedManageNewmanModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$ManageNewmanMsg, manageNewmanCmd)
+				};
+			case 'SuiteMsg':
+				if (_p14._1.ctor === 'SuitePage') {
+					var _p31 = A2(_Giga_dev$newman$Pages_Suite$update, _p14._0._0, _p14._1._0);
+					var updatedSubModel = _p31._0;
+					var subCmd = _p31._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentPage: _Giga_dev$newman$Main$SuitePage(updatedSubModel)
+							}),
+						_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$SuiteMsg, subCmd)
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'TestMsg':
+				if (_p14._1.ctor === 'TestPage') {
+					var _p34 = A2(_Giga_dev$newman$Pages_Test$update, _p14._0._0, _p14._1._0);
+					var updatedSubModel = _p34._0;
+					var subCmd = _p34._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentPage: _Giga_dev$newman$Main$TestPage(updatedSubModel)
+							}),
+						_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$TestMsg, subCmd)
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'TopBarMsg':
+				var _p35 = A2(_Giga_dev$newman$Views_TopBar$update, _p14._0._0, model.topBarModel);
+				var updatedSubModel = _p35._0;
+				var subCmd = _p35._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{topBarModel: updatedSubModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$TopBarMsg, subCmd)
+				};
+			case 'TestHistoryMsg':
+				if (_p14._1.ctor === 'TestHistoryPage') {
+					var _p36 = A2(_Giga_dev$newman$Pages_TestHistory$update, _p14._0._0, _p14._1._0);
+					var updatedSubModel = _p36._0;
+					var subCmd = _p36._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentPage: _Giga_dev$newman$Main$TestHistoryPage(updatedSubModel)
+							}),
+						_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Main$TestHistoryMsg, subCmd)
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			default:
+				var event = _Giga_dev$newman$Utils_WebSocket$toEvent(_p14._0._0);
+				var cmd = function () {
+					var _p37 = event;
+					if (_p37.ctor === 'Ok') {
+						var _p38 = _p37._0;
+						return _elm_lang$core$Platform_Cmd$batch(
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$core$Platform_Cmd$map,
+									_Giga_dev$newman$Main$JobsMsg,
+									_Giga_dev$newman$Pages_Jobs$handleEvent(_p38)),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$core$Platform_Cmd$map,
+										_Giga_dev$newman$Main$JobMsg,
+										_Giga_dev$newman$Pages_Job$handleEvent(_p38)),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$core$Platform_Cmd$map,
+											_Giga_dev$newman$Main$AgentsMsg,
+											_Giga_dev$newman$Pages_Agents$handleEvent(_p38)),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$core$Platform_Cmd$map,
+												_Giga_dev$newman$Main$BuildsMsg,
+												_Giga_dev$newman$Pages_Builds$handleEvent(_p38)),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$core$Platform_Cmd$map,
+													_Giga_dev$newman$Main$SuitesMsg,
+													_Giga_dev$newman$Pages_Suites$handleEvent(_p38)),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_elm_lang$core$Platform_Cmd$map,
+														_Giga_dev$newman$Main$SuiteMsg,
+														_Giga_dev$newman$Pages_Suite$handleEvent(_p38)),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$core$Platform_Cmd$map,
+															_Giga_dev$newman$Main$ManageNewmanMsg,
+															_Giga_dev$newman$Pages_ManageNewman$handleEvent(_p38)),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$core$Platform_Cmd$map,
+																_Giga_dev$newman$Main$JobConfigsMsg,
+																_Giga_dev$newman$Pages_JobConfigs$handleEvent(_p38)),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$core$Platform_Cmd$map,
+																	_Giga_dev$newman$Main$HomeMsg,
+																	_Giga_dev$newman$Pages_Home$handleEvent(_p38)),
+																_1: {
+																	ctor: '::',
+																	_0: A2(
+																		_elm_lang$core$Platform_Cmd$map,
+																		_Giga_dev$newman$Main$BuildMsg,
+																		_Giga_dev$newman$Pages_Build$handleEvent(_p38)),
+																	_1: {
+																		ctor: '::',
+																		_0: A2(
+																			_elm_lang$core$Platform_Cmd$map,
+																			_Giga_dev$newman$Main$TopBarMsg,
+																			_Giga_dev$newman$Views_TopBar$handleEvent(_p38)),
+																		_1: {
+																			ctor: '::',
+																			_0: A2(
+																				_elm_lang$core$Platform_Cmd$map,
+																				_Giga_dev$newman$Main$SubmitNewJobMsg,
+																				_Giga_dev$newman$Pages_SubmitNewJob$handleEvent(_p38)),
+																			_1: {
+																				ctor: '::',
+																				_0: A2(
+																					_elm_lang$core$Platform_Cmd$map,
+																					_Giga_dev$newman$Main$TestMsg,
+																					_Giga_dev$newman$Pages_Test$handleEvent(_p38)),
+																				_1: {ctor: '[]'}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							});
+					} else {
+						return _elm_lang$core$Platform_Cmd$none;
+					}
+				}();
+				return {ctor: '_Tuple2', _0: model, _1: cmd};
+		}
+	});
+var _Giga_dev$newman$Main$viewBody = function (model) {
+	var _p39 = model.currentPage;
+	switch (_p39.ctor) {
+		case 'SubmitNewJobPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$SubmitNewJobMsg,
+				_Giga_dev$newman$Pages_SubmitNewJob$view(model.submitNewJobModel));
+		case 'JobsPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$JobsMsg,
+				_Giga_dev$newman$Pages_Jobs$view(model.jobsModel));
+		case 'JobPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$JobMsg,
+				_Giga_dev$newman$Pages_Job$view(_p39._0));
+		case 'BuildsPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$BuildsMsg,
+				_Giga_dev$newman$Pages_Builds$view(model.buildsModel));
+		case 'BuildPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$BuildMsg,
+				_Giga_dev$newman$Pages_Build$view(_p39._0));
+		case 'AgentsPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$AgentsMsg,
+				_Giga_dev$newman$Pages_Agents$view(model.agentsModel));
+		case 'JobConfigsPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$JobConfigsMsg,
+				_Giga_dev$newman$Pages_JobConfigs$view(model.jobConfigsModel));
+		case 'NewJobConfigsPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$NewJobConfigMsg,
+				_Giga_dev$newman$Pages_NewJobConfig$view(model.newJobConfigsModel));
+		case 'JobConfigPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$JobConfigMsg,
+				_Giga_dev$newman$Pages_JobConfig$view(_p39._0));
+		case 'SuitesPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$SuitesMsg,
+				_Giga_dev$newman$Pages_Suites$view(model.suitesModel));
+		case 'ManageNewmanPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$ManageNewmanMsg,
+				_Giga_dev$newman$Pages_ManageNewman$view(model.manageNewmanModel));
+		case 'SuitePage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$SuiteMsg,
+				_Giga_dev$newman$Pages_Suite$view(_p39._0));
+		case 'HomePage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$HomeMsg,
+				_Giga_dev$newman$Pages_Home$view(model.homeModel));
+		case 'TestPage':
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$TestMsg,
+				_Giga_dev$newman$Pages_Test$view(_p39._0));
+		default:
+			return A2(
+				_elm_lang$html$Html$map,
+				_Giga_dev$newman$Main$TestHistoryMsg,
+				_Giga_dev$newman$Pages_TestHistory$view(_p39._0));
+	}
+};
+var _Giga_dev$newman$Main$view = function (model) {
+	var isActive = function (page) {
+		return _evancz$url_parser$UrlParser$parsePath;
+	};
+	var pages = {
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'Home', _1: '#'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'Submit New Job', _1: '#submit-new-job'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'Jobs', _1: '#jobs'},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'Builds', _1: '#builds'},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'Agents', _1: '#agents'},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'Suites', _1: '#suites'},
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'Job Configurations', _1: '#jobConfigs'},
+								_1: {
+									ctor: '::',
+									_0: {ctor: '_Tuple2', _0: 'Manage Newman', _1: '#manageNewman'},
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	};
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id('wrapper'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _rundis$elm_bootstrap$Bootstrap_CDN$stylesheet,
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$nav,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('navbar navbar-toggleable navbar-inverse bg-primary fixed-top'),
+						_1: {
+							ctor: '::',
+							_0: A2(_elm_lang$html$Html_Attributes$attribute, 'role', 'navigation'),
+							_1: {ctor: '[]'}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('navbar-header'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$a,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('navbar-brand'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$href('#'),
+											_1: {ctor: '[]'}
+										}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Newman'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$map,
+								_Giga_dev$newman$Main$TopBarMsg,
+								_Giga_dev$newman$Views_TopBar$view(model.topBarModel)),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('collapse navbar-collapse'),
+										_1: {
+											ctor: '::',
+											_0: A2(_elm_lang$html$Html_Attributes$attribute, 'style', 'position: absolute;'),
+											_1: {ctor: '[]'}
+										}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$ul,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('nav  flex-column side-nav'),
+												_1: {ctor: '[]'}
+											},
+											A2(
+												_elm_lang$core$List$indexedMap,
+												F2(
+													function (index, _p40) {
+														var _p41 = _p40;
+														var _p42 = _p41._1;
+														return A2(
+															_elm_lang$html$Html$li,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$class('nav-item'),
+																_1: {ctor: '[]'}
+															},
+															{
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$html$Html$a,
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Attributes$class('nav-link'),
+																		_1: {
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Attributes$classList(
+																				{
+																					ctor: '::',
+																					_0: {
+																						ctor: '_Tuple2',
+																						_0: 'active',
+																						_1: _elm_lang$core$Native_Utils.eq(
+																							_Giga_dev$newman$Main$routeToString(model.currentRoute),
+																							_p42)
+																					},
+																					_1: {ctor: '[]'}
+																				}),
+																			_1: {
+																				ctor: '::',
+																				_0: _elm_lang$html$Html_Attributes$href(_p42),
+																				_1: {ctor: '[]'}
+																			}
+																		}
+																	},
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html$text(_p41._0),
+																		_1: {ctor: '[]'}
+																	}),
+																_1: {ctor: '[]'}
+															});
+													}),
+												pages)),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: _Giga_dev$newman$Main$viewBody(model),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+var _Giga_dev$newman$Main$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$batch(
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$core$Platform_Sub$map,
+				_Giga_dev$newman$Main$WebSocketMsg,
+				_Giga_dev$newman$Utils_WebSocket$subscriptions(model.webSocketModel)),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$core$Platform_Sub$map,
+					_Giga_dev$newman$Main$SubmitNewJobMsg,
+					_Giga_dev$newman$Pages_SubmitNewJob$subscriptions(model.submitNewJobModel)),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$core$Platform_Sub$map,
+						_Giga_dev$newman$Main$JobsMsg,
+						_Giga_dev$newman$Pages_Jobs$subscriptions(model.jobsModel)),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$core$Platform_Sub$map,
+							_Giga_dev$newman$Main$AgentsMsg,
+							_Giga_dev$newman$Pages_Agents$subscriptions(model.agentsModel)),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		});
+};
+var _Giga_dev$newman$Main$GoTo = function (a) {
+	return {ctor: 'GoTo', _0: a};
+};
+var _Giga_dev$newman$Main$locFor = function (location) {
+	return _Giga_dev$newman$Main$GoTo(
+		_Giga_dev$newman$Main$fromLocation(location));
+};
+var _Giga_dev$newman$Main$main = A2(
+	_elm_lang$navigation$Navigation$program,
+	_Giga_dev$newman$Main$locFor,
+	{init: _Giga_dev$newman$Main$init, view: _Giga_dev$newman$Main$view, update: _Giga_dev$newman$Main$update, subscriptions: _Giga_dev$newman$Main$subscriptions})();

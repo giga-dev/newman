@@ -1,0 +1,637 @@
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$menuItemHovered = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$backgroundColor(
+			A4(_rtfeldman$elm_css$Css$rgba, 0, 126, 255, 8.0e-2)),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$color(
+				_rtfeldman$elm_css$Css$hex('#333')),
+			_1: {ctor: '[]'}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$arrowUpside = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: A3(
+			_rtfeldman$elm_css$Css$borderColor3,
+			_rtfeldman$elm_css$Css$transparent,
+			_rtfeldman$elm_css$Css$transparent,
+			_rtfeldman$elm_css$Css$hex('#999')),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$borderStyle(_rtfeldman$elm_css$Css$solid),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$borderTopWidth(
+					_rtfeldman$elm_css$Css$px(2.5)),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$borderLeftWidth(
+						_rtfeldman$elm_css$Css$px(5)),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$borderRightWidth(
+							_rtfeldman$elm_css$Css$px(5)),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$borderBottomWidth(
+								_rtfeldman$elm_css$Css$px(5)),
+							_1: {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$inlineBlock),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$height(_rtfeldman$elm_css$Css$zero),
+									_1: {
+										ctor: '::',
+										_0: _rtfeldman$elm_css$Css$width(_rtfeldman$elm_css$Css$zero),
+										_1: {
+											ctor: '::',
+											_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$relative),
+											_1: {
+												ctor: '::',
+												_0: _rtfeldman$elm_css$Css$top(
+													_rtfeldman$elm_css$Css$px(-2.5)),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$arrow = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: A3(
+			_rtfeldman$elm_css$Css$borderColor3,
+			_rtfeldman$elm_css$Css$hex('#999'),
+			_rtfeldman$elm_css$Css$transparent,
+			_rtfeldman$elm_css$Css$transparent),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$borderStyle(_rtfeldman$elm_css$Css$solid),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$borderTopWidth(
+					_rtfeldman$elm_css$Css$px(5)),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$borderLeftWidth(
+						_rtfeldman$elm_css$Css$px(5)),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$borderRightWidth(
+							_rtfeldman$elm_css$Css$px(5)),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$borderBottomWidth(
+								_rtfeldman$elm_css$Css$px(2.5)),
+							_1: {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$inlineBlock),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$height(_rtfeldman$elm_css$Css$zero),
+									_1: {
+										ctor: '::',
+										_0: _rtfeldman$elm_css$Css$width(_rtfeldman$elm_css$Css$zero),
+										_1: {
+											ctor: '::',
+											_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$relative),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$arrowWrap = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$cursor(_rtfeldman$elm_css$Css$pointer),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$tableCell),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$relative),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$textAlign(_rtfeldman$elm_css$Css$center),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$verticalAlign(_rtfeldman$elm_css$Css$middle),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$width(
+								_rtfeldman$elm_css$Css$px(25)),
+							_1: {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$paddingRight(
+									_rtfeldman$elm_css$Css$px(5)),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$hover(
+										{
+											ctor: '::',
+											_0: _rtfeldman$elm_css$Css_Foreign$children(
+												{
+													ctor: '::',
+													_0: A2(
+														_rtfeldman$elm_css$Css_Foreign$selector,
+														'*[rel=arrow]',
+														{
+															ctor: '::',
+															_0: _rtfeldman$elm_css$Css$borderTopColor(
+																_rtfeldman$elm_css$Css$hex('#666')),
+															_1: {ctor: '[]'}
+														}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_rtfeldman$elm_css$Css_Foreign$selector,
+															'*[rel=arrowUpside]',
+															{
+																ctor: '::',
+																_0: _rtfeldman$elm_css$Css$borderBottomColor(
+																	_rtfeldman$elm_css$Css$hex('#666')),
+																_1: {ctor: '[]'}
+															}),
+														_1: {ctor: '[]'}
+													}
+												}),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$clear = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$inlineBlock),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$fontSize(
+				_rtfeldman$elm_css$Css$px(18)),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$lineHeight(
+					_rtfeldman$elm_css$Css$num(1)),
+				_1: {ctor: '[]'}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$clearWrap = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$width(
+			_rtfeldman$elm_css$Css$px(17)),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$color(
+				_rtfeldman$elm_css$Css$hex('#999')),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$cursor(_rtfeldman$elm_css$Css$pointer),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$tableCell),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$relative),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$textAlign(_rtfeldman$elm_css$Css$center),
+							_1: {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$verticalAlign(_rtfeldman$elm_css$Css$middle),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$hover(
+										{
+											ctor: '::',
+											_0: _rtfeldman$elm_css$Css$color(
+												_rtfeldman$elm_css$Css$hex('#D0021B')),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$tagLabel = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: A2(
+			_rtfeldman$elm_css$Css$padding2,
+			_rtfeldman$elm_css$Css$px(2),
+			_rtfeldman$elm_css$Css$px(5)),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$inlineBlock),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$verticalAlign(_rtfeldman$elm_css$Css$middle),
+				_1: {ctor: '[]'}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$tagIcon = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$hover(
+			{
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$backgroundColor(
+					_rtfeldman$elm_css$Css$hex('#d8eafd')),
+				_1: {ctor: '[]'}
+			}),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$cursor(_rtfeldman$elm_css$Css$pointer),
+			_1: {
+				ctor: '::',
+				_0: A3(
+					_rtfeldman$elm_css$Css$borderRight3,
+					_rtfeldman$elm_css$Css$px(1),
+					_rtfeldman$elm_css$Css$solid,
+					A4(_rtfeldman$elm_css$Css$rgba, 0, 126, 255, 0.24)),
+				_1: {
+					ctor: '::',
+					_0: A3(
+						_rtfeldman$elm_css$Css$padding3,
+						_rtfeldman$elm_css$Css$px(1),
+						_rtfeldman$elm_css$Css$px(5),
+						_rtfeldman$elm_css$Css$px(3)),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$inlineBlock),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$verticalAlign(_rtfeldman$elm_css$Css$middle),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$tag = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$color(
+			_rtfeldman$elm_css$Css$hex('#007eff')),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_rtfeldman$elm_css$Css$border2,
+				_rtfeldman$elm_css$Css$px(1),
+				_rtfeldman$elm_css$Css$solid),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$borderColor(
+					A4(_rtfeldman$elm_css$Css$rgba, 0, 126, 255, 0.24)),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$borderRadius(
+						_rtfeldman$elm_css$Css$px(2)),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$backgroundColor(
+							A4(_rtfeldman$elm_css$Css$rgba, 0, 126, 255, 8.0e-2)),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$inlineBlock),
+							_1: {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$fontSize(
+									_rtfeldman$elm_css$Css$em(0.9)),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$lineHeight(
+										_rtfeldman$elm_css$Css$num(1.4)),
+									_1: {
+										ctor: '::',
+										_0: _rtfeldman$elm_css$Css$marginLeft(
+											_rtfeldman$elm_css$Css$px(5)),
+										_1: {
+											ctor: '::',
+											_0: _rtfeldman$elm_css$Css$marginTop(
+												_rtfeldman$elm_css$Css$px(5)),
+											_1: {
+												ctor: '::',
+												_0: _rtfeldman$elm_css$Css$verticalAlign(_rtfeldman$elm_css$Css$top),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$tagWrap = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$inline),
+		_1: {ctor: '[]'}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$opened = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$borderBottomLeftRadius(_rtfeldman$elm_css$Css$zero),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$borderBottomRightRadius(_rtfeldman$elm_css$Css$zero),
+			_1: {ctor: '[]'}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$inputMirrow = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$absolute),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$top(
+				_rtfeldman$elm_css$Css$px(-100)),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$left(
+					_rtfeldman$elm_css$Css$px(-100)),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$height(_rtfeldman$elm_css$Css$zero),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$overflow(_rtfeldman$elm_css$Css$scroll),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$fontWeight(_rtfeldman$elm_css$Css$normal),
+							_1: {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$fontStyle(_rtfeldman$elm_css$Css$normal),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$fontSize(_rtfeldman$elm_css$Css$inherit),
+									_1: {
+										ctor: '::',
+										_0: _rtfeldman$elm_css$Css$lineHeight(
+											_rtfeldman$elm_css$Css$int(1)),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$input = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$borderStyle(_rtfeldman$elm_css$Css$none),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$border(_rtfeldman$elm_css$Css$zero),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$lineHeight(
+					_rtfeldman$elm_css$Css$px(14)),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$outlineStyle(_rtfeldman$elm_css$Css$none),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$fontSize(_rtfeldman$elm_css$Css$inherit),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$lineHeight(
+								_rtfeldman$elm_css$Css$int(1)),
+							_1: {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$padding(_rtfeldman$elm_css$Css$zero),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$paddingTop(
+										_rtfeldman$elm_css$Css$px(8)),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$inputWrap = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$inlineBlock),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$marginLeft(
+				_rtfeldman$elm_css$Css$px(5)),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$padding(_rtfeldman$elm_css$Css$zero),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$verticalAlign(_rtfeldman$elm_css$Css$middle),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$paddingBottom(
+							_rtfeldman$elm_css$Css$px(8)),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$container = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: A3(
+			_rtfeldman$elm_css$Css$border3,
+			_rtfeldman$elm_css$Css$px(1),
+			_rtfeldman$elm_css$Css$solid,
+			_rtfeldman$elm_css$Css$hex('#ccc')),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$borderRadius(
+				_rtfeldman$elm_css$Css$px(4)),
+			_1: {
+				ctor: '::',
+				_0: A3(
+					_rtfeldman$elm_css$Css$borderColor3,
+					_rtfeldman$elm_css$Css$hex('#d9d9d9'),
+					_rtfeldman$elm_css$Css$hex('#ccc'),
+					_rtfeldman$elm_css$Css$hex('#b3b3b3')),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$backgroundColor(
+						_rtfeldman$elm_css$Css$hex('#fff')),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$color(
+							_rtfeldman$elm_css$Css$hex('#333')),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$height(
+								_rtfeldman$elm_css$Css$px(34)),
+							_1: {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$width(
+									_rtfeldman$elm_css$Css$pct(100)),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$display(_rtfeldman$elm_css$Css$table),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$wrap = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$relative),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$width(
+				_rtfeldman$elm_css$Css$pct(100)),
+			_1: {ctor: '[]'}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$menuHeight = 200;
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$menu = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$borderBottomRightRadius(
+			_rtfeldman$elm_css$Css$px(4)),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$borderBottomLeftRadius(
+				_rtfeldman$elm_css$Css$px(4)),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$backgroundColor(
+					_rtfeldman$elm_css$Css$hex('#fff')),
+				_1: {
+					ctor: '::',
+					_0: A3(
+						_rtfeldman$elm_css$Css$border3,
+						_rtfeldman$elm_css$Css$px(1),
+						_rtfeldman$elm_css$Css$solid,
+						_rtfeldman$elm_css$Css$hex('#ccc')),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$borderTopColor(
+							_rtfeldman$elm_css$Css$hex('#e6e6e6')),
+						_1: {
+							ctor: '::',
+							_0: A4(
+								_rtfeldman$elm_css$Css$boxShadow4,
+								_rtfeldman$elm_css$Css$zero,
+								_rtfeldman$elm_css$Css$px(1),
+								_rtfeldman$elm_css$Css$zero,
+								A4(_rtfeldman$elm_css$Css$rgba, 0, 0, 0, 6.0e-2)),
+							_1: {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$marginTop(
+									_rtfeldman$elm_css$Css$px(-1)),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$maxHeight(
+										_rtfeldman$elm_css$Css$px(_inkuzmin$elm_multiselect$Multiselect_SelectCss$menuHeight)),
+									_1: {
+										ctor: '::',
+										_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$absolute),
+										_1: {
+											ctor: '::',
+											_0: _rtfeldman$elm_css$Css$width(
+												_rtfeldman$elm_css$Css$pct(100)),
+											_1: {
+												ctor: '::',
+												_0: _rtfeldman$elm_css$Css$zIndex(
+													_rtfeldman$elm_css$Css$int(1)),
+												_1: {
+													ctor: '::',
+													_0: _rtfeldman$elm_css$Css$overflowY(_rtfeldman$elm_css$Css$scroll),
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$itemHeight = 32;
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$menuItem = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$color(
+			_rtfeldman$elm_css$Css$hex('#666')),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$cursor(_rtfeldman$elm_css$Css$pointer),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_rtfeldman$elm_css$Css$padding2,
+					_rtfeldman$elm_css$Css$px(8),
+					_rtfeldman$elm_css$Css$px(10)),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$maxHeight(
+						_rtfeldman$elm_css$Css$px(_inkuzmin$elm_multiselect$Multiselect_SelectCss$itemHeight)),
+					_1: {ctor: '[]'}
+				}
+			}
+		}
+	});
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$boxShadowCustom = function (p) {
+	return A2(_rtfeldman$elm_css$Css$property, 'box-shadow', p);
+};
+var _inkuzmin$elm_multiselect$Multiselect_SelectCss$focused = _rtfeldman$elm_css$Css$batch(
+	{
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$borderColor(
+			_rtfeldman$elm_css$Css$hex('#007eff')),
+		_1: {
+			ctor: '::',
+			_0: _inkuzmin$elm_multiselect$Multiselect_SelectCss$boxShadowCustom('inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px rgba(0, 126, 255, 0.1)'),
+			_1: {ctor: '[]'}
+		}
+	});

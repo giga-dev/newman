@@ -1,0 +1,1089 @@
+var _Giga_dev$newman$Views_TestsTable$toTestName = function (_p0) {
+	var _p1 = _p0;
+	var num = function () {
+		var _p2 = _p1.runNumber;
+		if (_p2 === 1) {
+			return '';
+		} else {
+			return A2(
+				_elm_lang$core$String$append,
+				'#',
+				_elm_lang$core$Basics$toString(_p2));
+		}
+	}();
+	var testName = A2(
+		_elm_lang$core$List$append,
+		_p1.$arguments,
+		{
+			ctor: '::',
+			_0: num,
+			_1: {ctor: '[]'}
+		});
+	return A2(_elm_lang$core$String$join, ' ', testName);
+};
+var _Giga_dev$newman$Views_TestsTable$filterQuery = F2(
+	function (query, test) {
+		return (_elm_lang$core$Native_Utils.eq(
+			_elm_lang$core$String$length(query),
+			0) || (A2(_elm_lang$core$String$startsWith, query, test.id) || (A2(
+			_elm_lang$core$String$contains,
+			_elm_lang$core$String$toLower(query),
+			_elm_lang$core$String$toLower(test.name)) || (A2(
+			_elm_lang$core$String$contains,
+			_elm_lang$core$String$toLower(query),
+			_elm_lang$core$String$toLower(
+				A2(_elm_lang$core$String$join, ' ', test.$arguments))) || A2(_elm_lang$core$String$contains, query, test.assignedAgent))))) ? true : false;
+	});
+var _Giga_dev$newman$Views_TestsTable$updateAllTests = F2(
+	function (f, model) {
+		var newList = f(model.all);
+		var filtered = A2(
+			_elm_lang$core$List$filter,
+			_Giga_dev$newman$Views_TestsTable$filterQuery(model.query),
+			newList);
+		var newPaginated = A2(
+			_jschomay$elm_paginate$Paginate$map,
+			function (_p3) {
+				return filtered;
+			},
+			model.paginated);
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{paginated: newPaginated, all: newList});
+	});
+var _Giga_dev$newman$Views_TestsTable$updateTestAdded = F2(
+	function (model, addedTest) {
+		return A2(
+			_Giga_dev$newman$Views_TestsTable$updateAllTests,
+			function (list) {
+				return {ctor: '::', _0: addedTest, _1: list};
+			},
+			model);
+	});
+var _Giga_dev$newman$Views_TestsTable$updateTestUpdated = F2(
+	function (model, testToUpdate) {
+		var f = A2(
+			_elm_community$list_extra$List_Extra$replaceIf,
+			function (item) {
+				return _elm_lang$core$Native_Utils.eq(item.id, testToUpdate.id);
+			},
+			testToUpdate);
+		return A2(_Giga_dev$newman$Views_TestsTable$updateAllTests, f, model);
+	});
+var _Giga_dev$newman$Views_TestsTable$filterByTestStatus = F2(
+	function (currentState, test) {
+		var _p4 = currentState;
+		switch (_p4.ctor) {
+			case 'STATUS_RUNNING':
+				return _elm_lang$core$Native_Utils.eq(test.status, _Giga_dev$newman$Utils_Types$TEST_RUNNING);
+			case 'STATUS_SUCCESS':
+				return _elm_lang$core$Native_Utils.eq(test.status, _Giga_dev$newman$Utils_Types$TEST_SUCCESS);
+			case 'STATUS_FAIL':
+				return _elm_lang$core$Native_Utils.eq(test.status, _Giga_dev$newman$Utils_Types$TEST_FAIL);
+			case 'STATUS_FAILED3TIMES':
+				return _elm_lang$core$Native_Utils.eq(test.runNumber, 3) && _elm_lang$core$Native_Utils.eq(test.status, _Giga_dev$newman$Utils_Types$TEST_FAIL);
+			default:
+				return true;
+		}
+	});
+var _Giga_dev$newman$Views_TestsTable$filterTests = F3(
+	function (tests, query, filterState) {
+		return A2(
+			_elm_lang$core$List$filter,
+			_Giga_dev$newman$Views_TestsTable$filterByTestStatus(filterState),
+			A2(
+				_elm_lang$core$List$filter,
+				_Giga_dev$newman$Views_TestsTable$filterQuery(query),
+				tests));
+	});
+var _Giga_dev$newman$Views_TestsTable$modifyUrl = F2(
+	function (jobId, state) {
+		return _elm_lang$navigation$Navigation$modifyUrl(
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'#',
+				A2(
+					_elm_lang$core$String$join,
+					'/',
+					{
+						ctor: '::',
+						_0: 'job',
+						_1: {
+							ctor: '::',
+							_0: jobId,
+							_1: {
+								ctor: '::',
+								_0: state,
+								_1: {ctor: '[]'}
+							}
+						}
+					})));
+	});
+var _Giga_dev$newman$Views_TestsTable$update = F2(
+	function (msg, model) {
+		var _p5 = msg;
+		switch (_p5.ctor) {
+			case 'First':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							paginated: _jschomay$elm_paginate$Paginate$first(model.paginated)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'Prev':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							paginated: _jschomay$elm_paginate$Paginate$prev(model.paginated)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'Next':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							paginated: _jschomay$elm_paginate$Paginate$next(model.paginated)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'Last':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							paginated: _jschomay$elm_paginate$Paginate$last(model.paginated)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'GoTo':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							paginated: A2(_jschomay$elm_paginate$Paginate$goTo, _p5._0, model.paginated)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'FilterQuery':
+				var _p6 = _p5._0;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							query: _p6,
+							paginated: A2(
+								_jschomay$elm_paginate$Paginate$fromList,
+								model.pageSize,
+								A3(_Giga_dev$newman$Views_TestsTable$filterTests, model.all, _p6, model.filterState))
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'WebSocketEvent':
+				var _p7 = _p5._0;
+				switch (_p7.ctor) {
+					case 'CreatedTest':
+						var _p8 = _p7._0;
+						return _elm_lang$core$Native_Utils.eq(model.jobId, _p8.jobId) ? {
+							ctor: '_Tuple2',
+							_0: A2(_Giga_dev$newman$Views_TestsTable$updateTestAdded, model, _p8),
+							_1: _elm_lang$core$Platform_Cmd$none
+						} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					case 'ModifiedTest':
+						var _p9 = _p7._0;
+						return _elm_lang$core$Native_Utils.eq(model.jobId, _p9.jobId) ? {
+							ctor: '_Tuple2',
+							_0: A2(_Giga_dev$newman$Views_TestsTable$updateTestUpdated, model, _p9),
+							_1: _elm_lang$core$Platform_Cmd$none
+						} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					default:
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			default:
+				var _p10 = _p5._1;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							filterState: _p10,
+							paginated: A2(
+								_jschomay$elm_paginate$Paginate$fromList,
+								model.pageSize,
+								A3(_Giga_dev$newman$Views_TestsTable$filterTests, model.all, model.query, _p10))
+						}),
+					_1: A2(
+						_Giga_dev$newman$Views_TestsTable$modifyUrl,
+						_p5._0,
+						_Giga_dev$newman$Utils_Types$radioStateToString(_p10))
+				};
+		}
+	});
+var _Giga_dev$newman$Views_TestsTable$viewTest = F2(
+	function (currTime, test) {
+		var historyStatsClass = _elm_lang$core$Native_Utils.eq(test.status, _Giga_dev$newman$Utils_Types$TEST_SUCCESS) ? 'black-column' : ((_elm_lang$core$Native_Utils.cmp(test.testScore, 3) < 1) ? 'red-column' : ((_elm_lang$core$Native_Utils.cmp(test.testScore, 3) > 0) ? 'blue-column' : ''));
+		var historyStats = function () {
+			var shorten = function (txt) {
+				return A3(_elm_lang$core$String$slice, 0, 18, txt);
+			};
+			var delimiter = '_';
+			var splitted = A2(_elm_lang$core$String$split, delimiter, test.historyStats);
+			var _p11 = splitted;
+			_v5_2:
+			do {
+				if (_p11.ctor === '::') {
+					if (_p11._1.ctor === '::') {
+						if (_p11._1._1.ctor === '[]') {
+							return {
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									shorten(_p11._0)),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$br,
+										{ctor: '[]'},
+										{ctor: '[]'}),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html$text(
+											shorten(_p11._1._0)),
+										_1: {ctor: '[]'}
+									}
+								}
+							};
+						} else {
+							break _v5_2;
+						}
+					} else {
+						return {
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(
+								shorten(_p11._0)),
+							_1: {ctor: '[]'}
+						};
+					}
+				} else {
+					break _v5_2;
+				}
+			} while(false);
+			return {
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(''),
+				_1: {ctor: '[]'}
+			};
+		}();
+		var durationText = function () {
+			var diffTime = function () {
+				var _p12 = {ctor: '_Tuple3', _0: test.startTime, _1: test.endTime, _2: currTime};
+				_v6_2:
+				do {
+					if (_p12._0.ctor === 'Just') {
+						if (_p12._1.ctor === 'Just') {
+							return _elm_lang$core$Maybe$Just(
+								A2(
+									_rluiten$elm_date_extra$Date_Extra_Duration$diff,
+									_elm_lang$core$Date$fromTime(
+										_elm_lang$core$Basics$toFloat(_p12._1._0)),
+									_elm_lang$core$Date$fromTime(
+										_elm_lang$core$Basics$toFloat(_p12._0._0))));
+						} else {
+							if (_p12._2.ctor === 'Just') {
+								return _elm_lang$core$Maybe$Just(
+									A2(
+										_rluiten$elm_date_extra$Date_Extra_Duration$diff,
+										_elm_lang$core$Date$fromTime(_p12._2._0),
+										_elm_lang$core$Date$fromTime(
+											_elm_lang$core$Basics$toFloat(_p12._0._0))));
+							} else {
+								break _v6_2;
+							}
+						}
+					} else {
+						break _v6_2;
+					}
+				} while(false);
+				return _elm_lang$core$Maybe$Nothing;
+			}();
+			var _p13 = diffTime;
+			if (_p13.ctor === 'Just') {
+				var _p15 = _p13._0;
+				var _p14 = {ctor: '_Tuple3', _0: _p15.hour, _1: _p15.minute, _2: _p15.second};
+				if (_p14._0 === 0) {
+					if (_p14._1 === 0) {
+						return A2(
+							_elm_lang$core$Basics_ops['++'],
+							_elm_lang$core$Basics$toString(_p14._2),
+							' seconds');
+					} else {
+						return A2(
+							_elm_lang$core$Basics_ops['++'],
+							_elm_lang$core$Basics$toString(_p14._1),
+							' minutes');
+					}
+				} else {
+					return A2(
+						_elm_lang$core$Basics_ops['++'],
+						_elm_lang$core$Basics$toString(_p14._0),
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							' hours and ',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								_elm_lang$core$Basics$toString(_p14._1),
+								' minutes')));
+				}
+			} else {
+				return '';
+			}
+		}();
+		var status = function () {
+			var _p16 = test.status;
+			switch (_p16.ctor) {
+				case 'TEST_RUNNING':
+					return _rundis$elm_bootstrap$Bootstrap_Badge$badgeInfo;
+				case 'TEST_PENDING':
+					return _rundis$elm_bootstrap$Bootstrap_Badge$badge;
+				case 'TEST_SUCCESS':
+					return _rundis$elm_bootstrap$Bootstrap_Badge$badgeSuccess;
+				default:
+					return _rundis$elm_bootstrap$Bootstrap_Badge$badgeDanger;
+			}
+		}();
+		return A2(
+			_elm_lang$html$Html$tr,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$td,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$a,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$href(
+									A2(_elm_lang$core$Basics_ops['++'], '#test/', test.id)),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$title(
+										A2(_elm_lang$core$String$join, '', test.$arguments)),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									_Giga_dev$newman$Views_TestsTable$toTestName(test)),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$td,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								status,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										_Giga_dev$newman$Utils_Types$testStatusToString(test.status)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$td,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class(historyStatsClass),
+								_1: {ctor: '[]'}
+							},
+							historyStats),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$td,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$a,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$href(
+												A2(_elm_lang$core$Basics_ops['++'], '#test-history/', test.id)),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('History'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$td,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$span,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$title(test.errorMessage),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text(test.errorMessage),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$td,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(test.assignedAgent),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$td,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text(durationText),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}
+					}
+				}
+			});
+	});
+var _Giga_dev$newman$Views_TestsTable$init = F3(
+	function (jobId, list, state) {
+		var pageSize = 25;
+		return {
+			all: list,
+			paginated: A2(
+				_jschomay$elm_paginate$Paginate$fromList,
+				pageSize,
+				A3(_Giga_dev$newman$Views_TestsTable$filterTests, list, '', state)),
+			pageSize: pageSize,
+			query: '',
+			jobId: jobId,
+			filterState: state
+		};
+	});
+var _Giga_dev$newman$Views_TestsTable$Model = F6(
+	function (a, b, c, d, e, f) {
+		return {all: a, paginated: b, pageSize: c, query: d, jobId: e, filterState: f};
+	});
+var _Giga_dev$newman$Views_TestsTable$UpdateFilterState = F2(
+	function (a, b) {
+		return {ctor: 'UpdateFilterState', _0: a, _1: b};
+	});
+var _Giga_dev$newman$Views_TestsTable$WebSocketEvent = function (a) {
+	return {ctor: 'WebSocketEvent', _0: a};
+};
+var _Giga_dev$newman$Views_TestsTable$handleEvent = function (event) {
+	return A2(_Giga_dev$newman$Utils_WebSocket_ops['=>'], event, _Giga_dev$newman$Views_TestsTable$WebSocketEvent);
+};
+var _Giga_dev$newman$Views_TestsTable$FilterQuery = function (a) {
+	return {ctor: 'FilterQuery', _0: a};
+};
+var _Giga_dev$newman$Views_TestsTable$GoTo = function (a) {
+	return {ctor: 'GoTo', _0: a};
+};
+var _Giga_dev$newman$Views_TestsTable$Prev = {ctor: 'Prev'};
+var _Giga_dev$newman$Views_TestsTable$Next = {ctor: 'Next'};
+var _Giga_dev$newman$Views_TestsTable$Last = {ctor: 'Last'};
+var _Giga_dev$newman$Views_TestsTable$First = {ctor: 'First'};
+var _Giga_dev$newman$Views_TestsTable$viewTable = F2(
+	function (model, currTime) {
+		var customPager = F2(
+			function (f, paginated) {
+				var maxPagesToShow = 10;
+				var totalPages = _jschomay$elm_paginate$Paginate$totalPages(paginated);
+				var currentPage = _jschomay$elm_paginate$Paginate$currentPage(paginated);
+				var leftBound = A2(_elm_lang$core$Basics$max, ((((currentPage - 1) / maxPagesToShow) | 0) * maxPagesToShow) + 1, 1);
+				var rightBound = A2(_elm_lang$core$Basics$min, ((((currentPage - 1) / maxPagesToShow) | 0) * maxPagesToShow) + maxPagesToShow, totalPages);
+				return A2(
+					_elm_lang$core$List$map,
+					function (i) {
+						return A2(
+							f,
+							i,
+							_elm_lang$core$Native_Utils.eq(
+								i,
+								_jschomay$elm_paginate$Paginate$currentPage(paginated)));
+					},
+					A2(_elm_lang$core$List$range, leftBound, rightBound));
+			});
+		var pagerButtonView = F2(
+			function (index, isActive) {
+				var _p17 = isActive;
+				if (_p17 === true) {
+					return A2(
+						_elm_lang$html$Html$li,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('page-item active'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$button,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('page-link'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										_elm_lang$core$Basics$toString(index)),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$span,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('sr-only'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('(current)'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
+								}),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$html$Html$li,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('page-item'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(
+									_Giga_dev$newman$Views_TestsTable$GoTo(index)),
+								_1: {ctor: '[]'}
+							}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$button,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('page-link'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										_elm_lang$core$Basics$toString(index)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						});
+				}
+			});
+		var nextButtons = {
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$li,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('page-item'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$classList(
+							{
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'disabled',
+									_1: _jschomay$elm_paginate$Paginate$isLast(model.paginated)
+								},
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(_Giga_dev$newman$Views_TestsTable$Next),
+							_1: {ctor: '[]'}
+						}
+					}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$button,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('page-link'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('›'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$li,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('page-item'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$classList(
+								{
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'disabled',
+										_1: _jschomay$elm_paginate$Paginate$isLast(model.paginated)
+									},
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(_Giga_dev$newman$Views_TestsTable$Last),
+								_1: {ctor: '[]'}
+							}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$button,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('page-link'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('»'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		};
+		var prevButtons = {
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$li,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('page-item'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$classList(
+							{
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'disabled',
+									_1: _jschomay$elm_paginate$Paginate$isFirst(model.paginated)
+								},
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(_Giga_dev$newman$Views_TestsTable$First),
+							_1: {ctor: '[]'}
+						}
+					}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$button,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('page-link'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('«'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$li,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('page-item'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$classList(
+								{
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'disabled',
+										_1: _jschomay$elm_paginate$Paginate$isFirst(model.paginated)
+									},
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(_Giga_dev$newman$Views_TestsTable$Prev),
+								_1: {ctor: '[]'}
+							}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$button,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('page-link'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('‹'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		};
+		var pagination = A2(
+			_elm_lang$html$Html$nav,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$ul,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('pagination '),
+						_1: {ctor: '[]'}
+					},
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						prevButtons,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							A2(customPager, pagerButtonView, model.paginated),
+							nextButtons))),
+				_1: {ctor: '[]'}
+			});
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('form-inline'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('form-group'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('btn-group'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$text(
+											{
+												ctor: '::',
+												_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_Giga_dev$newman$Views_TestsTable$FilterQuery),
+												_1: {
+													ctor: '::',
+													_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$placeholder('Filter'),
+													_1: {
+														ctor: '::',
+														_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$value(model.query),
+														_1: {
+															ctor: '::',
+															_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$attrs(
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$class('filterinput'),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$span,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$title('Clear filter'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$class('ion-close-circled searchclear'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$html$Html_Events$onClick(
+																_Giga_dev$newman$Views_TestsTable$FilterQuery('')),
+															_1: {ctor: '[]'}
+														}
+													}
+												},
+												{ctor: '[]'}),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('form-group'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: pagination,
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$table,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('table table-sm table-bordered table-striped table-nowrap table-hover'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$thead,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$tr,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$th,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$style(
+														{
+															ctor: '::',
+															_0: {ctor: '_Tuple2', _0: 'width', _1: '35%'},
+															_1: {ctor: '[]'}
+														}),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Name'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$th,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$width(65),
+														_1: {ctor: '[]'}
+													},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('Status'),
+														_1: {ctor: '[]'}
+													}),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$th,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$width(105),
+															_1: {ctor: '[]'}
+														},
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html$text('History Stats'),
+															_1: {ctor: '[]'}
+														}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$th,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$width(65),
+																_1: {ctor: '[]'}
+															},
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html$text('History'),
+																_1: {ctor: '[]'}
+															}),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$th,
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$width(210),
+																	_1: {ctor: '[]'}
+																},
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text('Error Message'),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$html$Html$th,
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Attributes$width(210),
+																		_1: {ctor: '[]'}
+																	},
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html$text('Assigned Agent'),
+																		_1: {ctor: '[]'}
+																	}),
+																_1: {
+																	ctor: '::',
+																	_0: A2(
+																		_elm_lang$html$Html$th,
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Attributes$width(100),
+																			_1: {ctor: '[]'}
+																		},
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html$text('Duration'),
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {ctor: '[]'}
+																}
+															}
+														}
+													}
+												}
+											}
+										}),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$tbody,
+									{ctor: '[]'},
+									A2(
+										_elm_lang$core$List$map,
+										_Giga_dev$newman$Views_TestsTable$viewTest(currTime),
+										_jschomay$elm_paginate$Paginate$page(model.paginated))),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {
+						ctor: '::',
+						_0: pagination,
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+	});
+var _Giga_dev$newman$Views_TestsTable$RUNNING = {ctor: 'RUNNING'};
+var _Giga_dev$newman$Views_TestsTable$FAIL = {ctor: 'FAIL'};
+var _Giga_dev$newman$Views_TestsTable$SUCCESS = {ctor: 'SUCCESS'};
+var _Giga_dev$newman$Views_TestsTable$PENDING = {ctor: 'PENDING'};
+var _Giga_dev$newman$Views_TestsTable$toTestStatus = function (str) {
+	var _p18 = str;
+	switch (_p18) {
+		case 'PENDING':
+			return _Giga_dev$newman$Views_TestsTable$PENDING;
+		case 'SUCCESS':
+			return _Giga_dev$newman$Views_TestsTable$SUCCESS;
+		case 'FAIL':
+			return _Giga_dev$newman$Views_TestsTable$FAIL;
+		case 'RUNNING':
+			return _Giga_dev$newman$Views_TestsTable$RUNNING;
+		default:
+			return _Giga_dev$newman$Views_TestsTable$FAIL;
+	}
+};

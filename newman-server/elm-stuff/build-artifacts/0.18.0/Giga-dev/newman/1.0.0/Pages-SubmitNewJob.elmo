@@ -1,0 +1,932 @@
+var _Giga_dev$newman$Pages_SubmitNewJob$radio = F3(
+	function (textVal, msg, isChecked) {
+		return A2(
+			_elm_lang$html$Html$label,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$input,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$type_('radio'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$name('font-size'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(msg),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$checked(isChecked),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(textVal),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _Giga_dev$newman$Pages_SubmitNewJob$updateJobConfigAdded = F2(
+	function (model, jobConfig) {
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				configurations: {ctor: '::', _0: jobConfig, _1: model.configurations}
+			});
+	});
+var _Giga_dev$newman$Pages_SubmitNewJob$updateSuiteAdded = F2(
+	function (model, suite) {
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				buildsAndSuites: {
+					suites: {ctor: '::', _0: suite, _1: model.buildsAndSuites.suites},
+					builds: model.buildsAndSuites.builds
+				}
+			});
+	});
+var _Giga_dev$newman$Pages_SubmitNewJob$Model = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return {buildsAndSuites: a, selectedBuild: b, selectedSuites: c, configurations: d, selectedConfig: e, agentGroups: f, selectedAgentGroups: g, submittedFutureJobs: h, isSelect: i, modalState: j, errorMessage: k};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$BuildsAndSuites = F2(
+	function (a, b) {
+		return {suites: a, builds: b};
+	});
+var _Giga_dev$newman$Pages_SubmitNewJob$FutureJob = function (a) {
+	return {id: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$futureJobDecoder = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'id',
+	_elm_lang$core$Json_Decode$string,
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Pages_SubmitNewJob$FutureJob));
+var _Giga_dev$newman$Pages_SubmitNewJob$decodeFutureJobs = _elm_lang$core$Json_Decode$list(_Giga_dev$newman$Pages_SubmitNewJob$futureJobDecoder);
+var _Giga_dev$newman$Pages_SubmitNewJob$postFutureJob = F4(
+	function (buildId, suites, agentGroupsList, configId) {
+		var jsonify = _elm_lang$http$Http$jsonBody(
+			_elm_lang$core$Json_Encode$object(
+				{
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'buildId',
+						_1: _elm_lang$core$Json_Encode$string(buildId)
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'suites',
+							_1: _elm_lang$core$Json_Encode$list(
+								A2(_elm_lang$core$List$map, _elm_lang$core$Json_Encode$string, suites))
+						},
+						_1: {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'agentGroups',
+								_1: _elm_lang$core$Json_Encode$list(
+									A2(_elm_lang$core$List$map, _elm_lang$core$Json_Encode$string, agentGroupsList))
+							},
+							_1: {
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'configId',
+									_1: _elm_lang$core$Json_Encode$string(configId)
+								},
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}));
+		return A3(_elm_lang$http$Http$post, '../api/newman/futureJob', jsonify, _Giga_dev$newman$Pages_SubmitNewJob$decodeFutureJobs);
+	});
+var _Giga_dev$newman$Pages_SubmitNewJob$ThinBuild = F4(
+	function (a, b, c, d) {
+		return {id: a, name: b, branch: c, tags: d};
+	});
+var _Giga_dev$newman$Pages_SubmitNewJob$buildToThinBuild = function (build) {
+	return A4(_Giga_dev$newman$Pages_SubmitNewJob$ThinBuild, build.id, build.name, build.branch, build.tags);
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$updateBuildAdded = F2(
+	function (model, build) {
+		var thinBuild = _Giga_dev$newman$Pages_SubmitNewJob$buildToThinBuild(build);
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				buildsAndSuites: {
+					builds: {ctor: '::', _0: thinBuild, _1: model.buildsAndSuites.builds},
+					suites: model.buildsAndSuites.suites
+				}
+			});
+	});
+var _Giga_dev$newman$Pages_SubmitNewJob$decodeThinBuild = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'tags',
+	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'branch',
+		_elm_lang$core$Json_Decode$string,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'name',
+			_elm_lang$core$Json_Decode$string,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'id',
+				_elm_lang$core$Json_Decode$string,
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Pages_SubmitNewJob$ThinBuild)))));
+var _Giga_dev$newman$Pages_SubmitNewJob$buildsAndSuitesDecoder = A3(
+	_elm_lang$core$Json_Decode$map2,
+	_Giga_dev$newman$Pages_SubmitNewJob$BuildsAndSuites,
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'suites',
+		_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Utils_Types$decodeSuite)),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'builds',
+		_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Pages_SubmitNewJob$decodeThinBuild)));
+var _Giga_dev$newman$Pages_SubmitNewJob$WebSocketEvent = function (a) {
+	return {ctor: 'WebSocketEvent', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$handleEvent = function (event) {
+	return A2(_Giga_dev$newman$Utils_WebSocket_ops['=>'], event, _Giga_dev$newman$Pages_SubmitNewJob$WebSocketEvent);
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$NewmanModalMsg = function (a) {
+	return {ctor: 'NewmanModalMsg', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$UpdatedBuildSelection = function (a) {
+	return {ctor: 'UpdatedBuildSelection', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$MultiSelectMsg = function (a) {
+	return {ctor: 'MultiSelectMsg', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$subscriptions = function (model) {
+	return A2(
+		_elm_lang$core$Platform_Sub$map,
+		_Giga_dev$newman$Pages_SubmitNewJob$MultiSelectMsg,
+		_inkuzmin$elm_multiselect$Multiselect$subscriptions(model.selectedSuites));
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$MultiSelectAgentGroupsMsg = function (a) {
+	return {ctor: 'MultiSelectAgentGroupsMsg', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$OnClickSubmit = {ctor: 'OnClickSubmit'};
+var _Giga_dev$newman$Pages_SubmitNewJob$SubmitNewJobCompleted = function (a) {
+	return {ctor: 'SubmitNewJobCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$submitFutureJobCmd = F4(
+	function (buildId, suites, agentGroups, configId) {
+		var postReq = A4(_Giga_dev$newman$Pages_SubmitNewJob$postFutureJob, buildId, suites, agentGroups, configId);
+		return A2(_elm_lang$http$Http$send, _Giga_dev$newman$Pages_SubmitNewJob$SubmitNewJobCompleted, postReq);
+	});
+var _Giga_dev$newman$Pages_SubmitNewJob$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		switch (_p0.ctor) {
+			case 'GetBuildsAndSuitesCompleted':
+				var _p1 = _p0._0;
+				if (_p1.ctor === 'Ok') {
+					var _p2 = _p1._0;
+					var suites = A2(
+						_elm_lang$core$List$map,
+						function (suite) {
+							return {ctor: '_Tuple2', _0: suite.id, _1: suite.name};
+						},
+						_p2.suites);
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								buildsAndSuites: _p2,
+								selectedSuites: A2(_inkuzmin$elm_multiselect$Multiselect$initModel, suites, 'suites')
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'GetAllConfigsCompleted':
+				var _p3 = _p0._0;
+				if (_p3.ctor === 'Ok') {
+					var _p4 = _p3._0;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								configurations: _p4,
+								selectedConfig: A2(
+									_elm_lang$core$Maybe$withDefault,
+									'',
+									A2(
+										_elm_lang$core$Maybe$map,
+										function (v) {
+											return v.id;
+										},
+										_elm_lang$core$List$head(_p4)))
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'GetAllAgentGroupsCompleted':
+				var _p5 = _p0._0;
+				if (_p5.ctor === 'Ok') {
+					var _p6 = _p5._0;
+					var agentGroups = A2(
+						_elm_lang$core$List$map,
+						function (item) {
+							return {ctor: '_Tuple2', _0: item, _1: item};
+						},
+						_p6);
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								agentGroups: _p6,
+								selectedAgentGroups: A3(_inkuzmin$elm_multiselect$Multiselect$populateValues, model.selectedAgentGroups, agentGroups, agentGroups)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'UpdateSelectedBuild':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{selectedBuild: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateSelectedConfig':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{selectedConfig: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'MultiSelectAgentGroupsMsg':
+				var _p7 = A2(_inkuzmin$elm_multiselect$Multiselect$update, _p0._0, model.selectedAgentGroups);
+				var subModel = _p7._0;
+				var subCmd = _p7._1;
+				var outMsg = _p7._2;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{selectedAgentGroups: subModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Pages_SubmitNewJob$MultiSelectAgentGroupsMsg, subCmd)
+				};
+			case 'MultiSelectMsg':
+				var _p8 = A2(_inkuzmin$elm_multiselect$Multiselect$update, _p0._0, model.selectedSuites);
+				var subModel = _p8._0;
+				var subCmd = _p8._1;
+				var outMsg = _p8._2;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{selectedSuites: subModel}),
+					_1: A2(_elm_lang$core$Platform_Cmd$map, _Giga_dev$newman$Pages_SubmitNewJob$MultiSelectMsg, subCmd)
+				};
+			case 'OnClickSubmit':
+				var _p9 = {
+					ctor: '_Tuple4',
+					_0: model.selectedBuild,
+					_1: A2(
+						_elm_lang$core$List$map,
+						function (_p10) {
+							var _p11 = _p10;
+							return _p11._0;
+						},
+						_inkuzmin$elm_multiselect$Multiselect$getSelectedValues(model.selectedSuites)),
+					_2: A2(
+						_elm_lang$core$List$map,
+						function (_p12) {
+							var _p13 = _p12;
+							return _p13._0;
+						},
+						_inkuzmin$elm_multiselect$Multiselect$getSelectedValues(model.selectedAgentGroups)),
+					_3: model.selectedConfig
+				};
+				var buildId = _p9._0;
+				var suitesList = _p9._1;
+				var agentGroupsList = _p9._2;
+				var configId = _p9._3;
+				var _p14 = {ctor: '_Tuple4', _0: buildId, _1: suitesList, _2: agentGroupsList, _3: configId};
+				_v6_4:
+				do {
+					if (_p14.ctor === '_Tuple4') {
+						if (_p14._0 === '') {
+							return {
+								ctor: '_Tuple2',
+								_0: _elm_lang$core$Native_Utils.update(
+									model,
+									{errorMessage: 'Please select a build', modalState: _rundis$elm_bootstrap$Bootstrap_Modal$visibleState}),
+								_1: _elm_lang$core$Platform_Cmd$none
+							};
+						} else {
+							if (_p14._1.ctor === '[]') {
+								return {
+									ctor: '_Tuple2',
+									_0: _elm_lang$core$Native_Utils.update(
+										model,
+										{errorMessage: 'Please select one or more suites', modalState: _rundis$elm_bootstrap$Bootstrap_Modal$visibleState}),
+									_1: _elm_lang$core$Platform_Cmd$none
+								};
+							} else {
+								if (_p14._2.ctor === '[]') {
+									return {
+										ctor: '_Tuple2',
+										_0: _elm_lang$core$Native_Utils.update(
+											model,
+											{errorMessage: 'Please select one or more agent groups', modalState: _rundis$elm_bootstrap$Bootstrap_Modal$visibleState}),
+										_1: _elm_lang$core$Platform_Cmd$none
+									};
+								} else {
+									if (_p14._3 === '') {
+										return {
+											ctor: '_Tuple2',
+											_0: _elm_lang$core$Native_Utils.update(
+												model,
+												{errorMessage: 'Please select a Job Configuration', modalState: _rundis$elm_bootstrap$Bootstrap_Modal$visibleState}),
+											_1: _elm_lang$core$Platform_Cmd$none
+										};
+									} else {
+										break _v6_4;
+									}
+								}
+							}
+						}
+					} else {
+						break _v6_4;
+					}
+				} while(false);
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: A4(_Giga_dev$newman$Pages_SubmitNewJob$submitFutureJobCmd, buildId, suitesList, agentGroupsList, configId)
+				};
+			case 'SubmitNewJobCompleted':
+				var _p15 = _p0._0;
+				if (_p15.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{submittedFutureJobs: _p15._0}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'UpdatedBuildSelection':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{isSelect: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'NewmanModalMsg':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{modalState: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				var _p16 = _p0._0;
+				switch (_p16.ctor) {
+					case 'CreatedBuild':
+						return {
+							ctor: '_Tuple2',
+							_0: A2(_Giga_dev$newman$Pages_SubmitNewJob$updateBuildAdded, model, _p16._0),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					case 'CreatedSuite':
+						return {
+							ctor: '_Tuple2',
+							_0: A2(_Giga_dev$newman$Pages_SubmitNewJob$updateSuiteAdded, model, _p16._0),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					case 'CreatedJobConfig':
+						return {
+							ctor: '_Tuple2',
+							_0: A2(_Giga_dev$newman$Pages_SubmitNewJob$updateJobConfigAdded, model, _p16._0),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					default:
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+		}
+	});
+var _Giga_dev$newman$Pages_SubmitNewJob$UpdateSelectedConfig = function (a) {
+	return {ctor: 'UpdateSelectedConfig', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$UpdateSelectedBuild = function (a) {
+	return {ctor: 'UpdateSelectedBuild', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$selectBuildView = function (model) {
+	var toOption = function (data) {
+		return A2(
+			_rundis$elm_bootstrap$Bootstrap_Form_Select$item,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$value(data.id),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$selected(
+						_elm_lang$core$Native_Utils.eq(model.selectedBuild, data.id)),
+					_1: {ctor: '[]'}
+				}
+			},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						data.name,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							' (',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								data.branch,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									')',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										' (',
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											A2(_elm_lang$core$String$join, ',', data.tags),
+											')'))))))),
+				_1: {ctor: '[]'}
+			});
+	};
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$div,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A3(
+						_Giga_dev$newman$Pages_SubmitNewJob$radio,
+						'Select build :',
+						_Giga_dev$newman$Pages_SubmitNewJob$UpdatedBuildSelection(true),
+						model.isSelect),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Form_Select$select,
+							{
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$disabled(!model.isSelect),
+								_1: {
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onChange(_Giga_dev$newman$Pages_SubmitNewJob$UpdateSelectedBuild),
+									_1: {
+										ctor: '::',
+										_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$attrs(
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$style(
+													{
+														ctor: '::',
+														_0: {ctor: '_Tuple2', _0: 'width', _1: '500px'},
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
+								}
+							},
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								{
+									ctor: '::',
+									_0: A2(
+										_rundis$elm_bootstrap$Bootstrap_Form_Select$item,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$value('1'),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Select a Build'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								},
+								A2(_elm_lang$core$List$map, toOption, model.buildsAndSuites.builds))),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$br,
+						{ctor: '[]'},
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A3(
+									_Giga_dev$newman$Pages_SubmitNewJob$radio,
+									'Enter build id :',
+									_Giga_dev$newman$Pages_SubmitNewJob$UpdatedBuildSelection(false),
+									!model.isSelect),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$text(
+										{
+											ctor: '::',
+											_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$disabled(model.isSelect),
+											_1: {
+												ctor: '::',
+												_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$onInput(_Giga_dev$newman$Pages_SubmitNewJob$UpdateSelectedBuild),
+												_1: {
+													ctor: '::',
+													_0: _rundis$elm_bootstrap$Bootstrap_Form_Input$attrs(
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$style(
+																{
+																	ctor: '::',
+																	_0: {ctor: '_Tuple2', _0: 'width', _1: '500px'},
+																	_1: {ctor: '[]'}
+																}),
+															_1: {ctor: '[]'}
+														}),
+													_1: {ctor: '[]'}
+												}
+											}
+										}),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		});
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$view = function (model) {
+	var submittedFutureJobString = function () {
+		var _p17 = model.submittedFutureJobs;
+		if (_p17.ctor === '[]') {
+			return '';
+		} else {
+			return 'submitted the following future jobs:';
+		}
+	}();
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('container-fluid'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h2,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('page-header'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Submit New Job'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$style(
+							{
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'width', _1: '500px'},
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Select suites:'),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$map,
+								_Giga_dev$newman$Pages_SubmitNewJob$MultiSelectMsg,
+								_inkuzmin$elm_multiselect$Multiselect$view(model.selectedSuites)),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$br,
+						{ctor: '[]'},
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$style(
+									{
+										ctor: '::',
+										_0: {ctor: '_Tuple2', _0: 'width', _1: '500px'},
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Select agent groups:'),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$map,
+										_Giga_dev$newman$Pages_SubmitNewJob$MultiSelectAgentGroupsMsg,
+										_inkuzmin$elm_multiselect$Multiselect$view(model.selectedAgentGroups)),
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$br,
+								{ctor: '[]'},
+								{ctor: '[]'}),
+							_1: {
+								ctor: '::',
+								_0: function () {
+									var toOption = function (data) {
+										return A2(
+											_rundis$elm_bootstrap$Bootstrap_Form_Select$item,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$value(data.id),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$selected(
+														_elm_lang$core$Native_Utils.eq(model.selectedConfig, data.id)),
+													_1: {ctor: '[]'}
+												}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text(data.name),
+												_1: {ctor: '[]'}
+											});
+									};
+									return A2(
+										_elm_lang$html$Html$div,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Select Job Configuration:'),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_rundis$elm_bootstrap$Bootstrap_Form_Select$select,
+													{
+														ctor: '::',
+														_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$onChange(_Giga_dev$newman$Pages_SubmitNewJob$UpdateSelectedConfig),
+														_1: {
+															ctor: '::',
+															_0: _rundis$elm_bootstrap$Bootstrap_Form_Select$attrs(
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$style(
+																		{
+																			ctor: '::',
+																			_0: {ctor: '_Tuple2', _0: 'width', _1: '500px'},
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {ctor: '[]'}
+														}
+													},
+													A2(_elm_lang$core$List$map, toOption, model.configurations)),
+												_1: {ctor: '[]'}
+											}
+										});
+								}(),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$br,
+										{ctor: '[]'},
+										{ctor: '[]'}),
+									_1: {
+										ctor: '::',
+										_0: _Giga_dev$newman$Pages_SubmitNewJob$selectBuildView(model),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_rundis$elm_bootstrap$Bootstrap_Button$button,
+												{
+													ctor: '::',
+													_0: _rundis$elm_bootstrap$Bootstrap_Button$secondary,
+													_1: {
+														ctor: '::',
+														_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(_Giga_dev$newman$Pages_SubmitNewJob$OnClickSubmit),
+														_1: {
+															ctor: '::',
+															_0: _rundis$elm_bootstrap$Bootstrap_Button$attrs(
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$style(
+																		{
+																			ctor: '::',
+																			_0: {ctor: '_Tuple2', _0: 'margin-top', _1: '15px'},
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {ctor: '[]'}
+														}
+													}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Submit Future Job'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$br,
+													{ctor: '[]'},
+													{ctor: '[]'}),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$div,
+														{ctor: '[]'},
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html$text(submittedFutureJobString),
+																_1: {ctor: '[]'}
+															},
+															A2(
+																_elm_lang$core$List$map,
+																function (job) {
+																	return A2(
+																		_elm_lang$html$Html$div,
+																		{ctor: '[]'},
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html$text(job.id),
+																			_1: {ctor: '[]'}
+																		});
+																},
+																model.submittedFutureJobs))),
+													_1: {
+														ctor: '::',
+														_0: A3(_Giga_dev$newman$Views_NewmanModal$viewError, model.errorMessage, _Giga_dev$newman$Pages_SubmitNewJob$NewmanModalMsg, model.modalState),
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		});
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$GetAllAgentGroupsCompleted = function (a) {
+	return {ctor: 'GetAllAgentGroupsCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$getAllAgentGroupsCmd = A2(
+	_elm_lang$http$Http$send,
+	_Giga_dev$newman$Pages_SubmitNewJob$GetAllAgentGroupsCompleted,
+	A2(_elm_lang$http$Http$get, '/api/newman/availableAgentGroups', _Giga_dev$newman$Utils_Types$decodeAgentGroups));
+var _Giga_dev$newman$Pages_SubmitNewJob$GetAllConfigsCompleted = function (a) {
+	return {ctor: 'GetAllConfigsCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$getAllConfigsCmd = A2(
+	_elm_lang$http$Http$send,
+	_Giga_dev$newman$Pages_SubmitNewJob$GetAllConfigsCompleted,
+	A2(_elm_lang$http$Http$get, '/api/newman/job-config', _Giga_dev$newman$Utils_Types$decodeJobConfigs));
+var _Giga_dev$newman$Pages_SubmitNewJob$GetBuildsAndSuitesCompleted = function (a) {
+	return {ctor: 'GetBuildsAndSuitesCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_SubmitNewJob$getBuildsAndSuitesCmd = A2(
+	_elm_lang$http$Http$send,
+	_Giga_dev$newman$Pages_SubmitNewJob$GetBuildsAndSuitesCompleted,
+	A2(_elm_lang$http$Http$get, '/api/newman/all-builds-and-suites', _Giga_dev$newman$Pages_SubmitNewJob$buildsAndSuitesDecoder));
+var _Giga_dev$newman$Pages_SubmitNewJob$init = {
+	ctor: '_Tuple2',
+	_0: {
+		buildsAndSuites: A2(
+			_Giga_dev$newman$Pages_SubmitNewJob$BuildsAndSuites,
+			{ctor: '[]'},
+			{ctor: '[]'}),
+		selectedBuild: '',
+		selectedSuites: A2(
+			_inkuzmin$elm_multiselect$Multiselect$initModel,
+			{ctor: '[]'},
+			''),
+		selectedConfig: '',
+		configurations: {ctor: '[]'},
+		selectedAgentGroups: A2(
+			_inkuzmin$elm_multiselect$Multiselect$initModel,
+			{ctor: '[]'},
+			''),
+		agentGroups: {ctor: '[]'},
+		submittedFutureJobs: {ctor: '[]'},
+		isSelect: true,
+		modalState: _rundis$elm_bootstrap$Bootstrap_Modal$hiddenState,
+		errorMessage: ''
+	},
+	_1: _elm_lang$core$Platform_Cmd$batch(
+		{
+			ctor: '::',
+			_0: _Giga_dev$newman$Pages_SubmitNewJob$getBuildsAndSuitesCmd,
+			_1: {
+				ctor: '::',
+				_0: _Giga_dev$newman$Pages_SubmitNewJob$getAllConfigsCmd,
+				_1: {
+					ctor: '::',
+					_0: _Giga_dev$newman$Pages_SubmitNewJob$getAllAgentGroupsCmd,
+					_1: {ctor: '[]'}
+				}
+			}
+		})
+};

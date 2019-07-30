@@ -1,0 +1,715 @@
+var _Giga_dev$newman$Pages_OnDemandAgents$Model = F4(
+	function (a, b, c, d) {
+		return {modalState: a, elasticGroups: b, selectedElasticGroup: c, newCapacity: d};
+	});
+var _Giga_dev$newman$Pages_OnDemandAgents$AgentGroup2 = F6(
+	function (a, b, c, d, e, f) {
+		return {name: a, id: b, min: c, max: d, target: e, actual: f};
+	});
+var _Giga_dev$newman$Pages_OnDemandAgents$ElasticGroup = F6(
+	function (a, b, c, d, e, f) {
+		return {id: a, name: b, description: c, capacity: d, connectedAgents: e, runningVMs: f};
+	});
+var _Giga_dev$newman$Pages_OnDemandAgents$ElasticGroupCapacity = F3(
+	function (a, b, c) {
+		return {minimum: a, maximum: b, target: c};
+	});
+var _Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupCapacity = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'target',
+	_elm_lang$core$Json_Decode$int,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'maximum',
+		_elm_lang$core$Json_Decode$int,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'minimum',
+			_elm_lang$core$Json_Decode$int,
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Pages_OnDemandAgents$ElasticGroupCapacity))));
+var _Giga_dev$newman$Pages_OnDemandAgents$ElasticGroupDescription = F3(
+	function (a, b, c) {
+		return {groupName: a, description: b, owner: c};
+	});
+var _Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupDescription = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'owner',
+	_elm_lang$core$Json_Decode$string,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'description',
+		_elm_lang$core$Json_Decode$string,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'groupName',
+			_elm_lang$core$Json_Decode$string,
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Pages_OnDemandAgents$ElasticGroupDescription))));
+var _Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroup = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'runningVMs',
+	_elm_lang$core$Json_Decode$int,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'connectedAgents',
+		_elm_lang$core$Json_Decode$int,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'capacity',
+			_Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupCapacity,
+			A3(
+				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+				'description',
+				_Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupDescription,
+				A3(
+					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+					'name',
+					_elm_lang$core$Json_Decode$string,
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'id',
+						_elm_lang$core$Json_Decode$string,
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Pages_OnDemandAgents$ElasticGroup)))))));
+var _Giga_dev$newman$Pages_OnDemandAgents$WebSocketEvent = function (a) {
+	return {ctor: 'WebSocketEvent', _0: a};
+};
+var _Giga_dev$newman$Pages_OnDemandAgents$handleEvent = function (event) {
+	return A2(_Giga_dev$newman$Utils_WebSocket_ops['=>'], event, _Giga_dev$newman$Pages_OnDemandAgents$WebSocketEvent);
+};
+var _Giga_dev$newman$Pages_OnDemandAgents$ShowError = function (a) {
+	return {ctor: 'ShowError', _0: a};
+};
+var _Giga_dev$newman$Pages_OnDemandAgents$Reload = {ctor: 'Reload'};
+var _Giga_dev$newman$Pages_OnDemandAgents$UpdateElasticGroupCompleted = function (a) {
+	return {ctor: 'UpdateElasticGroupCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_OnDemandAgents$updateElasticGroupCmd = F2(
+	function (elasticGroup, newCapacity) {
+		return A2(
+			_elm_lang$http$Http$send,
+			_Giga_dev$newman$Pages_OnDemandAgents$UpdateElasticGroupCompleted,
+			A3(
+				_elm_lang$http$Http$post,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'/api/spotinst/elasticgroup?elasticGroupId=',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						elasticGroup.id,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'&capacity=',
+							_elm_lang$core$Basics$toString(newCapacity)))),
+				_elm_lang$http$Http$emptyBody,
+				_Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroup));
+	});
+var _Giga_dev$newman$Pages_OnDemandAgents$GetElasticGroupsCompleted = function (a) {
+	return {ctor: 'GetElasticGroupsCompleted', _0: a};
+};
+var _Giga_dev$newman$Pages_OnDemandAgents$getElasticGroupsCmd = A2(
+	_elm_lang$http$Http$send,
+	_Giga_dev$newman$Pages_OnDemandAgents$GetElasticGroupsCompleted,
+	A2(
+		_elm_lang$http$Http$get,
+		'/api/spotinst/elasticgroup',
+		_elm_lang$core$Json_Decode$list(_Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroup)));
+var _Giga_dev$newman$Pages_OnDemandAgents$init = {
+	ctor: '_Tuple2',
+	_0: {
+		modalState: _rundis$elm_bootstrap$Bootstrap_Modal$hiddenState,
+		elasticGroups: {ctor: '[]'},
+		selectedElasticGroup: _elm_lang$core$Maybe$Nothing,
+		newCapacity: -1
+	},
+	_1: _Giga_dev$newman$Pages_OnDemandAgents$getElasticGroupsCmd
+};
+var _Giga_dev$newman$Pages_OnDemandAgents$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		switch (_p0.ctor) {
+			case 'ShowModal':
+				var _p1 = _p0._0;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							newCapacity: _p1.capacity.target,
+							selectedElasticGroup: _elm_lang$core$Maybe$Just(_p1),
+							modalState: _rundis$elm_bootstrap$Bootstrap_Modal$visibleState
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'CloseModal':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{modalState: _rundis$elm_bootstrap$Bootstrap_Modal$hiddenState, selectedElasticGroup: _elm_lang$core$Maybe$Nothing}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'AnimateModal':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{modalState: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'NewCapacity':
+				var _p2 = _elm_lang$core$String$toInt(_p0._0);
+				if (_p2.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{newCapacity: _p2._0}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'ConfirmUpdate':
+				var _p4 = _p0._1;
+				var _p3 = _p0._0;
+				var updateElement = F3(
+					function (elasticGroups, agentGroupToUpdate, newCapacity) {
+						var f = function (elasticGroup) {
+							if (_elm_lang$core$Native_Utils.eq(elasticGroup.id, agentGroupToUpdate.id)) {
+								var elasticGroupCapacity = elasticGroup.capacity;
+								var newElasticGroupCapacity = _elm_lang$core$Native_Utils.update(
+									elasticGroupCapacity,
+									{target: newCapacity});
+								return _elm_lang$core$Native_Utils.update(
+									elasticGroup,
+									{capacity: newElasticGroupCapacity});
+							} else {
+								return elasticGroup;
+							}
+						};
+						return A2(_elm_lang$core$List$map, f, elasticGroups);
+					});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							elasticGroups: A3(updateElement, model.elasticGroups, _p3, _p4),
+							modalState: _rundis$elm_bootstrap$Bootstrap_Modal$hiddenState
+						}),
+					_1: A2(_Giga_dev$newman$Pages_OnDemandAgents$updateElasticGroupCmd, _p3, _p4)
+				};
+			case 'GetElasticGroupsCompleted':
+				var _p5 = _p0._0;
+				if (_p5.ctor === 'Ok') {
+					var _p6 = _p5._0;
+					var l = A2(_elm_lang$core$Debug$log, 'A', _p6);
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{elasticGroups: _p6}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'UpdateElasticGroupCompleted':
+				var _p7 = _p0._0;
+				if (_p7.ctor === 'Ok') {
+					var l = A2(_elm_lang$core$Debug$log, 'UpdateElasticGroupCompleted', 'group has been updated');
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				} else {
+					var l = A2(
+						_elm_lang$core$Debug$log,
+						'UpdateElasticGroupCompleted',
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'group update has failed',
+							_elm_lang$core$Basics$toString(_p7._0)));
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			case 'Reload':
+				return {ctor: '_Tuple2', _0: model, _1: _Giga_dev$newman$Pages_OnDemandAgents$getElasticGroupsCmd};
+			case 'ShowError':
+				var e = A2(_elm_lang$core$Debug$log, 'ERROR', _p0._0);
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			default:
+				var _p8 = _p0._0;
+				if (_p8.ctor === 'ModifiedAgentsCount') {
+					return {ctor: '_Tuple2', _0: model, _1: _Giga_dev$newman$Pages_OnDemandAgents$getElasticGroupsCmd};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+		}
+	});
+var _Giga_dev$newman$Pages_OnDemandAgents$ConfirmUpdate = F2(
+	function (a, b) {
+		return {ctor: 'ConfirmUpdate', _0: a, _1: b};
+	});
+var _Giga_dev$newman$Pages_OnDemandAgents$NewCapacity = function (a) {
+	return {ctor: 'NewCapacity', _0: a};
+};
+var _Giga_dev$newman$Pages_OnDemandAgents$AnimateModal = function (a) {
+	return {ctor: 'AnimateModal', _0: a};
+};
+var _Giga_dev$newman$Pages_OnDemandAgents$ShowModal = function (a) {
+	return {ctor: 'ShowModal', _0: a};
+};
+var _Giga_dev$newman$Pages_OnDemandAgents$CloseModal = {ctor: 'CloseModal'};
+var _Giga_dev$newman$Pages_OnDemandAgents$viewModal = function (model) {
+	var _p9 = model.selectedElasticGroup;
+	if (_p9.ctor === 'Nothing') {
+		return A2(
+			_rundis$elm_bootstrap$Bootstrap_Modal$view,
+			model.modalState,
+			A3(
+				_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Error: No selected agent group'),
+					_1: {ctor: '[]'}
+				},
+				_rundis$elm_bootstrap$Bootstrap_Modal$large(
+					_rundis$elm_bootstrap$Bootstrap_Modal$config(_Giga_dev$newman$Pages_OnDemandAgents$AnimateModal))));
+	} else {
+		var _p10 = _p9._0;
+		var twoColsRow = F2(
+			function (left, right) {
+				return A2(
+					_rundis$elm_bootstrap$Bootstrap_Grid$row,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Grid$col,
+							{
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Grid_Col$sm2,
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(left),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Grid$col,
+								{
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Grid_Col$sm8,
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(right),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					});
+			});
+		return A2(
+			_rundis$elm_bootstrap$Bootstrap_Modal$view,
+			model.modalState,
+			A3(
+				_rundis$elm_bootstrap$Bootstrap_Modal$footer,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Button$button,
+						{
+							ctor: '::',
+							_0: _rundis$elm_bootstrap$Bootstrap_Button$danger,
+							_1: {
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+									A2(_Giga_dev$newman$Pages_OnDemandAgents$ConfirmUpdate, _p10, model.newCapacity)),
+								_1: {ctor: '[]'}
+							}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Confirm'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Button$button,
+							{
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Button$outlinePrimary,
+								_1: {
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(_Giga_dev$newman$Pages_OnDemandAgents$CloseModal),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Close'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				},
+				A3(
+					_rundis$elm_bootstrap$Bootstrap_Modal$body,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Grid$containerFluid,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(twoColsRow, 'Id', _p10.id),
+								_1: {
+									ctor: '::',
+									_0: A2(twoColsRow, 'Name', _p10.description.groupName),
+									_1: {
+										ctor: '::',
+										_0: A2(twoColsRow, 'Description', _p10.description.description),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												twoColsRow,
+												'Capacity',
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													'Minimum: ',
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														_elm_lang$core$Basics$toString(_p10.capacity.minimum),
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															', Maximum: ',
+															_elm_lang$core$Basics$toString(_p10.capacity.maximum))))),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_rundis$elm_bootstrap$Bootstrap_Grid$row,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: A2(
+															_rundis$elm_bootstrap$Bootstrap_Grid$col,
+															{
+																ctor: '::',
+																_0: _rundis$elm_bootstrap$Bootstrap_Grid_Col$sm2,
+																_1: {ctor: '[]'}
+															},
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html$text('New target'),
+																_1: {ctor: '[]'}
+															}),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_rundis$elm_bootstrap$Bootstrap_Grid$col,
+																{
+																	ctor: '::',
+																	_0: _rundis$elm_bootstrap$Bootstrap_Grid_Col$sm8,
+																	_1: {ctor: '[]'}
+																},
+																{
+																	ctor: '::',
+																	_0: A2(
+																		_elm_lang$html$Html$input,
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Events$onInput(_Giga_dev$newman$Pages_OnDemandAgents$NewCapacity),
+																			_1: {
+																				ctor: '::',
+																				_0: _elm_lang$html$Html_Attributes$type_('number'),
+																				_1: {
+																					ctor: '::',
+																					_0: _elm_lang$html$Html_Attributes$max(
+																						_elm_lang$core$Basics$toString(_p10.capacity.maximum)),
+																					_1: {
+																						ctor: '::',
+																						_0: _elm_lang$html$Html_Attributes$min(
+																							_elm_lang$core$Basics$toString(_p10.capacity.minimum)),
+																						_1: {
+																							ctor: '::',
+																							_0: _elm_lang$html$Html_Attributes$value(
+																								_elm_lang$core$Basics$toString(model.newCapacity)),
+																							_1: {ctor: '[]'}
+																						}
+																					}
+																				}
+																			}
+																		},
+																		{ctor: '[]'}),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {ctor: '[]'}
+														}
+													}),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
+							}),
+						_1: {ctor: '[]'}
+					},
+					A3(
+						_rundis$elm_bootstrap$Bootstrap_Modal$h3,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(
+								A2(_elm_lang$core$Basics_ops['++'], 'Update capacity for group - ', _p10.description.groupName)),
+							_1: {ctor: '[]'}
+						},
+						_rundis$elm_bootstrap$Bootstrap_Modal$large(
+							_rundis$elm_bootstrap$Bootstrap_Modal$config(_Giga_dev$newman$Pages_OnDemandAgents$AnimateModal))))));
+	}
+};
+var _Giga_dev$newman$Pages_OnDemandAgents$view = function (model) {
+	var onDemandText = A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(
+			_elm_lang$core$List$sum(
+				A2(
+					_elm_lang$core$List$map,
+					function (group) {
+						return group.connectedAgents;
+					},
+					model.elasticGroups))),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			' / ',
+			_elm_lang$core$Basics$toString(
+				_elm_lang$core$List$sum(
+					A2(
+						_elm_lang$core$List$map,
+						function (group) {
+							return group.capacity.target;
+						},
+						model.elasticGroups)))));
+	var rowOpt = function (elasticGroup) {
+		return _elm_lang$core$Native_Utils.eq(elasticGroup.capacity.target, elasticGroup.connectedAgents) ? _rundis$elm_bootstrap$Bootstrap_Table$rowSuccess : _rundis$elm_bootstrap$Bootstrap_Table$rowDanger;
+	};
+	var createRow = function (elasticGroup) {
+		return A2(
+			_rundis$elm_bootstrap$Bootstrap_Table$tr,
+			{
+				ctor: '::',
+				_0: rowOpt(elasticGroup),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_rundis$elm_bootstrap$Bootstrap_Table$td,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								elasticGroup.description.groupName,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									' (',
+									A2(_elm_lang$core$Basics_ops['++'], elasticGroup.id, ')')))),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_rundis$elm_bootstrap$Bootstrap_Table$td,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(
+								_elm_lang$core$Basics$toString(elasticGroup.capacity.target)),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Table$td,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									_elm_lang$core$Basics$toString(elasticGroup.runningVMs)),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_rundis$elm_bootstrap$Bootstrap_Table$td,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										_elm_lang$core$Basics$toString(elasticGroup.connectedAgents)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Table$td,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Button$button,
+											{
+												ctor: '::',
+												_0: _rundis$elm_bootstrap$Bootstrap_Button$roleLink,
+												_1: {
+													ctor: '::',
+													_0: _rundis$elm_bootstrap$Bootstrap_Button$attrs(
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$class('ion-android-options'),
+															_1: {ctor: '[]'}
+														}),
+													_1: {
+														ctor: '::',
+														_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
+															_Giga_dev$newman$Pages_OnDemandAgents$ShowModal(elasticGroup)),
+														_1: {ctor: '[]'}
+													}
+												}
+											},
+											{ctor: '[]'}),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}
+			});
+	};
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h2,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'On Demand: ',
+							A2(_elm_lang$core$Basics_ops['++'], onDemandText, ' '))),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_rundis$elm_bootstrap$Bootstrap_Button$button,
+							{
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Button$attrs(
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('ion-refresh'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(_Giga_dev$newman$Pages_OnDemandAgents$Reload),
+									_1: {ctor: '[]'}
+								}
+							},
+							{ctor: '[]'}),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {
+				ctor: '::',
+				_0: _rundis$elm_bootstrap$Bootstrap_Table$table(
+					{
+						options: {
+							ctor: '::',
+							_0: _rundis$elm_bootstrap$Bootstrap_Table$responsive,
+							_1: {
+								ctor: '::',
+								_0: _rundis$elm_bootstrap$Bootstrap_Table$hover,
+								_1: {ctor: '[]'}
+							}
+						},
+						thead: _rundis$elm_bootstrap$Bootstrap_Table$simpleThead(
+							{
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Table$th,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Group name'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_rundis$elm_bootstrap$Bootstrap_Table$th,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Target Capacity'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Table$th,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Running VMs'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_rundis$elm_bootstrap$Bootstrap_Table$th,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Connected Agents'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_rundis$elm_bootstrap$Bootstrap_Table$th,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('Actions'),
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
+							}),
+						tbody: A2(
+							_rundis$elm_bootstrap$Bootstrap_Table$tbody,
+							{ctor: '[]'},
+							A2(_elm_lang$core$List$map, createRow, model.elasticGroups))
+					}),
+				_1: {
+					ctor: '::',
+					_0: _Giga_dev$newman$Pages_OnDemandAgents$viewModal(model),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
