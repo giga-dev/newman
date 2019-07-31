@@ -152,7 +152,7 @@ viewTable model currTime =
                         , th [ widthPct "11%" ] [ text "Build" ]
                         , th [ widthPct "5%" ] [ text "Submitted By" ]
                         , th [ widthPct "3%" ] [ text "# p. agents" ]
-                        , th [ widthPct "8%" ] [ text " required agents groups" ]
+                        , th [ widthPct "8%" ] [ text "Required Agent Groups" ]
                         , th [ widthPct "17%" ]
                             [ Badge.badgeInfo [ class "job-tests-badge" , title "Running Tests" ] [ text "Run" ]
                             , text "/ "
@@ -257,6 +257,7 @@ viewJob currTime job =
             , td [] [ a [ href <| "#build/" ++ job.buildId, title <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] ]
             , td [] [ text job.submittedBy ]
             , td [] [ text (toString (List.length job.preparingAgents)) ]
+            {-, td [] [ text (toString (List.length job.requiredAgentGroups)) ]-}
             , td [] [ text (String.join "," job.requiredAgentGroups) ]
             , td []
                 [ Badge.badgeInfo [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/RUNNING" , title "Running Tests" ]
@@ -369,11 +370,12 @@ filterQuery query job =
     if
         String.length query
             == 0
-            || String.startsWith query job.id
+            {-|| String.startsWith query job.id
             || String.startsWith query job.buildName
             || String.contains query job.suiteName
             || String.contains query job.submittedBy
             || String.contains query job.jobConfigName
+            || String.contains query job.requiredAgentGroups-}
     then
         True
     else

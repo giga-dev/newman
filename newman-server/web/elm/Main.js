@@ -17969,10 +17969,11 @@ var _Giga_dev$newman$Utils_Types$decodeJobView = A4(
 																_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
 																'buildId',
 																_elm_lang$core$Json_Decode$string,
-																A3(
-																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																A4(
+																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
 																	'requiredAgentGroups',
 																	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+																	{ctor: '[]'},
 																	A4(
 																		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
 																		'agents',
@@ -22037,7 +22038,7 @@ var _Giga_dev$newman$Pages_OnDemandAgents$AgentGroup2 = F6(
 	});
 var _Giga_dev$newman$Pages_OnDemandAgents$ElasticGroup = F6(
 	function (a, b, c, d, e, f) {
-		return {id: a, name: b, description: c, capacity: d, connectedAgents: e, runningVMs: f};
+		return {id: a, name: b, tags: c, capacity: d, connectedAgents: e, runningVMs: f};
 	});
 var _Giga_dev$newman$Pages_OnDemandAgents$ElasticGroupCapacity = F3(
 	function (a, b, c) {
@@ -22056,11 +22057,11 @@ var _Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupCapacity = A3(
 			'minimum',
 			_elm_lang$core$Json_Decode$int,
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Pages_OnDemandAgents$ElasticGroupCapacity))));
-var _Giga_dev$newman$Pages_OnDemandAgents$ElasticGroupDescription = F3(
+var _Giga_dev$newman$Pages_OnDemandAgents$ElasticGroupTags = F3(
 	function (a, b, c) {
-		return {groupName: a, description: b, owner: c};
+		return {name: a, description: b, owner: c};
 	});
-var _Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupDescription = A3(
+var _Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupTags = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
 	'owner',
 	_elm_lang$core$Json_Decode$string,
@@ -22070,9 +22071,9 @@ var _Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupDescription = A3(
 		_elm_lang$core$Json_Decode$string,
 		A3(
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-			'groupName',
+			'name',
 			_elm_lang$core$Json_Decode$string,
-			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Pages_OnDemandAgents$ElasticGroupDescription))));
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_Giga_dev$newman$Pages_OnDemandAgents$ElasticGroupTags))));
 var _Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroup = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
 	'runningVMs',
@@ -22087,8 +22088,8 @@ var _Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroup = A3(
 			_Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupCapacity,
 			A3(
 				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-				'description',
-				_Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupDescription,
+				'tags',
+				_Giga_dev$newman$Pages_OnDemandAgents$decodeElasticGroupTags,
 				A3(
 					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
 					'name',
@@ -22399,10 +22400,10 @@ var _Giga_dev$newman$Pages_OnDemandAgents$viewModal = function (model) {
 								_0: A2(twoColsRow, 'Id', _p10.id),
 								_1: {
 									ctor: '::',
-									_0: A2(twoColsRow, 'Name', _p10.description.groupName),
+									_0: A2(twoColsRow, 'Name', _p10.tags.name),
 									_1: {
 										ctor: '::',
-										_0: A2(twoColsRow, 'Description', _p10.description.description),
+										_0: A2(twoColsRow, 'Description', _p10.tags.description),
 										_1: {
 											ctor: '::',
 											_0: A2(
@@ -22494,7 +22495,7 @@ var _Giga_dev$newman$Pages_OnDemandAgents$viewModal = function (model) {
 						{
 							ctor: '::',
 							_0: _elm_lang$html$Html$text(
-								A2(_elm_lang$core$Basics_ops['++'], 'Update capacity for group - ', _p10.description.groupName)),
+								A2(_elm_lang$core$Basics_ops['++'], 'Update capacity for group - ', _p10.tags.name)),
 							_1: {ctor: '[]'}
 						},
 						_rundis$elm_bootstrap$Bootstrap_Modal$large(
@@ -22544,7 +22545,7 @@ var _Giga_dev$newman$Pages_OnDemandAgents$view = function (model) {
 						_0: _elm_lang$html$Html$text(
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								elasticGroup.description.groupName,
+								elasticGroup.tags.name,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									' (',
@@ -25928,7 +25929,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																						},
 																						{
 																							ctor: '::',
-																							_0: _elm_lang$html$Html$text(' required agents groups'),
+																							_0: _elm_lang$html$Html$text('Required Agent Groups'),
 																							_1: {ctor: '[]'}
 																						}),
 																					_1: {
@@ -30185,7 +30186,7 @@ var _Giga_dev$newman$Pages_Home$viewFutureJobs = function (futureJobs) {
 														{ctor: '[]'},
 														{
 															ctor: '::',
-															_0: _elm_lang$html$Html$text('Required AgentGroups'),
+															_0: _elm_lang$html$Html$text('Required Agent Groups'),
 															_1: {ctor: '[]'}
 														}),
 													_1: {
@@ -32467,7 +32468,7 @@ var _Giga_dev$newman$Pages_Job$viewHeader = F2(
 										ctor: '::',
 										_0: {
 											ctor: '_Tuple2',
-											_0: '# requiredAgentGroups',
+											_0: 'Required Agent Groups',
 											_1: _elm_lang$html$Html$text(
 												A2(_elm_lang$core$String$join, ',', job.requiredAgentGroups))
 										},

@@ -54,7 +54,7 @@ public class NewmanAgentConfig {
         properties.putIfAbsent(NEWMAN_SERVER_REST_USER, getNonEmptySystemProperty(NEWMAN_SERVER_REST_USER, DEFAULT_NEWMAN_SERVER_REST_USER));
         properties.putIfAbsent(NEWMAN_SERVER_REST_PW, getNonEmptySystemProperty(NEWMAN_SERVER_REST_PW, DEFAULT_NEWMAN_SERVER_REST_PW));
         properties.putIfAbsent(NEWMAN_AGENT_CAPABILITIES, getNonEmptySystemProperty(NEWMAN_AGENT_CAPABILITIES, NEWMAN_AGENT_DEFAULT_CAPABILITIES));
-        properties.putIfAbsent(NEWMAN_AGENT_GROUPNAME, getNonEmptySystemProperty(NEWMAN_AGENT_GROUPNAME, "groupname1")); //ToDo return to empty string
+        properties.putIfAbsent(NEWMAN_AGENT_GROUPNAME, getNonEmptySystemProperty(NEWMAN_AGENT_GROUPNAME, "group3")); //ToDo return to empty string
     }
 
     private String loadHostName() {

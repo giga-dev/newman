@@ -272,7 +272,7 @@ decodeJobView =
         |> required "state" decodeJobState
         |> required "preparingAgents" (list string)
         |> optional "agents" (list string) []
-        |> required "requiredAgentGroups" (list string)
+        |> optional "requiredAgentGroups" (list string) []
         |> required "buildId" string
         |> required "buildName" string
         |> required "buildBranch" string

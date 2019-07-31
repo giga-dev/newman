@@ -238,8 +238,7 @@ public class NewmanResource {
     private Job getPotentialJob() {
         Set<String> allCapabilities = allNecessaryCapabilities();
         Query<Job> basicDummyQuery = basicJobQuery();
-        //return findJob(allCapabilities, basicDummyQuery);
-        return findJob(allCapabilities, basicDummyQuery, null);//Todo decide what is the function for agentGroup
+        return findJob(allCapabilities, basicDummyQuery, null);
     }
 
     private Query<Job> basicJobQuery() {
@@ -2022,6 +2021,11 @@ public class NewmanResource {
     private Job findJob(Set<String> capabilities, Query<Job> basicQuery, String agentGroup) {
         List<Job> jobs = null;
         Job job = null;
+
+       /* Query<Job> agentGroupsQuery = basicQuery.cloneQuery();
+        agentGroupsQuery.field("required")
+*/
+
         if (!capabilities.isEmpty()) { // if agent has capabilities
             Query<Job> requirementsQuery = basicQuery.cloneQuery();
             jobs = requirementsQuery.field("suite.requirements").in(capabilities).asList();

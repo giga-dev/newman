@@ -292,7 +292,7 @@ viewFutureJobs futureJobs =
                     [ th [] [ text "Build" ]
                     , th [] [ text "Suite Name" ]
                     , th [] [ text "Author" ]
-                    , th [] [ text "Required AgentGroups" ]
+                    , th [] [ text "Required Agent Groups" ]
                     , th [] [ text "Submit Time" ]
                     , th [] [ text "Actions" ]
                     ]
