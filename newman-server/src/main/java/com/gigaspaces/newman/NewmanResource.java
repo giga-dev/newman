@@ -283,9 +283,10 @@ public class NewmanResource {
         QueryResults<Agent> agents = agentDAO.find(agentDAO.createQuery());
         // check if there is an agent in the system that can execute this job
         for (Agent agent : agents) {
-            if (job.getSuite().getRequirements().isEmpty()
+            if ((job.getSuite().getRequirements().isEmpty()
                     || job.getSuite().getRequirements() == null
-                    || agent.getCapabilities().containsAll(job.getSuite().getRequirements())) {
+                    || agent.getCapabilities().containsAll(job.getSuite().getRequirements()))
+                    && job.getRequiredAgentGroups().contains(agent.getGroupName())) {
                 return false;
             }
         }
@@ -2022,31 +2023,31 @@ public class NewmanResource {
         List<Job> jobs = null;
         Job job = null;
 
-       /* Query<Job> agentGroupsQuery = basicQuery.cloneQuery();
-        agentGroupsQuery.field("required")
-*/
-
         if (!capabilities.isEmpty()) { // if agent has capabilities
             Query<Job> requirementsQuery = basicQuery.cloneQuery();
             jobs = requirementsQuery.field("suite.requirements").in(capabilities).asList();
         }
         if (jobs != null && jobs.size() > 0) { // if found jobs with match requirements
             List<Job> jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByCapabilities(jobs, capabilities); // filter jobs with not supported requirements
+            if (jobsFilterByCapabilities != null && !jobsFilterByCapabilities.isEmpty() && agentGroup != null) {
+                jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByGroupNames(jobsFilterByCapabilities, agentGroup);// filter jobs with not suitable agent groups
+            }
             if (jobsFilterByCapabilities != null && !jobsFilterByCapabilities.isEmpty()) {
-                List<Job> jobsFilterByRequiredAgentGroups = CapabilitiesAndRequirements.filterByGroupNames(jobsFilterByCapabilities, agentGroup);// filter jobs with not suitable agent group
-                if(!jobsFilterByRequiredAgentGroups.isEmpty()){
-                    job = jobsFilterByRequiredAgentGroups.get(0);
-                    System.out.println("after filtering job found with required group : " + job.getRequiredAgentGroups() + " agent group is: " + agentGroup + " job id is: " + job.getId()); //Todo -delete the printing
-                }
-                else {
-                    return null;
-                }
+                job = jobsFilterByCapabilities.get(0);
+                System.out.println("after filtering job found with required group : " + job.getRequiredAgentGroups() + " agent group is: " + agentGroup + " job id is: " + job.getId()); //Todo -delete the printing
             }
         }
+
         if (job == null) { // search for jobs without requirements
             Query<Job> noRequirementsQuery = basicQuery.cloneQuery();
             noRequirementsQuery.field("suite.requirements").doesNotExist();
-            job = jobDAO.findOne(noRequirementsQuery);
+            jobs = jobDAO.find(noRequirementsQuery).asList();
+            if(agentGroup != null) {
+                jobs = CapabilitiesAndRequirements.filterByGroupNames(jobs, agentGroup);
+            }
+            if(!jobs.isEmpty()) {
+                job = jobs.get(0);
+            }
         }
         return job;
     }

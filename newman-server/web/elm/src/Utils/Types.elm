@@ -242,7 +242,7 @@ decodeJob =
         |> required "state" decodeJobState
         |> required "preparingAgents" (list string)
         |> required "agents" (list string)
-        |> required "requiredAgentGroups" (list string)
+        |> optional "requiredAgentGroups" (list string) []
         |> requiredAt [ "build", "id" ] string
         |> requiredAt [ "build", "name" ] string
         |> requiredAt [ "build", "branch" ] string

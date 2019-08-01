@@ -39,8 +39,13 @@ public class NewmanFutureJobSubmitter {
         config_id = EnvUtils.getEnvironment(NEWMAN_CONFIG_ID, true, logger);
         author = EnvUtils.getEnvironment(AUTHOR, true, logger);
         List<String> suites = NewmanFutureJobSubmitter.parse(suite_id);
-        String requestedAgentGroups = EnvUtils.getEnvironment(NEWMAN_AGENT_GROUPS, false, logger);
-        Set<String> agentGroups = new TreeSet<>(NewmanFutureJobSubmitter.parse(requestedAgentGroups));
+        String requiredAgentGroups = EnvUtils.getEnvironment(NEWMAN_AGENT_GROUPS, false, logger);
+
+        if(requiredAgentGroups == null && requiredAgentGroups.isEmpty()){
+            logger.error("missing input of required agent groups");
+            System.exit(1);
+        }
+        Set<String> agentGroups = new TreeSet<>(NewmanFutureJobSubmitter.parse(requiredAgentGroups));
 
         ServerStatus serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (!serverStatus.getStatus().equals(ServerStatus.Status.RUNNING)) {
@@ -109,9 +114,10 @@ public class NewmanFutureJobSubmitter {
         try {
             nc = NewmanClient.create(host, port, username, password);
             //try to connect to fail fast when server is down
-            nc.getJobs().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS / 4, TimeUnit.SECONDS);
+            nc.getJobs(1).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+           // nc.getAllSuites().toCompletableFuture().get(5, TimeUnit.SECONDS);
         } catch (Exception e) {
-            throw new RuntimeException("newmanClient did not connect, check if server up and arguments");
+            throw new RuntimeException("newmanClient did not connect, check if server up and arguments", e);
         }
         return nc;
     }

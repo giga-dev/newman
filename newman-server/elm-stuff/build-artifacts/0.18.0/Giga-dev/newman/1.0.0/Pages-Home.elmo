@@ -2050,7 +2050,7 @@ var _Giga_dev$newman$Pages_Home$viewFutureJobs = function (futureJobs) {
 														{ctor: '[]'},
 														{
 															ctor: '::',
-															_0: _elm_lang$html$Html$text('Required AgentGroups'),
+															_0: _elm_lang$html$Html$text('Required Agent Groups'),
 															_1: {ctor: '[]'}
 														}),
 													_1: {

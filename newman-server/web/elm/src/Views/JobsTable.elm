@@ -257,7 +257,7 @@ viewJob currTime job =
             , td [] [ a [ href <| "#build/" ++ job.buildId, title <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] ]
             , td [] [ text job.submittedBy ]
             , td [] [ text (toString (List.length job.preparingAgents)) ]
-            {-, td [] [ text (toString (List.length job.requiredAgentGroups)) ]-}
+            {-, td [] [ text (toString (List.length job.agents)) ]-}
             , td [] [ text (String.join "," job.requiredAgentGroups) ]
             , td []
                 [ Badge.badgeInfo [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/RUNNING" , title "Running Tests" ]
@@ -370,12 +370,11 @@ filterQuery query job =
     if
         String.length query
             == 0
-            {-|| String.startsWith query job.id
+            || String.startsWith query job.id
             || String.startsWith query job.buildName
             || String.contains query job.suiteName
             || String.contains query job.submittedBy
             || String.contains query job.jobConfigName
-            || String.contains query job.requiredAgentGroups-}
     then
         True
     else

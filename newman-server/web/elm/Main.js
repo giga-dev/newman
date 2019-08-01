@@ -17870,10 +17870,11 @@ var _Giga_dev$newman$Utils_Types$decodeJob = A4(
 																	}
 																},
 																_elm_lang$core$Json_Decode$string,
-																A3(
-																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+																A4(
+																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
 																	'requiredAgentGroups',
 																	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
+																	{ctor: '[]'},
 																	A3(
 																		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
 																		'agents',

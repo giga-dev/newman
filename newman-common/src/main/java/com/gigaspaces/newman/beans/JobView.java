@@ -22,6 +22,7 @@ public class JobView {
     private String suiteName;
     private String jobConfigId;
     private String jobConfigName;
+    private Set<String> requiredAgentGroups = Collections.emptySet();
 
     private Date submitTime;
     private Date startTime;
@@ -58,6 +59,7 @@ public class JobView {
             jobConfigName = jobConfig.getName();
         }
 
+        requiredAgentGroups = job.getRequiredAgentGroups();
         submitTime = job.getSubmitTime();
         startTime = job.getStartTime();
         endTime = job.getEndTime();
@@ -79,6 +81,14 @@ public class JobView {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Set<String> getRequiredAgentGroups() {
+        return requiredAgentGroups;
+    }
+
+    public void setRequiredAgentGroups(Set<String> requiredAgentGroups) {
+        this.requiredAgentGroups = requiredAgentGroups;
     }
 
     public Date getSubmitTime() {
@@ -246,6 +256,7 @@ public class JobView {
                 .append("endTime", endTime)
                 .append("testURI", testURI)
                 .append("submittedBy", submittedBy)
+                .append("requiredAgentGRoups", requiredAgentGroups)
                 .append("state", state)
                 .append("totalTests", totalTests)
                 .append("passedTests", passedTests)
