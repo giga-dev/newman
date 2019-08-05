@@ -203,16 +203,16 @@ public class NewmanJobSubmitter {
 
     //0- suiteId, 1-buildId, 2-configId, 3-host, 4- port, 5- user, 6- password
     public static void main(String[] args) throws Exception {
-              testSubmitterFromIntelliJ();
+        testSubmitterFromIntelliJ();
 
-      // testSubmitterUsingArgs(args);
+       //testSubmitterUsingArgs(args);
     }
 
     private static void testSubmitterFromIntelliJ() throws Exception {
         String suiteId = "59f25af7b3859424cac590b6";
         String buildId = "5d19f01a4cedfd000cd81982";
         String configId = "5b4c9342b3859411ee82c265";
-        String requiredAgentGroups = "group12";
+        String requiredAgentGroups = "group1";
 
        if(requiredAgentGroups == null && requiredAgentGroups.isEmpty()){
            logger.error("missing input of required agent groups");
@@ -235,20 +235,21 @@ public class NewmanJobSubmitter {
 
     //0- suiteId, 1-buildId, 2-configId, 3-host, 4- port, 5- user, 6- password, 7 - agentGroups
     private static void testSubmitterUsingArgs(String[] args) throws Exception{
-        if (args.length > 8 || args.length < 7){
+        if (args.length != 16){
             logger.error("Usage: java -cp newman-submitter-1.0.jar com.gigaspaces.newman.NewmanJobSubmitter <suiteid> <buildId> <configId> <requiredAgentGroups>" +
                     " <newmanServerHost> <newmanServerPort> <newmanUser> <newmanPassword>");
             System.exit(1);
         }
+
         //TODO validate arguments
-        String suiteId = args[0];
-        String buildId = args[1];
-        String configId = args[2];
-        String host = args[3];
-        String port = args[4];
-        String username = args[5];
-        String password = args[6];
-        String requiredAgentGroups = args[7];
+        String suiteId = args[1];
+        String buildId = args[3];
+        String configId = args[5];
+        String host = args[7];
+        String port = args[9];
+        String username = args[11];
+        String password = args[13];
+        String requiredAgentGroups = args[15];
 
         if(requiredAgentGroups == null && requiredAgentGroups.isEmpty()){
             logger.error("missing input of required agent groups");

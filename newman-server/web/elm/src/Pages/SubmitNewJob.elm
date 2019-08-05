@@ -110,7 +110,6 @@ update msg model =
                        agentGroups =
                              List.map (\item -> ( item, item )) data
                     in
-                     {-   ( { model | agentGroups = data, selectedAgentGroups = Multiselect.initModel agentGroups "agentGroups" }, Cmd.none )-}
                       ( { model | agentGroups = data,selectedAgentGroups = Multiselect.populateValues model.selectedAgentGroups agentGroups agentGroups }, Cmd.none )
 
                  Err err ->

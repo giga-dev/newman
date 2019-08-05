@@ -451,7 +451,7 @@ public class NewmanResource {
     private void addRequiredJobTableColumns(Query<Job> query) {
         query.retrievedFields(true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name", "jobConfig.id", "jobConfig.name",
                 "submitTime", "startTime", "endTime", "testURI", "submittedBy", "state", "totalTests",
-                "passedTests", "failedTests", "failed3TimesTests", "runningTests", "numOfTestRetries", "preparingAgents");
+                "passedTests", "failedTests", "failed3TimesTests", "runningTests", "numOfTestRetries", "preparingAgents", "requiredAgentGroups");
     }
 
 
@@ -2034,7 +2034,6 @@ public class NewmanResource {
             }
             if (jobsFilterByCapabilities != null && !jobsFilterByCapabilities.isEmpty()) {
                 job = jobsFilterByCapabilities.get(0);
-                System.out.println("after filtering job found with required group : " + job.getRequiredAgentGroups() + " agent group is: " + agentGroup + " job id is: " + job.getId()); //Todo -delete the printing
             }
         }
 

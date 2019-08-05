@@ -24669,9 +24669,17 @@ var _Giga_dev$newman$Views_JobsTable$OnClickToggleJob = function (a) {
 };
 var _Giga_dev$newman$Views_JobsTable$viewJob = F2(
 	function (currTime, job) {
+		var emptyAgentGroups = function (maybeAgentGroups) {
+			var _p7 = maybeAgentGroups;
+			if (_p7.ctor === '[]') {
+				return 'N/A';
+			} else {
+				return A2(_elm_lang$core$String$join, ',', maybeAgentGroups);
+			}
+		};
 		var playPauseButton = function () {
-			var _p7 = job.state;
-			if (_p7.ctor === 'PAUSED') {
+			var _p8 = job.state;
+			if (_p8.ctor === 'PAUSED') {
 				return A2(
 					_rundis$elm_bootstrap$Bootstrap_Button$button,
 					{
@@ -24701,7 +24709,7 @@ var _Giga_dev$newman$Views_JobsTable$viewJob = F2(
 						_1: {ctor: '[]'}
 					});
 			} else {
-				var _p8 = _p7;
+				var _p9 = _p8;
 				return A2(
 					_rundis$elm_bootstrap$Bootstrap_Button$button,
 					{
@@ -24713,7 +24721,7 @@ var _Giga_dev$newman$Views_JobsTable$viewJob = F2(
 							_1: {
 								ctor: '::',
 								_0: _rundis$elm_bootstrap$Bootstrap_Button$disabled(
-									(!_elm_lang$core$Native_Utils.eq(_p8, _Giga_dev$newman$Utils_Types$RUNNING)) && (!_elm_lang$core$Native_Utils.eq(_p8, _Giga_dev$newman$Utils_Types$READY))),
+									(!_elm_lang$core$Native_Utils.eq(_p9, _Giga_dev$newman$Utils_Types$RUNNING)) && (!_elm_lang$core$Native_Utils.eq(_p9, _Giga_dev$newman$Utils_Types$READY))),
 								_1: {
 									ctor: '::',
 									_0: _rundis$elm_bootstrap$Bootstrap_Button$onClick(
@@ -24739,48 +24747,48 @@ var _Giga_dev$newman$Views_JobsTable$viewJob = F2(
 		}();
 		var durationText = function () {
 			var diffTime = function () {
-				var _p9 = {ctor: '_Tuple3', _0: job.startTime, _1: job.endTime, _2: currTime};
-				_v6_2:
+				var _p10 = {ctor: '_Tuple3', _0: job.startTime, _1: job.endTime, _2: currTime};
+				_v7_2:
 				do {
-					if (_p9._0.ctor === 'Just') {
-						if (_p9._1.ctor === 'Just') {
+					if (_p10._0.ctor === 'Just') {
+						if (_p10._1.ctor === 'Just') {
 							return _elm_lang$core$Maybe$Just(
 								A2(
 									_rluiten$elm_date_extra$Date_Extra_Duration$diff,
 									_elm_lang$core$Date$fromTime(
-										_elm_lang$core$Basics$toFloat(_p9._1._0)),
+										_elm_lang$core$Basics$toFloat(_p10._1._0)),
 									_elm_lang$core$Date$fromTime(
-										_elm_lang$core$Basics$toFloat(_p9._0._0))));
+										_elm_lang$core$Basics$toFloat(_p10._0._0))));
 						} else {
-							if (_p9._2.ctor === 'Just') {
+							if (_p10._2.ctor === 'Just') {
 								return _elm_lang$core$Maybe$Just(
 									A2(
 										_rluiten$elm_date_extra$Date_Extra_Duration$diff,
-										_elm_lang$core$Date$fromTime(_p9._2._0),
+										_elm_lang$core$Date$fromTime(_p10._2._0),
 										_elm_lang$core$Date$fromTime(
-											_elm_lang$core$Basics$toFloat(_p9._0._0))));
+											_elm_lang$core$Basics$toFloat(_p10._0._0))));
 							} else {
-								break _v6_2;
+								break _v7_2;
 							}
 						}
 					} else {
-						break _v6_2;
+						break _v7_2;
 					}
 				} while(false);
 				return _elm_lang$core$Maybe$Nothing;
 			}();
-			var _p10 = diffTime;
-			if (_p10.ctor === 'Just') {
-				var _p11 = _p10._0;
+			var _p11 = diffTime;
+			if (_p11.ctor === 'Just') {
+				var _p12 = _p11._0;
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p11.hour),
+					_elm_lang$core$Basics$toString(_p12.hour),
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						'h, ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_elm_lang$core$Basics$toString(_p11.minute),
+							_elm_lang$core$Basics$toString(_p12.minute),
 							'm')));
 			} else {
 				return '';
@@ -24802,8 +24810,8 @@ var _Giga_dev$newman$Views_JobsTable$viewJob = F2(
 				_elm_lang$core$Basics$toFloat(job.submitTime)));
 		var jobState = function () {
 			var badge = function () {
-				var _p12 = job.state;
-				switch (_p12.ctor) {
+				var _p13 = job.state;
+				switch (_p13.ctor) {
 					case 'BROKEN':
 						return _rundis$elm_bootstrap$Bootstrap_Badge$badgeDanger;
 					case 'DONE':
@@ -25042,7 +25050,7 @@ var _Giga_dev$newman$Views_JobsTable$viewJob = F2(
 															{
 																ctor: '::',
 																_0: _elm_lang$html$Html$text(
-																	A2(_elm_lang$core$String$join, ',', job.requiredAgentGroups)),
+																	emptyAgentGroups(job.requiredAgentGroups)),
 																_1: {ctor: '[]'}
 															}),
 														_1: {
@@ -25432,8 +25440,8 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 		};
 		var pagerButtonView = F2(
 			function (index, isActive) {
-				var _p13 = isActive;
-				if (_p13 === true) {
+				var _p14 = isActive;
+				if (_p14 === true) {
 					return A2(
 						_elm_lang$html$Html$li,
 						{
@@ -25827,7 +25835,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 															_elm_lang$html$Html$th,
 															{
 																ctor: '::',
-																_0: widthPct('10%'),
+																_0: widthPct('8%'),
 																_1: {ctor: '[]'}
 															},
 															{
@@ -25855,7 +25863,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																	_elm_lang$html$Html$th,
 																	{
 																		ctor: '::',
-																		_0: widthPct('6%'),
+																		_0: widthPct('5%'),
 																		_1: {ctor: '[]'}
 																	},
 																	{
@@ -25925,7 +25933,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																						_elm_lang$html$Html$th,
 																						{
 																							ctor: '::',
-																							_0: widthPct('8%'),
+																							_0: widthPct('11%'),
 																							_1: {ctor: '[]'}
 																						},
 																						{
@@ -30154,7 +30162,11 @@ var _Giga_dev$newman$Pages_Home$viewFutureJobs = function (futureJobs) {
 										ctor: '::',
 										_0: A2(
 											_elm_lang$html$Html$th,
-											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _Giga_dev$newman$Pages_Home$widthPcnt('15%'),
+												_1: {ctor: '[]'}
+											},
 											{
 												ctor: '::',
 												_0: _elm_lang$html$Html$text('Build'),
@@ -30164,7 +30176,11 @@ var _Giga_dev$newman$Pages_Home$viewFutureJobs = function (futureJobs) {
 											ctor: '::',
 											_0: A2(
 												_elm_lang$html$Html$th,
-												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: _Giga_dev$newman$Pages_Home$widthPcnt('15%'),
+													_1: {ctor: '[]'}
+												},
 												{
 													ctor: '::',
 													_0: _elm_lang$html$Html$text('Suite Name'),
@@ -30174,7 +30190,11 @@ var _Giga_dev$newman$Pages_Home$viewFutureJobs = function (futureJobs) {
 												ctor: '::',
 												_0: A2(
 													_elm_lang$html$Html$th,
-													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _Giga_dev$newman$Pages_Home$widthPcnt('7%'),
+														_1: {ctor: '[]'}
+													},
 													{
 														ctor: '::',
 														_0: _elm_lang$html$Html$text('Author'),
@@ -30184,7 +30204,11 @@ var _Giga_dev$newman$Pages_Home$viewFutureJobs = function (futureJobs) {
 													ctor: '::',
 													_0: A2(
 														_elm_lang$html$Html$th,
-														{ctor: '[]'},
+														{
+															ctor: '::',
+															_0: _Giga_dev$newman$Pages_Home$widthPcnt('25%'),
+															_1: {ctor: '[]'}
+														},
 														{
 															ctor: '::',
 															_0: _elm_lang$html$Html$text('Required Agent Groups'),
@@ -30194,7 +30218,11 @@ var _Giga_dev$newman$Pages_Home$viewFutureJobs = function (futureJobs) {
 														ctor: '::',
 														_0: A2(
 															_elm_lang$html$Html$th,
-															{ctor: '[]'},
+															{
+																ctor: '::',
+																_0: _Giga_dev$newman$Pages_Home$widthPcnt('10%'),
+																_1: {ctor: '[]'}
+															},
 															{
 																ctor: '::',
 																_0: _elm_lang$html$Html$text('Submit Time'),
@@ -30204,7 +30232,11 @@ var _Giga_dev$newman$Pages_Home$viewFutureJobs = function (futureJobs) {
 															ctor: '::',
 															_0: A2(
 																_elm_lang$html$Html$th,
-																{ctor: '[]'},
+																{
+																	ctor: '::',
+																	_0: _Giga_dev$newman$Pages_Home$widthPcnt('5%'),
+																	_1: {ctor: '[]'}
+																},
 																{
 																	ctor: '::',
 																	_0: _elm_lang$html$Html$text('Actions'),

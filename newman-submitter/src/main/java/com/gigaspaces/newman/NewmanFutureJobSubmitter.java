@@ -115,7 +115,6 @@ public class NewmanFutureJobSubmitter {
             nc = NewmanClient.create(host, port, username, password);
             //try to connect to fail fast when server is down
             nc.getJobs(1).toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-           // nc.getAllSuites().toCompletableFuture().get(5, TimeUnit.SECONDS);
         } catch (Exception e) {
             throw new RuntimeException("newmanClient did not connect, check if server up and arguments", e);
         }

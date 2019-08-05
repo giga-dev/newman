@@ -45,7 +45,7 @@ public class NewmanSuiteSubmitter {
         NewmanSuiteSubmitter submitter = new NewmanSuiteSubmitter();
 //        submitter.submit();
 //        submitter.manualSubmitKubernetesInsightedge();
-        submitter.customEfratManualSubmitServiceGrid();
+
 //        String ssd_tests = "file:///home/tamirs-pcu/my_xap/xap/tests/sanity/ssd_rocksdb_all_tests";
 //        submitter.manualSubmitSSD(ssd_tests);
 //        submitter.manualSubmitTgridRocksDB();
@@ -386,27 +386,6 @@ public class NewmanSuiteSubmitter {
                     )
 
 
-            );
-            suite.setCriteria(criteria);
-            logger.info("Adding suite: " + suite);
-            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
-            logger.info("result: " + result);
-        } finally {
-            newmanClient.close();
-        }
-    }
-
-    public void customEfratManualSubmitServiceGrid() throws Exception {
-        NewmanClient newmanClient = getNewmanClient();
-        try {
-            Suite suite = new Suite();
-            suite.setName("dev-efrat-service-grid");
-            suite.setCustomVariables("SUITE_TYPE=sgtest,THREADS_LIMIT=1,CUSTOM_SETUP_TIMEOUT=1800000");
-            // TODO note - if set is empty, mongodb will NOT write that filed to DB
-            String Requirements = "DOCKER,LINUX";
-            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
-            Criteria criteria = CriteriaBuilder.join(TestCriteria.createCriteriaByTestType("sgtest"),
-                    include(PatternCriteria.containsCriteria(".servicegrid.initialLoadQuery."))
             );
             suite.setCriteria(criteria);
             logger.info("Adding suite: " + suite);

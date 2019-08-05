@@ -145,14 +145,14 @@ viewTable model currTime =
                         [ th [ class "job-tests-state" ] [ text "State" ]
                         , th [ class "job-tests-progress" ] [ text "Progess" ]
                         , th [ widthPct "11%" ] [ text "Job Id" ]
-                        , th [ widthPct "10%" ] [ text "Suite" ]
+                        , th [ widthPct "8%" ] [ text "Suite" ]
                         , th [ widthPct "6%" ] [ text "Job Configuration" ]
-                        , th [ widthPct "6%" ] [ text "Duration" ]
+                        , th [ widthPct "5%" ] [ text "Duration" ]
                         , th [ widthPct "6%" ] [ text "Submitted At" ]
                         , th [ widthPct "11%" ] [ text "Build" ]
                         , th [ widthPct "5%" ] [ text "Submitted By" ]
                         , th [ widthPct "3%" ] [ text "# p. agents" ]
-                        , th [ widthPct "8%" ] [ text "Required Agent Groups" ]
+                        , th [ widthPct "11%" ] [ text "Required Agent Groups" ]
                         , th [ widthPct "17%" ]
                             [ Badge.badgeInfo [ class "job-tests-badge" , title "Running Tests" ] [ text "Run" ]
                             , text "/ "
@@ -245,6 +245,14 @@ viewJob currTime job =
                     Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY), Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
 
+        emptyAgentGroups maybeAgentGroups =
+            case maybeAgentGroups of
+                       [] ->
+                            "N/A"
+
+                       _ ->
+                            String.join "," maybeAgentGroups
+
     in
         tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
             [ td [] [ jobState ]
@@ -257,8 +265,7 @@ viewJob currTime job =
             , td [] [ a [ href <| "#build/" ++ job.buildId, title <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] ]
             , td [] [ text job.submittedBy ]
             , td [] [ text (toString (List.length job.preparingAgents)) ]
-            {-, td [] [ text (toString (List.length job.agents)) ]-}
-            , td [] [ text (String.join "," job.requiredAgentGroups) ]
+            , td [] [ text <| emptyAgentGroups job.requiredAgentGroups ]
             , td []
                 [ Badge.badgeInfo [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/RUNNING" , title "Running Tests" ]
                                     [text <| toString job.runningTests] ]
