@@ -1,8 +1,0 @@
-var _rluiten$elm_date_extra$Date_Extra_I18n_I_default$twelveHourPeriod = function (period) {
-	var _p0 = period;
-	if (_p0.ctor === 'AM') {
-		return 'AM';
-	} else {
-		return 'PM';
-	}
-};

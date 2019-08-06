@@ -263,3 +263,9 @@ crashlytics-build.properties
 /ansible/new_agents_deployTEST.retry
 /ansible/new_agents_deployTEST2.yml
 newman-server/logs
+job-setup-logs/
+tests-logs/
+logs
+elm-stuff
+*.keystore
+Main.js
