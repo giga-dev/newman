@@ -77,7 +77,7 @@ var _Giga_dev$newman$Utils_Types$Job = function (a) {
 																				return function (u) {
 																					return function (v) {
 																						return function (w) {
-																							return {id: a, submitTime: b, submittedBy: c, state: d, preparingAgents: e, agents: f, requiredAgentGroups: g, buildId: h, buildName: i, buildBranch: j, suiteId: k, suiteName: l, jobConfigId: m, jobConfigName: n, totalTests: o, failedTests: p, failed3TimesTests: q, passedTests: r, runningTests: s, numOfTestRetries: t, startTime: u, endTime: v, jobSetupLogs: w};
+																							return {id: a, submitTime: b, submittedBy: c, state: d, preparingAgents: e, agents: f, agentGroups: g, buildId: h, buildName: i, buildBranch: j, suiteId: k, suiteName: l, jobConfigId: m, jobConfigName: n, totalTests: o, failedTests: p, failed3TimesTests: q, passedTests: r, runningTests: s, numOfTestRetries: t, startTime: u, endTime: v, jobSetupLogs: w};
 																						};
 																					};
 																				};
@@ -874,7 +874,7 @@ var _Giga_dev$newman$Utils_Types$decodeJob = A4(
 																_elm_lang$core$Json_Decode$string,
 																A4(
 																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
-																	'requiredAgentGroups',
+																	'agentGroups',
 																	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
 																	{ctor: '[]'},
 																	A3(
@@ -974,7 +974,7 @@ var _Giga_dev$newman$Utils_Types$decodeJobView = A4(
 																_elm_lang$core$Json_Decode$string,
 																A4(
 																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
-																	'requiredAgentGroups',
+																	'agentGroups',
 																	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
 																	{ctor: '[]'},
 																	A4(

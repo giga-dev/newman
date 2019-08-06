@@ -749,7 +749,7 @@ var _Giga_dev$newman$Views_JobsTable$viewJob = F2(
 															{
 																ctor: '::',
 																_0: _elm_lang$html$Html$text(
-																	emptyAgentGroups(job.requiredAgentGroups)),
+																	emptyAgentGroups(job.agentGroups)),
 																_1: {ctor: '[]'}
 															}),
 														_1: {
@@ -1520,7 +1520,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 														_elm_lang$html$Html$th,
 														{
 															ctor: '::',
-															_0: widthPct('11%'),
+															_0: widthPct('8%'),
 															_1: {ctor: '[]'}
 														},
 														{
@@ -1553,7 +1553,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																},
 																{
 																	ctor: '::',
-																	_0: _elm_lang$html$Html$text('Job Configuration'),
+																	_0: _elm_lang$html$Html$text('Job Conf.'),
 																	_1: {ctor: '[]'}
 																}),
 															_1: {
@@ -1562,7 +1562,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																	_elm_lang$html$Html$th,
 																	{
 																		ctor: '::',
-																		_0: widthPct('5%'),
+																		_0: widthPct('6%'),
 																		_1: {ctor: '[]'}
 																	},
 																	{
@@ -1576,7 +1576,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																		_elm_lang$html$Html$th,
 																		{
 																			ctor: '::',
-																			_0: widthPct('6%'),
+																			_0: widthPct('8%'),
 																			_1: {ctor: '[]'}
 																		},
 																		{
@@ -1604,7 +1604,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																				_elm_lang$html$Html$th,
 																				{
 																					ctor: '::',
-																					_0: widthPct('5%'),
+																					_0: widthPct('8%'),
 																					_1: {ctor: '[]'}
 																				},
 																				{
@@ -1618,7 +1618,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																					_elm_lang$html$Html$th,
 																					{
 																						ctor: '::',
-																						_0: widthPct('3%'),
+																						_0: widthPct('7%'),
 																						_1: {ctor: '[]'}
 																					},
 																					{
@@ -1637,7 +1637,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																						},
 																						{
 																							ctor: '::',
-																							_0: _elm_lang$html$Html$text('Required Agent Groups'),
+																							_0: _elm_lang$html$Html$text('Agent Groups'),
 																							_1: {ctor: '[]'}
 																						}),
 																					_1: {

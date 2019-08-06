@@ -286,7 +286,7 @@ public class NewmanResource {
             if ((job.getSuite().getRequirements().isEmpty()
                     || job.getSuite().getRequirements() == null
                     || agent.getCapabilities().containsAll(job.getSuite().getRequirements()))
-                    && job.getRequiredAgentGroups().contains(agent.getGroupName())) {
+                    && job.getAgentGroups().contains(agent.getGroupName())) {
                 return false;
             }
         }
@@ -451,7 +451,7 @@ public class NewmanResource {
     private void addRequiredJobTableColumns(Query<Job> query) {
         query.retrievedFields(true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name", "jobConfig.id", "jobConfig.name",
                 "submitTime", "startTime", "endTime", "testURI", "submittedBy", "state", "totalTests",
-                "passedTests", "failedTests", "failed3TimesTests", "runningTests", "numOfTestRetries", "preparingAgents", "requiredAgentGroups");
+                "passedTests", "failedTests", "failed3TimesTests", "runningTests", "numOfTestRetries", "preparingAgents", "agentGroups");
     }
 
 
@@ -581,7 +581,7 @@ public class NewmanResource {
             job.setState(State.READY);
             job.setSubmitTime(new Date());
             job.setSubmittedBy(jobRequest.getAuthor());
-            job.setRequiredAgentGroups(jobRequest.getAgentGroups());
+            job.setAgentGroups(jobRequest.getAgentGroups());
             if(jobConfig !=null) {
                 job.setJobConfig(jobConfig);
             }

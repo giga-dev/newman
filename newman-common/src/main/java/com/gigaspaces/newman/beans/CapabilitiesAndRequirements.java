@@ -14,7 +14,7 @@ public class CapabilitiesAndRequirements {
     }
 
     public static List<Job> filterByGroupNames(List<Job> jobs, String groupAgent){
-        return jobs.stream().filter(job -> job.getRequiredAgentGroups().isEmpty() || job.getRequiredAgentGroups().contains(groupAgent)).collect(Collectors.toList());
+        return jobs.stream().filter(job -> job.getAgentGroups().isEmpty() || job.getAgentGroups().contains(groupAgent)).collect(Collectors.toList());
     }
 
     public static Set<String> parse(String input){

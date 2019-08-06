@@ -28,7 +28,7 @@ public class Job {
     @Embedded(concreteClass = Suite.class) //Why isn't this @Reference?, it should be reference!
     private Suite suite;
 
-    private Set<String> requiredAgentGroups = Collections.emptySet();
+    private Set<String> agentGroups = Collections.emptySet();
 
     @Indexed
     private Date submitTime;
@@ -61,8 +61,10 @@ public class Job {
         state = State.READY;
     }
 
-    public void setRequiredAgentGroups(Set<String> requiredAgentGroups) {
-        this.requiredAgentGroups = requiredAgentGroups;
+    public void setAgentGroups(Set<String> agentGroups) { this.agentGroups = agentGroups; }
+
+    public Set<String> getAgentGroups() {
+        return agentGroups;
     }
 
     public String getId() {
@@ -177,10 +179,6 @@ public class Job {
         return suite;
     }
 
-    public Set<String> getRequiredAgentGroups() {
-        return requiredAgentGroups;
-    }
-
     public void setSuite(Suite suite) {
         this.suite = suite;
     }
@@ -249,7 +247,7 @@ public class Job {
                 ", lastTimeZombie=" + lastTimeZombie +
                 ", preparingAgents=" + preparingAgents +
                 ", agents=" + agents +
-                ", requiredAgentGroups=" + requiredAgentGroups +
+                ", agentGroups=" + agentGroups +
                 ", jobSetupLogs=" + jobSetupLogs +
                 ", jobConfig=" + jobConfig +
                 '}';

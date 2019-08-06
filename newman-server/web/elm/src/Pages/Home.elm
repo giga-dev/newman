@@ -292,7 +292,7 @@ viewFutureJobs futureJobs =
                     [ th [widthPcnt "15%"] [ text "Build" ]
                     , th [widthPcnt "15%"] [ text "Suite Name" ]
                     , th [widthPcnt "7%"] [ text "Author" ]
-                    , th [widthPcnt "25%"] [ text "Required Agent Groups" ]
+                    , th [widthPcnt "22%"] [ text "Agent Groups" ]
                     , th [widthPcnt "10%"] [ text "Submit Time" ]
                     , th [widthPcnt "5%"] [ text "Actions" ]
                     ]

@@ -17075,7 +17075,7 @@ var _Giga_dev$newman$Utils_Types$Job = function (a) {
 																				return function (u) {
 																					return function (v) {
 																						return function (w) {
-																							return {id: a, submitTime: b, submittedBy: c, state: d, preparingAgents: e, agents: f, requiredAgentGroups: g, buildId: h, buildName: i, buildBranch: j, suiteId: k, suiteName: l, jobConfigId: m, jobConfigName: n, totalTests: o, failedTests: p, failed3TimesTests: q, passedTests: r, runningTests: s, numOfTestRetries: t, startTime: u, endTime: v, jobSetupLogs: w};
+																							return {id: a, submitTime: b, submittedBy: c, state: d, preparingAgents: e, agents: f, agentGroups: g, buildId: h, buildName: i, buildBranch: j, suiteId: k, suiteName: l, jobConfigId: m, jobConfigName: n, totalTests: o, failedTests: p, failed3TimesTests: q, passedTests: r, runningTests: s, numOfTestRetries: t, startTime: u, endTime: v, jobSetupLogs: w};
 																						};
 																					};
 																				};
@@ -17872,7 +17872,7 @@ var _Giga_dev$newman$Utils_Types$decodeJob = A4(
 																_elm_lang$core$Json_Decode$string,
 																A4(
 																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
-																	'requiredAgentGroups',
+																	'agentGroups',
 																	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
 																	{ctor: '[]'},
 																	A3(
@@ -17972,7 +17972,7 @@ var _Giga_dev$newman$Utils_Types$decodeJobView = A4(
 																_elm_lang$core$Json_Decode$string,
 																A4(
 																	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$optional,
-																	'requiredAgentGroups',
+																	'agentGroups',
 																	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string),
 																	{ctor: '[]'},
 																	A4(
@@ -25050,7 +25050,7 @@ var _Giga_dev$newman$Views_JobsTable$viewJob = F2(
 															{
 																ctor: '::',
 																_0: _elm_lang$html$Html$text(
-																	emptyAgentGroups(job.requiredAgentGroups)),
+																	emptyAgentGroups(job.agentGroups)),
 																_1: {ctor: '[]'}
 															}),
 														_1: {
@@ -25821,7 +25821,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 														_elm_lang$html$Html$th,
 														{
 															ctor: '::',
-															_0: widthPct('11%'),
+															_0: widthPct('8%'),
 															_1: {ctor: '[]'}
 														},
 														{
@@ -25854,7 +25854,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																},
 																{
 																	ctor: '::',
-																	_0: _elm_lang$html$Html$text('Job Configuration'),
+																	_0: _elm_lang$html$Html$text('Job Conf.'),
 																	_1: {ctor: '[]'}
 																}),
 															_1: {
@@ -25863,7 +25863,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																	_elm_lang$html$Html$th,
 																	{
 																		ctor: '::',
-																		_0: widthPct('5%'),
+																		_0: widthPct('6%'),
 																		_1: {ctor: '[]'}
 																	},
 																	{
@@ -25877,7 +25877,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																		_elm_lang$html$Html$th,
 																		{
 																			ctor: '::',
-																			_0: widthPct('6%'),
+																			_0: widthPct('8%'),
 																			_1: {ctor: '[]'}
 																		},
 																		{
@@ -25905,7 +25905,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																				_elm_lang$html$Html$th,
 																				{
 																					ctor: '::',
-																					_0: widthPct('5%'),
+																					_0: widthPct('8%'),
 																					_1: {ctor: '[]'}
 																				},
 																				{
@@ -25919,7 +25919,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																					_elm_lang$html$Html$th,
 																					{
 																						ctor: '::',
-																						_0: widthPct('3%'),
+																						_0: widthPct('7%'),
 																						_1: {ctor: '[]'}
 																					},
 																					{
@@ -25938,7 +25938,7 @@ var _Giga_dev$newman$Views_JobsTable$viewTable = F2(
 																						},
 																						{
 																							ctor: '::',
-																							_0: _elm_lang$html$Html$text('Required Agent Groups'),
+																							_0: _elm_lang$html$Html$text('Agent Groups'),
 																							_1: {ctor: '[]'}
 																						}),
 																					_1: {
@@ -30206,12 +30206,12 @@ var _Giga_dev$newman$Pages_Home$viewFutureJobs = function (futureJobs) {
 														_elm_lang$html$Html$th,
 														{
 															ctor: '::',
-															_0: _Giga_dev$newman$Pages_Home$widthPcnt('25%'),
+															_0: _Giga_dev$newman$Pages_Home$widthPcnt('22%'),
 															_1: {ctor: '[]'}
 														},
 														{
 															ctor: '::',
-															_0: _elm_lang$html$Html$text('Required Agent Groups'),
+															_0: _elm_lang$html$Html$text('Agent Groups'),
 															_1: {ctor: '[]'}
 														}),
 													_1: {
@@ -32501,9 +32501,9 @@ var _Giga_dev$newman$Pages_Job$viewHeader = F2(
 										ctor: '::',
 										_0: {
 											ctor: '_Tuple2',
-											_0: 'Required Agent Groups',
+											_0: 'Agent Groups',
 											_1: _elm_lang$html$Html$text(
-												A2(_elm_lang$core$String$join, ',', job.requiredAgentGroups))
+												A2(_elm_lang$core$String$join, ',', job.agentGroups))
 										},
 										_1: {
 											ctor: '::',

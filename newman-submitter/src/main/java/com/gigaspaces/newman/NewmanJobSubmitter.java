@@ -36,14 +36,14 @@ public class NewmanJobSubmitter {
     private String buildId;
     private String suiteId;
     private String configId;
-    private Set<String> requiredAgentGroups;
+    private Set<String> agentGroups;
 
-    public NewmanJobSubmitter(String suiteId, String buildId, String configId, String host, String port, String username, String password, Set<String> requiredAgentGroups){
+    public NewmanJobSubmitter(String suiteId, String buildId, String configId, String host, String port, String username, String password, Set<String> agentGroups){
 
         this.buildId = buildId;
         this.suiteId = suiteId;
         this.configId = configId;
-        this.requiredAgentGroups =requiredAgentGroups;
+        this.agentGroups = agentGroups;
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         try {
@@ -112,14 +112,14 @@ public class NewmanJobSubmitter {
                 throw  e;
             }
 
-            Set<String> requiredNotAvailableAgentGroups = requiredAgentGroups.stream().filter(agentGroup -> !availableAgentGroups.contains(agentGroup)).collect(Collectors.toSet());
+            Set<String> requiredNotAvailableAgentGroups = agentGroups.stream().filter(agentGroup -> !availableAgentGroups.contains(agentGroup)).collect(Collectors.toSet());
             if (!requiredNotAvailableAgentGroups.isEmpty()) {
                 logger.error("The agent groups: " + requiredNotAvailableAgentGroups + " aren't available, continue to submit the job with all the required agent groups");
             }
 
             validateUris(build.getTestsMetadata()); // throws exception if URI not exists
 
-            Job job = addJob(newmanClient, suiteId, buildId, configId, author, requiredAgentGroups);
+            Job job = addJob(newmanClient, suiteId, buildId, configId, author, agentGroups);
             logger.info("added a new job {}", job);
             Collection<URI> testsMetadata = build.getTestsMetadata();
 
@@ -236,7 +236,7 @@ public class NewmanJobSubmitter {
     //0- suiteId, 1-buildId, 2-configId, 3-host, 4- port, 5- user, 6- password, 7 - agentGroups
     private static void testSubmitterUsingArgs(String[] args) throws Exception{
         if (args.length != 16){
-            logger.error("Usage: java -cp newman-submitter-1.0.jar com.gigaspaces.newman.NewmanJobSubmitter <suiteid> <buildId> <configId> <requiredAgentGroups>" +
+            logger.error("Usage: java -cp newman-submitter-1.0.jar com.gigaspaces.newman.NewmanJobSubmitter <suiteid> <buildId> <configId> <agentsGroups>" +
                     " <newmanServerHost> <newmanServerPort> <newmanUser> <newmanPassword>");
             System.exit(1);
         }
