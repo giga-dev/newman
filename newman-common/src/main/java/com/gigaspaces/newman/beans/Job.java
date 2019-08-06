@@ -28,7 +28,7 @@ public class Job {
     @Embedded(concreteClass = Suite.class) //Why isn't this @Reference?, it should be reference!
     private Suite suite;
 
-    private Set<String> agentGroups = Collections.emptySet();
+    private Set<String> agentGroups;
 
     @Indexed
     private Date submitTime;

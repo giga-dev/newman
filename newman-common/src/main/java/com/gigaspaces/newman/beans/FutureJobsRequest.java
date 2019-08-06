@@ -1,4 +1,4 @@
-package com.gigaspaces.newman;
+package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.utils.ToStringBuilder;
 
@@ -15,7 +15,7 @@ public class FutureJobsRequest {
     private String buildId;
     private String configId;
     private List<String> suites;
-    private Set<String> agentGroups = Collections.emptySet();
+    private Set<String> agentGroups;
     private String author;
 
     public FutureJobsRequest() {

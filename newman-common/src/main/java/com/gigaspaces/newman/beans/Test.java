@@ -41,6 +41,7 @@ public class Test {
     @Embedded
     private Map<String, String> logs;
     private String assignedAgent;
+    private String agentGroup;
     private Date startTime;
     private Date endTime;
     private Date scheduledAt;
@@ -124,6 +125,10 @@ public class Test {
     public void setAssignedAgent(String assignedAgent) {
         this.assignedAgent = assignedAgent;
     }
+
+    public String getAgentGroup() { return agentGroup; }
+
+    public void setAgentGroup(String agentGroup) { this.agentGroup = agentGroup; }
 
     public Date getStartTime() {
         return startTime;
@@ -263,6 +268,7 @@ public class Test {
                 .append("errorMessage", errorMessage)
                 .append("logs", logs)
                 .append("assignedAgent", assignedAgent)
+                .append("agentGroup", agentGroup)
                 .append("startTime", startTime)
                 .append("endTime", endTime)
                 .append("scheduledAt", scheduledAt)

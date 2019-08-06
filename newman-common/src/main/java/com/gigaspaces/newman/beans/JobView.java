@@ -22,7 +22,7 @@ public class JobView {
     private String suiteName;
     private String jobConfigId;
     private String jobConfigName;
-    private Set<String> agentGroups = Collections.emptySet();
+    private Set<String> agentGroups;
 
     private Date submitTime;
     private Date startTime;

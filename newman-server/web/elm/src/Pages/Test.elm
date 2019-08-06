@@ -129,6 +129,7 @@ viewTest test =
             , ( "Error Message", text test.errorMessage )
             , ( "Logs", logsRow )
             , ( "Assigned Agent", text test.assignedAgent )
+            , ( "Agent Group", text test.agentGroup )
             , ( "Start Time", text <| formatDate test.startTime )
             , ( "End Time", text <| formatDate test.endTime )
             , ( "Scheduled At", text <| formatDate <| Just test.scheduledAt )

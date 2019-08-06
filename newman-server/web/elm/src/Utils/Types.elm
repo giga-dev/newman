@@ -159,6 +159,7 @@ type alias TestHistoryTestView =
     , endTime : Int
     , runNumber : Int
     , assignedAgent: String
+    , agentGroup: String
     }
 
 
@@ -533,6 +534,7 @@ type alias Test =
     , historyStats : String
     , logs : Dict String String
     , assignedAgent : String
+    , agentGroup : String
     , startTime : Maybe Int
     , endTime : Maybe Int
     , scheduledAt : Int
@@ -556,6 +558,7 @@ decodeTest =
         |> optional "historyStats" string ""
         |> required "logs" (dict string)
         |> optional "assignedAgent" string ""
+        |> optional "agentGroup" string ""
         |> required "startTime" (nullable int)
         |> required "endTime" (nullable int)
         |> required "scheduledAt" int
@@ -578,6 +581,7 @@ decodeTestView =
         |> optional "historyStats" string ""
         |> optional "logs" (dict string) Dict.empty
         |> optional "assignedAgent" string ""
+        |> optional "agentGroup" string ""
         |> optional "startTime" (nullable int) Nothing
         |> optional "endTime" (nullable int) Nothing
         |> optional "scheduledAt" int 0
@@ -610,6 +614,7 @@ decodeTestHistoryTestView =
         |> required "endTime" int
         |> required "runNumber" int
         |> required "assignedAgent" string
+        |> optional "agentGroup" string ""
 
 decodeTestHistoryJobView : Json.Decode.Decoder TestHistoryJobView
 decodeTestHistoryJobView =

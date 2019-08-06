@@ -1870,7 +1870,7 @@ public class NewmanResource {
             query = testDAO.createQuery();
             query.and(query.criteria("jobId").equal(jobId), query.criteria("status").equal(Test.Status.PENDING));
             updateOps = testDAO.createUpdateOperations().set("status", Test.Status.RUNNING)
-                    .set("assignedAgent", name).set("startTime", new Date());
+                    .set("assignedAgent", name).set("agentGroup", agent.getGroupName()).set("startTime", new Date());
             result = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
         }
 
@@ -3028,7 +3028,7 @@ public class NewmanResource {
         for (String testId : agent.getCurrentTests()) {
             Test found = testDAO.getDatastore().findAndModify(testDAO.createIdQuery(testId).field("status").equal(Test.Status.RUNNING)
                             .field("assignedAgent").equal(agent.getName()),
-                    testDAO.createUpdateOperations().unset("assignedAgent").unset("startTime").set("status", Test.Status.PENDING));
+                    testDAO.createUpdateOperations().unset("assignedAgent").unset("agentGroup").unset("startTime").set("status", Test.Status.PENDING));
             if (found != null) {
                 logger.warn("test {} was released since agent {} not seen for a long time", found.getId(), agent.getName());
                 tests.add(found);

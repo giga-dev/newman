@@ -1,6 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.FutureJob;
+import com.gigaspaces.newman.beans.FutureJobsRequest;
 import com.gigaspaces.newman.utils.EnvUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,14 +39,14 @@ public class NewmanFutureJobSubmitter {
         suite_id = EnvUtils.getEnvironment(NEWMAN_SUITE_ID, true, logger);
         config_id = EnvUtils.getEnvironment(NEWMAN_CONFIG_ID, true, logger);
         author = EnvUtils.getEnvironment(AUTHOR, true, logger);
-        List<String> suites = NewmanFutureJobSubmitter.parse(suite_id);
-        String requiredAgentGroups = EnvUtils.getEnvironment(NEWMAN_AGENT_GROUPS, false, logger);
+        List<String> suites = parse(suite_id);
+        String requiredAgentGroups = EnvUtils.getEnvironment(NEWMAN_AGENT_GROUPS, true, logger);
 
         if(requiredAgentGroups == null && requiredAgentGroups.isEmpty()){
-            logger.error("missing input of required agent groups");
+            logger.error("missing input of agent groups");
             System.exit(1);
         }
-        Set<String> agentGroups = new TreeSet<>(NewmanFutureJobSubmitter.parse(requiredAgentGroups));
+        Set<String> agentGroups = new TreeSet<>(parse(requiredAgentGroups));
 
         ServerStatus serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(NewmanSubmitter.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (!serverStatus.getStatus().equals(ServerStatus.Status.RUNNING)) {
@@ -53,8 +54,8 @@ public class NewmanFutureJobSubmitter {
             System.exit(1);
         }
 
-        NewmanFutureJobSubmitter.validBuildAndSuite(build_id, suites.get(0));
-        NewmanFutureJobSubmitter.validateJobConfig(config_id);
+        validBuildAndSuite(build_id, suites.get(0));
+        validateJobConfig(config_id);
 
         NewmanFutureJobSubmitter futureJobSubmitter = new NewmanFutureJobSubmitter();
 
@@ -72,7 +73,7 @@ public class NewmanFutureJobSubmitter {
         }
     }
 
-    private List<FutureJob> submitFutureJobs (FutureJobsRequest futureJobRequest) throws ExecutionException, InterruptedException, TimeoutException {
+    private List<FutureJob> submitFutureJobs(FutureJobsRequest futureJobRequest) throws ExecutionException, InterruptedException, TimeoutException {
         try {
             return newmanClient.createFutureJob(futureJobRequest).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {

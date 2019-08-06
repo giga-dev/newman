@@ -26,7 +26,7 @@ public class FutureJob {
     private String configName;
     private String author;
     private Date submitTime;
-    private Set<String> agentGroups = Collections.emptySet();
+    private Set<String> agentGroups;
 
     public FutureJob() {
     }

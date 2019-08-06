@@ -202,6 +202,14 @@ viewHeader model job =
                 Button.button [ Button.onClick OnNewSuiteCreateButton , Button.outlinePrimary, Button.attrs [ style [("vertical-align", "top"), ( "margin-left" , "10px")] ]   ] [ text "Create suite" ]
 
 
+        agentGroupsFormat maybeAgentGroups =
+            case maybeAgentGroups of
+                       [] ->
+                            "N/A"
+
+                       _ ->
+                            String.join "," maybeAgentGroups
+
         headerRows =
             [ ( "Suite", a [ href  <| "#suite/" ++ job.suiteId] [ text job.suiteName ] )
             , ( "Job configuration", text job.jobConfigName )
@@ -210,7 +218,7 @@ viewHeader model job =
             , ( "End Time", text <| dateFormat job.endTime )
             , ( "# Agents", text <| toString <| List.length job.agents )
             , ( "# Prep. Agents", text <| toString <| List.length job.preparingAgents )
-            , ( "Agent Groups", text <| String.join "," job.agentGroups )
+            , ( "Agent Groups", text <| agentGroupsFormat job.agentGroups )
             , ( "Submitted by", text <| job.submittedBy )
             , ( "Status", div [] [ testsStatus, createSuiteButton ] )
             , ( "Job Setup Logs", jobSetupLogs )
