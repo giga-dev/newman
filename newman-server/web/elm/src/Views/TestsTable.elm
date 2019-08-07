@@ -145,7 +145,7 @@ viewTable model currTime =
                     , th [ width 65 ] [ text "History" ]
                     , th [ width 210 ] [ text "Error Message" ]
                     , th [ width 210 ] [ text "Assigned Agent" ]
-                    , th [ width 100 ] [ text "AgentGroup" ]
+                    , th [ width 80 ] [ text "Agent Group" ]
                     , th [ width 100 ] [ text "Duration" ]
                     ]
                 ]
@@ -231,6 +231,16 @@ viewTest currTime test =
             else
                 ""
 
+
+        agentGroupFormat maybeAgentGroup maybeAssignedAgent =
+            if maybeAssignedAgent /= "" then
+                if maybeAgentGroup == "" then
+                    "N/A"
+                else
+                    maybeAgentGroup
+            else
+                ""
+
     in
     tr []
         [ td [] [ a [ href <| "#test/" ++ test.id, title <| String.join "" test.arguments ] [ text <| toTestName test] ]
@@ -239,7 +249,7 @@ viewTest currTime test =
         , td [] [ a [ href <| "#test-history/" ++ test.id ] [ text "History" ] ]
         , td [] [ span [ title test.errorMessage ] [ text test.errorMessage ] ]
         , td [] [ text test.assignedAgent ]
-        , td [] [ text test.agentGroup ]
+        , td [] [ text <| agentGroupFormat test.agentGroup test.assignedAgent ]
         , td [] [ text durationText ]
         ]
 

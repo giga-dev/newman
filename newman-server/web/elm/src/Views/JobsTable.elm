@@ -144,7 +144,7 @@ viewTable model currTime =
                     [ tr []
                         [ th [ class "job-tests-state" ] [ text "State" ]
                         , th [ class "job-tests-progress" ] [ text "Progess" ]
-                        , th [ widthPct "8%" ] [ text "Job Id" ]
+                        , th [ widthPct "10%" ] [ text "Job Id" ]
                         , th [ widthPct "8%" ] [ text "Suite" ]
                         , th [ widthPct "6%" ] [ text "Job Conf." ]
                         , th [ widthPct "6%" ] [ text "Duration" ]
@@ -152,7 +152,7 @@ viewTable model currTime =
                         , th [ widthPct "11%" ] [ text "Build" ]
                         , th [ widthPct "8%" ] [ text "Submitted By" ]
                         , th [ widthPct "7%" ] [ text "# p. agents" ]
-                        , th [ widthPct "11%" ] [ text "Agent Groups" ]
+                        , th [ widthPct "9%" ] [ text "Agent Groups" ]
                         , th [ widthPct "17%" ]
                             [ Badge.badgeInfo [ class "job-tests-badge" , title "Running Tests" ] [ text "Run" ]
                             , text "/ "

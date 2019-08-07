@@ -209,7 +209,7 @@ public class NewmanJobSubmitter {
     }
 
     private static void testSubmitterFromIntelliJ() throws Exception {
-        String suiteId = "59f25af7b3859424cac590b6";
+        String suiteId = "5b6c24e7b385941b3b8ce4bf";
         String buildId = "5d19f01a4cedfd000cd81982";
         String configId = "5b4c9342b3859411ee82c265";
         String requiredAgentGroups = "group1";

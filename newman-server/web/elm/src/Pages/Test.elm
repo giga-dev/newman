@@ -118,6 +118,16 @@ viewTest test =
             else
                 ""
 
+
+        agentGroupFormat maybeAgentGroup maybeAssignedAgent =
+            if maybeAssignedAgent /= "" then
+                if maybeAgentGroup == "" then
+                    "N/A"
+                else
+                    maybeAgentGroup
+            else
+                ""
+
         rows =
             [ ( "Status", toBadge test.status [] [ text (testStatusToString test.status) ] )
             , ( "Run Num", text (toString test.runNumber) )
@@ -129,7 +139,7 @@ viewTest test =
             , ( "Error Message", text test.errorMessage )
             , ( "Logs", logsRow )
             , ( "Assigned Agent", text test.assignedAgent )
-            , ( "Agent Group", text test.agentGroup )
+            , ( "Agent Group", text <| agentGroupFormat test.agentGroup test.assignedAgent)
             , ( "Start Time", text <| formatDate test.startTime )
             , ( "End Time", text <| formatDate test.endTime )
             , ( "Scheduled At", text <| formatDate <| Just test.scheduledAt )
