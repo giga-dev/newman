@@ -327,7 +327,8 @@ updateAllTests f model =
             f model.all
 
         filtered =
-            List.filter (filterQuery model.query) newList
+          {-  List.filter (filterQuery model.query) newList-}
+            filterTests newList model.query model.filterState
 
         newPaginated =
             Paginate.map (\_ -> filtered) model.paginated
