@@ -212,7 +212,7 @@ viewRecord testHistory =
         , td [] [ text durationText ]
         , td [] [ text (toString testHistory.test.runNumber)]
         , td [] [ text testHistory.test.assignedAgent ]
-        , td [] [ text <| agentGroupFormat testHistory.test.agentGroup testHistory.test.assignedAgent ]
+        , td [title <| agentGroupFormat testHistory.test.agentGroup testHistory.test.assignedAgent] [ text <| agentGroupFormat testHistory.test.agentGroup testHistory.test.assignedAgent ]
         , td [] [ status [] [ text testHistory.test.status ] ]
         , td [] [ span [ title testHistory.test.errorMessage ] [ text testHistory.test.errorMessage ] ]
         ]

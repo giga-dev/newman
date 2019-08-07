@@ -249,7 +249,7 @@ viewTest currTime test =
         , td [] [ a [ href <| "#test-history/" ++ test.id ] [ text "History" ] ]
         , td [] [ span [ title test.errorMessage ] [ text test.errorMessage ] ]
         , td [] [ text test.assignedAgent ]
-        , td [] [ text <| agentGroupFormat test.agentGroup test.assignedAgent ]
+        , td [title <| agentGroupFormat test.agentGroup test.assignedAgent] [ text <| agentGroupFormat test.agentGroup test.assignedAgent ]
         , td [] [ text durationText ]
         ]
 
