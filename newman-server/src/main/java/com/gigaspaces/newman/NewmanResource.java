@@ -3029,15 +3029,4 @@ public class NewmanResource {
             }
         }
     }
-
-    private static Set<String> parse(String input){
-        Set<String> output =  new TreeSet<>();
-        if(input  != null) {
-            StringTokenizer st = new StringTokenizer(input, ",");
-            while (st.hasMoreTokens())
-                output.add(st.nextToken());
-        }
-        return output;
-    }
-
 }

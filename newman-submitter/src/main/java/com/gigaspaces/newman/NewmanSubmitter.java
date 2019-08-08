@@ -28,7 +28,7 @@ public class NewmanSubmitter {
     private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
     private static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
     private static final String NEWMAN_AGENT_GROUPS = "NEWMAN_AGENT_GROUPS";
-    public static final int DEFAULT_TIMEOUT_SECONDS = 5;
+    public static final int DEFAULT_TIMEOUT_SECONDS = NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS;
     private static final String RETRY_MINS_INTERVAL_ON_SUSPENDED = "RETRY_MINS_INTERVAL_ON_SUSPENDED";
     private static final int DEFAULT_RETRY_MINS_INTERVAL_ON_SUSPENDED = 1;
     // modes = FORCE, REGULAR
@@ -73,15 +73,14 @@ public class NewmanSubmitter {
         String username = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_USER_NAME, logger);
         String password = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PASSWORD, logger);
 
-        //properties = new Ini(new File(EnvUtils.getEnvironment(NEWMAN_SUITES_FILE_LOCATION, logger))); Todo- fix it
-        properties = new Ini(new File("/home/user/repositories/giga-dev/newman/ansible/roles/submitter_deploy/files/submitter-env.ini"));
+        properties = new Ini(new File(EnvUtils.getEnvironment(NEWMAN_SUITES_FILE_LOCATION, logger)));
 
         NewmanSubmitter newmanSubmitter = new NewmanSubmitter(host, port, username, password);
         String branch = EnvUtils.getEnvironment(NEWMAN_BUILD_BRANCH, false, logger);
         String tags = EnvUtils.getEnvironment(NEWMAN_BUILD_TAGS, false, logger);
         String mode = EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
-        String requiredAgentGroups = EnvUtils.getEnvironment(NEWMAN_AGENT_GROUPS, false, logger);
-        Set<String> agentGroups = NewmanSubmitter.parse(requiredAgentGroups);
+        String requiredAgentGroups = EnvUtils.getEnvironment(NEWMAN_AGENT_GROUPS, true, logger);
+        Set<String> agentGroups = parse(requiredAgentGroups);
 
         if (mode == null || mode.length() == 0) {
             mode = "DAILY";

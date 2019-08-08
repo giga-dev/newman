@@ -202,13 +202,13 @@ viewHeader model job =
                 Button.button [ Button.onClick OnNewSuiteCreateButton , Button.outlinePrimary, Button.attrs [ style [("vertical-align", "top"), ( "margin-left" , "10px")] ]   ] [ text "Create suite" ]
 
 
-        agentGroupsFormat maybeAgentGroups =
-            case maybeAgentGroups of
+        agentGroupsFormat agentGroups =
+            case agentGroups of
                        [] ->
                             "N/A"
 
                        _ ->
-                            String.join "," maybeAgentGroups
+                            String.join "," agentGroups
 
         headerRows =
             [ ( "Suite", a [ href  <| "#suite/" ++ job.suiteId] [ text job.suiteName ] )

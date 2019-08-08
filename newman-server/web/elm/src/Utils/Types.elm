@@ -5,7 +5,6 @@ import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (..)
 import Json.Encode
 import Paginate exposing (PaginatedList)
-import Set exposing (Set)
 
 
 type alias JobId =

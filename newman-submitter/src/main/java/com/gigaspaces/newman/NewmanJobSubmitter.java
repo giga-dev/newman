@@ -201,23 +201,18 @@ public class NewmanJobSubmitter {
         }
     }
 
-    //0- suiteId, 1-buildId, 2-configId, 3-host, 4- port, 5- user, 6- password
+    //0- suiteId, 1-buildId, 2-configId, 3- agentGroups, 4-host, 5- port, 6- user, 7- password
     public static void main(String[] args) throws Exception {
-        testSubmitterFromIntelliJ();
+        //testSubmitterFromIntelliJ();
 
-       //testSubmitterUsingArgs(args);
+       testSubmitterUsingArgs(args);
     }
 
     private static void testSubmitterFromIntelliJ() throws Exception {
         String suiteId = "5b6c24e7b385941b3b8ce4bf";
         String buildId = "5d19f01a4cedfd000cd81982";
         String configId = "5b4c9342b3859411ee82c265";
-        String requiredAgentGroups = "group1";
-
-       if(requiredAgentGroups == null && requiredAgentGroups.isEmpty()){
-           logger.error("missing input of required agent groups");
-           System.exit(1);
-       }
+        String requiredAgentGroups = "devGroup";
 
         String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, true /*required*/, logger);
         String port = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PORT, true /*required*/, logger);
@@ -235,26 +230,22 @@ public class NewmanJobSubmitter {
 
     //0- suiteId, 1-buildId, 2-configId, 3-host, 4- port, 5- user, 6- password, 7 - agentGroups
     private static void testSubmitterUsingArgs(String[] args) throws Exception{
-        if (args.length != 16){
+        if (args.length != 8){
             logger.error("Usage: java -cp newman-submitter-1.0.jar com.gigaspaces.newman.NewmanJobSubmitter <suiteid> <buildId> <configId> <agentsGroups>" +
                     " <newmanServerHost> <newmanServerPort> <newmanUser> <newmanPassword>");
             System.exit(1);
         }
 
         //TODO validate arguments
-        String suiteId = args[1];
-        String buildId = args[3];
-        String configId = args[5];
-        String host = args[7];
-        String port = args[9];
-        String username = args[11];
-        String password = args[13];
-        String requiredAgentGroups = args[15];
+        String suiteId = args[0];
+        String buildId = args[1];
+        String configId = args[2];
+        String requiredAgentGroups = args[3];
+        String host = args[4];
+        String port = args[5];
+        String username = args[6];
+        String password = args[7];
 
-        if(requiredAgentGroups == null && requiredAgentGroups.isEmpty()){
-            logger.error("missing input of required agent groups");
-            System.exit(1);
-        }
 
         Set<String> agentGroups = NewmanJobSubmitter.parse(requiredAgentGroups);
         NewmanJobSubmitter submitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password, agentGroups);
