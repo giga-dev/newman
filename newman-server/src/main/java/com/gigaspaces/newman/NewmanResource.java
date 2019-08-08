@@ -599,50 +599,6 @@ public class NewmanResource {
         }
     }
 
-    @POST
-    @Path("futureJob/{buildId}/{suiteId}/{configId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public FutureJob createFutureJob(
-            @PathParam("buildId") String buildId,
-            @PathParam("suiteId") String suiteId,
-            @PathParam("configId") String configId,
-            @QueryParam("agentGroups") String agentGroups,
-            @QueryParam("author") String authorOpt,
-            @Context SecurityContext sc) {
-        checkServerStatus();
-
-        String author = (authorOpt != null && authorOpt.length() > 0 ? authorOpt : sc.getUserPrincipal().getName());
-        Build build = null;
-        Suite suite = null;
-        JobConfig jobConfig = null;
-        Set<String> requestedAgentGroups = NewmanResource.parse(agentGroups);
-
-        if (buildId != null) {
-            build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
-            if (build == null) {
-                throw new BadRequestException("invalid build id in create FutureJob: " + buildId);
-            }
-        }
-        if (suiteId != null) {
-            suite = suiteDAO.findOne(suiteDAO.createIdQuery(suiteId));
-            if (suite == null) {
-                throw new BadRequestException("invalid suite id in create FutureJob: " + suiteId);
-            }
-        }
-        if (configId != null) {
-            jobConfig = jobConfigDAO.findOne(jobConfigDAO.createIdQuery(configId));
-            if (jobConfig == null) {
-                throw new BadRequestException("invalid config id in create FutureJob: " + configId);
-            }
-        }
-
-        //noinspection ConstantConditions
-        FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(),jobConfig.getId(),jobConfig.getName(), author, requestedAgentGroups);
-
-        futureJobDAO.save(futureJob);
-        broadcastMessage(CREATE_FUTURE_JOB, futureJob);
-        return futureJob;
-    }
 
     @POST
     @Path("futureJob")
