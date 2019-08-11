@@ -193,15 +193,6 @@ viewRecord testHistory =
         dateFormat date =
             DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat date))
 
-
-        agentGroupFormat maybeAgentGroup maybeAssignedAgent =
-            if maybeAssignedAgent /= "" then
-                if maybeAgentGroup == "" then
-                    "N/A"
-                else
-                    maybeAgentGroup
-            else
-                ""
     in
     tr []
         [ td [] [ a [ href <| "#test/" ++ testHistory.test.id ] [ text testHistory.test.id ] ]
@@ -212,7 +203,7 @@ viewRecord testHistory =
         , td [] [ text durationText ]
         , td [] [ text (toString testHistory.test.runNumber)]
         , td [] [ text testHistory.test.assignedAgent ]
-        , td [title <| agentGroupFormat testHistory.test.agentGroup testHistory.test.assignedAgent] [ text <| agentGroupFormat testHistory.test.agentGroup testHistory.test.assignedAgent ]
+        , td [title <| agentGroupTestFormat testHistory.test.agentGroup testHistory.test.assignedAgent] [ text <| agentGroupTestFormat testHistory.test.agentGroup testHistory.test.assignedAgent ]
         , td [] [ status [] [ text testHistory.test.status ] ]
         , td [] [ span [ title testHistory.test.errorMessage ] [ text testHistory.test.errorMessage ] ]
         ]

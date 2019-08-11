@@ -647,3 +647,20 @@ encodeListOfStrings lst =
 decodeStatus : Decoder String
 decodeStatus =
     at [ "status" ] string
+
+agentGroupsJobFormat agentGroups =
+            case agentGroups of
+                       [] ->
+                            "N/A"
+
+                       _ ->
+                            String.join ", " agentGroups
+
+agentGroupTestFormat agentGroup assignedAgent =
+            if assignedAgent /= "" then
+                if agentGroup == "" then
+                    "N/A"
+                else
+                    agentGroup
+            else
+                ""

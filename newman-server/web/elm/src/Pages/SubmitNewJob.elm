@@ -92,8 +92,10 @@ update msg model =
                         ( { model | buildsAndSuites = data, selectedSuites = Multiselect.initModel suites "suites" }, Cmd.none )
 
                 Err err ->
-                    -- log error
-                    ( model, Cmd.none )
+                    let
+                        e = Debug.log "ERROR" err
+                    in
+                        (model , Cmd.none)
 
         GetAllConfigsCompleted result ->
             case result of
@@ -101,8 +103,11 @@ update msg model =
                     ( { model | configurations = data, selectedConfig = Maybe.withDefault "" <| Maybe.map ( \v -> v.id ) <| List.head data }, Cmd.none )
 
                 Err err ->
-                    -- log error
-                    ( model, Cmd.none )
+                    let
+                        e = Debug.log "ERROR" err
+                    in
+                        (model , Cmd.none)
+
         GetAllAgentGroupsCompleted result ->
              case result of
                  Ok data ->
@@ -113,8 +118,10 @@ update msg model =
                       ( { model | agentGroups = data,selectedAgentGroups = Multiselect.populateValues model.selectedAgentGroups agentGroups agentGroups }, Cmd.none )
 
                  Err err ->
-                     -- log error
-                     ( model, Cmd.none )
+                    let
+                        e = Debug.log "ERROR" err
+                    in
+                        (model , Cmd.none)
 
         UpdateSelectedBuild build ->
             ( { model | selectedBuild = build }, Cmd.none )

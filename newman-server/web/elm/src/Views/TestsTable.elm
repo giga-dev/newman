@@ -15,7 +15,7 @@ import Navigation
 import Paginate exposing (PaginatedList)
 import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
-import Utils.Types exposing (JobId, RadioState(..), Test, TestStatus(..), decodeTest, radioStateToString, testStatusToString)
+import Utils.Types exposing (JobId, RadioState(..), Test, TestStatus(..), agentGroupTestFormat, decodeTest, radioStateToString, testStatusToString)
 import Utils.WebSocket as WebSocket exposing (..)
 
 
@@ -231,16 +231,6 @@ viewTest currTime test =
             else
                 ""
 
-
-        agentGroupFormat maybeAgentGroup maybeAssignedAgent =
-            if maybeAssignedAgent /= "" then
-                if maybeAgentGroup == "" then
-                    "N/A"
-                else
-                    maybeAgentGroup
-            else
-                ""
-
     in
     tr []
         [ td [] [ a [ href <| "#test/" ++ test.id, title <| String.join "" test.arguments ] [ text <| toTestName test] ]
@@ -249,7 +239,7 @@ viewTest currTime test =
         , td [] [ a [ href <| "#test-history/" ++ test.id ] [ text "History" ] ]
         , td [] [ span [ title test.errorMessage ] [ text test.errorMessage ] ]
         , td [] [ text test.assignedAgent ]
-        , td [title <| agentGroupFormat test.agentGroup test.assignedAgent] [ text <| agentGroupFormat test.agentGroup test.assignedAgent ]
+        , td [title <| agentGroupTestFormat test.agentGroup test.assignedAgent] [ text <| agentGroupTestFormat test.agentGroup test.assignedAgent ]
         , td [] [ text durationText ]
         ]
 
@@ -327,7 +317,7 @@ updateAllTests f model =
             f model.all
 
         filtered =
-            List.filter (filterQuery model.query) newList
+            filterTests newList model.query model.filterState
 
         newPaginated =
             Paginate.map (\_ -> filtered) model.paginated

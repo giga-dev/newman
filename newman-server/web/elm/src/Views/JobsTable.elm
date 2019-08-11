@@ -245,14 +245,6 @@ viewJob currTime job =
                     Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY), Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
 
-        agentGroupsFormat maybeAgentGroups =
-            case maybeAgentGroups of
-                       [] ->
-                            "N/A"
-
-                       _ ->
-                            String.join "," maybeAgentGroups
-
     in
         tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
             [ td [] [ jobState ]
@@ -265,7 +257,7 @@ viewJob currTime job =
             , td [] [ a [ href <| "#build/" ++ job.buildId, title <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] [ text <| job.buildName ++ " (" ++ job.buildBranch ++ ")" ] ]
             , td [] [ text job.submittedBy ]
             , td [] [ text (toString (List.length job.preparingAgents)) ]
-            , td [ title <| agentGroupsFormat job.agentGroups] [ text <| agentGroupsFormat job.agentGroups ]
+            , td [ title <| agentGroupsJobFormat job.agentGroups] [ text <| agentGroupsJobFormat job.agentGroups ]
             , td []
                 [ Badge.badgeInfo [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/RUNNING" , title "Running Tests" ]
                                     [text <| toString job.runningTests] ]
