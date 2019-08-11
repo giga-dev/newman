@@ -284,9 +284,11 @@ public class NewmanResource {
         // check if there is an agent in the system that can execute this job
         for (Agent agent : agents) {
             if ((job.getSuite().getRequirements().isEmpty()
-                    || job.getSuite().getRequirements() == null
-                    || agent.getCapabilities().containsAll(job.getSuite().getRequirements()))
-                    && job.getAgentGroups().contains(agent.getGroupName())) {
+                        || job.getSuite().getRequirements() == null
+                        || agent.getCapabilities().containsAll(job.getSuite().getRequirements()))
+                    && (job.getAgentGroups() == null
+                        || job.getAgentGroups().isEmpty()
+                        || job.getAgentGroups().contains(agent.getGroupName()))) {
                 return false;
             }
         }
