@@ -19,7 +19,7 @@ public class NewmanFutureJobSubmitter {
     private static final Logger logger = LoggerFactory.getLogger(NewmanFutureJobSubmitter.class);
 
     private static final String NEWMAN_BUILD_ID = "NEWMAN_BUILD_ID"; // for example: 56277de629f67f791db25554
-    private static final String NEWMAN_SUITES_ID = "NEWMAN_SUITES_ID"; // for example: 55b0affe29f67f34809c6c7b
+    private static final String NEWMAN_SUITE_ID = "NEWMAN_SUITE_ID"; // for example: 55b0affe29f67f34809c6c7b
     private static final String NEWMAN_CONFIG_ID = "NEWMAN_CONFIG_ID"; // for example: 55b0affe29f67f34809c6c7b
     private static final String NEWMAN_AGENT_GROUPS = "NEWMAN_AGENT_GROUPS"; // for example: "devGroup,imc-srv01"
     private static final String AUTHOR = "AUTHOR"; // for example: tamirs
@@ -36,7 +36,7 @@ public class NewmanFutureJobSubmitter {
         String author;
 
         build_id = EnvUtils.getEnvironment(NEWMAN_BUILD_ID, true, logger);
-        suite_id = EnvUtils.getEnvironment(NEWMAN_SUITES_ID, true, logger);
+        suite_id = EnvUtils.getEnvironment(NEWMAN_SUITE_ID, true, logger);
         config_id = EnvUtils.getEnvironment(NEWMAN_CONFIG_ID, true, logger);
         author = EnvUtils.getEnvironment(AUTHOR,true, logger);
         List<String> suites = parse(suite_id);
