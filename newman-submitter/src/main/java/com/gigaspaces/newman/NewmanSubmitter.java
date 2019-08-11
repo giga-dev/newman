@@ -79,7 +79,7 @@ public class NewmanSubmitter {
         String branch = EnvUtils.getEnvironment(NEWMAN_BUILD_BRANCH, false, logger);
         String tags = EnvUtils.getEnvironment(NEWMAN_BUILD_TAGS, false, logger);
         String mode = EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
-        String requiredAgentGroups = EnvUtils.getEnvironment(NEWMAN_AGENT_GROUPS, false, logger);
+        String requiredAgentGroups = properties.get("main").fetch("AGENT_GROUPS_DEFAULT");
         Set<String> agentGroups = parse(requiredAgentGroups);
 
         if (mode == null || mode.length() == 0) {

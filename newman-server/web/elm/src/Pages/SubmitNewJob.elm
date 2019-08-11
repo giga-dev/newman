@@ -93,7 +93,7 @@ update msg model =
 
                 Err err ->
                     let
-                        e = Debug.log "ERROR" err
+                        e = Debug.log "ERROR:GetBuildsAndSuitesCompleted" err
                     in
                         (model , Cmd.none)
 
@@ -104,7 +104,7 @@ update msg model =
 
                 Err err ->
                     let
-                        e = Debug.log "ERROR" err
+                        e = Debug.log "ERROR:GetAllConfigsCompleted" err
                     in
                         (model , Cmd.none)
 
@@ -119,7 +119,7 @@ update msg model =
 
                  Err err ->
                     let
-                        e = Debug.log "ERROR" err
+                        e = Debug.log "ERROR:GetAllAgentGroupsCompleted" err
                     in
                         (model , Cmd.none)
 
