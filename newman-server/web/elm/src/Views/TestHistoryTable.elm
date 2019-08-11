@@ -120,6 +120,7 @@ viewTable model =
                         ++ nextButtons
                     )
                 ]
+
     in
     div []
         [ div [ class "form-inline" ]
