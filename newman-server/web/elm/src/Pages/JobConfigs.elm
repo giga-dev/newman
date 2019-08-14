@@ -20,9 +20,10 @@ import List.Extra as ListExtra
 import Paginate exposing (..)
 import Task
 import Time exposing (Time)
+import Utils.Common as Common
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
-import Utils.Common as Common
+
 
 type alias Model =
     { allJobConfigs : JobConfigs
@@ -56,7 +57,7 @@ update msg model =
                         a =
                             Debug.log "onGetJobConfigsCompleted" err
                     in
-                        ( model, Cmd.none )
+                    ( model, Cmd.none )
 
         WebSocketEvent event ->
             case event of
@@ -76,7 +77,7 @@ updateAll f model =
         newList =
             f model.allJobConfigs
     in
-        { model | allJobConfigs = newList }
+    { model | allJobConfigs = newList }
 
 
 updateJobConfigAdded : Model -> JobConfig -> Model
@@ -87,21 +88,22 @@ updateJobConfigAdded model addedJobConfig =
 view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ] <|
-            [ h2 [ class "text" ] [ text "Job Configurations",
-            Button.linkButton [ Button.primary, Button.attrs [ href "#newJobConfig", style [ ( "margin-left", "15px" ) ] ]]  [ text "New Job Configuration" ] ]
-            , div []
-                [ table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
-                    [ thead []
-                        [ tr []
-                            [ th [] [ text "Name" ]
-                            , th [] [ text "Id" ]
-                            ]
+        [ h2 [ class "text" ]
+            [ text "Job Configurations"
+            , Button.linkButton [ Button.primary, Button.attrs [ href "#newJobConfig", style [ ( "margin-left", "15px" ) ] ] ] [ text "New Job Configuration" ]
+            ]
+        , div []
+            [ table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
+                [ thead []
+                    [ tr []
+                        [ th [] [ text "Name" ]
+                        , th [] [ text "Id" ]
                         ]
-                    , tbody [] (List.map viewJobConfig (model.allJobConfigs))
                     ]
+                , tbody [] (List.map viewJobConfig model.allJobConfigs)
                 ]
             ]
-
+        ]
 
 
 viewJobConfig : JobConfig -> Html msg
@@ -115,7 +117,6 @@ viewJobConfig jobConfig =
 getJobConfigsCmd : Cmd Msg
 getJobConfigsCmd =
     Http.send GetJobConfigsCompleted <| Http.get "/api/newman/job-config" decodeJobConfigs
-
 
 
 handleEvent : WebSocket.Event -> Cmd Msg

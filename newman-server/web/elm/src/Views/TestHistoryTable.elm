@@ -19,9 +19,10 @@ import List.Extra as ListExtra
 import Paginate exposing (PaginatedList)
 import Paginate.Custom exposing (Paginated)
 import Time exposing (Time)
+import Utils.Common as Common
 import Utils.Types exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
-import Utils.Common as Common
+
 
 type Msg
     = First
@@ -120,7 +121,6 @@ viewTable model =
                         ++ nextButtons
                     )
                 ]
-
     in
     div []
         [ div [ class "form-inline" ]
@@ -193,7 +193,6 @@ viewRecord testHistory =
 
         dateFormat date =
             DateFormat.format Common.dateTimeDateFormat (Date.fromTime (toFloat date))
-
     in
     tr []
         [ td [] [ a [ href <| "#test/" ++ testHistory.test.id ] [ text testHistory.test.id ] ]
@@ -202,9 +201,9 @@ viewRecord testHistory =
         , td [] [ a [ href <| "#jobConfig/" ++ testHistory.job.jobConfigId ] [ text testHistory.job.jobConfigName ] ]
         , td [] [ text <| dateFormat testHistory.test.endTime ]
         , td [] [ text durationText ]
-        , td [] [ text (toString testHistory.test.runNumber)]
+        , td [] [ text (toString testHistory.test.runNumber) ]
         , td [] [ text testHistory.test.assignedAgent ]
-        , td [title <| agentGroupTestFormat testHistory.test.agentGroup testHistory.test.assignedAgent] [ text <| agentGroupTestFormat testHistory.test.agentGroup testHistory.test.assignedAgent ]
+        , td [ title <| agentGroupTestFormat testHistory.test.agentGroup testHistory.test.assignedAgent ] [ text <| agentGroupTestFormat testHistory.test.agentGroup testHistory.test.assignedAgent ]
         , td [] [ status [] [ text testHistory.test.status ] ]
         , td [] [ span [ title testHistory.test.errorMessage ] [ text testHistory.test.errorMessage ] ]
         ]
@@ -246,6 +245,7 @@ filterQuery query testHistory =
             || String.startsWith query testHistory.test.assignedAgent
     then
         True
+
     else
         False
 

@@ -15,10 +15,11 @@ import Platform.Cmd exposing (batch)
 import Task exposing (..)
 import Time exposing (Time)
 import UrlParser exposing (Parser)
-import Utils.Types exposing (..)
-import Views.JobsTable as JobsTable exposing (..)
-import Utils.WebSocket as WebSocket exposing (..)
 import Utils.Common as Common
+import Utils.Types exposing (..)
+import Utils.WebSocket as WebSocket exposing (..)
+import Views.JobsTable as JobsTable exposing (..)
+
 
 type alias Model =
     { maybeBuild : Maybe Build
@@ -40,15 +41,15 @@ parseBuildId =
     UrlParser.string
 
 
-initModel :  Model
+initModel : Model
 initModel =
     let
         maxEntries =
             40
     in
     { maybeBuild = Nothing
-      , maybeJobsTableModel = Nothing
-      , currTime = Nothing
+    , maybeJobsTableModel = Nothing
+    , currTime = Nothing
     }
 
 
@@ -99,7 +100,6 @@ view model =
                         toShaRow
                     <|
                         Dict.toList build.shas
-
             in
             div [ class "container-fluid" ] <|
                 [ h2 [ class "text" ] [ text <| "Details for build " ++ build.name ]
@@ -160,20 +160,22 @@ update msg model =
                         Nothing ->
                             JobsTable.update subMsg (JobsTable.init [])
             in
-            ( { model | maybeJobsTableModel = Just updatedJobsTableModel }, Cmd.batch [ cmd |> Cmd.map JobsTableMsg , requestTime ] )
+            ( { model | maybeJobsTableModel = Just updatedJobsTableModel }, Cmd.batch [ cmd |> Cmd.map JobsTableMsg, requestTime ] )
 
         ReceiveTime time ->
-            ( { model | currTime = Just time } , Cmd.none )
+            ( { model | currTime = Just time }, Cmd.none )
 
         WebSocketEvent event ->
             case event of
                 ModifiedBuild build ->
                     case model.maybeBuild of
                         Just currentBuild ->
-                            if (currentBuild.id == build.id) then
-                                ( {model | maybeBuild = Just build} , Cmd.none )
+                            if currentBuild.id == build.id then
+                                ( { model | maybeBuild = Just build }, Cmd.none )
+
                             else
                                 ( model, Cmd.none )
+
                         Nothing ->
                             ( model, Cmd.none )
 
@@ -192,6 +194,7 @@ getJobsInfoCmd buildId =
     Http.send GetJobsInfoCompleted <|
         Http.get ("/api/newman/job?buildId=" ++ buildId ++ "&all=true") <|
             Json.Decode.field "values" (Json.Decode.list decodeJob)
+
 
 requestTime : Cmd Msg
 requestTime =

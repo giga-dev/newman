@@ -77,12 +77,15 @@ public class NewmanResource {
     public static final String DELETED_FUTURE_JOB = "deleted-future-job";
     private static final String MODIFY_SERVER_STATUS = "modified-server-status";
 
+    private int highestPriorityJob;
+
     private final MongoClient mongoClient;
     private final JobDAO jobDAO;
     private final TestDAO testDAO;
     private final BuildDAO buildDAO;
     private final AgentDAO agentDAO;
     private final SuiteDAO suiteDAO;
+    private final PrioritizedJobDAO prioritizedJobDAO;
     private final JobConfigDAO jobConfigDAO;
     private final FutureJobDAO futureJobDAO;
     private final BuildsCacheDAO buildsCacheDAO;
@@ -109,6 +112,7 @@ public class NewmanResource {
     private static String HTTPS_WEB_ROOT_PATH;
 
     private static final Object takenTestLock = new Object();
+    private static final Object changeJobPriorityLock = new Object();
     private final AtomicLong latestLogSize = new AtomicLong(0);
     private final AtomicLong lastLogSizeCheckTime = new AtomicLong(0);
 
@@ -133,10 +137,13 @@ public class NewmanResource {
         futureJobDAO = new FutureJobDAO(morphia, mongoClient, config.getMongo().getDb());
         buildsCacheDAO = new BuildsCacheDAO(morphia, mongoClient, config.getMongo().getDb());
         jobConfigDAO = new JobConfigDAO(morphia, mongoClient, config.getMongo().getDb());
+        prioritizedJobDAO = new PrioritizedJobDAO(morphia, mongoClient, config.getMongo().getDb());
 
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         MongoCollection testCollection = db.getCollection("Test");
         distinctTestsByAssignedAgentFilter = testCollection.distinct("assignedAgent", String.class);
+
+        highestPriorityJob = getHighestPriorityJob();
 
         if (Boolean.getBoolean("production")) { // This is set to true in the newman server
             timer.scheduleAtFixedRate(new TimerTask() {
@@ -193,7 +200,9 @@ public class NewmanResource {
     private void updateBrokenJob(Job potentialJob) {
         potentialJob.setState(State.BROKEN);
         updateJob(potentialJob.getId(), potentialJob);
-
+        if(potentialJob.getPriority() > 0){
+            deletePrioritizedJob(potentialJob);
+        }
         UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations();
         buildUpdateOperations.inc("buildStatus.brokenJobs").dec("buildStatus.runningJobs");
         buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(potentialJob.getBuild().getId()), buildUpdateOperations);
@@ -453,7 +462,7 @@ public class NewmanResource {
     private void addRequiredJobTableColumns(Query<Job> query) {
         query.retrievedFields(true, "id", "build.id", "build.name", "build.branch", "suite.id", "suite.name", "jobConfig.id", "jobConfig.name",
                 "submitTime", "startTime", "endTime", "testURI", "submittedBy", "state", "totalTests",
-                "passedTests", "failedTests", "failed3TimesTests", "runningTests", "numOfTestRetries", "preparingAgents", "agentGroups");
+                "passedTests", "failedTests", "failed3TimesTests", "runningTests", "numOfTestRetries", "preparingAgents", "agentGroups", "priority");
     }
 
 
@@ -584,10 +593,14 @@ public class NewmanResource {
             job.setSubmitTime(new Date());
             job.setSubmittedBy(jobRequest.getAuthor());
             job.setAgentGroups(jobRequest.getAgentGroups());
+            job.setPriority(jobRequest.getPriority());
             if(jobConfig !=null) {
                 job.setJobConfig(jobConfig);
             }
             jobDAO.save(job);
+            if(job.getPriority() > 0){
+                createPrioritizedJob(job);
+            }
             UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.totalJobs")
                     .inc("buildStatus.pendingJobs")
                     .add("buildStatus.suitesIds", suite.getId(), false)
@@ -601,6 +614,14 @@ public class NewmanResource {
         }
     }
 
+    private void createPrioritizedJob(Job job){
+        PrioritizedJob prioritizedJob = new PrioritizedJob(job);
+        prioritizedJobDAO.save(prioritizedJob);
+        if(job.getPriority() > highestPriorityJob){
+            highestPriorityJob = job.getPriority();
+            logger.info("Highest Priority of jobs changed to: " + highestPriorityJob);
+        }
+    }
 
     @POST
     @Path("futureJob")
@@ -619,6 +640,7 @@ public class NewmanResource {
         String buildId = futureJobsRequest.getBuildId();
         String configId = futureJobsRequest.getConfigId();
         Set<String> agentGroups = futureJobsRequest.getAgentGroups();
+        int priority = futureJobsRequest.getPriority();
 
         if (buildId != null) {
             build = buildDAO.findOne(buildDAO.createIdQuery(buildId));
@@ -641,7 +663,7 @@ public class NewmanResource {
                 }
 
                 //noinspection ConstantConditions
-                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), jobConfig.getId(), jobConfig.getName(), author, agentGroups);
+                FutureJob futureJob = new FutureJob(build.getId(), build.getName(), build.getBranch(), suite.getId(), suite.getName(), jobConfig.getId(), jobConfig.getName(), author, agentGroups, priority);
                 response.add(futureJob);
 
                 futureJobDAO.save(futureJob);
@@ -651,6 +673,7 @@ public class NewmanResource {
         }
         return response;
     }
+
 
     @POST
     @Path("job/{id}/toggle")
@@ -676,6 +699,13 @@ public class NewmanResource {
                 if (state.equals(State.PAUSED)) {
                     // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
                     updateJobStatus.unset("startPrepareTime");
+                    if(job.getPriority() > 0){
+                        UpdateOperations<PrioritizedJob> updatePrioritizedJobStatus = prioritizedJobDAO.createUpdateOperations().set("isPaused",true);
+                        PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), updatePrioritizedJobStatus);
+                        if(prioritizedJob.getPriority() == highestPriorityJob){
+                            highestPriorityJob = getHighestPriorityJob();
+                        }
+                    }
                 }
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
                 broadcastMessage(MODIFIED_JOB, job);
@@ -688,6 +718,14 @@ public class NewmanResource {
 
                     UpdateResults update = testDAO.getDatastore().update(query, updateOps);
                     logger.info("---ToggleJobPause, state is READY, affected count:" + update.getUpdatedCount());
+
+                    if(job.getPriority() > 0){
+                        UpdateOperations<PrioritizedJob> updatePrioritizedJobStatus = prioritizedJobDAO.createUpdateOperations().set("isPaused",false);
+                        PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), updatePrioritizedJobStatus);
+                        if(prioritizedJob.getPriority() > highestPriorityJob){
+                            highestPriorityJob = prioritizedJob.getPriority();
+                        }
+                    }
                 }
                 return job;
             }
@@ -721,6 +759,13 @@ public class NewmanResource {
                     if (state.equals(State.PAUSED)) {
                         // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
                         updateJobStatus.unset("startPrepareTime");
+                        if(job.getPriority() > 0){
+                            UpdateOperations<PrioritizedJob> updatePrioritizedJobStatus = prioritizedJobDAO.createUpdateOperations().set("isPaused", true);
+                            PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), updatePrioritizedJobStatus);
+                            if(prioritizedJob.getPriority() == highestPriorityJob){
+                                highestPriorityJob = getHighestPriorityJob();
+                            }
+                        }
                     }
                     job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
                     result.add(job);
@@ -729,6 +774,19 @@ public class NewmanResource {
             }
         }
         return result;
+    }
+
+    @POST
+    @Path("job/{jobId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Job AgentFinishJob(@PathParam("jobId") final String jobId){
+        Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
+        if(job.getRunningTests() <= 0 && job.getState().equals(State.RUNNING)){
+            UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.READY);
+            job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateJobStatus);
+            broadcastMessage(MODIFIED_JOB, job);
+        }
+        return job;
     }
 
     @POST
@@ -757,6 +815,13 @@ public class NewmanResource {
                     UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", state);
                     job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
                     result.add(job);
+                    if(job.getPriority() > 0){
+                        UpdateOperations<PrioritizedJob> updatePrioritizedJobStatus = prioritizedJobDAO.createUpdateOperations().set("isPaused",false);
+                        PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), updatePrioritizedJobStatus);
+                        if(prioritizedJob.getPriority() > highestPriorityJob){
+                            highestPriorityJob = prioritizedJob.getPriority();
+                        }
+                    }
                     broadcastMessage(MODIFIED_JOB, job);
 
                     //change status of Test(s) from running to pending
@@ -879,8 +944,9 @@ public class NewmanResource {
         }
         List<Test> res = new ArrayList<>(tests.getValues().size());
         for (Test test : tests.getValues()) {
-            res.add(addTest(test));
+            res.add(addTest(test, job));
         }
+
         if (!res.isEmpty()) {
             Test test = res.get(0);
 
@@ -989,13 +1055,12 @@ public class NewmanResource {
         return res;
     }
 
-    private Test addTest(Test test) {
+    private Test addTest(Test test, Job job) {
         if (test.getJobId() == null) {
             throw new BadRequestException("can't add test with no jobId: " + test);
         }
         test.setStatus(Test.Status.PENDING);
         test.setScheduledAt(new Date());
-        Job job = getJob(test.getJobId());
         test.setSha(Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId(), job.getBuild().getBranch()));
         testDAO.save(test);
         broadcastMessage(CREATED_TEST, test);
@@ -1077,6 +1142,9 @@ public class NewmanResource {
             if (!testDAO.exists(query)) {
                 updateJobStatus.set("state", State.DONE).set("endTime", new Date());
                 updateBuild.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
+                if(testJob.getPriority() > 0){
+                    deletePrioritizedJob(testJob);
+                }
             }
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
 
@@ -1986,12 +2054,13 @@ public class NewmanResource {
             jobs = requirementsQuery.field("suite.requirements").in(capabilities).asList();
         }
         if (jobs != null && jobs.size() > 0) { // if found jobs with match requirements
-            List<Job> jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByCapabilities(jobs, capabilities); // filter jobs with not supported requirements
-            if (jobsFilterByCapabilities != null && !jobsFilterByCapabilities.isEmpty() && agentGroup != null) {
-                jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByGroupNames(jobsFilterByCapabilities, agentGroup);// filter jobs with not suitable agent groups
+            List<Job> jobsFiltered = CapabilitiesAndRequirements.filterByCapabilities(jobs, capabilities); // filter jobs with not supported requirements
+            if (jobsFiltered != null && !jobsFiltered.isEmpty() && agentGroup != null) {
+                jobsFiltered = CapabilitiesAndRequirements.filterByGroupNames(jobsFiltered, agentGroup);// filter jobs with not suitable agent groups
             }
-            if (jobsFilterByCapabilities != null && !jobsFilterByCapabilities.isEmpty()) {
-                job = jobsFilterByCapabilities.get(0);
+            if (jobsFiltered != null && !jobsFiltered.isEmpty()) {
+                jobsFiltered.sort(Comparator.comparing(Job::getPriority).reversed());
+                job = jobsFiltered.get(0);
             }
         }
 
@@ -2003,6 +2072,7 @@ public class NewmanResource {
                 jobs = CapabilitiesAndRequirements.filterByGroupNames(jobs, agentGroup);
             }
             if(!jobs.isEmpty()) {
+                jobs.sort(Comparator.comparing(Job::getPriority).reversed());
                 job = jobs.get(0);
             }
         }
@@ -2013,6 +2083,83 @@ public class NewmanResource {
         return buildDAO.findOne(buildDAO.createQuery().order("-buildTime").field("branch").equal(branch));
     }
 
+    private int getHighestPriorityJob(){
+        PrioritizedJob prioritizedJob = prioritizedJobDAO.findOne(prioritizedJobDAO.createQuery().filter("isPaused", false).order("-priority"));
+        if(prioritizedJob != null){
+            logger.info("Highest Priority of jobs: " + prioritizedJob.getPriority());
+            return prioritizedJob.getPriority();
+        }
+        logger.info("Didn't find prioritized jobs, returning 0");
+        return 0;
+    }
+
+
+    @GET
+    @Path("prioritizedJob/{agentId}/{jobId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Boolean hasHigherPriorityJob(@PathParam("agentId") final String agentId , @PathParam("jobId") final String jobId) {
+
+        Agent agent = agentDAO.findOne(agentDAO.createIdQuery(agentId));
+
+        List<PrioritizedJob> prioritizedJobs = prioritizedJobDAO.find(prioritizedJobDAO.createQuery().filter("isPaused", false).order("-priority")).asList();
+        if(prioritizedJobs.isEmpty()){
+            return false;
+        }
+
+        Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
+
+        for(PrioritizedJob prioritizedJob: prioritizedJobs){
+            if(prioritizedJob.getPriority() > job.getPriority()){
+                if(prioritizedJob.getAgentGroups().contains(agent.getGroupName()) && agent.getCapabilities().containsAll(prioritizedJob.getRequirements())){
+                    Query<Job> jobQuery = jobDAO.createIdQuery(prioritizedJob.getJobId());
+                        jobQuery.or(jobQuery.and(jobQuery.criteria("preparingAgents").exists(),
+                                new WhereCriteria("this.preparingAgents.length < (this.totalTests + this.numOfTestRetries - this.passedTests - this.failedTests - this.runningTests)")),
+                                jobQuery.criteria("preparingAgents").doesNotExist());
+                     if(jobQuery.countAll() == 1){
+                        return true;
+                     }
+                }
+            }
+            else{
+                break;
+            }
+        }
+        return false;
+    }
+
+    @POST
+    @Path("job/{jobId}/{newPriority}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Job changeJobPriority(final @PathParam("jobId") String jobId, final @PathParam("newPriority") String newPriority) {
+       Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
+       int updatePriority = Integer.parseInt(newPriority);
+       int currPriority = job.getPriority();
+
+       synchronized (changeJobPriorityLock) {
+           if (job.getState() == State.DONE || currPriority == updatePriority) {
+               return job;
+           }
+
+           UpdateOperations<Job> jobUpdate = jobDAO.createUpdateOperations().set("priority", newPriority);
+           job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), jobUpdate);
+
+           if (currPriority == 0) {
+               createPrioritizedJob(job);
+           } else {
+               if (updatePriority == 0) {
+                   deletePrioritizedJob(job);
+               } else {
+                   UpdateOperations<PrioritizedJob> prioritizedJobUpdate = prioritizedJobDAO.createUpdateOperations().set("priority", newPriority);
+                   PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), prioritizedJobUpdate);
+                   highestPriorityJob = getHighestPriorityJob();
+               }
+           }
+       }
+
+       broadcastMessage(MODIFIED_JOB, job);
+       return job;
+
+    }
 
     @GET
     @Path("build")
@@ -2245,11 +2392,22 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteJob(final @PathParam("jobId") String jobId) {
         Job deletedJob = performDeleteJob(jobId);
+        if(deletedJob.getPriority() > 0){
+            deletePrioritizedJob(deletedJob);
+        }
         performDeleteTestsLogs(jobId);
         performDeleteJobSetupLogs(jobId);
         updateBuildWithDeletedJob(deletedJob);
         performDeleteTests(jobId);
+
         return Response.ok(Entity.json(jobId)).build();
+    }
+
+    private void deletePrioritizedJob(Job job){
+        PrioritizedJob deletePrioritizedJob = prioritizedJobDAO.getDatastore().findAndDelete(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()));
+        if(job.getPriority() == highestPriorityJob){
+            highestPriorityJob = getHighestPriorityJob();
+        }
     }
 
     private void performDeleteTestsLogs(String jobId) {
@@ -2966,7 +3124,8 @@ public class NewmanResource {
             broadcastMessage(CREATED_OFFLINE_AGENT, createAgentFromOfflineAgent(offlineAgents.get(agentIp)));
             broadcastMessage(MODIFIED_AGENTS_COUNT, agentDAO.count());
             //Delete agent from preparing agents in jobs
-            jobDAO.createUpdateOperations().removeAll("preparingAgents", toDelete.getName());
+            UpdateOperations<Job> jobUpdate = jobDAO.createUpdateOperations().removeAll("preparingAgents", toDelete.getName());
+            jobDAO.getDatastore().findAndModify(jobDAO.createQuery().field("id").equal(agent.getJobId()), jobUpdate);
         }
     }
 

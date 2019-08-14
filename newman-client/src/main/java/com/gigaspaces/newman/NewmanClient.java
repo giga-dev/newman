@@ -14,6 +14,7 @@ import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.glassfish.jersey.media.sse.EventInput;
 import org.glassfish.jersey.media.sse.SseFeature;
 
+import javax.swing.text.StyledEditorKit;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -85,6 +86,14 @@ public class NewmanClient {
 
     public CompletionStage<List<FutureJob>> createFutureJob(FutureJobsRequest futureJobRequest) {
        return restClient.target(uri).path("futureJob").request().rx().post(Entity.json(futureJobRequest),new GenericType<List<FutureJob>>(){});
+    }
+
+    public CompletionStage<Boolean> hasHigherPriorityJob(String agentId, String jobId) {
+        return restClient.target(uri).path("prioritizedJob").path(agentId).path(jobId).request().rx().get(Boolean.class);
+    }
+
+    public CompletionStage<Job> changePriorityJob(String jobId, int newPriority) {
+        return restClient.target(uri).path("job").path(jobId).path(Integer.toString(newPriority)).request().rx().post(Entity.text(""), Job.class);
     }
 
     public CompletionStage<Test> createTest(Test test) {
@@ -162,6 +171,10 @@ public class NewmanClient {
 
     public CompletionStage<Job> subscribe(Agent agent) {
         return restClient.target(uri).path("subscribe").request().rx().post(Entity.json(agent), Job.class);
+    }
+
+    public CompletionStage<Job> agentFinishJob(String jobId) {
+        return restClient.target(uri).path("job").path(jobId).request().rx().post(Entity.text(""), Job.class);
     }
 
     public CompletionStage<Batch<Agent>> getSubscriptions(int offset, int limit) {

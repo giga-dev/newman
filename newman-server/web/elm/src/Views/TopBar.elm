@@ -88,15 +88,15 @@ update msg model =
                     ( model, Cmd.none )
 
         WebSocketEvent event ->
-                    case event of
-                        ModifiedAgentsCount agentsCount ->
-                            ( { model | agentsCount = agentsCount } , Cmd.none )
+            case event of
+                ModifiedAgentsCount agentsCount ->
+                    ( { model | agentsCount = agentsCount }, Cmd.none )
 
-                        ModifiedFailingAgents failingAgents ->
-                            ( { model | failingAgents = failingAgents } , Cmd.none )
+                ModifiedFailingAgents failingAgents ->
+                    ( { model | failingAgents = failingAgents }, Cmd.none )
 
-                        _ ->
-                            ( model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
 
 view : Model -> Html Msg

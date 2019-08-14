@@ -23,6 +23,7 @@ public class JobView {
     private String jobConfigId;
     private String jobConfigName;
     private Set<String> agentGroups;
+    private int priority;
 
     private Date submitTime;
     private Date startTime;
@@ -60,6 +61,7 @@ public class JobView {
         }
 
         agentGroups = job.getAgentGroups();
+        priority = job.getPriority();
         submitTime = job.getSubmitTime();
         startTime = job.getStartTime();
         endTime = job.getEndTime();
@@ -90,6 +92,10 @@ public class JobView {
     public void setAgentGroups(Set<String> agentGroups) {
         this.agentGroups = agentGroups;
     }
+
+    public int getPriority() { return priority; }
+
+    public void setPriority(int priority) { this.priority = priority; }
 
     public Date getSubmitTime() {
         return submitTime;
