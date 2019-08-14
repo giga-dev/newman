@@ -2,7 +2,7 @@
 
 export SUITE_ID=5a9bef64b385946dd9dd1111
 export BUILD_ID=5c06de81b3859448094e6791
-export CONFIG_ID=5bf160bb1f31eb789fc0fa65 # put you config id here
+export CONFIG_ID=5b4c9342b3859411ee82c265 # put you config id here
 
 export SUITE_TYPE=sgtest
 export SGTEST_DIR=~/sgtest
