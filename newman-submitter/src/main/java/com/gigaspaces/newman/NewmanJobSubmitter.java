@@ -37,13 +37,15 @@ public class NewmanJobSubmitter {
     private String suiteId;
     private String configId;
     private Set<String> agentGroups;
+    private int priority;
 
-    public NewmanJobSubmitter(String suiteId, String buildId, String configId, String host, String port, String username, String password, Set<String> agentGroups){
+    public NewmanJobSubmitter(String suiteId, String buildId, String configId, String host, String port, String username, String password, Set<String> agentGroups, int priority){
 
         this.buildId = buildId;
         this.suiteId = suiteId;
         this.configId = configId;
         this.agentGroups = agentGroups;
+        this.priority = priority;
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         try {
@@ -119,7 +121,7 @@ public class NewmanJobSubmitter {
 
             validateUris(build.getTestsMetadata()); // throws exception if URI not exists
 
-            Job job = addJob(newmanClient, suiteId, buildId, configId, author, agentGroups);
+            Job job = addJob(newmanClient, suiteId, buildId, configId, author, agentGroups, priority);
             logger.info("added a new job {}", job);
             Collection<URI> testsMetadata = build.getTestsMetadata();
 
@@ -157,18 +159,19 @@ public class NewmanJobSubmitter {
         }
     }
 
-    private Job addJob(NewmanClient client, String suiteId, String buildId, String configId, String author, Set<String> agentGroups) throws ExecutionException, InterruptedException, TimeoutException {
+    private Job addJob(NewmanClient client, String suiteId, String buildId, String configId, String author, Set<String> agentGroups, int priority) throws ExecutionException, InterruptedException, TimeoutException {
         JobRequest jobRequest = new JobRequest();
         jobRequest.setBuildId(buildId);
         jobRequest.setSuiteId(suiteId);
         jobRequest.setConfigId(configId);
         jobRequest.setAuthor(author);
         jobRequest.setAgentGroups(agentGroups);
+        jobRequest.setPriority(priority);
 
         try {
             return client.createJob(jobRequest).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
-            logger.error("can't create job: suiteId: [{}], buildId:[{}], configId: [{}], agentGroups: [{}]. exception: {}", suiteId, buildId, configId, agentGroups, e);
+            logger.error("can't create job: suiteId: [{}], buildId:[{}], configId: [{}], agentGroups: [{}], priority: [{}]. exception: {}", suiteId, buildId, configId, agentGroups, priority, e);
             throw e;
         }
     }
@@ -201,11 +204,11 @@ public class NewmanJobSubmitter {
         }
     }
 
-    //0- suiteId, 1-buildId, 2-configId, 3- agentGroups, 4-host, 5- port, 6- user, 7- password
+    //0- suiteId, 1-buildId, 2-configId, 3- agentGroups, 4-host, 5- port, 6- user, 7- password //Todo- add int the comment priority
     public static void main(String[] args) throws Exception {
-        //testSubmitterFromIntelliJ();
+        testSubmitterFromIntelliJ();
 
-       testSubmitterUsingArgs(args);
+       //testSubmitterUsingArgs(args);
     }
 
     private static void testSubmitterFromIntelliJ() throws Exception {
@@ -213,6 +216,8 @@ public class NewmanJobSubmitter {
         String buildId = "5d19f01a4cedfd000cd81982";
         String configId = "5b4c9342b3859411ee82c265";
         String requiredAgentGroups = "devGroup";
+        int priority = 0;
+
 
         String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, true /*required*/, logger);
         String port = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PORT, true /*required*/, logger);
@@ -221,7 +226,7 @@ public class NewmanJobSubmitter {
         Set<String> agentGroups = NewmanJobSubmitter.parse(requiredAgentGroups);
 
 
-        NewmanJobSubmitter submitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password, agentGroups);
+        NewmanJobSubmitter submitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password, agentGroups, priority);
 
         final String jobId = submitter.submitJob(username);
 
@@ -229,7 +234,7 @@ public class NewmanJobSubmitter {
     }
 
     //0- suiteId, 1-buildId, 2-configId, 3- agentGroups, 4-host, 5- port, 6- user, 7- password
-    private static void testSubmitterUsingArgs(String[] args) throws Exception{
+    /*private static void testSubmitterUsingArgs(String[] args) throws Exception{
         if (args.length != 8){
             logger.error("Usage: java -cp newman-submitter-1.0.jar com.gigaspaces.newman.NewmanJobSubmitter <suiteid> <buildId> <configId> <agentsGroups>" +
                     " <newmanServerHost> <newmanServerPort> <newmanUser> <newmanPassword>");
@@ -254,7 +259,7 @@ public class NewmanJobSubmitter {
 
         logger.info("Submitted a new job with id {}", jobId);
     }
-
+    */
     private static Set<String> parse(String input){
         Set<String> output =  new TreeSet<>();
         if(input  != null) {

@@ -238,7 +238,7 @@ public class NewmanSubmitter {
                 if (suite == null) {
                     throw new IllegalArgumentException("job suite with id: " + suiteId + " does not exists");
                 }
-                final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password, agentGroups);
+                final NewmanJobSubmitter jobSubmitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password, agentGroups, 0);
 
                 String jobId = jobSubmitter.submitJob(author);
                 logger.info("submitted job ");

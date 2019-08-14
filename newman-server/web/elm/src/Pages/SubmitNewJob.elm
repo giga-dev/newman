@@ -130,11 +130,19 @@ update msg model =
             ( { model | selectedConfig = config }, Cmd.none )
 
         MultiSelectAgentGroupsMsg agentGroups ->
-            let
+           {- let
                 ( subModel, subCmd, outMsg ) =
                     Multiselect.update agentGroups model.selectedAgentGroups
             in
-                ( { model | selectedAgentGroups = subModel }, Cmd.map MultiSelectAgentGroupsMsg subCmd )
+                ( { model | selectedAgentGroups = subModel }, Cmd.map MultiSelectAgentGroupsMsg subCmd )-}
+
+           let
+               ( subModel, subCmd, outMsg ) =
+                  Multiselect.update agentGroups model.selectedAgentGroups
+
+           in
+               ( { model | selectedAgentGroups = subModel }, Cmd.map MultiSelectAgentGroupsMsg subCmd )
+
 
         MultiSelectMsg subMsg ->
             let

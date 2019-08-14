@@ -584,6 +584,7 @@ public class NewmanResource {
             job.setSubmitTime(new Date());
             job.setSubmittedBy(jobRequest.getAuthor());
             job.setAgentGroups(jobRequest.getAgentGroups());
+            job.setPriority(jobRequest.getPriority());
             if(jobConfig !=null) {
                 job.setJobConfig(jobConfig);
             }

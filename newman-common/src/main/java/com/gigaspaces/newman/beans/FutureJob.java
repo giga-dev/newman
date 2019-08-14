@@ -27,11 +27,12 @@ public class FutureJob {
     private String author;
     private Date submitTime;
     private Set<String> agentGroups;
+    private int priority;
 
     public FutureJob() {
     }
 
-    public FutureJob(String buildID, String buildName, String buildBranch, String suiteID, String suiteName, String configID, String configName, String author, Set<String> agentGroups) {
+    public FutureJob(String buildID, String buildName, String buildBranch, String suiteID, String suiteName, String configID, String configName, String author, Set<String> agentGroups/*, int priority*/) {
         this.buildID = buildID;
         this.buildName = buildName;
         this.buildBranch = buildBranch;
@@ -42,6 +43,7 @@ public class FutureJob {
         this.configID = configID;
         this.configName = configName;
         this.agentGroups = agentGroups;
+        /*this.priority = priority;*/
     }
 
     public String getSuiteID() {
@@ -132,6 +134,10 @@ public class FutureJob {
         this.agentGroups = agentGroups;
     }
 
+    public int getPriority() { return priority; }
+
+    public void setPriority(int priority) { this.priority = priority; }
+
     @Override
     public String toString() {
         return "FutureJob{" +
@@ -146,6 +152,7 @@ public class FutureJob {
                 ", author='" + author + '\'' +
                 ", submitTime=" + submitTime +
                 ", agentGroups:" + agentGroups +
+                ", priority:" + priority +
                 '}';
     }
 
