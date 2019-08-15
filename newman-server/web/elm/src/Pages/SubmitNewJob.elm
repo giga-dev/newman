@@ -130,19 +130,11 @@ update msg model =
             ( { model | selectedConfig = config }, Cmd.none )
 
         MultiSelectAgentGroupsMsg agentGroups ->
-           {- let
+            let
                 ( subModel, subCmd, outMsg ) =
                     Multiselect.update agentGroups model.selectedAgentGroups
             in
-                ( { model | selectedAgentGroups = subModel }, Cmd.map MultiSelectAgentGroupsMsg subCmd )-}
-
-           let
-               ( subModel, subCmd, outMsg ) =
-                  Multiselect.update agentGroups model.selectedAgentGroups
-
-           in
-               ( { model | selectedAgentGroups = subModel }, Cmd.map MultiSelectAgentGroupsMsg subCmd )
-
+                ( { model | selectedAgentGroups = subModel }, Cmd.map MultiSelectAgentGroupsMsg subCmd )
 
         MultiSelectMsg subMsg ->
             let
@@ -273,10 +265,10 @@ view model =
                 ]
             , br [] []
             , div [ style [ ( "width", "500px" ) ] ]
-                            [ text "Select agent groups:"
-                            , Multiselect.view model.selectedAgentGroups |> Html.map MultiSelectAgentGroupsMsg
-                            ]
-                        , br [] []
+                [ text "Select agent groups:"
+                , Multiselect.view model.selectedAgentGroups |> Html.map MultiSelectAgentGroupsMsg
+                ]
+            , br [] []
             , let
                 toOption data =
                     Select.item [ value data.id, selected <| model.selectedConfig == data.id ] [ text <| data.name ]
@@ -381,8 +373,10 @@ buildsAndSuitesDecoder =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.map MultiSelectMsg <| Multiselect.subscriptions model.selectedSuites
-
+    Sub.batch
+        [ Sub.map MultiSelectMsg <| Multiselect.subscriptions model.selectedSuites
+        , Sub.map MultiSelectAgentGroupsMsg <| Multiselect.subscriptions model.selectedAgentGroups
+        ]
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
