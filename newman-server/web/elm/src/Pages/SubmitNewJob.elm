@@ -379,7 +379,6 @@ subscriptions model =
         ]
 
 
-
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
     event => WebSocketEvent
