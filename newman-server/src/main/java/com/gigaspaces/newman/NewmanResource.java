@@ -77,12 +77,15 @@ public class NewmanResource {
     public static final String DELETED_FUTURE_JOB = "deleted-future-job";
     private static final String MODIFY_SERVER_STATUS = "modified-server-status";
 
+    private int highestPriority = internalHighestPriority();
+
     private final MongoClient mongoClient;
     private final JobDAO jobDAO;
     private final TestDAO testDAO;
     private final BuildDAO buildDAO;
     private final AgentDAO agentDAO;
     private final SuiteDAO suiteDAO;
+    private final PrioritizedJobDAO prioritizedJobDAO;
     private final JobConfigDAO jobConfigDAO;
     private final FutureJobDAO futureJobDAO;
     private final BuildsCacheDAO buildsCacheDAO;
@@ -133,6 +136,7 @@ public class NewmanResource {
         futureJobDAO = new FutureJobDAO(morphia, mongoClient, config.getMongo().getDb());
         buildsCacheDAO = new BuildsCacheDAO(morphia, mongoClient, config.getMongo().getDb());
         jobConfigDAO = new JobConfigDAO(morphia, mongoClient, config.getMongo().getDb());
+        prioritizedJobDAO = new PrioritizedJobDAO(morphia, mongoClient, config.getMongo().getDb());
 
         MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
         MongoCollection testCollection = db.getCollection("Test");
@@ -589,6 +593,10 @@ public class NewmanResource {
                 job.setJobConfig(jobConfig);
             }
             jobDAO.save(job);
+            if(job.getPriority() != 0){ //Todo- maybe enum for priorities
+                PrioritizedJob prioritizedJob = new PrioritizedJob(job);
+                prioritizedJobDAO.save(prioritizedJob);
+            }
             UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.totalJobs")
                     .inc("buildStatus.pendingJobs")
                     .add("buildStatus.suitesIds", suite.getId(), false)
@@ -601,7 +609,6 @@ public class NewmanResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
-
 
     @POST
     @Path("futureJob")
@@ -1987,12 +1994,20 @@ public class NewmanResource {
             jobs = requirementsQuery.field("suite.requirements").in(capabilities).asList();
         }
         if (jobs != null && jobs.size() > 0) { // if found jobs with match requirements
-            List<Job> jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByCapabilities(jobs, capabilities); // filter jobs with not supported requirements
-            if (jobsFilterByCapabilities != null && !jobsFilterByCapabilities.isEmpty() && agentGroup != null) {
-                jobsFilterByCapabilities = CapabilitiesAndRequirements.filterByGroupNames(jobsFilterByCapabilities, agentGroup);// filter jobs with not suitable agent groups
+            List<Job> jobsFiltered = CapabilitiesAndRequirements.filterByCapabilities(jobs, capabilities); // filter jobs with not supported requirements
+            if (jobsFiltered != null && !jobsFiltered.isEmpty() && agentGroup != null) {
+                jobsFiltered = CapabilitiesAndRequirements.filterByGroupNames(jobsFiltered, agentGroup);// filter jobs with not suitable agent groups
             }
-            if (jobsFilterByCapabilities != null && !jobsFilterByCapabilities.isEmpty()) {
-                job = jobsFilterByCapabilities.get(0);
+            if (jobsFiltered != null && !jobsFiltered.isEmpty()) {
+                for(Job job1 : jobsFiltered){
+                    System.out.println(job1.getId() + " priority: " + job1.getPriority());
+                }
+                jobsFiltered.sort(Comparator.comparing(Job::getPriority).reversed());
+                System.out.println("after sort: ");
+                for(Job job1 : jobsFiltered){
+                    System.out.println(job1.getId() + " priority: " + job1.getPriority());
+                }
+                job = jobsFiltered.get(0);
             }
         }
 
@@ -2004,6 +2019,7 @@ public class NewmanResource {
                 jobs = CapabilitiesAndRequirements.filterByGroupNames(jobs, agentGroup);
             }
             if(!jobs.isEmpty()) {
+                jobs.sort(Comparator.comparing(Job::getPriority).reversed());
                 job = jobs.get(0);
             }
         }
@@ -2013,7 +2029,41 @@ public class NewmanResource {
     private Build getLatestBuild(String branch) {
         return buildDAO.findOne(buildDAO.createQuery().order("-buildTime").field("branch").equal(branch));
     }
+/*
+    @GET
+    @Path("getHighestPriorityJob") //Todo- check if need to add in another place
+    @Produces(MediaType.APPLICATION_JSON)
+    public int highestPriorityJob() {
+       return highestPriority;
+    }*/
 
+    private int internalHighestPriority(){
+        List<PrioritizedJob> prioritizedJobs = prioritizedJobDAO.find(prioritizedJobDAO.createQuery()).asList();
+        if(!prioritizedJobs.isEmpty()){
+            return prioritizedJobs.get(0).getPriority();
+        }
+        return 0;
+    }
+
+
+    @PUT
+    @Path("getHasHigherPriorityJob/{currentPriority}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Boolean hasHigherPriorityJob(@PathParam("currentPriority") final String currentPriority, final Agent agent) {
+
+        List<PrioritizedJob> prioritizedJobs = prioritizedJobDAO.find(prioritizedJobDAO.createQuery()).asList(); //Todo- critera:list where priority job is higher
+        Job highestPriorityJob;
+        if(prioritizedJobs.isEmpty() /*|| prioritizedJobs.get(0).getPriority() <= job.getPriority()*/){
+            return false;
+        }
+
+        for(PrioritizedJob potentialJob: prioritizedJobs){
+            if(potentialJob.getAgentGroups().contains(agent.getGroupName()) && agent.getCapabilities().containsAll(potentialJob.getRequirments())){
+                return true; //Todo- check first if priority is higher and numbers of preparing agents
+            }
+        }
+        return false;
+    }
 
     @GET
     @Path("build")

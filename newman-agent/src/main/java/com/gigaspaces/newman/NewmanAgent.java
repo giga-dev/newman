@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.gigaspaces.newman.utils.FileUtils.append;
 
@@ -168,7 +169,7 @@ public class NewmanAgent {
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
             boolean setupFinished = jobExecutor.setup();
             reportJobSetup(job.getId(), name, jobExecutor.getJobFolder());
-            Agent agent;
+            Agent agent = new Agent(); //Todo - it's legal to initiallize like this
             if (!setupFinished) {
                 logger.error("Setup of job {} failed, will wait for a new job", job.getId());
                 jobExecutor.teardown();
@@ -201,13 +202,28 @@ public class NewmanAgent {
             // Submit workers:
             List<Future<?>> workersTasks = new ArrayList<>();
             for (int i = 0; i < calculateNumberOfWorkers(job); i++) {
+                final NewmanClient client = c;
+                final Agent internalAgent = agent;
                 final int id = i;
-                Future<?> worker = workers.submit(() -> {
+                //boolean toStop = false;
+                Future<?> worker;
+                worker = workers.submit(() -> {
                     logger.info("Starting worker #{} for job {}", id, jobExecutor.getJob().getId());
                     Test test;
-                    while ((test = findTest(jobExecutor.getJob())) != null) {
+                    boolean toStop = false;
+                    try {
+                        toStop = client.checkHigherPriorityJob(internalAgent, jobExecutor.getJob().getPriority()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (TimeoutException e) {
+                        e.printStackTrace();
+                    }
+
+                    while (!toStop && (test = findTest(jobExecutor.getJob())) != null) {
                         Test testResult = jobExecutor.run(test);
-                        if(testResult.getStatus().equals(Test.Status.FAIL)){
+                        if (testResult.getStatus().equals(Test.Status.FAIL)) {
                             resubmitFailed(job.getId(), testResult);
                         }
                         reportTest(testResult);
@@ -226,8 +242,84 @@ public class NewmanAgent {
             }
             keepAliveTask.cancel();
             jobExecutor.teardown();
+
+
+            // Submit workers:
+            /*List<Future<?>> workersTasks = new ArrayList<>();
+            AtomicBoolean toStop = new AtomicBoolean(false);
+            for (int i = 0; i < calculateNumberOfWorkers(job); i++) {
+                final int id = i;
+                Future<?> worker = workers.submit(() -> {
+                    logger.info("Starting worker #{} for job {}", id, jobExecutor.getJob().getId());
+                    Test test;
+                    toStop.set(checkHasPrioritizedJob());
+
+                    while ( toStop.get() == false && (test = findTest(jobExecutor.getJob())) != null) {
+                        Test testResult = jobExecutor.run(test);
+                        if(testResult.getStatus().equals(Test.Status.FAIL)){
+                            resubmitFailed(job.getId(), testResult);
+                        }
+                        reportTest(testResult);
+                    }
+                    logger.info("Finished Worker #{} for job {}", id, jobExecutor.getJob().getId());
+                });
+*/
+
+                /*Future<?> worker = workers.submit((new Runnable() {
+                    @Override
+                    public void run() {
+                        logger.info("Starting worker #{} for job {}", id, jobExecutor.getJob().getId());
+                        Test test;
+                    *//*if(c.checkPriorityJob(agent)){
+                        to
+                    }*//*
+
+                        while ( toStop == false && (test = findTest(jobExecutor.getJob())) != null) {
+                            Test testResult = jobExecutor.run(test);
+                            if(testResult.getStatus().equals(Test.Status.FAIL)){
+                                resubmitFailed(job.getId(), testResult);
+                            }
+                            reportTest(testResult);
+                        }
+                        logger.info("Finished Worker #{} for job {}", id, jobExecutor.getJob().getId());
+                    });
+                */
+
+             /*   workersTasks.add(worker);
+            }
+
+*/
+
+            for (Future<?> worker : workersTasks) {
+                logger.info("Waiting for all workers to complete...");
+                try {
+                    worker.get();
+                } catch (Exception e) {
+                    logger.warn("worker exited with exception", e);
+                }
+            }
+            keepAliveTask.cancel();
+            jobExecutor.teardown();
         }
     }
+
+
+    /*private boolean checkHasPrioritizedJob(){
+        NewmanClient c = getClient();
+        try {
+            Agent agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
+        if(c.checkPriorityJob(agent)){
+            return true;
+        }
+        return false;
+    }*/
 
     private void resubmitFailed(String jobId, Test failedTest){
         Job job = null;

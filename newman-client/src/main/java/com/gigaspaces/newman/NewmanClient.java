@@ -14,6 +14,7 @@ import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.glassfish.jersey.media.sse.EventInput;
 import org.glassfish.jersey.media.sse.SseFeature;
 
+import javax.swing.text.StyledEditorKit;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -87,9 +88,24 @@ public class NewmanClient {
        return restClient.target(uri).path("futureJob").request().rx().post(Entity.json(futureJobRequest),new GenericType<List<FutureJob>>(){});
     }
 
+    /*public CompletionStage<Integer> getHighestPriorityJob() {
+        return restClient.target(uri).path("getHighestPriorityJob").request().rx().get(Integer.class);
+    }*/
+
+    /*public CompletionStage<Integer> getHighestPriorityJob(Agent agent) {
+        //return restClient.target(uri).path("getHighestPriorityJob").request().rx().get(Integer.class);
+        return restClient.target(uri).path("build").request().rx().put(Entity.json(build), Build.class);
+    }*/
+
+    public CompletionStage<Boolean> checkHigherPriorityJob(Agent agent, int currentPriority) {
+        //return restClient.target(uri).path("getHasHigherPriorityJob").request().rx().get(Boolean.class);
+        //return restClient.target(uri).path("getHasHigherPriorityJob").queryParam("currentPriority", currentPriority).request().rx().put(Entity.json(agent), Boolean.class);
+        return restClient.target(uri).path("getHasHigherPriorityJob").path(Integer.toString(currentPriority)).request().rx().post(Entity.json(agent),Boolean.class);
+    }
+
     public CompletionStage<Test> createTest(Test test) {
         return restClient.target(uri).path("test").request().rx().put(Entity.json(test), Test.class);
-    }
+    }/**/
 
     public CompletionStage<Response> createTests(List<Test> tests, String queryParam) {
         return restClient.target(uri).path("tests").queryParam("toCount", queryParam).request().rx().put(Entity.json(new Batch<>(tests, 0, tests.size(), false, null, null)));
