@@ -1,6 +1,7 @@
 package com.gigaspaces.newman.beans;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -21,7 +22,7 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {
     @Id
-    private String id;
+    private ObjectId id;
     @Embedded(concreteClass = Build.class)
     private Build build;
 
@@ -71,11 +72,11 @@ public class Job {
     public void setPriority(int priority) { this.priority = priority; }
 
     public String getId() {
-        return id;
+        return id.toString();
     }
 
     public void setId(String id) {
-        this.id = id;
+        this.id = new ObjectId(id);
     }
 
     public Build getBuild() {

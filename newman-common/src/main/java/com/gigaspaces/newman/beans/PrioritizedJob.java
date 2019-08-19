@@ -4,27 +4,34 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.mongodb.morphia.annotations.*;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 
 @Entity
-//@JsonIgnoreProperties(ignoreUnknown = true)
+//@JsonIgnoreProperties(ignoreUnknown = true) //Todo - decide if needed
 public class PrioritizedJob {
     @Id
     private String id;
-    @Reference
-    private Job job;
-    private Set<String> agentGroups;
-    private Set<String> requirments;
+    private String jobID;
+    @Embedded
+    private Set<String> agentGroups = Collections.emptySet();
+    @Embedded
+    private Set<String> requirements = Collections.emptySet();
+    @Embedded
     private int priority;
-    private Set<String> preparingAgents; //Todo- it's changes dynamically
+    @Embedded
+    private int preparingAgents;
+
+    public PrioritizedJob(){
+    }
 
     public PrioritizedJob(Job job){
-        this.job = job;
+        this.jobID = job.getId();
         this.agentGroups = job.getAgentGroups();
-        this.requirments = job.getSuite().getRequirements();
+        this.requirements = job.getSuite().getRequirements();
         this.priority = job.getPriority();
-        this.preparingAgents = job.getPreparingAgents();
+        this.preparingAgents = job.getPreparingAgents().size();
     }
 
     public String getId() {
@@ -43,12 +50,12 @@ public class PrioritizedJob {
         this.agentGroups = agentGroups;
     }
 
-    public Set<String> getRequirments() {
-        return requirments;
+    public Set<String> getRequirements() {
+        return requirements;
     }
 
-    public void setRequirments(Set<String> requirments) {
-        this.requirments = requirments;
+    public void setRequirements(Set<String> requirements) {
+        this.requirements = requirements;
     }
 
     public int getPriority() {
@@ -59,19 +66,19 @@ public class PrioritizedJob {
         this.priority = priority;
     }
 
-    public Set<String> getPreparingAgents() {
+    public int getPreparingAgents() {
         return preparingAgents;
     }
 
-    public void setPreparingAgents(Set<String> preparingAgents) {
+    public void setPreparingAgents(int preparingAgents) {
         this.preparingAgents = preparingAgents;
     }
 
-    public Job getJob() {
-        return job;
+    public String getJob() {
+        return jobID;
     }
 
-    public void setJob(Job job) {
-        this.job = job;
+    public void setJob(String jobID) {
+        this.jobID = jobID;
     }
 }
