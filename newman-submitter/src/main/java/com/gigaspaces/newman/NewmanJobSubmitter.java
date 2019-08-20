@@ -216,7 +216,7 @@ public class NewmanJobSubmitter {
         String buildId = "5d19f01a4cedfd000cd81982";
         String configId = "5b4c9342b3859411ee82c265";
         String requiredAgentGroups = "devGroup";
-        int priority = 4;
+        int priority = 10;
 
 
         String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, true /*required*/, logger);
