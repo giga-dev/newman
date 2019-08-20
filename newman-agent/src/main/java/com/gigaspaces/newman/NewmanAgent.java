@@ -48,6 +48,14 @@ public class NewmanAgent {
         }
     }
 
+    private class MyRunnable implements Runnable{
+
+        @Override
+        public void run() {
+
+        }
+    }
+
     private static void createJobSetupEnv(String[] args, NewmanAgent agent) throws ExecutionException, InterruptedException, IOException, TimeoutException {
         logger.info("performing job setup env");
         agent.initialize(false);
@@ -162,8 +170,18 @@ public class NewmanAgent {
     private void start() {
         NewmanClient c = getClient();
         KeepAliveTask keepAliveTask = null;
+        Job currJob = null;
         while (isActive()) {
             Job job = waitForJob();
+            if(job.getId().equals(currJob.getId())){
+                job = currJob;
+                currJob = null;
+            }
+            /*if(currJob != null){
+                keepAliveTask.cancel();
+                jobExecutor.teardown();
+            }*/
+
             // ping server during job setup and execution
             keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
             final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
@@ -205,14 +223,18 @@ public class NewmanAgent {
                 final Agent currentAgent = agent;
                 final int id = i;
                 Future<?> worker;
+                final Boolean[] toStop = {false};
+                final Job jobToRun = job;
                 worker = workers.submit(() -> {
                     logger.info("Starting worker #{} for job {}", id, jobExecutor.getJob().getId());
                     Test test;
-
-                    while (!checkHasPrioritizedJob(currentAgent, job.getPriority()) && (test = findTest(jobExecutor.getJob())) != null) {
+                    if(!toStop[0]){
+                        toStop[0] = hasPrioritizedJob(currentAgent, jobToRun.getPriority());
+                    }
+                    while (!toStop[0] && (test = findTest(jobExecutor.getJob())) != null) {
                         Test testResult = jobExecutor.run(test);
                         if (testResult.getStatus().equals(Test.Status.FAIL)) {
-                            resubmitFailed(job.getId(), testResult);
+                            resubmitFailed(jobToRun.getId(), testResult);
                         }
                         reportTest(testResult);
                     }
@@ -230,14 +252,37 @@ public class NewmanAgent {
                     logger.warn("worker exited with exception", e);
                 }
             }
-            keepAliveTask.cancel();
-            jobExecutor.teardown();
-            System.out.println("finished");
+
+            if(findTest(jobExecutor.getJob()) == null){  //Todo- where job become DONE
+                keepAliveTask.cancel();
+                jobExecutor.teardown();
+                System.out.println("finished");
+            }
+            else{
+                currJob = job;
+            }
+
         }
     }
 
 
-    private boolean checkHasPrioritizedJob(final Agent agent, int currentPriority){
+    /*worker = workers.submit(() -> {
+        logger.info("Starting worker #{} for job {}", id, jobExecutor.getJob().getId());
+        Test test;
+
+        while (!checkHasPrioritizedJob(currentAgent, job.getPriority()) && (test = findTest(jobExecutor.getJob())) != null) {
+            Test testResult = jobExecutor.run(test);
+            if (testResult.getStatus().equals(Test.Status.FAIL)) {
+                resubmitFailed(job.getId(), testResult);
+            }
+            reportTest(testResult);
+        }
+        logger.info("Finished Worker #{} for job {}", id, jobExecutor.getJob().getId());
+
+    });
+                workersTasks.add(worker);*/
+
+    private boolean hasPrioritizedJob(final Agent agent, int currentPriority){
         try {
             if(client.checkHigherPriorityJob(agent, currentPriority).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)){
                 System.out.println("there is job in higher priority");
