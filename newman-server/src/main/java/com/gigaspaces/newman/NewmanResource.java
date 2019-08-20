@@ -2303,14 +2303,15 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteJob(final @PathParam("jobId") String jobId) {
         Job deletedJob = performDeleteJob(jobId);
+        if(deletedJob.getPriority() != 0){
+            Query<PrioritizedJob> query = prioritizedJobDAO.createQuery().filter("jobID", deletedJob.getId());
+            Datastore datastore = prioritizedJobDAO.getDatastore();
+            datastore.findAndDelete(query);
+        }
         performDeleteTestsLogs(jobId);
         performDeleteJobSetupLogs(jobId);
         updateBuildWithDeletedJob(deletedJob);
         performDeleteTests(jobId);
-        if(deletedJob.getPriority() != 0){
-            PrioritizedJob prioritizedJobToDelete = prioritizedJobDAO.findOne("jobID", deletedJob.getId());
-            prioritizedJobDAO.delete(prioritizedJobToDelete);
-        }
 
         return Response.ok(Entity.json(jobId)).build();
     }
