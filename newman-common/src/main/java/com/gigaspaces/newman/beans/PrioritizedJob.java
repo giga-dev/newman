@@ -13,7 +13,7 @@ import java.util.Set;
 public class PrioritizedJob {
     @Id
     private String id;
-    private String jobID;
+    private String jobId;
     @Embedded
     private Set<String> agentGroups = Collections.emptySet();
     @Embedded
@@ -27,7 +27,7 @@ public class PrioritizedJob {
     }
 
     public PrioritizedJob(Job job){
-        this.jobID = job.getId();
+        this.jobId = job.getId();
         this.agentGroups = job.getAgentGroups();
         this.requirements = job.getSuite().getRequirements();
         this.priority = job.getPriority();
@@ -75,10 +75,10 @@ public class PrioritizedJob {
     }
 
     public String getJob() {
-        return jobID;
+        return jobId;
     }
 
     public void setJob(String jobID) {
-        this.jobID = jobID;
+        this.jobId = jobID;
     }
 }

@@ -142,7 +142,7 @@ public class NewmanResource {
         MongoCollection testCollection = db.getCollection("Test");
         distinctTestsByAssignedAgentFilter = testCollection.distinct("assignedAgent", String.class);
 
-         highestPriority = initializeHighestPriority();
+         highestPriority = updateHighestPriority();
         System.out.println("highest priority is: " + highestPriority);
 
         if (Boolean.getBoolean("production")) { // This is set to true in the newman server
@@ -1092,6 +1092,9 @@ public class NewmanResource {
             if (!testDAO.exists(query)) {
                 updateJobStatus.set("state", State.DONE).set("endTime", new Date());
                 updateBuild.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
+                if(testJob.getPriority() != 0){
+                    deletePrioritizedJob(testJob);
+                }
             }
             Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(result.getJobId()), updateJobStatus);
 
@@ -2037,7 +2040,7 @@ public class NewmanResource {
         return buildDAO.findOne(buildDAO.createQuery().order("-buildTime").field("branch").equal(branch));
     }
 
-    private int initializeHighestPriority(){
+    private int updateHighestPriority(){
         System.out.println("in initialize highest priority");
         List<PrioritizedJob> prioritizedJobs = prioritizedJobDAO.find(prioritizedJobDAO.createQuery()).asList();
         if(!prioritizedJobs.isEmpty()){
@@ -2304,9 +2307,7 @@ public class NewmanResource {
     public Response deleteJob(final @PathParam("jobId") String jobId) {
         Job deletedJob = performDeleteJob(jobId);
         if(deletedJob.getPriority() != 0){
-            Query<PrioritizedJob> query = prioritizedJobDAO.createQuery().filter("jobID", deletedJob.getId());
-            Datastore datastore = prioritizedJobDAO.getDatastore();
-            datastore.findAndDelete(query);
+            deletePrioritizedJob(deletedJob);
         }
         performDeleteTestsLogs(jobId);
         performDeleteJobSetupLogs(jobId);
@@ -2314,6 +2315,14 @@ public class NewmanResource {
         performDeleteTests(jobId);
 
         return Response.ok(Entity.json(jobId)).build();
+    }
+
+    private void deletePrioritizedJob(Job job){
+        Query<PrioritizedJob> query = prioritizedJobDAO.createQuery().filter("jobID", job.getId());
+        Datastore datastore = prioritizedJobDAO.getDatastore();
+        datastore.findAndDelete(query);
+        highestPriority = updateHighestPriority();
+        System.out.println("in delete prioritized job");
     }
 
     private void performDeleteTestsLogs(String jobId) {
