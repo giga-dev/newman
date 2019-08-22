@@ -2318,7 +2318,7 @@ public class NewmanResource {
     }
 
     private void deletePrioritizedJob(Job job){
-        Query<PrioritizedJob> query = prioritizedJobDAO.createQuery().filter("jobID", job.getId());
+        Query<PrioritizedJob> query = prioritizedJobDAO.createQuery().filter("jobId", job.getId());
         Datastore datastore = prioritizedJobDAO.getDatastore();
         datastore.findAndDelete(query);
         highestPriority = updateHighestPriority();

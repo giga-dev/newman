@@ -178,7 +178,6 @@ public class NewmanAgent {
 
             if (currJob != null && job.getId().equals(currJob.getId())) {
                 job = currJob;
-
                 currJob = null;
             } else {
                 if (currJob != null) {
@@ -263,7 +262,7 @@ public class NewmanAgent {
                 }
             }
 
-            if (findTest(jobExecutor.getJob()) == null) {  //Todo- where job become DONE
+            if (findTest(jobExecutor.getJob()) == null) {  //Todo- where job become DONE- change to job.get state
                 keepAliveTask.cancel();
                 jobExecutor.teardown();
                 System.out.println("job finished");
