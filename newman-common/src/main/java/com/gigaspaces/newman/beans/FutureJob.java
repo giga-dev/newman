@@ -32,7 +32,7 @@ public class FutureJob {
     public FutureJob() {
     }
 
-    public FutureJob(String buildID, String buildName, String buildBranch, String suiteID, String suiteName, String configID, String configName, String author, Set<String> agentGroups/*, int priority*/) {
+    public FutureJob(String buildID, String buildName, String buildBranch, String suiteID, String suiteName, String configID, String configName, String author, Set<String> agentGroups, int priority) {
         this.buildID = buildID;
         this.buildName = buildName;
         this.buildBranch = buildBranch;
@@ -43,7 +43,7 @@ public class FutureJob {
         this.configID = configID;
         this.configName = configName;
         this.agentGroups = agentGroups;
-        /*this.priority = priority;*/
+        this.priority = priority;
     }
 
     public String getSuiteID() {

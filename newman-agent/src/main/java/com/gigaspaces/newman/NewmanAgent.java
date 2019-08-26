@@ -21,7 +21,7 @@ import static com.gigaspaces.newman.utils.FileUtils.append;
  * @since 1.0
  * Agent that executes the tests.
  */
-public class NewmanAgent {
+public class NewmanAgent<shouldStop> {
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanAgent.class);
     private final NewmanAgentConfig config;
@@ -31,6 +31,16 @@ public class NewmanAgent {
     private volatile boolean active = true;
     private final Timer timer = new Timer(true);
     private static final int DEFAULT_TIMEOUT_SECONDS = 60;
+    private volatile boolean shouldStop = false;
+    private long startTime =System.currentTimeMillis();
+
+    public boolean isShouldStop() {
+        return shouldStop;
+    }
+
+    public void setShouldStop(boolean shouldStop) {
+        this.shouldStop = shouldStop;
+    }
 
     public static void main(String[] args) throws Exception {
         NewmanAgent agent = new NewmanAgent();
@@ -48,13 +58,6 @@ public class NewmanAgent {
         }
     }
 
-    private class MyRunnable implements Runnable{
-
-        @Override
-        public void run() {
-
-        }
-    }
 
     private static void createJobSetupEnv(String[] args, NewmanAgent agent) throws ExecutionException, InterruptedException, IOException, TimeoutException {
         logger.info("performing job setup env");
@@ -172,15 +175,17 @@ public class NewmanAgent {
         KeepAliveTask keepAliveTask = null;
         Job currJob = null;
         JobExecutor jobExecutor = null;
-        Agent agent = new Agent(); //Todo - it's legal to initiallize here  like this
+        Agent agent = new Agent();
         while (isActive()) {
             Job job = waitForJob();
 
             if (currJob != null && job.getId().equals(currJob.getId())) {
+                System.out.println("the same job was found, no need to setup again");
                 job = currJob;
                 currJob = null;
             } else {
                 if (currJob != null) {
+                    System.out.println("job changed due to priority, teardown old job");
                     keepAliveTask.cancel();
                     jobExecutor.teardown();
                 }
@@ -224,32 +229,38 @@ public class NewmanAgent {
                 final Agent currentAgent = agent;
                 final int id = i;
                 Future<?> worker;
-                final Boolean[] hasHigherPriority = {false};
                 final Job jobToRun = job;
                 final JobExecutor currJobExecutor = jobExecutor;
-                worker = workers.submit(() -> {
-                    logger.info("Starting worker #{} for job {}", id, currJobExecutor.getJob().getId());
-                    Test test;
-                    final Boolean[] endOfTests = {false};
 
-                    while(!hasHigherPriority[0] && !endOfTests[0]){
-                        hasHigherPriority[0] = hasPrioritizedJob(currentAgent, jobToRun.getPriority());
-                        if(hasHigherPriority[0]){
-                            break;
-                        }
-                        if((test = findTest(currJobExecutor.getJob())) != null){
-                            Test testResult = currJobExecutor.run(test);
-                            if (testResult.getStatus().equals(Test.Status.FAIL)) {
-                                resubmitFailed(jobToRun.getId(), testResult);
+
+                worker = workers.submit(()-> {
+                        logger.info("Starting worker #{} for job {}", id, currJobExecutor.getJob().getId());
+                        Test test;
+                        while(!shouldStop){
+                            long timeNow = System.currentTimeMillis();
+                            System.out.println("diff time is " + (timeNow - startTime)/1000);
+                            if((timeNow - startTime) > (1000*60)){
+                                System.out.println("more than one minute:diff time is " + (timeNow - startTime)/1000);
+                               shouldStop = hasPrioritizedJob(currentAgent.getId(), jobToRun.getPriority());
+                                startTime = System.currentTimeMillis();
+                                if(shouldStop){
+                                    break;
+                                }
                             }
-                            reportTest(testResult);
+
+                            if((test = findTest(currJobExecutor.getJob())) != null){
+                                Test testResult = currJobExecutor.run(test);
+                                if (testResult.getStatus().equals(Test.Status.FAIL)) {
+                                    resubmitFailed(jobToRun.getId(), testResult);
+                                }
+                                reportTest(testResult);
+                            }
+                            else{
+                              break;
+                            }
                         }
-                        else{
-                            endOfTests[0] = true;
-                        }
-                    }
-                    logger.info("Finished Worker #{} for job {}", id, currJobExecutor.getJob().getId());
-                });
+                        logger.info("Finished Worker #{} for job {}", id, currJobExecutor.getJob().getId());
+                    });
                 workersTasks.add(worker);
             }
 
@@ -262,8 +273,7 @@ public class NewmanAgent {
                 }
             }
 
-            if (findTest(jobExecutor.getJob()) == null) {  //Todo- where job become DONE- change to job.get state
-                keepAliveTask.cancel();
+            if (job.getState() == State.DONE) {
                 jobExecutor.teardown();
                 System.out.println("job finished");
             } else {
@@ -274,9 +284,9 @@ public class NewmanAgent {
     }
 
 
-    private boolean hasPrioritizedJob(final Agent agent, int currentPriority){
+    private boolean hasPrioritizedJob(final String agentId, int currentPriority){
         try {
-            if(client.checkHigherPriorityJob(agent, currentPriority).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)){
+            if(client.hasHigherPriorityJob(agentId, currentPriority).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)){
                 System.out.println("there is job in higher priority");
                 return true;
             }
@@ -290,75 +300,6 @@ public class NewmanAgent {
 
         return false;
     }
-
-
-    /*private void start() {
-        NewmanClient c = getClient();
-        KeepAliveTask keepAliveTask = null;
-        while (isActive()) {
-            Job job = waitForJob();
-            // ping server during job setup and execution
-            keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
-            final JobExecutor jobExecutor = new JobExecutor(job, config.getNewmanHome());
-            boolean setupFinished = jobExecutor.setup();
-            reportJobSetup(job.getId(), name, jobExecutor.getJobFolder());
-            Agent agent;
-            if (!setupFinished) {
-                logger.error("Setup of job {} failed, will wait for a new job", job.getId());
-                jobExecutor.teardown();
-                //inform the server that agent is not working on this job
-                try {
-                    agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                    c.unsubscribe(agent).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                    c.setSetupRetries(agent, agent.getSetupRetries() + 1).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                } catch (IllegalStateException e) {
-                    c = getClient();
-                } catch (Exception e) {
-                    logger.warn("Failed to unsubscribe agent {} due to failure in job setup of job {}: {}", name, job.getId(), e);
-                }
-                try {
-                    Thread.sleep(config.getJobPollInterval());
-                } catch (InterruptedException ignored) {
-                }
-                continue;
-            }
-            try {
-                agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                c.setSetupRetries(agent, 0).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            } catch (Exception e) {
-                logger.warn("Failed to find agent: " + name);
-            }
-
-            // Submit workers:
-            List<Future<?>> workersTasks = new ArrayList<>();
-            for (int i = 0; i < calculateNumberOfWorkers(job); i++) {
-                final int id = i;
-                Future<?> worker = workers.submit(() -> {
-                    logger.info("Starting worker #{} for job {}", id, jobExecutor.getJob().getId());
-                    Test test;
-                    while ((test = findTest(jobExecutor.getJob())) != null) {
-                        Test testResult = jobExecutor.run(test);
-                        if (testResult.getStatus().equals(Test.Status.FAIL)) {
-                            resubmitFailed(job.getId(), testResult);
-                        }
-                        reportTest(testResult);
-                    }
-                    logger.info("Finished Worker #{} for job {}", id, jobExecutor.getJob().getId());
-                });
-                workersTasks.add(worker);
-            }
-            for (Future<?> worker : workersTasks) {
-                logger.info("Waiting for all workers to complete...");
-                try {
-                    worker.get();
-                } catch (Exception e) {
-                    logger.warn("worker exited with exception", e);
-                }
-            }
-            keepAliveTask.cancel();
-            jobExecutor.teardown();
-        }
-    }*/
 
     private void resubmitFailed(String jobId, Test failedTest){
         Job job = null;

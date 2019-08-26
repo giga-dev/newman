@@ -88,19 +88,8 @@ public class NewmanClient {
        return restClient.target(uri).path("futureJob").request().rx().post(Entity.json(futureJobRequest),new GenericType<List<FutureJob>>(){});
     }
 
-    /*public CompletionStage<Integer> getHighestPriorityJob() {
-        return restClient.target(uri).path("getHighestPriorityJob").request().rx().get(Integer.class);
-    }*/
-
-    /*public CompletionStage<Integer> getHighestPriorityJob(Agent agent) {
-        //return restClient.target(uri).path("getHighestPriorityJob").request().rx().get(Integer.class);
-        return restClient.target(uri).path("build").request().rx().put(Entity.json(build), Build.class);
-    }*/
-
-    public CompletionStage<Boolean> checkHigherPriorityJob(Agent agent, int currentPriority) {
-        //return restClient.target(uri).path("getHasHigherPriorityJob").request().rx().get(Boolean.class);
-        //return restClient.target(uri).path("getHasHigherPriorityJob").queryParam("currentPriority", currentPriority).request().rx().put(Entity.json(agent), Boolean.class);
-        return restClient.target(uri).path("getHasHigherPriorityJob").path(Integer.toString(currentPriority)).request().rx().post(Entity.json(agent),Boolean.class);
+    public CompletionStage<Boolean> hasHigherPriorityJob(String agentId, int currentPriority) {
+        return restClient.target(uri).path("prioritizedJob").path(agentId).path(Integer.toString(currentPriority)).request().rx().post(Entity.json(agentId), Boolean.class);
     }
 
     public CompletionStage<Test> createTest(Test test) {

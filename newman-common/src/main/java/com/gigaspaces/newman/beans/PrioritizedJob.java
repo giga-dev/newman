@@ -22,6 +22,7 @@ public class PrioritizedJob {
     private int priority;
     @Embedded
     private int preparingAgents;
+    private boolean isPaused;
 
     public PrioritizedJob(){
     }
@@ -32,6 +33,7 @@ public class PrioritizedJob {
         this.requirements = job.getSuite().getRequirements();
         this.priority = job.getPriority();
         this.preparingAgents = job.getPreparingAgents().size();
+        this.isPaused = !(job.getState().equals("READY") || job.getState().equals("RUNNING"));
     }
 
     public String getId() {
@@ -80,5 +82,35 @@ public class PrioritizedJob {
 
     public void setJob(String jobID) {
         this.jobId = jobID;
+    }
+
+    public String getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(String jobId) {
+        this.jobId = jobId;
+    }
+
+    public boolean isPaused() {
+        return isPaused;
+    }
+
+    public void setPaused(boolean paused) {
+        isPaused = paused;
+    }
+
+
+    @Override
+    public String toString() {
+        return "PrioritizedJob{" +
+                "id='" + id + '\'' +
+                ", jobId='" + jobId + '\'' +
+                ", agentGroups=" + agentGroups +
+                ", requirements=" + requirements +
+                ", priority=" + priority +
+                ", preparingAgents=" + preparingAgents +
+                ", isPaused=" + isPaused +
+                '}';
     }
 }
