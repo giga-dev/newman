@@ -33,7 +33,7 @@ public class PrioritizedJob {
         this.requirements = job.getSuite().getRequirements();
         this.priority = job.getPriority();
         this.preparingAgents = job.getPreparingAgents().size();
-        this.isPaused = !(job.getState().equals("READY") || job.getState().equals("RUNNING"));
+        this.isPaused = job.getState().equals("DONE") || job.getState().equals("BROKEN");
     }
 
     public String getId() {

@@ -599,12 +599,7 @@ public class NewmanResource {
             }
             jobDAO.save(job);
             if(job.getPriority() > 0){
-                PrioritizedJob prioritizedJob = new PrioritizedJob(job);
-                prioritizedJobDAO.save(prioritizedJob);
-                if(job.getPriority() > highestPriority){
-                    highestPriority = job.getPriority();
-                    System.out.println("highest priority changed: " + highestPriority);
-                }
+                createPrioritizedJob(job);
             }
             UpdateOperations<Build> buildUpdateOperations = buildDAO.createUpdateOperations().inc("buildStatus.totalJobs")
                     .inc("buildStatus.pendingJobs")
@@ -616,6 +611,15 @@ public class NewmanResource {
             return Response.ok(job).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+
+    private void createPrioritizedJob(Job job){
+        PrioritizedJob prioritizedJob = new PrioritizedJob(job);
+        prioritizedJobDAO.save(prioritizedJob);
+        if(job.getPriority() > highestPriority){
+            highestPriority = job.getPriority();
+            System.out.println("highest priority changed: " + highestPriority);
         }
     }
 
@@ -755,7 +759,7 @@ public class NewmanResource {
                         // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
                         updateJobStatus.unset("startPrepareTime");
                         if(job.getPriority() > 0){
-                            UpdateOperations<PrioritizedJob> updatePrioritizedJobStatus = prioritizedJobDAO.createUpdateOperations().set("isPaused",true);
+                            UpdateOperations<PrioritizedJob> updatePrioritizedJobStatus = prioritizedJobDAO.createUpdateOperations().set("isPaused", true);
                             PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), updatePrioritizedJobStatus);
                             if(prioritizedJob.getPriority() == highestPriority){
                                 highestPriority = updateHighestPriority();
@@ -2123,6 +2127,7 @@ public class NewmanResource {
             if(potentialJob.getPriority() > currPriority && potentialJob.getAgentGroups().contains(agent.getGroupName()) && agent.getCapabilities().containsAll(potentialJob.getRequirements())){
                 Job job = jobDAO.findOne(jobDAO.createIdQuery(potentialJob.getJobId()));
                 if(potentialJob.getPreparingAgents() < (job.getTotalTests() + job.getNumOfTestRetries() - job.getPassedTests() - job.getFailedTests() - job.getRunningTests())){
+                    System.out.println( "need more agents that has now");
                     return true;
                 }
             }
@@ -2130,13 +2135,58 @@ public class NewmanResource {
         return false;
     }
 
-    /*@PUT
+    @PUT
     @Path("job/{jobId}/{newPriority}")
     @Produces(MediaType.APPLICATION_JSON)
-    //@Consumes(MediaType.APPLICATION_JSON)
-    public void changePriority(final @PathParam(String jobId), final @PathParam(String newPriority)) {
+    @Consumes(MediaType.APPLICATION_JSON) //Todo- what is the return value
+    public Job changeJobPriority(final  @PathParam("jobId") String jobId, final @PathParam("newPriority") String newPriority) {
+     //public Job changeJobPriority(final @PathParam("id") String id, final Job job) {
+       Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
+       int updatePriority = Integer.parseInt(newPriority);
+       int currPriority = job.getPriority();
 
+       if(currPriority == updatePriority){ // //Todo - this condition is unnecessary  if make it impossible
+           return job;
+       }
+
+       UpdateOperations<Job> jobUpdate = jobDAO.createUpdateOperations().set("priority", newPriority);
+       job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), jobUpdate);  //todo- make sure it's correct , shorter than the original query
+
+        if(currPriority == 0){
+            createPrioritizedJob(job);
+        }
+        else{
+            if(updatePriority == 0){
+              deletePrioritizedJob(job);
+            }
+            else{
+                UpdateOperations<PrioritizedJob> prioritizedJobUpdate = prioritizedJobDAO.createUpdateOperations().set("priority", newPriority);
+                PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), prioritizedJobUpdate);
+                highestPriority = updateHighestPriority();
+            }
+        }
+
+        return job;
+    }
+
+/*
+    @POST
+    @Path("job/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Job updateJob(final @PathParam("id") String id, final Job job) {
+        UpdateOperations<Job> updateOps = jobDAO.createUpdateOperations();
+        if (job.getState() != null) {
+            updateOps.set("state", job.getState());
+        }
+        Query<Job> query = jobDAO.createIdQuery(id);
+        Job result = jobDAO.getDatastore().findAndModify(query, updateOps);
+        if (result != null) {
+            broadcastMessage(MODIFIED_JOB, result);
+        }
+        return result;
     }*/
+
 
 
 
@@ -2383,10 +2433,10 @@ public class NewmanResource {
     }
 
     private void deletePrioritizedJob(Job job){
-        Query<PrioritizedJob> query = prioritizedJobDAO.createQuery().filter("jobId", job.getId());
-        Datastore datastore = prioritizedJobDAO.getDatastore();
-        datastore.findAndDelete(query);
-        highestPriority = updateHighestPriority();
+        PrioritizedJob deletePrioritizedJob = prioritizedJobDAO.getDatastore().findAndDelete(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()));
+        if(job.getPriority() == highestPriority){
+            highestPriority = updateHighestPriority();
+        }
         System.out.println("in delete prioritized job");
     }
 

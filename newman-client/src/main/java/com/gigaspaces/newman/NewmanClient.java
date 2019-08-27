@@ -92,6 +92,10 @@ public class NewmanClient {
         return restClient.target(uri).path("prioritizedJob").path(agentId).path(Integer.toString(currentPriority)).request().rx().post(Entity.json(agentId), Boolean.class);
     }
 
+    public CompletionStage<Job> changePriorityJob(String jobId, int newPriority) {
+        return restClient.target(uri).path("job").path(jobId).path(Integer.toString(newPriority)).request().rx().put(Entity.json(jobId), Job.class); //Todo- what is the json?
+    }
+
     public CompletionStage<Test> createTest(Test test) {
         return restClient.target(uri).path("test").request().rx().put(Entity.json(test), Test.class);
     }/**/

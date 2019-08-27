@@ -31,8 +31,9 @@ public class NewmanAgent<shouldStop> {
     private volatile boolean active = true;
     private final Timer timer = new Timer(true);
     private static final int DEFAULT_TIMEOUT_SECONDS = 60;
+    private static final int MILLISECONDS_IN_SECONDS = 1000;
     private volatile boolean shouldStop = false;
-    private long startTime =System.currentTimeMillis();
+    private long startTime = System.currentTimeMillis();
 
     public boolean isShouldStop() {
         return shouldStop;
@@ -222,6 +223,9 @@ public class NewmanAgent<shouldStop> {
                     logger.warn("Failed to find agent: " + name);
                 }
             }
+
+            startTime = System.currentTimeMillis();
+            shouldStop = false;
             // Submit workers:
             List<Future<?>> workersTasks = new ArrayList<>();
             for (int i = 0; i < calculateNumberOfWorkers(job); i++) {
@@ -232,15 +236,14 @@ public class NewmanAgent<shouldStop> {
                 final Job jobToRun = job;
                 final JobExecutor currJobExecutor = jobExecutor;
 
-
                 worker = workers.submit(()-> {
                         logger.info("Starting worker #{} for job {}", id, currJobExecutor.getJob().getId());
                         Test test;
                         while(!shouldStop){
                             long timeNow = System.currentTimeMillis();
-                            System.out.println("diff time is " + (timeNow - startTime)/1000);
-                            if((timeNow - startTime) > (1000*60)){
-                                System.out.println("more than one minute:diff time is " + (timeNow - startTime)/1000);
+                            System.out.println("diff time is " + (timeNow - startTime)/MILLISECONDS_IN_SECONDS);
+                            if((timeNow - startTime) > (MILLISECONDS_IN_SECONDS * 60)){
+                                System.out.println("more than one minute:diff time is " + (timeNow - startTime)/MILLISECONDS_IN_SECONDS);
                                shouldStop = hasPrioritizedJob(currentAgent.getId(), jobToRun.getPriority());
                                 startTime = System.currentTimeMillis();
                                 if(shouldStop){
