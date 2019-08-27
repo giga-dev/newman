@@ -21,6 +21,7 @@ type alias Job =
     , preparingAgents : List String
     , agents : List String
     , agentGroups : List String
+    , priority : Maybe Int
     , buildId : String
     , buildName : String
     , buildBranch : String
@@ -243,6 +244,7 @@ decodeJob =
         |> required "preparingAgents" (list string)
         |> required "agents" (list string)
         |> optional "agentGroups" (list string) []
+        |> optional "priority" (nullable int) Nothing  {-Todo-legal????-}
         |> requiredAt [ "build", "id" ] string
         |> requiredAt [ "build", "name" ] string
         |> requiredAt [ "build", "branch" ] string
@@ -272,7 +274,8 @@ decodeJobView =
         |> required "state" decodeJobState
         |> required "preparingAgents" (list string)
         |> optional "agents" (list string) []
-        |> optional "agentGroups" (list string) []
+        |> optional "agentGroups"(list string) []
+        |> optional "priority" (nullable int) Nothing
         |> required "buildId" string
         |> required "buildName" string
         |> required "buildBranch" string
@@ -358,6 +361,7 @@ type alias FutureJob =
     , suiteName : String
     , author : String
     , agentGroups : List String
+    , priority : Int
     , submitTime : Int
     }
 
@@ -408,6 +412,7 @@ decodeFutureJob =
         |> required "suiteName" string
         |> required "author" string
         |> required "agentGroups" (list string)
+        |> required "priority" int
         |> required "submitTime" int
 
 
