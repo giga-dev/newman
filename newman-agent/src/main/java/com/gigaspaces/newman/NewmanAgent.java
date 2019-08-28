@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.gigaspaces.newman.utils.FileUtils.append;
 
@@ -21,7 +20,7 @@ import static com.gigaspaces.newman.utils.FileUtils.append;
  * @since 1.0
  * Agent that executes the tests.
  */
-public class NewmanAgent<shouldStop> {
+public class NewmanAgent {
 
     private static final Logger logger = LoggerFactory.getLogger(NewmanAgent.class);
     private final NewmanAgentConfig config;
@@ -31,17 +30,9 @@ public class NewmanAgent<shouldStop> {
     private volatile boolean active = true;
     private final Timer timer = new Timer(true);
     private static final int DEFAULT_TIMEOUT_SECONDS = 60;
-    private static final int MILLISECONDS_IN_SECONDS = 1000;
-    private volatile boolean shouldStop = false;
-    private long startTime = System.currentTimeMillis();
-
-    public boolean isShouldStop() {
-        return shouldStop;
-    }
-
-    public void setShouldStop(boolean shouldStop) {
-        this.shouldStop = shouldStop;
-    }
+    private static final int MILLISECONDS_IN_SECOND = 1000;
+    private volatile boolean workerShouldStop = false;
+    private long lastPriorityCheckedTime = System.currentTimeMillis();
 
     public static void main(String[] args) throws Exception {
         NewmanAgent agent = new NewmanAgent();
@@ -58,7 +49,6 @@ public class NewmanAgent<shouldStop> {
             System.exit(1);
         }
     }
-
 
     private static void createJobSetupEnv(String[] args, NewmanAgent agent) throws ExecutionException, InterruptedException, IOException, TimeoutException {
         logger.info("performing job setup env");
@@ -174,19 +164,18 @@ public class NewmanAgent<shouldStop> {
     private void start() {
         NewmanClient c = getClient();
         KeepAliveTask keepAliveTask = null;
-        Job currJob = null;
+        Job prevJob = null;
         JobExecutor jobExecutor = null;
 
         while (isActive()) {
-            Job job = waitForJob();
+            final Job job = waitForJob();
             Agent agent = new Agent();
 
-            if (currJob != null && job.getId().equals(currJob.getId())) {
+            if (prevJob != null && job.getId().equals(prevJob.getId())) {
                 System.out.println("the same job was found, no need to setup again");
-                job = currJob;
-                currJob = null;
+                prevJob = null;
             } else {
-                if (currJob != null) {
+                if (prevJob != null) {
                     System.out.println("job changed due to priority, teardown old job");
                     keepAliveTask.cancel();
                     jobExecutor.teardown();
@@ -225,29 +214,27 @@ public class NewmanAgent<shouldStop> {
                 }
             }
 
-            startTime = System.currentTimeMillis();
-            shouldStop = false;
+            lastPriorityCheckedTime = System.currentTimeMillis();
+            workerShouldStop = false;
             // Submit workers:
+            final Agent currentAgent = agent;
+
+            final JobExecutor currJobExecutor = jobExecutor;
             List<Future<?>> workersTasks = new ArrayList<>();
             for (int i = 0; i < calculateNumberOfWorkers(job); i++) {
-                final NewmanClient client = c;
-                final Agent currentAgent = agent;  //Todo - agent as a field??
                 final int id = i;
-                Future<?> worker;
-                final Job jobToRun = job;
-                final JobExecutor currJobExecutor = jobExecutor;
 
-                worker = workers.submit(()-> {
+                Future<?> worker = workers.submit(()-> {
                         logger.info("Starting worker #{} for job {}", id, currJobExecutor.getJob().getId());
                         Test test;
-                        while(!shouldStop){
+                        while(!workerShouldStop){
                             long timeNow = System.currentTimeMillis();
-                            System.out.println("diff time is " + (timeNow - startTime)/MILLISECONDS_IN_SECONDS);
-                            if((timeNow - startTime) > (MILLISECONDS_IN_SECONDS * 60)){
-                                System.out.println("more than one minute:diff time is " + (timeNow - startTime)/MILLISECONDS_IN_SECONDS);
-                               shouldStop = hasPrioritizedJob(currentAgent.getId(), jobToRun.getPriority());
-                                startTime = System.currentTimeMillis();
-                                if(shouldStop){
+                            System.out.println("diff time is " + (timeNow - lastPriorityCheckedTime)/ MILLISECONDS_IN_SECOND);
+                            if((timeNow - lastPriorityCheckedTime) > (MILLISECONDS_IN_SECOND * 60)){
+                                System.out.println("more than one minute:diff time is " + (timeNow - lastPriorityCheckedTime)/ MILLISECONDS_IN_SECOND);
+                               workerShouldStop = hasPrioritizedJob(currentAgent.getId(), job.getPriority());
+                                lastPriorityCheckedTime = System.currentTimeMillis();
+                                if(workerShouldStop){
                                     break;
                                 }
                             }
@@ -255,7 +242,7 @@ public class NewmanAgent<shouldStop> {
                             if((test = findTest(currJobExecutor.getJob())) != null){
                                 Test testResult = currJobExecutor.run(test);
                                 if (testResult.getStatus().equals(Test.Status.FAIL)) {
-                                    resubmitFailed(jobToRun.getId(), testResult);
+                                    resubmitFailed(job.getId(), testResult);
                                 }
                                 reportTest(testResult);
                             }
@@ -278,11 +265,12 @@ public class NewmanAgent<shouldStop> {
             }
 
             if (job.getState() == State.DONE) {
+                keepAliveTask.cancel();
                 jobExecutor.teardown();
                 System.out.println("job finished");
             } else {
                 System.out.println("job changed before it's finished");
-                currJob = job;
+                prevJob = job;
             }
         }
     }

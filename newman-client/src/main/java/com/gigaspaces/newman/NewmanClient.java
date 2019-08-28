@@ -93,7 +93,7 @@ public class NewmanClient {
     }
 
     public CompletionStage<Job> changePriorityJob(String jobId, int newPriority) {
-        return restClient.target(uri).path("job").path(jobId).path(Integer.toString(newPriority)).request().rx().put(Entity.json(jobId), Job.class); //Todo- what is the json?
+        return restClient.target(uri).path("job").path(jobId).path(Integer.toString(newPriority)).request().rx().put (Entity.json(null), Job.class); //Todo- what is the json?
     }
 
     public CompletionStage<Test> createTest(Test test) {
