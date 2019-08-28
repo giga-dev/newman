@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
  * Created by tamirs
  * 9/24/15.
  */
-public class CapabilitiesAndRequirements {
+public class CapabilitiesAndRequirements { //Todo -change name because include agent groups?
 
     public static List<Job> filterByCapabilities(List<Job> jobs, Set<String> capabilities){
         return jobs.stream().filter(job -> capabilities.containsAll(job.getSuite().getRequirements())).collect(Collectors.toList());

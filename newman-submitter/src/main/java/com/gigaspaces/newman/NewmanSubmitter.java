@@ -27,7 +27,7 @@ public class NewmanSubmitter {
     private static final int MAX_THREADS = 30;
     private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
     private static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
-    private static final String NEWMAN_AGENT_GROUPS = "NEWMAN_AGENT_GROUPS"; //Todo - delete this?
+    private static final String NEWMAN_AGENT_GROUPS = "NEWMAN_AGENT_GROUPS"; //Todo - delete this because it's on ini file noe environment?
     public static final int DEFAULT_TIMEOUT_SECONDS = NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS;
     private static final String RETRY_MINS_INTERVAL_ON_SUSPENDED = "RETRY_MINS_INTERVAL_ON_SUSPENDED";
     private static final int DEFAULT_RETRY_MINS_INTERVAL_ON_SUSPENDED = 1;

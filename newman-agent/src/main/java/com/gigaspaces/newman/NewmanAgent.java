@@ -176,9 +176,10 @@ public class NewmanAgent<shouldStop> {
         KeepAliveTask keepAliveTask = null;
         Job currJob = null;
         JobExecutor jobExecutor = null;
-        Agent agent = new Agent();
+
         while (isActive()) {
             Job job = waitForJob();
+            Agent agent = new Agent();
 
             if (currJob != null && job.getId().equals(currJob.getId())) {
                 System.out.println("the same job was found, no need to setup again");
@@ -230,7 +231,7 @@ public class NewmanAgent<shouldStop> {
             List<Future<?>> workersTasks = new ArrayList<>();
             for (int i = 0; i < calculateNumberOfWorkers(job); i++) {
                 final NewmanClient client = c;
-                final Agent currentAgent = agent;
+                final Agent currentAgent = agent;  //Todo - agent as a field??
                 final int id = i;
                 Future<?> worker;
                 final Job jobToRun = job;

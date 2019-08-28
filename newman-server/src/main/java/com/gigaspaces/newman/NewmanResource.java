@@ -898,7 +898,7 @@ public class NewmanResource {
         if (agent.getState() == Agent.State.PREPARING) {
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), jobDAO.createUpdateOperations().removeAll("preparingAgents", agent.getName()));
             if(job.getPriority() > 0){
-                UpdateOperations<PrioritizedJob> updatePrioritizedJobStatus = prioritizedJobDAO.createUpdateOperations().set("preparingAgents", job.getPreparingAgents().size());  //Todo - i changed from inc
+                UpdateOperations<PrioritizedJob> updatePrioritizedJobStatus = prioritizedJobDAO.createUpdateOperations().set("preparingAgents", job.getPreparingAgents().size());
                 PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), updatePrioritizedJobStatus);       //Todo- i gave up another if in case it's null/empty?
             }
 
@@ -1133,7 +1133,7 @@ public class NewmanResource {
             if (!testDAO.exists(query)) {
                 updateJobStatus.set("state", State.DONE).set("endTime", new Date());
                 updateBuild.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
-                if(testJob.getPriority() != 0){
+                if(testJob.getPriority() > 0){
                     deletePrioritizedJob(testJob);
                 }
             }
