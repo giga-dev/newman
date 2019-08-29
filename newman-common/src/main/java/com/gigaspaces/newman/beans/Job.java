@@ -22,7 +22,7 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {
     @Id
-    private ObjectId id;
+    private String id;
     @Embedded(concreteClass = Build.class)
     private Build build;
 
@@ -72,11 +72,11 @@ public class Job {
     public void setPriority(int priority) { this.priority = priority; }
 
     public String getId() {
-        return id.toString();
+        return id;
     }
 
     public void setId(String id) {
-        this.id = new ObjectId(id);
+        this.id = id;
     }
 
     public Build getBuild() {

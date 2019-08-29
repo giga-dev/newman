@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.Set;
 
 @Entity
-//@JsonIgnoreProperties(ignoreUnknown = true) //Todo - decide if needed
 public class PrioritizedJob {
     @Id
     private String id;
@@ -20,8 +19,6 @@ public class PrioritizedJob {
     private Set<String> requirements = Collections.emptySet();
     @Embedded
     private int priority;
-    @Embedded
-    private int preparingAgents;
     private boolean isPaused;
 
     public PrioritizedJob(){
@@ -32,8 +29,7 @@ public class PrioritizedJob {
         this.agentGroups = job.getAgentGroups();
         this.requirements = job.getSuite().getRequirements();
         this.priority = job.getPriority();
-        this.preparingAgents = job.getPreparingAgents().size();
-        this.isPaused = job.getState().equals("DONE") || job.getState().equals("BROKEN");
+        this.isPaused = job.getState().equals(State.PAUSED);
     }
 
     public String getId() {
@@ -66,14 +62,6 @@ public class PrioritizedJob {
 
     public void setPriority(int priority) {
         this.priority = priority;
-    }
-
-    public int getPreparingAgents() {
-        return preparingAgents;
-    }
-
-    public void setPreparingAgents(int preparingAgents) {
-        this.preparingAgents = preparingAgents;
     }
 
     public String getJob() {
@@ -109,7 +97,6 @@ public class PrioritizedJob {
                 ", agentGroups=" + agentGroups +
                 ", requirements=" + requirements +
                 ", priority=" + priority +
-                ", preparingAgents=" + preparingAgents +
                 ", isPaused=" + isPaused +
                 '}';
     }

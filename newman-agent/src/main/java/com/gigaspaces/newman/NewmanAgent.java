@@ -32,7 +32,7 @@ public class NewmanAgent {
     private static final int DEFAULT_TIMEOUT_SECONDS = 60;
     private static final int MILLISECONDS_IN_SECOND = 1000;
     private volatile boolean workerShouldStop = false;
-    private long lastPriorityCheckedTime = System.currentTimeMillis();
+    private volatile long lastPriorityCheckedTime ;
 
     public static void main(String[] args) throws Exception {
         NewmanAgent agent = new NewmanAgent();
@@ -169,7 +169,7 @@ public class NewmanAgent {
 
         while (isActive()) {
             final Job job = waitForJob();
-            Agent agent = new Agent();
+            Agent agent;
 
             if (prevJob != null && job.getId().equals(prevJob.getId())) {
                 System.out.println("the same job was found, no need to setup again");
@@ -206,13 +206,20 @@ public class NewmanAgent {
                     }
                     continue;
                 }
-                try {
-                    agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                    c.setSetupRetries(agent, 0).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                } catch (Exception e) {
-                    logger.warn("Failed to find agent: " + name);
-                }
+
             }
+            try {
+                agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                c.setSetupRetries(agent, 0).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                logger.warn("Failed to find agent: " + name + ", retrying in " + config.getJobPollInterval() + "milliseconds");
+                try {
+                    Thread.sleep(config.getJobPollInterval());
+                } catch (InterruptedException ignored) {
+                }
+                continue;
+            }
+
 
             lastPriorityCheckedTime = System.currentTimeMillis();
             workerShouldStop = false;

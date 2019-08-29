@@ -24,7 +24,7 @@ type Msg
     | GetAllAgentGroupsCompleted (Result Http.Error (List String))
     | UpdateSelectedBuild String
     | UpdateSelectedConfig String
-    | UpdateSelectedPriority String
+    | UpdateSelectedPriority Int
     | SubmitNewJobCompleted (Result Http.Error (List FutureJob))
     | OnClickSubmit
     | MultiSelectAgentGroupsMsg Multiselect.Msg
@@ -42,8 +42,8 @@ type alias Model =
     , selectedConfig : String
     , agentGroups : List String
     , selectedAgentGroups : Multiselect.Model
-    , priorities: List String
-    , selectedPriority : String
+    , priorities: List Int
+    , selectedPriority : Int
     , submittedFutureJobs : List FutureJob
     , isSelect : Bool
     , modalState : Modal.State
@@ -69,8 +69,8 @@ init =
       , configurations = []
       , selectedAgentGroups = Multiselect.initModel [] ""
       , agentGroups = []
-      , priorities = ["0", "1", "2"]
-      , selectedPriority = ""
+      , priorities = [0, 1, 2]
+      , selectedPriority = 0
       , submittedFutureJobs = []
       , isSelect = True
       , modalState = Modal.hiddenState
@@ -157,16 +157,16 @@ update msg model =
                      model.selectedConfig, List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedAgentGroups), model.selectedPriority )
             in
                 case ( buildId, suitesList , configId, agentGroupsList, priority) of
-                    ( "", _ ,_ , _, _) ->
+                    ("", _ ,_ , _) ->
                         ( { model | errorMessage = "Please select a build", modalState = Modal.visibleState }, Cmd.none )
 
-                    ( _, [],_ ,_, _) ->
+                    ( _, [],_ ,_) ->
                         ( { model | errorMessage = "Please select one or more suites", modalState = Modal.visibleState }, Cmd.none )
 
-                    ( _, _ ,"", _, _) ->
+                    ( _, _ ,"", _) ->
                         ( { model | errorMessage = "Please select a Job Configuration", modalState = Modal.visibleState }, Cmd.none )
 
-                    ( _, _ ,_, [],_) ->
+                    ( _, _ ,_, []) ->
                         ( { model | errorMessage = "Please select one or more agent groups", modalState = Modal.visibleState }, Cmd.none )
 
                     _ ->
@@ -389,10 +389,6 @@ buildsAndSuitesDecoder =
     Json.Decode.map2 BuildsAndSuites
         (Json.Decode.field "suites" (Json.Decode.list decodeSuite))
         (Json.Decode.field "builds" (Json.Decode.list decodeThinBuild))
-
-{-stringIntDecoder : Decoder Int
-stringIntDecoder =
-    Json.Decode.map (\str -> String.toInt (str) |> Result.withDefault 0) Json.Decode.string-}
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

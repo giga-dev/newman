@@ -27,7 +27,6 @@ public class NewmanSubmitter {
     private static final int MAX_THREADS = 30;
     private static final String NEWMAN_BUILD_BRANCH = "NEWMAN_BUILD_BRANCH";
     private static final String NEWMAN_BUILD_TAGS = "NEWMAN_BUILD_TAGS";
-    private static final String NEWMAN_AGENT_GROUPS = "NEWMAN_AGENT_GROUPS"; //Todo - delete this because it's on ini file noe environment?
     public static final int DEFAULT_TIMEOUT_SECONDS = NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS;
     private static final String RETRY_MINS_INTERVAL_ON_SUSPENDED = "RETRY_MINS_INTERVAL_ON_SUSPENDED";
     private static final int DEFAULT_RETRY_MINS_INTERVAL_ON_SUSPENDED = 1;
@@ -81,7 +80,7 @@ public class NewmanSubmitter {
         String mode = EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
         String requiredAgentGroups = properties.get("main").fetch("AGENT_GROUPS_DEFAULT");
         Set<String> agentGroups = parse(requiredAgentGroups);
-        String priorityNum = properties.get("main").fetch("PRIORITY_DEFAULT");
+        String priorityNum = properties.get("main").fetch("JOB_PRIORITY_DEFAULT");
         int priority = Integer.parseInt(priorityNum);
 
         if (mode == null || mode.length() == 0) {
