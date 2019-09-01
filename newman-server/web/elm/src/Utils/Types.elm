@@ -669,10 +669,3 @@ agentGroupTestFormat agentGroup assignedAgent =
                     agentGroup
             else
                 ""
-
-priorityFormat priority =
-            case priority of
-                Nothing ->
-                        0
-                Just priority ->
-                    priority

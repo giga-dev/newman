@@ -211,7 +211,7 @@ viewHeader model job =
             , ( "# Agents", text <| toString <| List.length job.agents )
             , ( "# Prep. Agents", text <| toString <| List.length job.preparingAgents )
             , ( "Agent Groups", text <| agentGroupsJobFormat job.agentGroups )
-            , ( "Priority", text <| toString <| priorityFormat job.priority )
+            , ( "Priority", text <| toString <| (job.priority |> Maybe.withDefault 0))
             , ( "Submitted by", text <| job.submittedBy )
             , ( "Status", div [] [ testsStatus, createSuiteButton ] )
             , ( "Job Setup Logs", jobSetupLogs )

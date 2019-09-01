@@ -2084,7 +2084,7 @@ public class NewmanResource {
         PrioritizedJob prioritizedJob = prioritizedJobDAO.findOne(prioritizedJobDAO.createQuery().filter("isPaused", false).order("-priority"));
         System.out.println("check order: the highest priority job is " + prioritizedJob);
         if(prioritizedJob != null){
-            System.out.println("in get highest priority, value is : " + highestPriorityJob);
+            System.out.println("in get highest priority, value is : " + prioritizedJob.getPriority());
             return prioritizedJob.getPriority();
         }
         return 0;
@@ -2122,19 +2122,17 @@ public class NewmanResource {
     @PUT
     @Path("job/{jobId}/{newPriority}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON) //Todo- what is the return value
-    public Job changeJobPriority(final  @PathParam("jobId") String jobId, final @PathParam("newPriority") String newPriority) {
-     //public Job changeJobPriority(final @PathParam("id") String id, final Job job) {
+    public Job changeJobPriority(final  @PathParam("jobId") String jobId, final @PathParam("newPriority") String newPriority) { //todo -void??
        Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
        int updatePriority = Integer.parseInt(newPriority);
        int currPriority = job.getPriority();
 
-       if(currPriority == updatePriority){ // //Todo - this condition is unnecessary  if make it impossible
+       if(currPriority == updatePriority){
            return job;
        }
 
        UpdateOperations<Job> jobUpdate = jobDAO.createUpdateOperations().set("priority", newPriority);
-       job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), jobUpdate);  //todo- make sure it's correct , shorter than the original query
+       job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), jobUpdate);
 
         if(currPriority == 0){
             createPrioritizedJob(job);

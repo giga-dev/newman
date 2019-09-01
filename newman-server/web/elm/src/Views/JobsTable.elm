@@ -2,8 +2,10 @@ module Views.JobsTable exposing (..)
 
 import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Button as Button
-import Bootstrap.Form as Form
+import Bootstrap.Form as Form exposing ()
 import Bootstrap.Form.Input as FormInput
+import Bootstrap.Grid as Grid
+import Bootstrap.Grid.Col as Col
 import Bootstrap.Modal as Modal exposing (..)
 import Bootstrap.Progress as Progress exposing (..)
 import Bootstrap.Dropdown as Dropdown
@@ -43,6 +45,8 @@ type Msg
     | PauseAll
     | ResumeAll
     | ActionStateMsg Dropdown.State
+    | ChangePriorityJobMsg
+    | AnimateModal
 
 type alias Model =
     { allJobs : List Job
@@ -52,6 +56,7 @@ type alias Model =
     , jobToDrop : Maybe String
     , query : String
     , actionState : Dropdown.State
+    , modalState : Modal.State
     }
 
 
@@ -62,7 +67,7 @@ init jobs =
             15
 
     in
-        Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing "" Dropdown.initialState
+        Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing "" Dropdown.initialState Modal.hiddenState
 
 
 viewTable : Model -> Maybe Time -> Html Msg
@@ -152,7 +157,7 @@ viewTable model currTime =
                         , th [ widthPct "9%" ] [ text "Build" ]
                         , th [ widthPct "7%" ] [ text "Submitted By" ]
                         , th [ widthPct "6%" ] [ text "# p. agents" ]
-                        , th [ widthPct "9%" ] [ text "Agent Groups" ]
+                        , th [ widthPct "8%" ] [ text "Agent Groups" ]
                         , th [ widthPct "4%" ] [ text "Priority" ]
                         , th [ widthPct "17%" ]
                             [ Badge.badgeInfo [ class "job-tests-badge" , title "Running Tests" ] [ text "Run" ]
@@ -165,7 +170,7 @@ viewTable model currTime =
                             , text "/ "
                             , Badge.badge [ class "job-tests-badge" , title "All Tests" ] [ text "Total" ]
                             ]
-                        , th [ width 80 ]
+                        , th [ width 120 ]
                              [ text "Actions" ]
                         ]
                     ]
@@ -259,7 +264,7 @@ viewJob currTime job =
             , td [] [ text job.submittedBy ]
             , td [] [ text (toString (List.length job.preparingAgents)) ]
             , td [ title <| agentGroupsJobFormat job.agentGroups] [ text <| agentGroupsJobFormat job.agentGroups ]
-            , td [] [ text (toString <| priorityFormat job.priority) ]
+            , td [] [ text (toString <| (job.priority |> Maybe.withDefault 0)) ]
             , td []
                 [ Badge.badgeInfo [ class "job-tests-badge" ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/RUNNING" , title "Running Tests" ]
                                     [text <| toString job.runningTests] ]
@@ -287,8 +292,53 @@ viewJob currTime job =
                     [ span [ class "ion-close" ] [] ]
                 , text " "
                 , playPauseButton
+                , text ""
+                , Button.roleLink, Button.attrs [], Button.onClick <| ChangePriorityJobMsg
                 ]
             ]
+
+
+viewModal : Model -> Html Msg
+viewModal model =
+            let
+                twoColsRow left right =
+                    Grid.row [ ]
+                        [ Grid.col
+                            [ Col.sm2 ] [ text left ]
+                        , Grid.col
+                            [ Col.sm8 ] [ text right ]
+                        ]
+            in
+            Modal.config AnimateModal
+                        |> Modal.large
+                        |> Modal.h3 [] [ text <| "Change Priority for "{-job: - " ++ job.id-} ]
+                        |> Modal.body [] [
+                              Grid.containerFluid [ ]
+                                                  [ twoColsRow "Current priority" {-to fill-}
+                                                    {-,twoColsRow "Capacity" <| "Minimum: " ++ (toString elasticGroup.capacity.minimum) ++ ", Maximum: " ++ (toString elasticGroup.capacity.maximum)-}
+                                                    ,Grid.row [ ]
+                                                      [ Grid.col
+                                                          [ Col.sm2 ] [ text "New capacity" ]
+                                                      , Grid.col
+     {-                                                     [ Col.sm8 ] [ input [ onInput NewCapacity , Attrs.type_ "number", Attrs.max <| toString elasticGroup.capacity.maximum, Attrs.min <| toString elasticGroup.capacity.minimum, Attrs.value <| toString model.newCapacity ] [] ]
+                                                      ]-}
+                                                            [
+                                                            ]
+                                                  ]
+                            ]
+                        |> Modal.footer []
+                            [ Button.button
+                                [ Button.danger
+                                , Button.onClick <| ConfirmUpdate elasticGroup model.newCapacity
+                                ]
+                                [ text "Confirm" ]
+                            , Button.button
+                                [ Button.outlinePrimary
+                                , Button.onClick CloseModal
+                                ]
+                                [ text "Close" ]
+                            ]
+                        |> Modal.view model.modalState
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -365,6 +415,11 @@ update msg model =
         ActionStateMsg state ->
             ( { model | actionState = state } , Cmd.none)
 
+        changePriorityJobMsg ->
+            ( { model |{- jobs =-} modalState = Modal.visibleState } , Cmd.none)
+
+        AnimateModal state ->
+                    ( { model | modalState = state } , Cmd.none)
 
 filterQuery : String -> Job -> Bool
 filterQuery query job =

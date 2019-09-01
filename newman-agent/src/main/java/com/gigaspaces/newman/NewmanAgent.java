@@ -171,6 +171,7 @@ public class NewmanAgent {
             final Job job = waitForJob();
             Agent agent;
 
+
             if (prevJob != null && job.getId().equals(prevJob.getId())) {
                 System.out.println("the same job was found, no need to setup again");
                 prevJob = null;

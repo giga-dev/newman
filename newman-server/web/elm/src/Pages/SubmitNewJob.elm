@@ -24,7 +24,7 @@ type Msg
     | GetAllAgentGroupsCompleted (Result Http.Error (List String))
     | UpdateSelectedBuild String
     | UpdateSelectedConfig String
-    | UpdateSelectedPriority Int
+    | UpdateSelectedPriority String
     | SubmitNewJobCompleted (Result Http.Error (List FutureJob))
     | OnClickSubmit
     | MultiSelectAgentGroupsMsg Multiselect.Msg
@@ -42,7 +42,7 @@ type alias Model =
     , selectedConfig : String
     , agentGroups : List String
     , selectedAgentGroups : Multiselect.Model
-    , priorities: List Int
+    , priorities: List String
     , selectedPriority : Int
     , submittedFutureJobs : List FutureJob
     , isSelect : Bool
@@ -69,7 +69,7 @@ init =
       , configurations = []
       , selectedAgentGroups = Multiselect.initModel [] ""
       , agentGroups = []
-      , priorities = [0, 1, 2]
+      , priorities = ["0", "1", "2"]
       , selectedPriority = 0
       , submittedFutureJobs = []
       , isSelect = True
@@ -149,15 +149,15 @@ update msg model =
                 ( { model | selectedSuites = subModel }, Cmd.map MultiSelectMsg subCmd )
 
         UpdateSelectedPriority priority ->
-             ( { model | selectedPriority = priority }, Cmd.none )
+             ( { model | selectedPriority = (String.toInt priority |> Result.withDefault 0)  }, Cmd.none )
         OnClickSubmit ->
             let
                 ( buildId, suitesList, configId, agentGroupsList, priority ) =
                     ( model.selectedBuild, List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedSuites),
                      model.selectedConfig, List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.selectedAgentGroups), model.selectedPriority )
             in
-                case ( buildId, suitesList , configId, agentGroupsList, priority) of
-                    ("", _ ,_ , _) ->
+                case ( buildId, suitesList , configId, agentGroupsList) of
+                    ("",_,_,_) ->
                         ( { model | errorMessage = "Please select a build", modalState = Modal.visibleState }, Cmd.none )
 
                     ( _, [],_ ,_) ->
@@ -232,7 +232,7 @@ getAllConfigsCmd : Cmd Msg
 getAllConfigsCmd =
     Http.send GetAllConfigsCompleted <| Http.get "/api/newman/job-config" decodeJobConfigs
 
-submitFutureJobCmd : String -> List String -> String -> List String -> String -> Cmd Msg
+submitFutureJobCmd : String -> List String -> String -> List String -> Int -> Cmd Msg
 submitFutureJobCmd buildId suites configId agentGroups priority =
     let
         postReq =
@@ -241,12 +241,12 @@ submitFutureJobCmd buildId suites configId agentGroups priority =
         Http.send SubmitNewJobCompleted postReq
 
 
-postFutureJob : String -> List String -> String -> List String -> String -> Http.Request (List FutureJob)
+postFutureJob : String -> List String -> String -> List String -> Int -> Http.Request (List FutureJob)
 postFutureJob buildId suites configId agentGroupsList priority =
     let
         jsonify =
             Http.jsonBody <| Json.Encode.object [ ( "buildId", Json.Encode.string buildId ), ( "suites", Json.Encode.list <| List.map Json.Encode.string suites ),
-            ("configId", Json.Encode.string configId ) , ( "agentGroups", Json.Encode.list <| List.map Json.Encode.string agentGroupsList ), ( "priority", Json.Encode.int  <|  (String.toInt priority |> Result.withDefault 0))
+            ("configId", Json.Encode.string configId ) , ( "agentGroups", Json.Encode.list <| List.map Json.Encode.string agentGroupsList ), ( "priority", Json.Encode.int priority)
             ]
     in
         Http.post "../api/newman/futureJob" jsonify decodeFutureJobs
@@ -292,14 +292,14 @@ view model =
             , br [] []
             , let
                 toPriorityOption data =
-                    Select.item [ value data, selected <| model.selectedPriority == data ] [ text <| data ]
+                    Select.item [ value data, selected <| model.selectedPriority == (String.toInt data |> Result.withDefault 0) ] [ text <| data ]
               in
                 div
                     []
                     [ text "Select priority:"
                     , Select.select
-                        [ Select.onChange UpdateSelectedPriority, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
-                            (List.map toPriorityOption model.priorities)
+                        [ Select.onChange UpdateSelectedPriority , Select.attrs [ style [ ( "width", "500px" ) ] ] ]
+                            (List.map toPriorityOption  model.priorities)
                     ]
             , br [] []
             , Button.button [ Button.secondary, Button.onClick OnClickSubmit, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Submit Future Job" ]
