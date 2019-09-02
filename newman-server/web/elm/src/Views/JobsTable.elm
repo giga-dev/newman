@@ -2,7 +2,6 @@ module Views.JobsTable exposing (..)
 
 import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Button as Button
-import Bootstrap.Form as Form exposing ()
 import Bootstrap.Form.Input as FormInput
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
@@ -10,7 +9,6 @@ import Bootstrap.Modal as Modal exposing (..)
 import Bootstrap.Progress as Progress exposing (..)
 import Bootstrap.Dropdown as Dropdown
 import Date exposing (Date)
-import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Duration as Duration
 import DateFormat
 import DateFormat.Relative
@@ -24,7 +22,6 @@ import Time exposing (Time)
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
-import Json.Decode exposing (..)
 import Utils.Common as Common
 
 type Msg
@@ -45,8 +42,12 @@ type Msg
     | PauseAll
     | ResumeAll
     | ActionStateMsg Dropdown.State
-    | ChangePriorityJobMsg
-    | AnimateModal
+    | ShowModalJobPriorityMsg Job
+    | AnimateModal Modal.State
+    | CloseModal
+    | NewJobPriorityMsg String
+    | ConfirmNewPriority Job
+    | CompletedChangeJobPriority (Result Http.Error String)
 
 type alias Model =
     { allJobs : List Job
@@ -54,6 +55,8 @@ type alias Model =
     , pageSize : Int
     , confirmationState : Modal.State
     , jobToDrop : Maybe String
+    , jobToChangePriority : Maybe Job
+    , newPriority : Int
     , query : String
     , actionState : Dropdown.State
     , modalState : Modal.State
@@ -67,7 +70,7 @@ init jobs =
             15
 
     in
-        Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing "" Dropdown.initialState Modal.hiddenState
+        Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing Nothing 0 "" Dropdown.initialState Modal.hiddenState
 
 
 viewTable : Model -> Maybe Time -> Html Msg
@@ -178,6 +181,7 @@ viewTable model currTime =
                 ]
             , pagination
             , NewmanModal.confirmJobDrop model.jobToDrop NewmanModalMsg OnJobDropConfirmed model.confirmationState
+            , viewModal model
             ]
 
 
@@ -251,6 +255,9 @@ viewJob currTime job =
                     Button.button [ Button.warning, Button.small, Button.disabled <| (state /= RUNNING && state /= READY), Button.onClick <| OnClickToggleJob job.id ]
                         [ span [ class "ion-pause" ] [] ]
 
+        changePriorityButton =
+                    Button.button [ Button.roleLink, Button.attrs [ class "ion-android-options" ], Button.onClick <| ShowModalJobPriorityMsg job] []
+
     in
         tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
             [ td [] [ jobState ]
@@ -290,56 +297,60 @@ viewJob currTime job =
                         not (List.member job.state [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0) && (List.length job.agents) <= 0)
                     ]
                     [ span [ class "ion-close" ] [] ]
-                , text " "
                 , playPauseButton
-                , text ""
-                , Button.roleLink, Button.attrs [], Button.onClick <| ChangePriorityJobMsg
+                , changePriorityButton
                 ]
             ]
 
 
 viewModal : Model -> Html Msg
 viewModal model =
-            let
-                twoColsRow left right =
-                    Grid.row [ ]
-                        [ Grid.col
-                            [ Col.sm2 ] [ text left ]
-                        , Grid.col
-                            [ Col.sm8 ] [ text right ]
-                        ]
-            in
-            Modal.config AnimateModal
+            case model.jobToChangePriority of
+                 Nothing ->
+                        Modal.config AnimateModal
+                               |> Modal.large
+                               |> Modal.h3 [] [ text "Error: No selected job" ]
+                               |> Modal.view model.modalState
+                 Just job ->
+                    let
+                        twoColsRow left right =
+                            Grid.row [ ]
+                                [ Grid.col
+                                [ Col.sm3] [ text left ]
+                                , Grid.col
+                                [ Col.sm7 ] [ text right ]
+                                 ]
+                    in
+                    Modal.config AnimateModal
                         |> Modal.large
-                        |> Modal.h3 [] [ text <| "Change Priority for "{-job: - " ++ job.id-} ]
-                        |> Modal.body [] [
-                              Grid.containerFluid [ ]
-                                                  [ twoColsRow "Current priority" {-to fill-}
-                                                    {-,twoColsRow "Capacity" <| "Minimum: " ++ (toString elasticGroup.capacity.minimum) ++ ", Maximum: " ++ (toString elasticGroup.capacity.maximum)-}
-                                                    ,Grid.row [ ]
-                                                      [ Grid.col
-                                                          [ Col.sm2 ] [ text "New capacity" ]
-                                                      , Grid.col
-     {-                                                     [ Col.sm8 ] [ input [ onInput NewCapacity , Attrs.type_ "number", Attrs.max <| toString elasticGroup.capacity.maximum, Attrs.min <| toString elasticGroup.capacity.minimum, Attrs.value <| toString model.newCapacity ] [] ]
-                                                      ]-}
-                                                            [
-                                                            ]
-                                                  ]
-                            ]
+                        |> Modal.h3 [] [ text <| "Changing priority for job: " ++ job.id]
+                        |> Modal.body []
+                                    [
+                                    Grid.containerFluid [ ]
+                                    [ twoColsRow "Suite" job.suiteName
+                                     ,twoColsRow "Current Priority" (toString <| (job.priority |> Maybe.withDefault 0))
+                                     ,Grid.row [ ]
+                                      [ Grid.col
+                                       [ Col.sm3 ] [ text "New Priority" ]
+                                        , Grid.col
+                                        [ Col.sm7 ] [ input [ onInput NewJobPriorityMsg , HtmlAttr.type_ "number", HtmlAttr.max <| toString 4, HtmlAttr.min <| toString 0, HtmlAttr.value <| toString model.newPriority] [] ]
+                                    ]
+                                ]
+                        ]
                         |> Modal.footer []
-                            [ Button.button
-                                [ Button.danger
-                                , Button.onClick <| ConfirmUpdate elasticGroup model.newCapacity
-                                ]
-                                [ text "Confirm" ]
-                            , Button.button
-                                [ Button.outlinePrimary
-                                , Button.onClick CloseModal
-                                ]
-                                [ text "Close" ]
-                            ]
-                        |> Modal.view model.modalState
+                           [ Button.button
+                               [ Button.danger
+                               , Button.onClick <| ConfirmNewPriority job
+                               ]
+                               [ text "Confirm" ]
+                           , Button.button
+                               [ Button.outlinePrimary
+                               , Button.onClick <| CloseModal
+                               ]
+                               [ text "Close" ]
+                           ]
 
+                        |> Modal.view model.modalState
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -415,11 +426,25 @@ update msg model =
         ActionStateMsg state ->
             ( { model | actionState = state } , Cmd.none)
 
-        changePriorityJobMsg ->
-            ( { model |{- jobs =-} modalState = Modal.visibleState } , Cmd.none)
+        ShowModalJobPriorityMsg job ->
+            ( { model | modalState = Modal.visibleState, jobToChangePriority = Just job } , Cmd.none)
 
         AnimateModal state ->
                     ( { model | modalState = state } , Cmd.none)
+        CloseModal ->
+                    ( { model | modalState = Modal.hiddenState } , Cmd.none )
+        NewJobPriorityMsg updatePriority ->
+                     ( { model | newPriority = String.toInt updatePriority |> Result.withDefault 0} , Cmd.none )
+        ConfirmNewPriority job->
+                       ( { model | newPriority = 4} , changeJobPriorityCmd job.id model.newPriority)
+        CompletedChangeJobPriority result ->
+            {- onRequestCompletedUpdatePriorityJob model result-}
+            case result of
+                Ok data->
+                     (model , Cmd.none)
+                Err err->
+                   (model , Cmd.none)
+
 
 filterQuery : String -> Job -> Bool
 filterQuery query job =
@@ -512,6 +537,10 @@ toggleJobsResumeCmd : List String -> Cmd Msg
 toggleJobsResumeCmd jobIds =
     Http.send RequestCompletedToggleJobs <| Http.post "/api/newman/jobs/resume/" (Http.jsonBody (encodeListOfStrings jobIds)) decodeJobList
 
+changeJobPriorityCmd : String -> Int -> Cmd Msg
+changeJobPriorityCmd jobId updatePriority =
+    Http.send CompletedChangeJobPriority <| Http.post ("/api/newman/job/" ++ jobId ++ "/" ++ (toString updatePriority)) Http.emptyBody decodeJob
+
 
 onRequestCompletedDropJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
 onRequestCompletedDropJob jobId model result =
@@ -536,6 +565,10 @@ dropJobCmd jobId =
             , withCredentials = False
             }
 
+{-onRequestCompletedUpdatePriorityJob : Model -> Result -> Model
+updateJobChangedPriority model result =
+     ( model, Cmd.none )-}
+
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
@@ -544,3 +577,5 @@ handleEvent event =
 subscriptions : Model -> Sub Msg
 subscriptions model =
         Dropdown.subscriptions model.actionState ActionStateMsg
+
+

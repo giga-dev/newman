@@ -22,7 +22,7 @@ public class NewmanFutureJobSubmitter {
     private static final String NEWMAN_SUITE_ID = "NEWMAN_SUITE_ID"; // for example: 55b0affe29f67f34809c6c7b
     private static final String NEWMAN_CONFIG_ID = "NEWMAN_CONFIG_ID"; // for example: 55b0affe29f67f34809c6c7b
     private static final String NEWMAN_AGENT_GROUPS = "NEWMAN_AGENT_GROUPS"; // for example: "devGroup,imc-srv01"
-    private static final String NEWMAN_PRIORITY = "NEWMAN_PRIORITY";
+    private static final String NEWMAN_JOB_PRIORITY = "NEWMAN_JOB_PRIORITY";
     private static final String AUTHOR = "AUTHOR"; // for example: tamirs
 
     private static NewmanClient newmanClient = getNewmanClient();
@@ -41,7 +41,7 @@ public class NewmanFutureJobSubmitter {
         suite_id = EnvUtils.getEnvironment(NEWMAN_SUITE_ID, true, logger);
         config_id = EnvUtils.getEnvironment(NEWMAN_CONFIG_ID, true, logger);
         author = EnvUtils.getEnvironment(AUTHOR,true, logger);
-        priorityNum = EnvUtils.getEnvironment(NEWMAN_PRIORITY, true, logger);
+        priorityNum = EnvUtils.getEnvironment(NEWMAN_JOB_PRIORITY, true, logger);
         int priority = Integer.parseInt(priorityNum);
         List<String> suites = parse(suite_id);
         String requiredAgentGroups = EnvUtils.getEnvironment(NEWMAN_AGENT_GROUPS, true, logger);

@@ -2110,7 +2110,7 @@ public class NewmanResource {
         for(PrioritizedJob potentialJob: prioritizedJobs){
             if(potentialJob.getPriority() > currPriority && potentialJob.getAgentGroups().contains(agent.getGroupName()) && agent.getCapabilities().containsAll(potentialJob.getRequirements())){
                 Job job = jobDAO.findOne(jobDAO.createIdQuery(potentialJob.getJobId()));
-                if(job.getPreparingAgents().size() < (job.getTotalTests() + job.getNumOfTestRetries() - job.getPassedTests() - job.getFailedTests() - job.getRunningTests())){
+                if(job !=null && (job.getPreparingAgents().size() < (job.getTotalTests() + job.getNumOfTestRetries() - job.getPassedTests() - job.getFailedTests() - job.getRunningTests()))){
                     System.out.println( "need more agents that has now");
                     return true;
                 }
