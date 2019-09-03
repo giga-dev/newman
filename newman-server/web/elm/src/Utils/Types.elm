@@ -244,7 +244,7 @@ decodeJob =
         |> required "preparingAgents" (list string)
         |> required "agents" (list string)
         |> optional "agentGroups" (list string) []
-        |> optional "priority" (nullable int) Nothing  {-Todo-legal????-}
+        |> optional "priority" (nullable int) Nothing
         |> requiredAt [ "build", "id" ] string
         |> requiredAt [ "build", "name" ] string
         |> requiredAt [ "build", "branch" ] string

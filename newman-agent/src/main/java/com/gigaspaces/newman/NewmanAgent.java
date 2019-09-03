@@ -168,27 +168,14 @@ public class NewmanAgent {
         JobExecutor jobExecutor = null;
 
         while (isActive()) {
-
-            /*try {
-                client.changePriorityJob("5d6cc3a65de0cc200f14bbda", 4).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (TimeoutException e) {
-                e.printStackTrace();
-            }*/
-
             final Job job = waitForJob();
             Agent agent;
 
-
             if (prevJob != null && job.getId().equals(prevJob.getId())) {
-                System.out.println("the same job was found, no need to setup again");
+                logger.info("Job {}: The same job was found, no need to setup job again", job.getId());
                 prevJob = null;
             } else {
                 if (prevJob != null) {
-                    System.out.println("job changed due to priority, teardown old job");
                     keepAliveTask.cancel();
                     jobExecutor.teardown();
                 }
@@ -251,7 +238,7 @@ public class NewmanAgent {
                             System.out.println("diff time is " + (timeNow - lastPriorityCheckedTime)/ MILLISECONDS_IN_SECOND);
                             if((timeNow - lastPriorityCheckedTime) > (MILLISECONDS_IN_SECOND * 60)){
                                 System.out.println("more than one minute:diff time is " + (timeNow - lastPriorityCheckedTime)/ MILLISECONDS_IN_SECOND);
-                               workerShouldStop = hasPrioritizedJob(currentAgent.getId(), job.getPriority());
+                               workerShouldStop = hasPrioritizedJob(currentAgent.getId(), job.getId());
                                 lastPriorityCheckedTime = System.currentTimeMillis();
                                 if(workerShouldStop){
                                     break;
@@ -286,27 +273,26 @@ public class NewmanAgent {
             if (job.getState() == State.DONE) {
                 keepAliveTask.cancel();
                 jobExecutor.teardown();
-                System.out.println("job finished");
             } else {
-                System.out.println("job changed before it's finished");
+                logger.info("Job {} changed before it's finished, because there is a job in higher priority", job.getId());
                 prevJob = job;
             }
         }
     }
 
 
-    private boolean hasPrioritizedJob(final String agentId, int currentPriority){
+    private boolean hasPrioritizedJob(final String agentId, final String jobId){
         try {
-            if(client.hasHigherPriorityJob(agentId, currentPriority).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)){
-                System.out.println("there is job in higher priority");
+            if(client.hasHigherPriorityJob(agentId, jobId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)){
+                logger.info("Found a job in higher priority");
                 return true;
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.info("Failed to check if there is has job with higher priority: " + e);
         } catch (ExecutionException e) {
-            e.printStackTrace();
+            logger.info("Failed to check if there is has job with higher priority: " + e);
         } catch (TimeoutException e) {
-            e.printStackTrace();
+            logger.info("Failed to check if there is has job with higher priority: " + e);
         }
 
         return false;

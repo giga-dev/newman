@@ -23,7 +23,7 @@ type alias Model =
     , newCapacity : Int
     }
 
-type alias AgentGroup2 =
+type alias AgentGroup2 =  {-Todo - didn't see use for it-}
     { name: String
     , id: String
     , min: Int

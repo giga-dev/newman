@@ -293,13 +293,14 @@ view model =
             , let
                 toPriorityOption data =
                     Select.item [ value data, selected <| model.selectedPriority == (String.toInt data |> Result.withDefault 0) ] [ text <| data ]
+
               in
                 div
                     []
                     [ text "Select priority:"
                     , Select.select
                         [ Select.onChange UpdateSelectedPriority , Select.attrs [ style [ ( "width", "500px" ) ] ] ]
-                            (List.map toPriorityOption  model.priorities)
+                            (List.map toPriorityOption model.priorities)
                     ]
             , br [] []
             , Button.button [ Button.secondary, Button.onClick OnClickSubmit, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Submit Future Job" ]

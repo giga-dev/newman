@@ -227,7 +227,11 @@ public class Job {
         this.jobConfig = jobConfig;
     }
 
+    public Set<String> getAgents() {
+        return agents;
+    }
 
+    public void setAgents(Set<String> agents) { this.agents = agents; }
 
     @Override
     public String toString() {
@@ -256,13 +260,5 @@ public class Job {
                 ", jobSetupLogs=" + jobSetupLogs +
                 ", jobConfig=" + jobConfig +
                 '}';
-    }
-
-    public Set<String> getAgents() {
-        return agents;
-    }
-
-    public void setAgents(Set<String> agents) {
-        this.agents = agents;
     }
 }

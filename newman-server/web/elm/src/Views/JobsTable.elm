@@ -575,7 +575,7 @@ onRequestCompletedUpdatePriorityJob : Model -> Result Http.Error Job -> ( Model,
 onRequestCompletedUpdatePriorityJob model result =
     case result of
         Ok data->
-                 (model , Cmd.none)
+                 ({model | jobToChangePriority = Nothing, newPriority = 0} , Cmd.none)
         Err err ->
               let
                   e = Debug.log "ERROR:onRequestCompletedDropJob" err
@@ -589,5 +589,4 @@ handleEvent event =
 subscriptions : Model -> Sub Msg
 subscriptions model =
         Dropdown.subscriptions model.actionState ActionStateMsg
-
 

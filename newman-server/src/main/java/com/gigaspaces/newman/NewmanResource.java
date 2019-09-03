@@ -143,8 +143,6 @@ public class NewmanResource {
         distinctTestsByAssignedAgentFilter = testCollection.distinct("assignedAgent", String.class);
 
         highestPriorityJob = getHighestPriorityJob();
-        logger.info("Highest Priority of jobs: " + highestPriorityJob);
-        System.out.println("highest priority is: " + highestPriorityJob);
 
         if (Boolean.getBoolean("production")) { // This is set to true in the newman server
             timer.scheduleAtFixedRate(new TimerTask() {
@@ -620,6 +618,7 @@ public class NewmanResource {
         prioritizedJobDAO.save(prioritizedJob);
         if(job.getPriority() > highestPriorityJob){
             highestPriorityJob = job.getPriority();
+            logger.info("Highest Priority of jobs changed to: " + highestPriorityJob);
             System.out.println("highest priority changed: " + highestPriorityJob);
         }
     }
@@ -2084,7 +2083,8 @@ public class NewmanResource {
         PrioritizedJob prioritizedJob = prioritizedJobDAO.findOne(prioritizedJobDAO.createQuery().filter("isPaused", false).order("-priority"));
         System.out.println("check order: the highest priority job is " + prioritizedJob);
         if(prioritizedJob != null){
-            System.out.println("in get highest priority, value is : " + prioritizedJob.getPriority());
+            logger.info("Highest Priority of jobs: " + prioritizedJob.getPriority());
+            System.out.println("highest priority is: " + prioritizedJob.getPriority());
             return prioritizedJob.getPriority();
         }
         return 0;
@@ -2092,27 +2092,34 @@ public class NewmanResource {
 
 
     @GET
-    @Path("prioritizedJob/{agentId}/{currentPriority}")
+    @Path("prioritizedJob/{agentId}/{jobId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Boolean hasHigherPriorityJob(@PathParam("agentId") final String agentId , @PathParam("currentPriority") final String currentPriority) {
+    public Boolean hasHigherPriorityJob(@PathParam("agentId") final String agentId , @PathParam("jobId") final String jobId) {
 
         Agent agent = agentDAO.findOne(agentDAO.createIdQuery(agentId));
-        int currPriority = Integer.parseInt(currentPriority);
-        if(currPriority >= highestPriorityJob){
-            return false;
-        }
 
-        List<PrioritizedJob> prioritizedJobs = prioritizedJobDAO.find(prioritizedJobDAO.createQuery()).asList();
+        List<PrioritizedJob> prioritizedJobs = prioritizedJobDAO.find(prioritizedJobDAO.createQuery().filter("isPaused", false).order("-priority")).asList();
         if(prioritizedJobs.isEmpty()){
             return false;
         }
 
-        for(PrioritizedJob potentialJob: prioritizedJobs){
-            if(potentialJob.getPriority() > currPriority && potentialJob.getAgentGroups().contains(agent.getGroupName()) && agent.getCapabilities().containsAll(potentialJob.getRequirements())){
-                Job job = jobDAO.findOne(jobDAO.createIdQuery(potentialJob.getJobId()));
-                if(job !=null && (job.getPreparingAgents().size() < (job.getTotalTests() + job.getNumOfTestRetries() - job.getPassedTests() - job.getFailedTests() - job.getRunningTests()))){
-                    System.out.println( "need more agents that has now");
-                    return true;
+        Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
+
+        for(PrioritizedJob prioritizedJob: prioritizedJobs){
+            while(prioritizedJob.getPriority() > job.getPriority()){
+                if(prioritizedJob.getAgentGroups().contains(agent.getGroupName()) && agent.getCapabilities().containsAll(prioritizedJob.getRequirements())){
+                    Job potentialJob = jobDAO.findOne(jobDAO.createIdQuery(prioritizedJob.getJobId()));
+                    if(potentialJob != null){
+                        Query<Job> jobQuery = jobDAO.createIdQuery(jobId);
+                        jobQuery.or(jobQuery.and(jobQuery.criteria("preparingAgents").exists(),
+                                new WhereCriteria("this.preparingAgents.length < (this.totalTests + this.numOfTestRetries - this.passedTests - this.failedTests - this.runningTests)")),
+                                jobQuery.criteria("preparingAgents").doesNotExist());
+                        if(jobQuery.countAll() == 1){
+                            System.out.println( "need more agents that has now");
+                            return true;
+                        }
+                       /* && (potentialJob.getPreparingAgents().size() < (potentialJob.getTotalTests() + potentialJob.getNumOfTestRetries() - potentialJob.getPassedTests() - potentialJob.getFailedTests() - job.getRunningTests()))){}*/
+                    }
                 }
             }
         }
@@ -2150,27 +2157,6 @@ public class NewmanResource {
         broadcastMessage(MODIFIED_JOB, job);
         return job;
     }
-
-/*
-    @POST
-    @Path("job/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Job updateJob(final @PathParam("id") String id, final Job job) {
-        UpdateOperations<Job> updateOps = jobDAO.createUpdateOperations();
-        if (job.getState() != null) {
-            updateOps.set("state", job.getState());
-        }
-        Query<Job> query = jobDAO.createIdQuery(id);
-        Job result = jobDAO.getDatastore().findAndModify(query, updateOps);
-        if (result != null) {
-            broadcastMessage(MODIFIED_JOB, result);
-        }
-        return result;
-    }*/
-
-
-
 
     @GET
     @Path("build")
