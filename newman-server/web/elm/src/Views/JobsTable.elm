@@ -47,7 +47,7 @@ type Msg
     | CloseModal
     | NewJobPriorityMsg String
     | ConfirmNewPriority Job
-    | CompletedChangeJobPriority (Result Http.Error String)
+    | RequestCompletedChangeJobPriority (Result Http.Error Job)
 
 type alias Model =
     { allJobs : List Job
@@ -256,7 +256,7 @@ viewJob currTime job =
                         [ span [ class "ion-pause" ] [] ]
 
         changePriorityButton =
-                    Button.button [ Button.roleLink, Button.attrs [ class "ion-android-options" ], Button.onClick <| ShowModalJobPriorityMsg job] []
+               Button.button [ Button.roleLink, Button.attrs [ class "ion-android-options" ], Button.disabled <| job.state == DONE, Button.onClick <| ShowModalJobPriorityMsg job] []
 
     in
         tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
@@ -436,14 +436,10 @@ update msg model =
         NewJobPriorityMsg updatePriority ->
                      ( { model | newPriority = String.toInt updatePriority |> Result.withDefault 0} , Cmd.none )
         ConfirmNewPriority job->
-                       ( { model | newPriority = 4} , changeJobPriorityCmd job.id model.newPriority)
-        CompletedChangeJobPriority result ->
-            {- onRequestCompletedUpdatePriorityJob model result-}
-            case result of
-                Ok data->
-                     (model , Cmd.none)
-                Err err->
-                   (model , Cmd.none)
+                       ( {model | modalState = Modal.hiddenState}, changeJobPriorityCmd job.id model.newPriority)
+        RequestCompletedChangeJobPriority result ->
+            onRequestCompletedUpdatePriorityJob model result
+
 
 
 filterQuery : String -> Job -> Bool
@@ -511,7 +507,10 @@ onRequestCompletedToggleJob model result =
             ( updateJobUpdated model job, Cmd.none )
 
         Err err ->
-            ( model, Cmd.none )
+              let
+                  e = Debug.log "ERROR:onRequestCompletedToggleJob" err
+              in
+                 (model , Cmd.none)
 
 
 onRequestCompletedToggleJobs : Model -> Result Http.Error (List Job) -> ( Model, Cmd Msg )
@@ -520,7 +519,10 @@ onRequestCompletedToggleJobs model result =
      Ok jobs ->
         ( List.foldr (flip updateJobUpdated) model jobs , Cmd.none)
      Err err ->
-        ( model, Cmd.none )
+          let
+             e = Debug.log "ERROR:onRequestCompletedToggleJobS" err
+          in
+             (model , Cmd.none)
 
 
 toggleJobCmd : String -> Cmd Msg
@@ -539,7 +541,7 @@ toggleJobsResumeCmd jobIds =
 
 changeJobPriorityCmd : String -> Int -> Cmd Msg
 changeJobPriorityCmd jobId updatePriority =
-    Http.send CompletedChangeJobPriority <| Http.post ("/api/newman/job/" ++ jobId ++ "/" ++ (toString updatePriority)) Http.emptyBody decodeJob
+    Http.send RequestCompletedChangeJobPriority <| Http.post ("/api/newman/job/" ++ jobId ++ "/" ++ (toString updatePriority)) Http.emptyBody decodeJob
 
 
 onRequestCompletedDropJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
@@ -549,7 +551,11 @@ onRequestCompletedDropJob jobId model result =
             ( updateJobRemoved model jobId, Cmd.none )
 
         Err err ->
-            ( model, Cmd.none )
+              let
+                  e = Debug.log "ERROR:onRequestCompletedDropJob" err
+              in
+                 (model , Cmd.none)
+
 
 
 dropJobCmd : String -> Cmd Msg
@@ -565,10 +571,16 @@ dropJobCmd jobId =
             , withCredentials = False
             }
 
-{-onRequestCompletedUpdatePriorityJob : Model -> Result -> Model
-updateJobChangedPriority model result =
-     ( model, Cmd.none )-}
-
+onRequestCompletedUpdatePriorityJob : Model -> Result Http.Error Job -> ( Model, Cmd Msg )
+onRequestCompletedUpdatePriorityJob model result =
+    case result of
+        Ok data->
+                 (model , Cmd.none)
+        Err err ->
+              let
+                  e = Debug.log "ERROR:onRequestCompletedDropJob" err
+              in
+                 (model , Cmd.none)
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =

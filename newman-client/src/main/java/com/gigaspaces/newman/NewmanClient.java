@@ -93,7 +93,7 @@ public class NewmanClient {
     }
 
     public CompletionStage<Job> changePriorityJob(String jobId, int newPriority) {
-        return restClient.target(uri).path("job").path(jobId).path(Integer.toString(newPriority)).request().rx().put(Entity.text(""), Job.class);
+        return restClient.target(uri).path("job").path(jobId).path(Integer.toString(newPriority)).request().rx().post(Entity.text(""), Job.class);
     }
 
     public CompletionStage<Test> createTest(Test test) {

@@ -2119,7 +2119,7 @@ public class NewmanResource {
         return false;
     }
 
-    @PUT
+    @POST
     @Path("job/{jobId}/{newPriority}")
     @Produces(MediaType.APPLICATION_JSON)
     public Job changeJobPriority(final  @PathParam("jobId") String jobId, final @PathParam("newPriority") String newPriority) { //todo -void??
@@ -2127,7 +2127,7 @@ public class NewmanResource {
        int updatePriority = Integer.parseInt(newPriority);
        int currPriority = job.getPriority();
 
-       if(currPriority == updatePriority){
+       if(job.getState() == State.DONE || currPriority == updatePriority){
            return job;
        }
 
@@ -2147,7 +2147,7 @@ public class NewmanResource {
                 highestPriorityJob = getHighestPriorityJob();
             }
         }
-
+        broadcastMessage(MODIFIED_JOB, job);
         return job;
     }
 

@@ -168,6 +168,17 @@ public class NewmanAgent {
         JobExecutor jobExecutor = null;
 
         while (isActive()) {
+
+            /*try {
+                client.changePriorityJob("5d6cc3a65de0cc200f14bbda", 4).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+            }*/
+
             final Job job = waitForJob();
             Agent agent;
 
