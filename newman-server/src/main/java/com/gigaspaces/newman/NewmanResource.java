@@ -2087,6 +2087,7 @@ public class NewmanResource {
             System.out.println("highest priority is: " + prioritizedJob.getPriority());
             return prioritizedJob.getPriority();
         }
+        logger.info("Didn't find prioritized jobs, returning 0");
         return 0;
     }
 

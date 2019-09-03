@@ -12,24 +12,13 @@ import Time
 import Task
 import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (..)
-import Utils.Types exposing (Agent)
 import Utils.WebSocket as WebSocket exposing (..)
-import List.Extra as ListExtra
 
 type alias Model =
     { modalState : Modal.State
     , elasticGroups : List ElasticGroup
     , selectedElasticGroup : Maybe ElasticGroup
     , newCapacity : Int
-    }
-
-type alias AgentGroup2 =  {-Todo - didn't see use for it-}
-    { name: String
-    , id: String
-    , min: Int
-    , max: Int
-    , target: Int
-    , actual: Int
     }
 
 type Msg

@@ -42,7 +42,7 @@ type alias Model =
     , selectedConfig : String
     , agentGroups : List String
     , selectedAgentGroups : Multiselect.Model
-    , priorities: List String
+    , priorities: List Int
     , selectedPriority : Int
     , submittedFutureJobs : List FutureJob
     , isSelect : Bool
@@ -69,7 +69,7 @@ init =
       , configurations = []
       , selectedAgentGroups = Multiselect.initModel [] ""
       , agentGroups = []
-      , priorities = ["0", "1", "2", "3", "4"]
+      , priorities = [0,1,2,3,4]
       , selectedPriority = 0
       , submittedFutureJobs = []
       , isSelect = True
@@ -292,7 +292,7 @@ view model =
             , br [] []
             , let
                 toPriorityOption data =
-                    Select.item [ value data, selected <| model.selectedPriority == (String.toInt data |> Result.withDefault 0) ] [ text <| data ]
+                    Select.item [ value <| toString data, selected <| model.selectedPriority == data ] [ text <| toString data ]
 
               in
                 div

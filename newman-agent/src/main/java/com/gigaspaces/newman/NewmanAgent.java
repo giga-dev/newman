@@ -173,7 +173,7 @@ public class NewmanAgent {
 
             if (prevJob != null && job.getId().equals(prevJob.getId())) {
                 logger.info("Job {}: The same job was found, no need to setup job again", job.getId());
-                prevJob = null;
+
             } else {
                 if (prevJob != null) {
                     keepAliveTask.cancel();
@@ -205,7 +205,6 @@ public class NewmanAgent {
                     }
                     continue;
                 }
-
             }
             try {
                 agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -219,7 +218,7 @@ public class NewmanAgent {
                 continue;
             }
 
-
+            prevJob = job;
             lastPriorityCheckedTime = System.currentTimeMillis();
             workerShouldStop = false;
             // Submit workers:
@@ -275,7 +274,6 @@ public class NewmanAgent {
                 jobExecutor.teardown();
             } else {
                 logger.info("Job {} changed before it's finished, because there is a job in higher priority", job.getId());
-                prevJob = job;
             }
         }
     }
@@ -287,12 +285,8 @@ public class NewmanAgent {
                 logger.info("Found a job in higher priority");
                 return true;
             }
-        } catch (InterruptedException e) {
-            logger.info("Failed to check if there is has job with higher priority: " + e);
-        } catch (ExecutionException e) {
-            logger.info("Failed to check if there is has job with higher priority: " + e);
-        } catch (TimeoutException e) {
-            logger.info("Failed to check if there is has job with higher priority: " + e);
+        } catch (Exception e) {
+            logger.info("Failed to check if there is a job with higher priority: " + e);
         }
 
         return false;
