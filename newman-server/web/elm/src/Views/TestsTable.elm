@@ -149,7 +149,7 @@ viewTable model currTime =
                     , th [ width 100 ] [ text "Duration" ]
                     ]
                 ]
-            , tbody [] (List.map (viewTest currTime) <| Paginate.page model.paginated )
+            , tbody [] (List.map (viewTest currTime) <| Paginate.page model.paginated)
             ]
         , pagination
         ]
@@ -182,7 +182,7 @@ viewTest currTime test =
                         ( Just startTime, Nothing, Just time ) ->
                             Just <| Duration.diff (Date.fromTime time) (Date.fromTime (toFloat startTime))
 
-                        ( _, _ , _ ) ->
+                        ( _, _, _ ) ->
                             Nothing
             in
             case diffTime of
@@ -224,22 +224,24 @@ viewTest currTime test =
         historyStatsClass =
             if test.status == TEST_SUCCESS then
                 "black-column"
+
             else if test.testScore <= 3 then
                 "red-column"
+
             else if test.testScore > 3 then
                 "blue-column"
+
             else
                 ""
-
     in
     tr []
-        [ td [] [ a [ href <| "#test/" ++ test.id, title <| String.join "" test.arguments ] [ text <| toTestName test] ]
+        [ td [] [ a [ href <| "#test/" ++ test.id, title <| String.join "" test.arguments ] [ text <| toTestName test ] ]
         , td [] [ status [] [ text (testStatusToString test.status) ] ]
         , td [ class historyStatsClass ] historyStats
         , td [] [ a [ href <| "#test-history/" ++ test.id ] [ text "History" ] ]
         , td [] [ span [ title test.errorMessage ] [ text test.errorMessage ] ]
         , td [] [ text test.assignedAgent ]
-        , td [title <| agentGroupTestFormat test.agentGroup test.assignedAgent] [ text <| agentGroupTestFormat test.agentGroup test.assignedAgent ]
+        , td [ title <| agentGroupTestFormat test.agentGroup test.assignedAgent ] [ text <| agentGroupTestFormat test.agentGroup test.assignedAgent ]
         , td [] [ text durationText ]
         ]
 
@@ -263,8 +265,12 @@ update msg model =
             ( { model | paginated = Paginate.goTo i model.paginated }, Cmd.none )
 
         FilterQuery query ->
-            ( { model | query = query, paginated = filterTests model.all query model.filterState
-                                                   |> Paginate.fromList model.pageSize  }
+            ( { model
+                | query = query
+                , paginated =
+                    filterTests model.all query model.filterState
+                        |> Paginate.fromList model.pageSize
+              }
             , Cmd.none
             )
 
@@ -273,12 +279,14 @@ update msg model =
                 CreatedTest test ->
                     if model.jobId == test.jobId then
                         ( updateTestAdded model test, Cmd.none )
+
                     else
                         ( model, Cmd.none )
 
                 ModifiedTest test ->
                     if model.jobId == test.jobId then
                         ( updateTestUpdated model test, Cmd.none )
+
                     else
                         ( model, Cmd.none )
 
@@ -286,28 +294,40 @@ update msg model =
                     ( model, Cmd.none )
 
         UpdateFilterState jobId state ->
-            ({model | filterState = state , paginated = filterTests model.all model.query state |> Paginate.fromList model.pageSize }
-                                                        , modifyUrl jobId (radioStateToString state) )
+            ( { model | filterState = state, paginated = filterTests model.all model.query state |> Paginate.fromList model.pageSize }
+            , modifyUrl jobId (radioStateToString state)
+            )
 
 
 modifyUrl : String -> String -> Cmd Msg
 modifyUrl jobId state =
-        Navigation.modifyUrl <| "#" ++ String.join "/" [ "job", jobId , state]
+    Navigation.modifyUrl <| "#" ++ String.join "/" [ "job", jobId, state ]
+
 
 filterTests : List Test -> String -> RadioState -> List Test
 filterTests tests query filterState =
-                tests
-                    |> List.filter (filterQuery query)
-                    |> List.filter (filterByTestStatus filterState)
+    tests
+        |> List.filter (filterQuery query)
+        |> List.filter (filterByTestStatus filterState)
 
-filterByTestStatus : RadioState ->  Test -> Bool
+
+filterByTestStatus : RadioState -> Test -> Bool
 filterByTestStatus currentState test =
     case currentState of
-        STATUS_RUNNING -> test.status == TEST_RUNNING
-        STATUS_SUCCESS -> test.status == TEST_SUCCESS
-        STATUS_FAIL -> test.status == TEST_FAIL
-        STATUS_FAILED3TIMES -> test.runNumber == 3 && test.status == TEST_FAIL
-        STATUS_ALL -> True
+        STATUS_RUNNING ->
+            test.status == TEST_RUNNING
+
+        STATUS_SUCCESS ->
+            test.status == TEST_SUCCESS
+
+        STATUS_FAIL ->
+            test.status == TEST_FAIL
+
+        STATUS_FAILED3TIMES ->
+            test.runNumber == 3 && test.status == TEST_FAIL
+
+        STATUS_ALL ->
+            True
 
 
 updateAllTests : (List Test -> List Test) -> Model -> Model
@@ -329,6 +349,7 @@ updateTestAdded : Model -> Test -> Model
 updateTestAdded model addedTest =
     updateAllTests (\list -> addedTest :: list) model
 
+
 updateTestUpdated : Model -> Test -> Model
 updateTestUpdated model testToUpdate =
     let
@@ -349,6 +370,7 @@ filterQuery query test =
             || String.contains query test.assignedAgent
     then
         True
+
     else
         False
 
@@ -383,15 +405,19 @@ handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
     event => WebSocketEvent
 
+
 toTestName : Test -> String
-toTestName {arguments,runNumber} =
+toTestName { arguments, runNumber } =
     let
         num =
             case runNumber of
-                1 -> ""
-                other -> String.append "#" (toString other)
-        testName =
-            List.append arguments [num]
-    in
-       String.join " " testName
+                1 ->
+                    ""
 
+                other ->
+                    String.append "#" (toString other)
+
+        testName =
+            List.append arguments [ num ]
+    in
+    String.join " " testName

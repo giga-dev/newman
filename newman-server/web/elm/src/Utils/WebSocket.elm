@@ -1,9 +1,9 @@
 module Utils.WebSocket exposing (..)
 
-import Json.Decode exposing (Decoder, Value, field, string, value, int, decodeString, decodeValue)
+import Json.Decode exposing (Decoder, Value, decodeString, decodeValue, field, int, string, value)
 import Navigation exposing (Location)
 import Task
-import Utils.Types exposing (Agent, Build, FutureJob, Job, Suite, Test, JobConfig, decodeJobConfig, decodeAgent, decodeBuild, decodeFutureJob, decodeJob, decodeSuite, decodeTestView, decodeStatus)
+import Utils.Types exposing (Agent, Build, FutureJob, Job, JobConfig, Suite, Test, decodeAgent, decodeBuild, decodeFutureJob, decodeJob, decodeJobConfig, decodeStatus, decodeSuite, decodeTestView)
 import WebSocket
 
 
@@ -40,7 +40,7 @@ initModel location =
                 _ ->
                     "ws"
     in
-        Model <| protocol ++ "://" ++ location.hostname ++ ":" ++ location.port_ ++ "/events"
+    Model <| protocol ++ "://" ++ location.hostname ++ ":" ++ location.port_ ++ "/events"
 
 
 type Msg
@@ -76,80 +76,80 @@ toEvent msg =
                 json =
                     decodeString decodeWebSocketData str
             in
-                case json of
-                    Ok ok ->
-                        let
-                            parse msg decoder =
-                                Result.map msg <| decodeValue decoder ok.content
+            case json of
+                Ok ok ->
+                    let
+                        parse msg decoder =
+                            Result.map msg <| decodeValue decoder ok.content
 
-                            bodyRes =
-                                case ok.id of
-                                    "created-job" ->
-                                        parse CreatedJob decodeJob
+                        bodyRes =
+                            case ok.id of
+                                "created-job" ->
+                                    parse CreatedJob decodeJob
 
-                                    "modified-job" ->
-                                        parse ModifiedJob decodeJob
+                                "modified-job" ->
+                                    parse ModifiedJob decodeJob
 
-                                    "modified-agent" ->
-                                        parse ModifiedAgent decodeAgent
+                                "modified-agent" ->
+                                    parse ModifiedAgent decodeAgent
 
-                                    "deleted-agent" ->
-                                        parse DeletedAgent decodeAgent
+                                "deleted-agent" ->
+                                    parse DeletedAgent decodeAgent
 
-                                    "created-offline-agent" ->
-                                        parse CreatedOfflineAgent decodeAgent
+                                "created-offline-agent" ->
+                                    parse CreatedOfflineAgent decodeAgent
 
-                                    "deleted-offline-agent" ->
-                                        parse DeletedOfflineAgent string
+                                "deleted-offline-agent" ->
+                                    parse DeletedOfflineAgent string
 
-                                    "modified-agents-count" ->
-                                        parse ModifiedAgentsCount int
+                                "modified-agents-count" ->
+                                    parse ModifiedAgentsCount int
 
-                                    "modified-failing-agents" ->
-                                        parse ModifiedFailingAgents int
+                                "modified-failing-agents" ->
+                                    parse ModifiedFailingAgents int
 
-                                    "created-test" ->
-                                        parse CreatedTest decodeTestView
+                                "created-test" ->
+                                    parse CreatedTest decodeTestView
 
-                                    "modified-test" ->
-                                        parse ModifiedTest decodeTestView
+                                "modified-test" ->
+                                    parse ModifiedTest decodeTestView
 
-                                    "created-build" ->
-                                        parse CreatedBuild decodeBuild
+                                "created-build" ->
+                                    parse CreatedBuild decodeBuild
 
-                                    "modified-build" ->
-                                        parse ModifiedBuild decodeBuild
+                                "modified-build" ->
+                                    parse ModifiedBuild decodeBuild
 
-                                    "created-suite" ->
-                                        parse CreatedSuite decodeSuite
+                                "created-suite" ->
+                                    parse CreatedSuite decodeSuite
 
-                                    "modified-suite" ->
-                                        parse ModifiedSuite decodeSuite
+                                "modified-suite" ->
+                                    parse ModifiedSuite decodeSuite
 
-                                    "created-job-config" ->
-                                        parse CreatedJobConfig decodeJobConfig
+                                "created-job-config" ->
+                                    parse CreatedJobConfig decodeJobConfig
 
-                                    "created-future-job" ->
-                                        parse CreatedFutureJob decodeFutureJob
+                                "created-future-job" ->
+                                    parse CreatedFutureJob decodeFutureJob
 
-                                    "deleted-future-job" ->
-                                        parse DeletedFutureJob decodeFutureJob
+                                "deleted-future-job" ->
+                                    parse DeletedFutureJob decodeFutureJob
 
-                                    "modified-server-status" ->
-                                        parse ModifiedServerStatus decodeStatus
+                                "modified-server-status" ->
+                                    parse ModifiedServerStatus decodeStatus
 
-                                    other ->
-                                        Err <| "Unhandled event id: " ++ other
-                        in
-                            case bodyRes of
-                                Ok body ->
-                                    Ok body
+                                other ->
+                                    Err <| "Unhandled event id: " ++ other
+                    in
+                    case bodyRes of
+                        Ok body ->
+                            Ok body
 
-                                Err err ->
-                                    Err err
+                        Err err ->
+                            Err err
 
-                    Err err ->
-                        Err err
+                Err err ->
+                    Err err
 
 
 subscriptions : Model -> Sub Msg

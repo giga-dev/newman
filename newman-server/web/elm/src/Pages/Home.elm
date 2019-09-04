@@ -11,10 +11,11 @@ import Html.Attributes exposing (..)
 import Http exposing (..)
 import List.Extra as ListExtra
 import Maybe exposing (withDefault)
+import Utils.Common as Common
 import Utils.Types exposing (ActiveJobsDashboard, Build, DashboardData, FutureJob, decodeDashboardData)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal
-import Utils.Common as Common
+
 
 type Msg
     = GetDashboardDataCompleted (Result Http.Error DashboardData)
@@ -92,7 +93,7 @@ update msg model =
                     ( { model | futureJobs = futureJob :: model.futureJobs }, Cmd.none )
 
                 DeletedFutureJob futureJob ->
-                    ( { model | futureJobs = removeFromList futureJob.id model.futureJobs} , Cmd.none)
+                    ( { model | futureJobs = removeFromList futureJob.id model.futureJobs }, Cmd.none )
 
                 ModifiedBuild build ->
                     ( onEventModifiedBuild build model, Cmd.none )
@@ -112,85 +113,113 @@ updateList id newItem list =
 removeFromList id list =
     List.filter (\item -> item.id /= id) list
 
+
 addToList item list =
     let
-        newList = item :: list
+        newList =
+            item :: list
     in
-    if (List.length newList > 5) then
-        ListExtra.removeAt ((List.length newList) - 1) newList
+    if List.length newList > 5 then
+        ListExtra.removeAt (List.length newList - 1) newList
+
     else
         newList
 
+
 handleActiveBuilds : Build -> Model -> Model
 handleActiveBuilds build model =
-    if (build.buildStatus.totalJobs == build.buildStatus.doneJobs) then
+    if build.buildStatus.totalJobs == build.buildStatus.doneJobs then
         let
-            newActiveBuilds = removeFromList build.id model.activeBuilds
-            newHistoryBuilds = addToList build model.historyBuilds
+            newActiveBuilds =
+                removeFromList build.id model.activeBuilds
+
+            newHistoryBuilds =
+                addToList build model.historyBuilds
         in
         { model | activeBuilds = newActiveBuilds, historyBuilds = newHistoryBuilds }
-    else if (build.buildStatus.runningJobs == 0 && build.buildStatus.pendingJobs > 0) then
+
+    else if build.buildStatus.runningJobs == 0 && build.buildStatus.pendingJobs > 0 then
         let
-            newActiveBuilds = removeFromList build.id model.activeBuilds
-            newPendingBuilds = addToList build model.pendingBuilds
+            newActiveBuilds =
+                removeFromList build.id model.activeBuilds
+
+            newPendingBuilds =
+                addToList build model.pendingBuilds
         in
         { model | activeBuilds = newActiveBuilds, pendingBuilds = newPendingBuilds }
+
     else
         model
 
 
-
-
-
 handlePendingBuilds : Build -> Model -> Model
 handlePendingBuilds build model =
-    if (build.buildStatus.totalJobs == build.buildStatus.doneJobs) then
+    if build.buildStatus.totalJobs == build.buildStatus.doneJobs then
         let
-            newPendingBuilds = removeFromList build.id model.pendingBuilds
-            newHistoryBuilds = addToList build model.historyBuilds
+            newPendingBuilds =
+                removeFromList build.id model.pendingBuilds
+
+            newHistoryBuilds =
+                addToList build model.historyBuilds
         in
         { model | pendingBuilds = newPendingBuilds, historyBuilds = newHistoryBuilds }
-    else if (build.buildStatus.runningJobs > 0) then
+
+    else if build.buildStatus.runningJobs > 0 then
         let
-            newPendingBuilds = removeFromList build.id model.pendingBuilds
-            newActiveBuilds = addToList build model.activeBuilds
+            newPendingBuilds =
+                removeFromList build.id model.pendingBuilds
+
+            newActiveBuilds =
+                addToList build model.activeBuilds
         in
         { model | activeBuilds = newActiveBuilds, pendingBuilds = newPendingBuilds }
+
     else
         model
 
 
 handleHistoryBuilds : Build -> Model -> Model
 handleHistoryBuilds build orgModel =
-    if (build.buildStatus.doneJobs < build.buildStatus.totalJobs) then
+    if build.buildStatus.doneJobs < build.buildStatus.totalJobs then
         let
-            newHistoryBuilds = removeFromList build.id orgModel.historyBuilds
-            model = { orgModel | historyBuilds = newHistoryBuilds }
+            newHistoryBuilds =
+                removeFromList build.id orgModel.historyBuilds
+
+            model =
+                { orgModel | historyBuilds = newHistoryBuilds }
         in
-        if (build.buildStatus.runningJobs > 0) then
+        if build.buildStatus.runningJobs > 0 then
             let
-                newActiveBuilds = addToList build model.activeBuilds
+                newActiveBuilds =
+                    addToList build model.activeBuilds
             in
             { model | activeBuilds = newActiveBuilds }
-        else if (build.buildStatus.pendingJobs > 0) then
+
+        else if build.buildStatus.pendingJobs > 0 then
             let
-                newPendingBuilds = addToList build model.pendingBuilds
+                newPendingBuilds =
+                    addToList build model.pendingBuilds
             in
             { model | pendingBuilds = newPendingBuilds }
+
         else
             model
 
     else
         orgModel
 
+
 onEventModifiedBuild : Build -> Model -> Model
 onEventModifiedBuild build model =
     if findById build.id model.activeBuilds then
         handleActiveBuilds build model
+
     else if findById build.id model.pendingBuilds then
         handlePendingBuilds build model
+
     else if findById build.id model.historyBuilds then
         handleHistoryBuilds build model
+
     else
         model
 
@@ -276,8 +305,8 @@ viewFutureJobs futureJobs =
                 [ td [] [ a [ href <| "#build/" ++ futureJob.buildId ] [ text <| futureJob.buildName ++ " (" ++ futureJob.buildBranch ++ ")" ] ]
                 , td [] [ a [ href <| "#suite/" ++ futureJob.suiteId ] [ text futureJob.suiteName ] ]
                 , td [] [ text futureJob.author ]
-                , td [] [ text <| String.join "," futureJob.agentGroups]
-                , td [] [ text <| toString futureJob.priority]
+                , td [] [ text <| String.join "," futureJob.agentGroups ]
+                , td [] [ text <| toString futureJob.priority ]
                 , td [] [ text <| formatTime futureJob.submitTime ]
                 , td []
                     [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickDropFutureJob futureJob.id ]
@@ -290,13 +319,13 @@ viewFutureJobs futureJobs =
         , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover history-table" ]
             [ thead []
                 [ tr []
-                    [ th [widthPcnt "15%"] [ text "Build" ]
-                    , th [widthPcnt "15%"] [ text "Suite Name" ]
-                    , th [widthPcnt "7%"] [ text "Author" ]
-                    , th [widthPcnt "22%"] [ text "Agent Groups" ]
-                    , th [widthPcnt "10%"] [ text "Priority" ]
-                    , th [widthPcnt "10%"] [ text "Submit Time" ]
-                    , th [widthPcnt "5%"] [ text "Actions" ]
+                    [ th [ widthPcnt "15%" ] [ text "Build" ]
+                    , th [ widthPcnt "15%" ] [ text "Suite Name" ]
+                    , th [ widthPcnt "7%" ] [ text "Author" ]
+                    , th [ widthPcnt "22%" ] [ text "Agent Groups" ]
+                    , th [ widthPcnt "10%" ] [ text "Priority" ]
+                    , th [ widthPcnt "10%" ] [ text "Submit Time" ]
+                    , th [ widthPcnt "5%" ] [ text "Actions" ]
                     ]
                 ]
             , tbody [] (List.map viewFutureJob futureJobs)
@@ -355,7 +384,7 @@ viewPendingBuilds builds =
                         , text " "
                         , Badge.badgeDanger [] [ text "Failed" ]
                         , text " "
-                        , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ text "Failed 3 Times" ]
+                        , Badge.badgeWarning [ style [ ( "background-color", "DarkRed" ) ] ] [ text "Failed 3 Times" ]
                         , text " "
                         , Badge.badgePrimary [] [ text "Pending" ]
                         , text " | Tests"
@@ -398,7 +427,7 @@ viewPendingBuild build =
             , text " "
             , Badge.badgeDanger [] [ text <| toString buildStatus.failedTests ]
             , text " "
-            , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ text <| toString buildStatus.failed3TimesTests ]
+            , Badge.badgeWarning [ style [ ( "background-color", "DarkRed" ) ] ] [ text <| toString buildStatus.failed3TimesTests ]
             , text " "
             , Badge.badgePrimary [] [ text <| toString (buildStatus.totalTests - buildStatus.passedTests - buildStatus.failedTests) ]
             ]
@@ -436,7 +465,7 @@ viewActiveBuilds builds activeJobs =
                         , text " "
                         , Badge.badgeDanger [] [ text "Failed" ]
                         , text " "
-                        , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ text "Failed 3 Times" ]
+                        , Badge.badgeWarning [ style [ ( "background-color", "DarkRed" ) ] ] [ text "Failed 3 Times" ]
                         , text " "
                         , Badge.badgePrimary [] [ text "Pending" ]
                         , text " | Tests"
@@ -479,7 +508,7 @@ viewActiveBuild activeJobs build =
             , text " "
             , Badge.badgeDanger [] [ text <| toString buildStatus.failedTests ]
             , text " "
-            , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ text <| toString buildStatus.failed3TimesTests ]
+            , Badge.badgeWarning [ style [ ( "background-color", "DarkRed" ) ] ] [ text <| toString buildStatus.failed3TimesTests ]
             , text " "
             , Badge.badgePrimary [] [ text <| toString (buildStatus.totalTests - buildStatus.passedTests - buildStatus.failedTests) ]
             ]
@@ -497,16 +526,18 @@ viewActiveBuild activeJobs build =
                 [ td [] [ text <| "↳ Job: ", a [ href <| "#job/" ++ job.id ] [ text job.id ] ]
                 , td [] []
                 , td [ colspan 2, class "tests-data" ]
-                    [ Badge.badgeInfo [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/RUNNING" ] [text <| toString job.runningTests] ]
+                    [ Badge.badgeInfo [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/RUNNING" ] [ text <| toString job.runningTests ] ]
                     , text " "
-                    , Badge.badgeSuccess [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/SUCCESS" ] [text <| toString job.passedTests] ]
+                    , Badge.badgeSuccess [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/SUCCESS" ] [ text <| toString job.passedTests ] ]
                     , text " "
-                    , Badge.badgeDanger [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAIL" ] [text <| toString job.failedTests] ]
+                    , Badge.badgeDanger [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAIL" ] [ text <| toString job.failedTests ] ]
                     , text " "
-                    , Badge.badgeWarning [ style [("background-color","DarkRed")] ] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAILED3TIMES" , title "Failed 3 Times" ]
-                                                [text <| toString job.failed3TimesTests] ]
+                    , Badge.badgeWarning [ style [ ( "background-color", "DarkRed" ) ] ]
+                        [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/FAILED3TIMES", title "Failed 3 Times" ]
+                            [ text <| toString job.failed3TimesTests ]
+                        ]
                     , text " "
-                    , Badge.badge [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/ALL" ] [ text <| toString job.totalTests] ]
+                    , Badge.badge [] [ a [ class "tests-num-link", href <| "#job/" ++ job.id ++ "/ALL" ] [ text <| toString job.totalTests ] ]
                     ]
                 , td [] [ a [ href <| "#suite/" ++ job.suiteId ] [ text job.suiteName ] ]
                 ]

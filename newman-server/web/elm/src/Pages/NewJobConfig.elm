@@ -12,8 +12,7 @@ import Json.Decode exposing (Decoder, int)
 import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode
 import Maybe exposing (withDefault)
-import Views.NewmanModal as NewmanModal
-import Utils.Types exposing (JobConfig,decodeJobConfig)
+import Utils.Types exposing (JobConfig, decodeJobConfig)
 import Views.NewmanModal as NewmanModal
 
 
@@ -25,30 +24,27 @@ type Msg
     | OnClickSave
     | NewmanModalMsg Modal.State
 
+
 type alias Model =
-    {
-      javaVersions : List String
+    { javaVersions : List String
     , selectedJavaVersion : String
     , name : String
     , modalState : Modal.State
     , errorMessage : String
-    , savedJobConfig :  Maybe JobConfig
+    , savedJobConfig : Maybe JobConfig
     }
-
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( {
-        javaVersions = []
-        , selectedJavaVersion =""
-        , name = ""
-        , modalState = Modal.hiddenState
-        , errorMessage = ""
-        , savedJobConfig = Nothing
+    ( { javaVersions = []
+      , selectedJavaVersion = ""
+      , name = ""
+      , modalState = Modal.hiddenState
+      , errorMessage = ""
+      , savedJobConfig = Nothing
       }
     , getAllJavaVersionsCmd
-
     )
 
 
@@ -56,20 +52,23 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GetAllJavaVersionsCompleted result ->
-              case result of
-                  Ok versions ->
-                      ( { model | javaVersions = versions, selectedJavaVersion = List.head versions |> Maybe.withDefault "" }, Cmd.none )
+            case result of
+                Ok versions ->
+                    ( { model | javaVersions = versions, selectedJavaVersion = List.head versions |> Maybe.withDefault "" }, Cmd.none )
 
-                  Err err ->
-                      let
-                          a =
-                              Debug.log "GetAllJavaVersionsCompleted" err
-                      in
-                          ( model, Cmd.none )
-        UpdateName msgName->
-             ( { model | name = msgName }, Cmd.none )
-        UpdateSelectedJavaVersion msgJavaVersion->
-             ( { model | selectedJavaVersion = msgJavaVersion }, Cmd.none )
+                Err err ->
+                    let
+                        a =
+                            Debug.log "GetAllJavaVersionsCompleted" err
+                    in
+                    ( model, Cmd.none )
+
+        UpdateName msgName ->
+            ( { model | name = msgName }, Cmd.none )
+
+        UpdateSelectedJavaVersion msgJavaVersion ->
+            ( { model | selectedJavaVersion = msgJavaVersion }, Cmd.none )
+
         OnClickSave ->
             case ( model.name, model.selectedJavaVersion ) of
                 ( "", _ ) ->
@@ -79,18 +78,18 @@ update msg model =
                     ( { model | errorMessage = "Please select a Java Version", modalState = Modal.visibleState }, Cmd.none )
 
                 _ ->
-                    ( model,  saveJobConfigCmd model.name model.selectedJavaVersion)
+                    ( model, saveJobConfigCmd model.name model.selectedJavaVersion )
 
-        SubmitNewJobConfigCompleted  result ->
-                case result of
-                    Ok data ->
-                        ( { model | savedJobConfig = Just data }, Cmd.none )
+        SubmitNewJobConfigCompleted result ->
+            case result of
+                Ok data ->
+                    ( { model | savedJobConfig = Just data }, Cmd.none )
 
-                    Err err ->
-                        ( model, Cmd.none )
+                Err err ->
+                    ( model, Cmd.none )
+
         NewmanModalMsg newState ->
-                ( { model | modalState = newState }, Cmd.none )
-
+            ( { model | modalState = newState }, Cmd.none )
 
 
 getAllJavaVersionsCmd : Cmd Msg
@@ -109,12 +108,12 @@ saveJobConfigCmd name javaVersion =
         postReq =
             postJobConfig name javaVersion
     in
-        Http.send SubmitNewJobConfigCompleted postReq
+    Http.send SubmitNewJobConfigCompleted postReq
 
 
-postJobConfig : String -> String -> Http.Request  JobConfig
+postJobConfig : String -> String -> Http.Request JobConfig
 postJobConfig name javaVersion =
-      Http.post ("/api/newman/job-config-from-gui?name=" ++ name ++ "&javaVersion="++javaVersion) Http.emptyBody decodeJobConfig
+    Http.post ("/api/newman/job-config-from-gui?name=" ++ name ++ "&javaVersion=" ++ javaVersion) Http.emptyBody decodeJobConfig
 
 
 view : Model -> Html Msg
@@ -124,39 +123,36 @@ view model =
             case model.savedJobConfig of
                 Nothing ->
                     ""
+
                 Just jobConfig ->
                     "Finished Saving New Job configuration: " ++ jobConfig.name
     in
-        div [ class "container-fluid" ]
-            [ h2 [ class "page-header" ]
-                [ text "New Job Configuration" ]
-            , div [][ text "Name:"]
-             ,div
-                 []
-                 [ Input.text [Input.placeholder "New Configuration Name", Input.onInput UpdateName, Input.attrs [ style [ ( "width", "500px" ) ] ] ]
-                 ]
-             ,br [][]
-            ,let
-                toOption data =
-                    Select.item [ value data, selected <| model.selectedJavaVersion == data ] [ text <| data ]
-              in
-                div
-                    []
-                    [ text "Select Java Version:"
-                    , Select.select
-                        [ Select.onChange UpdateSelectedJavaVersion, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
-                        (List.map toOption model.javaVersions)
-                    ]
-            , br [] []
-
-            , Button.button [ Button.secondary, Button.onClick OnClickSave, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Save New Job configuration" ]
-            , br [] []
-            , br [] []
-            , div [style [ ( "color", "#2FDC62" ), ( "width", "500px" ),( "font-weight" , "bold" ) ]]
-                ([ text savedJobConfigString ] )
-            , br [] []
-            , NewmanModal.viewError model.errorMessage NewmanModalMsg model.modalState
+    div [ class "container-fluid" ]
+        [ h2 [ class "page-header" ]
+            [ text "New Job Configuration" ]
+        , div [] [ text "Name:" ]
+        , div
+            []
+            [ Input.text [ Input.placeholder "New Configuration Name", Input.onInput UpdateName, Input.attrs [ style [ ( "width", "500px" ) ] ] ]
             ]
-
-
-
+        , br [] []
+        , let
+            toOption data =
+                Select.item [ value data, selected <| model.selectedJavaVersion == data ] [ text <| data ]
+          in
+          div
+            []
+            [ text "Select Java Version:"
+            , Select.select
+                [ Select.onChange UpdateSelectedJavaVersion, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
+                (List.map toOption model.javaVersions)
+            ]
+        , br [] []
+        , Button.button [ Button.secondary, Button.onClick OnClickSave, Button.attrs [ style [ ( "margin-top", "15px" ) ] ] ] [ text "Save New Job configuration" ]
+        , br [] []
+        , br [] []
+        , div [ style [ ( "color", "#2FDC62" ), ( "width", "500px" ), ( "font-weight", "bold" ) ] ]
+            [ text savedJobConfigString ]
+        , br [] []
+        , NewmanModal.viewError model.errorMessage NewmanModalMsg model.modalState
+        ]

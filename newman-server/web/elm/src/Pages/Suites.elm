@@ -11,9 +11,10 @@ import Http
 import List.Extra as ListExtra
 import Paginate exposing (..)
 import Time exposing (Time)
+import Utils.Common as Common
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
-import Utils.Common as Common
+
 
 type alias Model =
     { allSuites : Suites
@@ -226,6 +227,7 @@ filterQuery query suite =
             || String.startsWith query suite.id
     then
         True
+
     else
         False
 

@@ -15,11 +15,11 @@ import Json.Decode
 import Task
 import Time exposing (Time)
 import UrlParser exposing (Parser)
+import Utils.Common as Common
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
-import Views.TestsTable as TestsTable
-import Utils.Common as Common
 import Views.NewmanModal as NewmanModal
+import Views.TestsTable as TestsTable
 
 
 type alias Model =
@@ -29,15 +29,14 @@ type alias Model =
     , currTime : Maybe Time
     , statusState : RadioState
     , confirmationState : Modal.State
-    , newSuiteName: Maybe String
-    , newSuiteMessage: Maybe (Result String String)
+    , newSuiteName : Maybe String
+    , newSuiteMessage : Maybe (Result String String)
     }
 
 
 type CollapseState
     = Hidden
     | Shown
-
 
 
 type Msg
@@ -56,7 +55,6 @@ type Msg
 
 
 
-
 -- external
 
 
@@ -64,9 +62,11 @@ parseJobId : Parser (String -> a) a
 parseJobId =
     UrlParser.string
 
+
 parseRadioState : Parser (String -> a) a
 parseRadioState =
     UrlParser.string
+
 
 initModel : JobId -> RadioState -> Model
 initModel jobId state =
@@ -104,7 +104,7 @@ viewHeader model job =
                 ( "Progress"
                 , Progress.progress
                     [ Progress.value <| toFloat <| (job.failedTests + job.passedTests) * 100 // job.totalTests
-                                        , Progress.label <| toString <| (job.failedTests + job.passedTests) * 100 // job.totalTests
+                    , Progress.label <| toString <| (job.failedTests + job.passedTests) * 100 // job.totalTests
                     ]
                 )
 
@@ -142,30 +142,27 @@ viewHeader model job =
 
         testsStatus =
             ButtonGroup.radioButtonGroup []
-                    [ ButtonGroup.radioButton
-                        (model.statusState == STATUS_RUNNING)
-                        [ Button.attrs [title "Running Tests"] , Button.outlinePrimary, Button.outlineInfo, Button.onClick <| StatusMsg STATUS_RUNNING ]
-                        [ text <| toString job.runningTests ]
-                    , ButtonGroup.radioButton
-                        (model.statusState == STATUS_SUCCESS)
-                        [ Button.attrs [title "Passed Tests"] , Button.outlinePrimary, Button.outlineSuccess, Button.onClick <| StatusMsg STATUS_SUCCESS ]
-                        [ text <| toString job.passedTests ]
-                    , ButtonGroup.radioButton
-                        (model.statusState == STATUS_FAIL)
-                        [ Button.attrs [title "Failed Tests"] , Button.outlinePrimary, Button.outlineDanger, Button.onClick <| StatusMsg STATUS_FAIL ]
-                        [ text <| toString job.failedTests ]
-                    , ButtonGroup.radioButton
-                        (model.statusState == STATUS_FAILED3TIMES)
-                        [ Button.attrs [title "Failed 3 Times", class "job-radio-button-failed3X"] , Button.onClick <| StatusMsg STATUS_FAILED3TIMES ]
-                        [ text <| toString job.failed3TimesTests ]
-                    , ButtonGroup.radioButton
-                        (model.statusState == STATUS_ALL)
-                        [ Button.attrs [title "All Tests"] , Button.outlinePrimary, Button.onClick <| StatusMsg STATUS_ALL ]
-                        [ text <| toString job.totalTests ]
-                    ]
-
-
-
+                [ ButtonGroup.radioButton
+                    (model.statusState == STATUS_RUNNING)
+                    [ Button.attrs [ title "Running Tests" ], Button.outlinePrimary, Button.outlineInfo, Button.onClick <| StatusMsg STATUS_RUNNING ]
+                    [ text <| toString job.runningTests ]
+                , ButtonGroup.radioButton
+                    (model.statusState == STATUS_SUCCESS)
+                    [ Button.attrs [ title "Passed Tests" ], Button.outlinePrimary, Button.outlineSuccess, Button.onClick <| StatusMsg STATUS_SUCCESS ]
+                    [ text <| toString job.passedTests ]
+                , ButtonGroup.radioButton
+                    (model.statusState == STATUS_FAIL)
+                    [ Button.attrs [ title "Failed Tests" ], Button.outlinePrimary, Button.outlineDanger, Button.onClick <| StatusMsg STATUS_FAIL ]
+                    [ text <| toString job.failedTests ]
+                , ButtonGroup.radioButton
+                    (model.statusState == STATUS_FAILED3TIMES)
+                    [ Button.attrs [ title "Failed 3 Times", class "job-radio-button-failed3X" ], Button.onClick <| StatusMsg STATUS_FAILED3TIMES ]
+                    [ text <| toString job.failed3TimesTests ]
+                , ButtonGroup.radioButton
+                    (model.statusState == STATUS_ALL)
+                    [ Button.attrs [ title "All Tests" ], Button.outlinePrimary, Button.onClick <| StatusMsg STATUS_ALL ]
+                    [ text <| toString job.totalTests ]
+                ]
 
         jobToT ( key, val ) =
             li []
@@ -198,12 +195,12 @@ viewHeader model job =
                 [ jobSetupButton
                 , jobSetupLogsData
                 ]
-        createSuiteButton =
-                Button.button [ Button.onClick OnNewSuiteCreateButton , Button.outlinePrimary, Button.attrs [ style [("vertical-align", "top"), ( "margin-left" , "10px")] ]   ] [ text "Create suite" ]
 
+        createSuiteButton =
+            Button.button [ Button.onClick OnNewSuiteCreateButton, Button.outlinePrimary, Button.attrs [ style [ ( "vertical-align", "top" ), ( "margin-left", "10px" ) ] ] ] [ text "Create suite" ]
 
         headerRows =
-            [ ( "Suite", a [ href  <| "#suite/" ++ job.suiteId] [ text job.suiteName ] )
+            [ ( "Suite", a [ href <| "#suite/" ++ job.suiteId ] [ text job.suiteName ] )
             , ( "Job configuration", text job.jobConfigName )
             , ( "Submit Time", text <| dateFormat <| Just job.submitTime )
             , ( "Start Time", text <| dateFormat job.startTime )
@@ -211,7 +208,7 @@ viewHeader model job =
             , ( "# Agents", text <| toString <| List.length job.agents )
             , ( "# Prep. Agents", text <| toString <| List.length job.preparingAgents )
             , ( "Agent Groups", text <| agentGroupsJobFormat job.agentGroups )
-            , ( "Priority", text <| toString <| (job.priority |> Maybe.withDefault 0))
+            , ( "Priority", text <| toString <| (job.priority |> Maybe.withDefault 0) )
             , ( "Submitted by", text <| job.submittedBy )
             , ( "Status", div [] [ testsStatus, createSuiteButton ] )
             , ( "Job Setup Logs", jobSetupLogs )
@@ -303,6 +300,7 @@ update msg model =
                         Just currentJob ->
                             if currentJob.id == job.id then
                                 ( { model | maybeJob = Just job }, Cmd.none )
+
                             else
                                 ( model, Cmd.none )
 
@@ -317,56 +315,70 @@ update msg model =
                 ( newSubModel, newCmd ) =
                     TestsTable.update (TestsTable.UpdateFilterState (Maybe.withDefault "" <| Maybe.map .id model.maybeJob) state) model.testsTable
             in
-                ( { model | statusState = state , testsTable = newSubModel } , newCmd |> Cmd.map TestsTableMsg )
+            ( { model | statusState = state, testsTable = newSubModel }, newCmd |> Cmd.map TestsTableMsg )
 
         OnNewSuiteCreateButton ->
             let
-                suiteName = case model.newSuiteName of
+                suiteName =
+                    case model.newSuiteName of
                         Just suiteName ->
                             suiteName
+
                         Nothing ->
-                            case (model.currTime, model.maybeJob) of
-                                (Just time, Just job) ->
+                            case ( model.currTime, model.maybeJob ) of
+                                ( Just time, Just job ) ->
                                     "dev-failing-" ++ job.suiteName ++ "-" ++ (DateFormat.format Common.timestamp <| Date.fromTime time)
-                                (_, _) ->
+
+                                ( _, _ ) ->
                                     "..."
             in
-                ( {model | confirmationState = Modal.visibleState, newSuiteName = Just suiteName } , Cmd.none )
+            ( { model | confirmationState = Modal.visibleState, newSuiteName = Just suiteName }, Cmd.none )
+
         NewmanModalMsg newState ->
             let
-                cleanup = (newState == Modal.hiddenState)
-                newModel = { model | confirmationState = newState }
+                cleanup =
+                    newState == Modal.hiddenState
+
+                newModel =
+                    { model | confirmationState = newState }
             in
-                if (cleanup) then
-                    ( { newModel | newSuiteName = Nothing, newSuiteMessage = Nothing }, Cmd.none )
-                else
-                    ( newModel , Cmd.none )
+            if cleanup then
+                ( { newModel | newSuiteName = Nothing, newSuiteMessage = Nothing }, Cmd.none )
+
+            else
+                ( newModel, Cmd.none )
+
         OnNewSuiteConfirm suiteName ->
             case model.maybeJob of
                 Just job ->
-                    if (String.startsWith "dev-" suiteName) then
-                        ( { model | newSuiteMessage = Just <| Err "Sending request..." } , createSuiteCmd suiteName job.id)
+                    if String.startsWith "dev-" suiteName then
+                        ( { model | newSuiteMessage = Just <| Err "Sending request..." }, createSuiteCmd suiteName job.id )
+
                     else
-                        ( { model | newSuiteMessage = Just <| Ok "Suite name does not start with 'dev-'" } , Cmd.none)
+                        ( { model | newSuiteMessage = Just <| Ok "Suite name does not start with 'dev-'" }, Cmd.none )
 
                 Nothing ->
-                    ( { model |confirmationState = Modal.hiddenState, newSuiteName = Nothing, newSuiteMessage = Nothing } , Cmd.none )
+                    ( { model | confirmationState = Modal.hiddenState, newSuiteName = Nothing, newSuiteMessage = Nothing }, Cmd.none )
 
         CreateSuiteResponse result ->
             case result of
                 Ok suite ->
-                    ({ model | newSuiteMessage = Just <| Ok <| "Suite with id ["++suite.id++"] has been created"} , Cmd.none)
+                    ( { model | newSuiteMessage = Just <| Ok <| "Suite with id [" ++ suite.id ++ "] has been created" }, Cmd.none )
+
                 Err err ->
                     let
-                        errMsg = case err of
-                            BadStatus msg ->
-                                msg.body
-                            _ ->
-                                toString err
+                        errMsg =
+                            case err of
+                                BadStatus msg ->
+                                    msg.body
+
+                                _ ->
+                                    toString err
                     in
-                        ({model | newSuiteMessage = Just <| Ok errMsg }, Cmd.none)
+                    ( { model | newSuiteMessage = Just <| Ok errMsg }, Cmd.none )
+
         OnNewSuiteNameChanged newName ->
-            ( { model | newSuiteName = Just newName } , Cmd.none)
+            ( { model | newSuiteName = Just newName }, Cmd.none )
 
 
 getJobInfoCmd : JobId -> Cmd Msg
@@ -397,4 +409,4 @@ handleEvent event =
 
 createSuiteCmd : String -> JobId -> Cmd Msg
 createSuiteCmd suiteName jobId =
-    Http.send CreateSuiteResponse <| Http.post ("/api/newman/suite/failedTests?jobId=" ++ jobId++"&suiteName="++suiteName) Http.emptyBody decodeSuite
+    Http.send CreateSuiteResponse <| Http.post ("/api/newman/suite/failedTests?jobId=" ++ jobId ++ "&suiteName=" ++ suiteName) Http.emptyBody decodeSuite

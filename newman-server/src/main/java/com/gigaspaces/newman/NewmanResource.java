@@ -620,7 +620,6 @@ public class NewmanResource {
         if(job.getPriority() > highestPriorityJob){
             highestPriorityJob = job.getPriority();
             logger.info("Highest Priority of jobs changed to: " + highestPriorityJob);
-            System.out.println("highest priority changed: " + highestPriorityJob);
         }
     }
 
@@ -1997,7 +1996,6 @@ public class NewmanResource {
             updateOps.set("jobId", job.getId());
             updateOps.set("state", Agent.State.PREPARING);
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().add("preparingAgents", agent.getName());
-            System.out.println("preparing agent is: " + job.getPreparingAgents().size());
             // update startPrepareTime only if not set
             if (job.getStartPrepareTime() == null) {
                 logger.info("agent [host:[{}], name:[{}]] start prepare on job [id:[{}], name:[{}]].", agent.getHost(), agent.getName(), job.getId(), job.getSuite().getName());
@@ -2008,8 +2006,6 @@ public class NewmanResource {
                 updateJobStatus.unset("lastTimeZombie");
             }
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), updateJobStatus);
-            System.out.println("preparing agent is: " + job.getPreparingAgents().size());
-
             broadcastMessage(MODIFIED_JOB, job);
         } else {
             updateOps.set("state", Agent.State.IDLING);
@@ -2082,10 +2078,8 @@ public class NewmanResource {
 
     private int getHighestPriorityJob(){
         PrioritizedJob prioritizedJob = prioritizedJobDAO.findOne(prioritizedJobDAO.createQuery().filter("isPaused", false).order("-priority"));
-        System.out.println("check order: the highest priority job is " + prioritizedJob);
         if(prioritizedJob != null){
             logger.info("Highest Priority of jobs: " + prioritizedJob.getPriority());
-            System.out.println("highest priority is: " + prioritizedJob.getPriority());
             return prioritizedJob.getPriority();
         }
         logger.info("Didn't find prioritized jobs, returning 0");
@@ -2116,7 +2110,6 @@ public class NewmanResource {
                                 new WhereCriteria("this.preparingAgents.length < (this.totalTests + this.numOfTestRetries - this.passedTests - this.failedTests - this.runningTests)")),
                                 jobQuery.criteria("preparingAgents").doesNotExist());
                         if(jobQuery.countAll() == 1){
-                            System.out.println( "need more agents that has now");
                             return true;
                         }
                     }
@@ -2132,7 +2125,7 @@ public class NewmanResource {
     @POST
     @Path("job/{jobId}/{newPriority}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Job changeJobPriority(final  @PathParam("jobId") String jobId, final @PathParam("newPriority") String newPriority) { //todo -void??
+    public Job changeJobPriority(final  @PathParam("jobId") String jobId, final @PathParam("newPriority") String newPriority) {
        Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
        int updatePriority = Integer.parseInt(newPriority);
        int currPriority = job.getPriority();
@@ -2410,7 +2403,6 @@ public class NewmanResource {
         if(job.getPriority() == highestPriorityJob){
             highestPriorityJob = getHighestPriorityJob();
         }
-        System.out.println("in delete prioritized job");
     }
 
     private void performDeleteTestsLogs(String jobId) {

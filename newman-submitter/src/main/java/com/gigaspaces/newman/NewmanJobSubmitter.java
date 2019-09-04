@@ -206,9 +206,9 @@ public class NewmanJobSubmitter {
 
     //0- suiteId, 1-buildId, 2-configId, 3- agentGroups, 4- priority, 5- host, 6- port, 7- user, 8- password
     public static void main(String[] args) throws Exception {
-        testSubmitterFromIntelliJ();
+        //testSubmitterFromIntelliJ();
 
-       //testSubmitterUsingArgs(args);
+       testSubmitterUsingArgs(args);
     }
 
     private static void testSubmitterFromIntelliJ() throws Exception {
@@ -216,7 +216,7 @@ public class NewmanJobSubmitter {
         String buildId = "5d19f01a4cedfd000cd81982";
         String configId = "5b4c9342b3859411ee82c265";
         String requiredAgentGroups = "devGroup";
-        int priority = 5;
+        int priority = 2;
 
 
         String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, true /*required*/, logger);

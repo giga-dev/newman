@@ -247,9 +247,7 @@ public class NewmanAgent {
                         Test test;
                         while(!workerShouldStop){
                             long timeNow = System.currentTimeMillis();
-                            System.out.println("diff time is " + (timeNow - lastPriorityCheckedTime)/ MILLISECONDS_IN_SECOND);
                             if((timeNow - lastPriorityCheckedTime) > (MILLISECONDS_IN_SECOND * 60)){
-                                System.out.println("more than one minute:diff time is " + (timeNow - lastPriorityCheckedTime)/ MILLISECONDS_IN_SECOND);
                                workerShouldStop = hasPrioritizedJob(currentAgent.getId(), job.getId());
                                 lastPriorityCheckedTime = System.currentTimeMillis();
                                 if(workerShouldStop){
@@ -297,7 +295,6 @@ public class NewmanAgent {
     private boolean hasPrioritizedJob(final String agentId, final String jobId){
         try {
             if(client.hasHigherPriorityJob(agentId, jobId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)){
-                logger.info("Found a job in higher priority");
                 return true;
             }
         } catch (Exception e) {

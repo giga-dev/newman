@@ -19,10 +19,11 @@ import Json.Decode.Pipeline exposing (decode, required)
 import Paginate exposing (..)
 import Task
 import Time exposing (Time)
+import Utils.Common as Common
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket
 import Views.JobsTable as JobsTable
-import Utils.Common as Common
+
 
 type alias Model =
     { jobsTableModel : JobsTable.Model
@@ -46,12 +47,12 @@ init =
         maxEntries =
             60
     in
-        ( { jobsTableModel = JobsTable.init []
-          , maxEntries = maxEntries
-          , currTime = Nothing
-          }
-        , Cmd.batch [ getJobsCmd maxEntries, requestTime ]
-        )
+    ( { jobsTableModel = JobsTable.init []
+      , maxEntries = maxEntries
+      , currTime = Nothing
+      }
+    , Cmd.batch [ getJobsCmd maxEntries, requestTime ]
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -62,7 +63,7 @@ update msg model =
                 maxEntries =
                     String.toInt newValue |> Result.toMaybe |> Maybe.withDefault 1
             in
-                ( { model | maxEntries = maxEntries }, getJobsCmd maxEntries )
+            ( { model | maxEntries = maxEntries }, getJobsCmd maxEntries )
 
         GetJobsCompleted result ->
             onGetJobsCompleted model result
@@ -75,7 +76,7 @@ update msg model =
                 ( updatedJobsTableModel, cmd ) =
                     JobsTable.update subMsg model.jobsTableModel
             in
-                ( { model | jobsTableModel = updatedJobsTableModel }, Cmd.batch [ cmd |> Cmd.map JobsTableMsg , requestTime ] )
+            ( { model | jobsTableModel = updatedJobsTableModel }, Cmd.batch [ cmd |> Cmd.map JobsTableMsg, requestTime ] )
 
         UpdateJobsNumber jobsNum ->
             ( { model | maxEntries = String.toInt jobsNum |> Result.withDefault 1 }, Cmd.none )
@@ -86,14 +87,13 @@ update msg model =
             )
 
 
-
 view : Model -> Html Msg
 view model =
     div []
         [ div [ class "form-inline" ]
             [ h1 [ class "jobs-label" ] [ text "Jobs" ]
             , div [ class "form-inline jobs-list-max-job-count" ]
-                [ div [ class "jobs-list-max-job-count-label" ] [ text ("Max. Job count:") ]
+                [ div [ class "jobs-list-max-job-count-label" ] [ text "Max. Job count:" ]
                 , div [ class "jobs-list-max-job-count-input" ]
                     [ FormInput.number
                         [ FormInput.value <| toString <| model.maxEntries
@@ -140,7 +140,7 @@ onGetJobsCompleted model result =
                 a =
                     Debug.log "onGetJobsCompleted" err
             in
-                ( model, Cmd.none )
+            ( model, Cmd.none )
 
 
 requestTime : Cmd Msg
@@ -150,7 +150,7 @@ requestTime =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-        JobsTable.subscriptions model.jobsTableModel |> Sub.map JobsTableMsg
+    JobsTable.subscriptions model.jobsTableModel |> Sub.map JobsTableMsg
 
 
 handleEvent : WebSocket.Event -> Cmd Msg
