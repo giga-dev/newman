@@ -60,6 +60,7 @@ type alias Model =
     , query : String
     , actionState : Dropdown.State
     , modalState : Modal.State
+    , newPriorityMessage : String
     }
 
 
@@ -70,7 +71,7 @@ init jobs =
             15
 
     in
-        Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing Nothing 0 "" Dropdown.initialState Modal.hiddenState
+        Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing Nothing 0 "" Dropdown.initialState Modal.hiddenState ""
 
 
 viewTable : Model -> Maybe Time -> Html Msg
@@ -173,7 +174,7 @@ viewTable model currTime =
                             , text "/ "
                             , Badge.badge [ class "job-tests-badge" , title "All Tests" ] [ text "Total" ]
                             ]
-                        , th [ width 120 ]
+                        , th [ width 100 ]
                              [ text "Actions" ]
                         ]
                     ]
@@ -297,6 +298,7 @@ viewJob currTime job =
                         not (List.member job.state [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0) && (List.length job.agents) <= 0)
                     ]
                     [ span [ class "ion-close" ] [] ]
+                , text "  "
                 , playPauseButton
                 , changePriorityButton
                 ]
@@ -338,8 +340,10 @@ viewModal model =
                                 ]
                         ]
                         |> Modal.footer []
-                           [ Button.button
-                               [ Button.danger
+                           [
+                            text <| model.newPriorityMessage
+                           ,Button.button
+                               [ Button.success
                                , Button.onClick <| ConfirmNewPriority job
                                ]
                                [ text "Confirm" ]
@@ -427,19 +431,21 @@ update msg model =
             ( { model | actionState = state } , Cmd.none)
 
         ShowModalJobPriorityMsg job ->
-            ( { model | modalState = Modal.visibleState, jobToChangePriority = Just job } , Cmd.none)
+            ( { model | modalState = Modal.visibleState, jobToChangePriority = Just job, newPriority = job.priority |> Maybe.withDefault 0 } , Cmd.none)
 
         AnimateModal state ->
                     ( { model | modalState = state } , Cmd.none)
         CloseModal ->
-                    ( { model | modalState = Modal.hiddenState } , Cmd.none )
+                    ( { model | modalState = Modal.hiddenState, jobToChangePriority = Nothing, newPriority = 0 } , Cmd.none )
         NewJobPriorityMsg updatePriority ->
                      ( { model | newPriority = String.toInt updatePriority |> Result.withDefault 0} , Cmd.none )
         ConfirmNewPriority job->
-                       ( {model | modalState = Modal.hiddenState}, changeJobPriorityCmd job.id model.newPriority)
+                    if (model.newPriority <= 4 && model.newPriority > 0)  then
+                     ( {model | modalState = Modal.hiddenState}, changeJobPriorityCmd job.id model.newPriority)
+                    else
+                        ( { model | newPriorityMessage = "priority must be between: 0 - 4" } , Cmd.none)
         RequestCompletedChangeJobPriority result ->
-            onRequestCompletedUpdatePriorityJob model result
-
+                     onRequestCompletedUpdatePriorityJob model result
 
 
 filterQuery : String -> Job -> Bool
@@ -575,12 +581,12 @@ onRequestCompletedUpdatePriorityJob : Model -> Result Http.Error Job -> ( Model,
 onRequestCompletedUpdatePriorityJob model result =
     case result of
         Ok data->
-                 ({model | jobToChangePriority = Nothing, newPriority = 0} , Cmd.none)
+                 ({model | jobToChangePriority = Nothing, newPriority = 0} , Cmd.none) {-Todo- I set the values here beacuse I do use in the update fields in confirm-}
         Err err ->
               let
                   e = Debug.log "ERROR:onRequestCompletedDropJob" err
               in
-                 (model , Cmd.none)
+                 ({model | jobToChangePriority = Nothing, newPriority = 0}, Cmd.none)
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =

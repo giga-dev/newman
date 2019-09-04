@@ -168,11 +168,25 @@ public class NewmanAgent {
         JobExecutor jobExecutor = null;
 
         while (isActive()) {
-            final Job job = waitForJob();
+            boolean toStopafterOneIterate = false;
             Agent agent;
+
+            if(prevJob != null){
+                toStopafterOneIterate = true;
+            }
+
+            final Job job = waitForJob(toStopafterOneIterate);
+
+            if(job == null){
+                keepAliveTask.cancel();
+                jobExecutor.teardown();
+                prevJob = null;
+                continue;
+            }
 
             if (prevJob != null && job.getId().equals(prevJob.getId())) {
                 logger.info("Job {}: The same job was found, no need to setup job again", job.getId());
+                prevJob = null;
 
             } else {
                 if (prevJob != null) {
@@ -218,7 +232,6 @@ public class NewmanAgent {
                 continue;
             }
 
-            prevJob = job;
             lastPriorityCheckedTime = System.currentTimeMillis();
             workerShouldStop = false;
             // Submit workers:
@@ -272,7 +285,9 @@ public class NewmanAgent {
             if (job.getState() == State.DONE) {
                 keepAliveTask.cancel();
                 jobExecutor.teardown();
+                prevJob = null;
             } else {
+                prevJob = job;
                 logger.info("Job {} changed before it's finished, because there is a job in higher priority", job.getId());
             }
         }
@@ -389,7 +404,7 @@ public class NewmanAgent {
         }
     }
 
-    private Job waitForJob() {
+    private Job waitForJob(boolean toStopAfterOneIterate) {
         Agent agent = new Agent();
         agent.setName(name);
         agent.setHost(config.getHostName());
@@ -412,7 +427,7 @@ public class NewmanAgent {
 
 
                 Job job = c.subscribe(agent).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 2, TimeUnit.SECONDS);
-                if (job != null)
+                if (job != null || toStopAfterOneIterate)
                     return job;
 
                 if (--logRepeats >= 0) {
