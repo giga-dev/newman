@@ -173,6 +173,10 @@ public class NewmanClient {
         return restClient.target(uri).path("subscribe").request().rx().post(Entity.json(agent), Job.class);
     }
 
+    public CompletionStage<Job> toggleJobStatusToReady(String jobId) {
+        return restClient.target(uri).path("job").path(jobId).request().rx().post(Entity.text(""), Job.class);
+    }
+
     public CompletionStage<Batch<Agent>> getSubscriptions(int offset, int limit) {
         return restClient.target(uri).path("subscribe").queryParam("offset", offset).queryParam("limit", limit).request()
                 .rx().get(new GenericType<Batch<Agent>>() {

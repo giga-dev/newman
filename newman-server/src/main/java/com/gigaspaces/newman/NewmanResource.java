@@ -674,6 +674,7 @@ public class NewmanResource {
         return response;
     }
 
+
     @POST
     @Path("job/{id}/toggle")
     @Produces(MediaType.APPLICATION_JSON)
@@ -700,7 +701,7 @@ public class NewmanResource {
                     updateJobStatus.unset("startPrepareTime");
                     if(job.getPriority() > 0){
                         UpdateOperations<PrioritizedJob> updatePrioritizedJobStatus = prioritizedJobDAO.createUpdateOperations().set("isPaused",true);
-                        PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), updatePrioritizedJobStatus);       //Todo- i gave up another if in case it's null/empty?
+                        PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), updatePrioritizedJobStatus);
                         if(prioritizedJob.getPriority() == highestPriorityJob){
                             highestPriorityJob = getHighestPriorityJob();
                         }
@@ -773,6 +774,18 @@ public class NewmanResource {
             }
         }
         return result;
+    }
+
+    @POST
+    @Path("job/{jobId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Job toggleJobStatusToReady(@PathParam("jobId") final String jobId){
+        UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.READY);
+        updateJobStatus.unset("startPrepareTime");
+        Job job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId).field("state").equal(State.RUNNING), updateJobStatus);
+        broadcastMessage(MODIFIED_JOB, job);
+
+        return job;
     }
 
     @POST
@@ -1981,6 +1994,7 @@ public class NewmanResource {
         );
 
         Job job = findJob(agent.getCapabilities(), basicQuery, agent.getGroupName());
+        System.out.println("the job that found is:  " + job);
 
         UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
                 .set("lastTouchTime", new Date());
@@ -2045,14 +2059,7 @@ public class NewmanResource {
                 jobsFiltered = CapabilitiesAndRequirements.filterByGroupNames(jobsFiltered, agentGroup);// filter jobs with not suitable agent groups
             }
             if (jobsFiltered != null && !jobsFiltered.isEmpty()) {
-                for(Job job1 : jobsFiltered){
-                    System.out.println(job1.getId() + " priority: " + job1.getPriority());
-                }
                 jobsFiltered.sort(Comparator.comparing(Job::getPriority).reversed());
-                System.out.println("after sort: ");
-                for(Job job1 : jobsFiltered){
-                    System.out.println(job1.getId() + " priority: " + job1.getPriority());
-                }
                 job = jobsFiltered.get(0);
             }
         }
