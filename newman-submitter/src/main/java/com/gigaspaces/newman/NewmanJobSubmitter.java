@@ -212,11 +212,11 @@ public class NewmanJobSubmitter {
     }
 
     private static void testSubmitterFromIntelliJ() throws Exception {
-        String suiteId = "5b6c24e7b385941b3b8ce4bf"; //59f25d19b3859424cac590bf //5b6c24e7b385941b3b8ce4bf - demote //58907cbb29f67f0c0af7eee1 -managersecurity
+        String suiteId = "59f25d19b3859424cac590bf";
         String buildId = "5d19f01a4cedfd000cd81982";
         String configId = "5b4c9342b3859411ee82c265";
         String requiredAgentGroups = "imc-srv01";
-        int priority = 8;
+        int priority = 2;
 
 
         String host = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_HOST, true /*required*/, logger);
