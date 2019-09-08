@@ -192,12 +192,8 @@ public class NewmanAgent {
                 if (prevJob != null) {
                     try {
                         prevJob = c.toggleJobStatusToReady(prevJob.getId()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (TimeoutException e) {
-                        e.printStackTrace();
+                    } catch (Exception e) {
+                        logger.warn("Failed to change the state of job {}: {} : ", prevJob, e);
                     }
                     keepAliveTask.cancel();
                     jobExecutor.teardown();
@@ -214,7 +210,7 @@ public class NewmanAgent {
                     jobExecutor.teardown();
                     //inform the server that agent is not working on this job
                     try {
-                        agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 2, TimeUnit.SECONDS);
+                        agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS , TimeUnit.SECONDS);
                         c.unsubscribe(agent).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                         c.setSetupRetries(agent, agent.getSetupRetries() + 1).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                     } catch (IllegalStateException e) {
