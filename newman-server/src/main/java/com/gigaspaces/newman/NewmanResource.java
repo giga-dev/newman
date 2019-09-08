@@ -938,7 +938,6 @@ public class NewmanResource {
             return;
         }
         Job job = jobDAO.findOne(jobDAO.createIdQuery(tests.getValues().get(0).getJobId()));
-        System.out.println("job is " + job);
         if (job == null) {
             return;
         }
@@ -1997,7 +1996,6 @@ public class NewmanResource {
         );
 
         Job job = findJob(agent.getCapabilities(), basicQuery, agent.getGroupName());
-        System.out.println("the job that found is:  " + job);
 
         UpdateOperations<Agent> updateOps = agentDAO.createUpdateOperations()
                 .set("lastTouchTime", new Date());
@@ -2135,7 +2133,7 @@ public class NewmanResource {
     @POST
     @Path("job/{jobId}/{newPriority}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Job changeJobPriority(final  @PathParam("jobId") String jobId, final @PathParam("newPriority") String newPriority) {
+    public Job changeJobPriority(final @PathParam("jobId") String jobId, final @PathParam("newPriority") String newPriority) {
        Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
        int updatePriority = Integer.parseInt(newPriority);
        int currPriority = job.getPriority();
