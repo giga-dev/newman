@@ -938,13 +938,16 @@ public class NewmanResource {
             return;
         }
         Job job = jobDAO.findOne(jobDAO.createIdQuery(tests.getValues().get(0).getJobId()));
+        System.out.println("job is " + job);
         if (job == null) {
             return;
         }
         List<Test> res = new ArrayList<>(tests.getValues().size());
+        Job jobOfTests = getJob(job.getId());
         for (Test test : tests.getValues()) {
-            res.add(addTest(test));
+            res.add(addTest(test, jobOfTests));
         }
+
         if (!res.isEmpty()) {
             Test test = res.get(0);
 
@@ -1053,13 +1056,13 @@ public class NewmanResource {
         return res;
     }
 
-    private Test addTest(Test test) {
+    private Test addTest(Test test, Job job) {
         if (test.getJobId() == null) {
             throw new BadRequestException("can't add test with no jobId: " + test);
         }
         test.setStatus(Test.Status.PENDING);
         test.setScheduledAt(new Date());
-        Job job = getJob(test.getJobId());
+        //Job job = getJob(test.getJobId());
         test.setSha(Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId(), job.getBuild().getBranch()));
         testDAO.save(test);
         broadcastMessage(CREATED_TEST, test);
