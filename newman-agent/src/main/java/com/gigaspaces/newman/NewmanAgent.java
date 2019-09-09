@@ -130,6 +130,7 @@ public class NewmanAgent {
         logger.info("Created job setup environment in " + jobExecutor.getJobFolder());
         logger.info("Before running manager tests, edit ../run-sgtest.sh, add: 'export SUITE_SUB_TYPE=\"manager\"' at the top of the script, under 'export SGTEST_DIR'");
         logger.info("Example of running a test: cd " + jobExecutor.getJobFolder() + "/test; ../run-sgtest.sh <test-name>");
+        logger.info("After test ended run: ../end-sgtest.sh");
         logger.info("##############################################################");
     }
 
