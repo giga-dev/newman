@@ -173,7 +173,7 @@ public class NewmanClient {
         return restClient.target(uri).path("subscribe").request().rx().post(Entity.json(agent), Job.class);
     }
 
-    public CompletionStage<Job> toggleJobStatusToReady(String jobId) {
+    public CompletionStage<Job> agentFinishJob(String jobId) {
         return restClient.target(uri).path("job").path(jobId).request().rx().post(Entity.text(""), Job.class);
     }
 

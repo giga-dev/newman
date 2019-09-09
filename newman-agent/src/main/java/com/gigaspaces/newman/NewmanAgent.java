@@ -191,7 +191,7 @@ public class NewmanAgent {
             } else {
                 if (prevJob != null) {
                     try {
-                        prevJob = c.toggleJobStatusToReady(prevJob.getId()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                        prevJob = c.agentFinishJob(prevJob.getId()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                     } catch (Exception e) {
                         logger.warn("Failed to change the state of job {}: {} : ", prevJob, e);
                     }

@@ -175,7 +175,7 @@ viewTable model currTime =
                         , text "/ "
                         , Badge.badge [ class "job-tests-badge", title "All Tests" ] [ text "Total" ]
                         ]
-                    , th [ width 100 ]
+                    , th [ width 94 ]
                         [ text "Actions" ]
                     ]
                 ]
@@ -258,7 +258,7 @@ viewJob currTime job =
                         [ span [ class "ion-pause" ] [] ]
 
         changePriorityButton =
-            Button.button [ Button.roleLink, Button.attrs [ class "ion-android-options" ], Button.disabled <| job.state == DONE, Button.onClick <| ShowModalJobPriorityMsg job ] []
+            Button.button [ Button.roleLink, Button.attrs [ style [ ("padding", "0px 5px 0px 5px")], class "ion-android-options" ], Button.disabled <| job.state == DONE, Button.onClick <| ShowModalJobPriorityMsg job ] []
     in
     tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
         [ td [] [ jobState ]
@@ -310,6 +310,7 @@ viewJob currTime job =
                 [ span [ class "ion-close" ] [] ]
             , text "  "
             , playPauseButton
+            , text "   "
             , changePriorityButton
             ]
         ]
@@ -354,7 +355,7 @@ viewModal model =
                         ]
                     ]
                 |> Modal.footer []
-                    [ text <| model.newPriorityMessage
+                    [ div [ style [ ( "width", "100%" ) ] ] [ text model.newPriorityMessage ]
                     , Button.button
                         [ Button.success
                         , Button.onClick <| ConfirmNewPriority job
@@ -456,8 +457,8 @@ update msg model =
             ( { model | newPriority = String.toInt updatePriority |> Result.withDefault 0 }, Cmd.none )
 
         ConfirmNewPriority job ->
-            if model.newPriority <= 4 then
-                ( { model | modalState = Modal.hiddenState }, changeJobPriorityCmd job.id model.newPriority )
+            if model.newPriority <= 4 && model.newPriority >= 0 then
+                ( { model | modalState = Modal.hiddenState, newPriority = 0, jobToChangePriority = Nothing, newPriorityMessage = "" }, changeJobPriorityCmd job.id model.newPriority )
 
             else
                 ( { model | newPriorityMessage = "priority must be between: 0 - 4" }, Cmd.none )
@@ -605,15 +606,14 @@ onRequestCompletedUpdatePriorityJob : Model -> Result Http.Error Job -> ( Model,
 onRequestCompletedUpdatePriorityJob model result =
     case result of
         Ok data ->
-            ( { model | jobToChangePriority = Nothing, newPriority = 0, newPriorityMessage = "" }, Cmd.none )
+            (model, Cmd.none )
 
-        {- Todo- I set the values here beacuse I do use in the update fields in confirm -}
         Err err ->
             let
                 e =
                     Debug.log "ERROR:onRequestCompletedDropJob" err
             in
-            ( { model | jobToChangePriority = Nothing, newPriority = 0, newPriorityMessage = "" }, Cmd.none )
+            ( model, Cmd.none )
 
 
 handleEvent : WebSocket.Event -> Cmd Msg
