@@ -464,7 +464,16 @@ update msg model =
                 ( { model | newPriorityMessage = "priority must be between: 0 - 4" }, Cmd.none )
 
         RequestCompletedChangeJobPriority result ->
-            onRequestCompletedUpdatePriorityJob model result
+                case result of
+                    Ok data ->
+                        (model, Cmd.none )
+
+                    Err err ->
+                        let
+                            e =
+                                Debug.log "ERROR:onRequestCompletedDropJob" err
+                        in
+                        ( model, Cmd.none )
 
 
 filterQuery : String -> Job -> Bool
@@ -600,21 +609,6 @@ dropJobCmd jobId =
             , timeout = Nothing
             , withCredentials = False
             }
-
-
-onRequestCompletedUpdatePriorityJob : Model -> Result Http.Error Job -> ( Model, Cmd Msg )
-onRequestCompletedUpdatePriorityJob model result =
-    case result of
-        Ok data ->
-            (model, Cmd.none )
-
-        Err err ->
-            let
-                e =
-                    Debug.log "ERROR:onRequestCompletedDropJob" err
-            in
-            ( model, Cmd.none )
-
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
