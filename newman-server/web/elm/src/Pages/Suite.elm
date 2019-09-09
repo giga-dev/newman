@@ -42,7 +42,7 @@ viewSuite suite =
                 [ td []
                     [ text "Criteria" ]
                 , td []
-                    [ textarea [ readonly True, style [ ( "margin", "0px" ), ("overflow","auto"), ("resize", "both")] ] [ text suite.criteria ]
+                    [ textarea [ readonly True, style [ ( "margin", "0px" ), ( "overflow", "auto" ), ( "resize", "both" ) ] ] [ text suite.criteria ]
                     ]
                 ]
     in
@@ -84,19 +84,21 @@ update msg model =
                     ( model, Cmd.none )
 
         WebSocketEvent event ->
-                    case event of
-                        ModifiedSuite suite ->
-                            case model.maybeSuite of
-                                Just modelSuite ->
-                                    if modelSuite.id == suite.id then
-                                        ( { model | maybeSuite = updateSuite suite modelSuite } , Cmd.none )
-                                    else
-                                        ( model, Cmd.none )
-                                Nothing ->
-                                    ( model, Cmd.none )
+            case event of
+                ModifiedSuite suite ->
+                    case model.maybeSuite of
+                        Just modelSuite ->
+                            if modelSuite.id == suite.id then
+                                ( { model | maybeSuite = updateSuite suite modelSuite }, Cmd.none )
 
-                        _ ->
+                            else
+                                ( model, Cmd.none )
+
+                        Nothing ->
                             ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 getSuiteInfoCmd : SuiteId -> Cmd Msg
@@ -107,7 +109,7 @@ getSuiteInfoCmd suiteId =
 
 updateSuite : Suite -> SuiteWithCriteria -> Maybe SuiteWithCriteria
 updateSuite suite modelSuite =
-        Just { modelSuite | customVariables = suite.customVariables }
+    Just { modelSuite | customVariables = suite.customVariables }
 
 
 handleEvent : WebSocket.Event -> Cmd Msg

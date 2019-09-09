@@ -42,14 +42,14 @@ viewJobConfig jobConfig =
                 , td [] [ value ]
                 ]
     in
-        div [ class "container-fluid" ] <|
-            [ h2 [ class "text" ] [ text "Job Configuration" ]
-            , table []
-                [ viewRow ( "Name", text jobConfig.name )
-                , viewRow ( "Id", text jobConfig.id )
-                , viewRow ( "Java Version", text jobConfig.javaVersion )
-                ]
+    div [ class "container-fluid" ] <|
+        [ h2 [ class "text" ] [ text "Job Configuration" ]
+        , table []
+            [ viewRow ( "Name", text jobConfig.name )
+            , viewRow ( "Id", text jobConfig.id )
+            , viewRow ( "Java Version", text jobConfig.javaVersion )
             ]
+        ]
 
 
 view : Model -> Html Msg
@@ -72,14 +72,14 @@ update msg model =
         d =
             Debug.log "JobConfig.update" ("was called" ++ toString msg)
     in
-        case msg of
-            GetJobConfigInfoCompleted result ->
-                case result of
-                    Ok data ->
-                        ( { model | maybeJobConfig = Just data }, Cmd.none )
+    case msg of
+        GetJobConfigInfoCompleted result ->
+            case result of
+                Ok data ->
+                    ( { model | maybeJobConfig = Just data }, Cmd.none )
 
-                    Err err ->
-                        ( model, Cmd.none )
+                Err err ->
+                    ( model, Cmd.none )
 
 
 getJobConfigInfoCmd : JobConfigId -> Cmd Msg

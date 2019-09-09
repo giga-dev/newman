@@ -7,9 +7,10 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
+import Utils.Common as Common
 import Utils.Types exposing (Test, TestId, TestStatus(..), agentGroupTestFormat, decodeTest, testStatusToString)
 import Utils.WebSocket as WebSocket exposing (..)
-import Utils.Common as Common
+
 
 type alias Model =
     { test : Maybe Test }
@@ -71,11 +72,11 @@ viewTest test =
                 toLogRow ( key, val ) =
                     li [] [ a [ href val, target "_blank" ] [ text key ], text " ", a [ href <| val ++ "?download=true" ] [ text "[Download]" ] ]
             in
-                ul [ style [ ( "font-size", "14px" ) ] ] <|
-                    List.map
-                        toLogRow
-                    <|
-                        Dict.toList test.logs
+            ul [ style [ ( "font-size", "14px" ) ] ] <|
+                List.map
+                    toLogRow
+                <|
+                    Dict.toList test.logs
 
         formatDate maybe =
             case maybe of
@@ -96,25 +97,28 @@ viewTest test =
                 shorten txt =
                     String.slice 0 18 txt
             in
-                case splitted of
-                    [ first, second ] ->
-                        [ ( "History Stats branch", text <| shorten first )
-                        , ( "History Stats master", text <| shorten second )
-                        ]
+            case splitted of
+                [ first, second ] ->
+                    [ ( "History Stats branch", text <| shorten first )
+                    , ( "History Stats master", text <| shorten second )
+                    ]
 
-                    [ one ] ->
-                        [ ( "History Stats master", text <| shorten one ) ]
+                [ one ] ->
+                    [ ( "History Stats master", text <| shorten one ) ]
 
-                    _ ->
-                        []
+                _ ->
+                    []
 
         historyStatsClass =
             if test.status == TEST_SUCCESS then
                 "black-column"
+
             else if test.testScore <= 3 then
                 "red-column"
+
             else if test.testScore > 3 then
                 "blue-column"
+
             else
                 ""
 
@@ -129,7 +133,7 @@ viewTest test =
             , ( "Error Message", text test.errorMessage )
             , ( "Logs", logsRow )
             , ( "Assigned Agent", text test.assignedAgent )
-            , ( "Agent Group", text <| agentGroupTestFormat test.agentGroup test.assignedAgent)
+            , ( "Agent Group", text <| agentGroupTestFormat test.agentGroup test.assignedAgent )
             , ( "Start Time", text <| formatDate test.startTime )
             , ( "End Time", text <| formatDate test.endTime )
             , ( "Scheduled At", text <| formatDate <| Just test.scheduledAt )
@@ -137,8 +141,8 @@ viewTest test =
             ]
                 ++ historyStats
     in
-        table [ class "job-view", style [ ( "margin-bottom", "50px" ) ] ] <|
-            List.map viewRow rows
+    table [ class "job-view", style [ ( "margin-bottom", "50px" ) ] ] <|
+        List.map viewRow rows
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -158,11 +162,14 @@ update msg model =
                     case model.test of
                         Just modelTest ->
                             if modifiedTest.id == modelTest.id then
-                                ( { model | test = Just modifiedTest} , Cmd.none )
+                                ( { model | test = Just modifiedTest }, Cmd.none )
+
                             else
                                 ( model, Cmd.none )
+
                         Nothing ->
                             ( model, Cmd.none )
+
                 _ ->
                     ( model, Cmd.none )
 

@@ -10,8 +10,10 @@ import Paginate exposing (PaginatedList)
 type alias JobId =
     String
 
+
 type alias JobRadioState =
     String
+
 
 type alias Job =
     { id : JobId
@@ -21,6 +23,7 @@ type alias Job =
     , preparingAgents : List String
     , agents : List String
     , agentGroups : List String
+    , priority : Maybe Int
     , buildId : String
     , buildName : String
     , buildBranch : String
@@ -133,8 +136,10 @@ type alias JobConfig =
     , javaVersion : String
     }
 
+
 type alias JobConfigs =
     List JobConfig
+
 
 type alias User =
     { userName : String
@@ -157,8 +162,8 @@ type alias TestHistoryTestView =
     , startTime : Int
     , endTime : Int
     , runNumber : Int
-    , assignedAgent: String
-    , agentGroup: String
+    , assignedAgent : String
+    , agentGroup : String
     }
 
 
@@ -172,9 +177,9 @@ type alias TestHistoryJobView =
     }
 
 
-
 type alias TestHistoryItems =
     List TestHistoryItem
+
 
 type RadioState
     = STATUS_RUNNING
@@ -186,22 +191,43 @@ type RadioState
 
 stringToRadioState : String -> RadioState
 stringToRadioState state =
-        case state of
-            "RUNNING" -> STATUS_RUNNING
-            "SUCCESS" -> STATUS_SUCCESS
-            "FAIL" -> STATUS_FAIL
-            "FAILED3TIMES" -> STATUS_FAILED3TIMES
-            "ALL" -> STATUS_ALL
-            _ -> STATUS_ALL
+    case state of
+        "RUNNING" ->
+            STATUS_RUNNING
+
+        "SUCCESS" ->
+            STATUS_SUCCESS
+
+        "FAIL" ->
+            STATUS_FAIL
+
+        "FAILED3TIMES" ->
+            STATUS_FAILED3TIMES
+
+        "ALL" ->
+            STATUS_ALL
+
+        _ ->
+            STATUS_ALL
+
 
 radioStateToString : RadioState -> String
 radioStateToString state =
-        case state of
-            STATUS_RUNNING -> "RUNNING"
-            STATUS_SUCCESS -> "SUCCESS"
-            STATUS_FAIL -> "FAIL"
-            STATUS_FAILED3TIMES -> "FAILED3TIMES"
-            STATUS_ALL -> "ALL"
+    case state of
+        STATUS_RUNNING ->
+            "RUNNING"
+
+        STATUS_SUCCESS ->
+            "SUCCESS"
+
+        STATUS_FAIL ->
+            "FAIL"
+
+        STATUS_FAILED3TIMES ->
+            "FAILED3TIMES"
+
+        STATUS_ALL ->
+            "ALL"
 
 
 type JobState
@@ -214,24 +240,48 @@ type JobState
 
 jobStateToString : JobState -> String
 jobStateToString jState =
-                        case jState of
-                                READY -> "Ready"
-                                RUNNING -> "RUNNING"
-                                DONE -> "DONE"
-                                PAUSED -> "PAUSED"
-                                BROKEN -> "BROKEN"
+    case jState of
+        READY ->
+            "Ready"
+
+        RUNNING ->
+            "RUNNING"
+
+        DONE ->
+            "DONE"
+
+        PAUSED ->
+            "PAUSED"
+
+        BROKEN ->
+            "BROKEN"
 
 
 decodeJobState : Decoder JobState
 decodeJobState =
-        string |> andThen (\str -> case str of
-                                        "READY" -> succeed READY
-                                        "RUNNING" -> succeed RUNNING
-                                        "DONE" -> succeed DONE
-                                        "PAUSED" -> succeed PAUSED
-                                        "BROKEN" -> succeed BROKEN
-                                        _ -> fail <| "unknown job state: " ++ str
-                           )
+    string
+        |> andThen
+            (\str ->
+                case str of
+                    "READY" ->
+                        succeed READY
+
+                    "RUNNING" ->
+                        succeed RUNNING
+
+                    "DONE" ->
+                        succeed DONE
+
+                    "PAUSED" ->
+                        succeed PAUSED
+
+                    "BROKEN" ->
+                        succeed BROKEN
+
+                    _ ->
+                        fail <| "unknown job state: " ++ str
+            )
+
 
 decodeJob : Decoder Job
 decodeJob =
@@ -243,6 +293,7 @@ decodeJob =
         |> required "preparingAgents" (list string)
         |> required "agents" (list string)
         |> optional "agentGroups" (list string) []
+        |> optional "priority" (nullable int) Nothing
         |> requiredAt [ "build", "id" ] string
         |> requiredAt [ "build", "name" ] string
         |> requiredAt [ "build", "branch" ] string
@@ -260,8 +311,11 @@ decodeJob =
         |> optional "endTime" (nullable int) Nothing
         |> optional "jobSetupLogs" (dict string) Dict.empty
 
+
 decodeJobList : Decoder (List Job)
-decodeJobList = list decodeJob
+decodeJobList =
+    list decodeJob
+
 
 decodeJobView : Decoder Job
 decodeJobView =
@@ -273,6 +327,7 @@ decodeJobView =
         |> required "preparingAgents" (list string)
         |> optional "agents" (list string) []
         |> optional "agentGroups" (list string) []
+        |> optional "priority" (nullable int) Nothing
         |> required "buildId" string
         |> required "buildName" string
         |> required "buildBranch" string
@@ -358,6 +413,7 @@ type alias FutureJob =
     , suiteName : String
     , author : String
     , agentGroups : List String
+    , priority : Int
     , submitTime : Int
     }
 
@@ -408,6 +464,7 @@ decodeFutureJob =
         |> required "suiteName" string
         |> required "author" string
         |> required "agentGroups" (list string)
+        |> required "priority" int
         |> required "submitTime" int
 
 
@@ -430,8 +487,11 @@ decodeAgents : Decoder Agents
 decodeAgents =
     field "values" (list decodeAgent)
 
+
 decodeAgentList : Decoder Agents
-decodeAgentList = list decodeAgent
+decodeAgentList =
+    list decodeAgent
+
 
 decodeAgent : Decoder Agent
 decodeAgent =
@@ -450,7 +510,11 @@ decodeAgent =
         |> optionalAt [ "job", "build", "name" ] (maybe string) Nothing
         |> optionalAt [ "job", "suite", "name" ] (maybe string) Nothing
         |> optional "groupName" string "undefined"
+
+
+
 -- This is a temp fix ^|^
+
 
 decodeSuites : Decoder Suites
 decodeSuites =
@@ -487,6 +551,7 @@ decodeJobConfig =
         |> required "name" string
         |> optional "javaVersion" string "N/A"
 
+
 decodeAgentGroups : Decoder (List String)
 decodeAgentGroups =
     Json.Decode.list Json.Decode.string
@@ -495,30 +560,52 @@ decodeAgentGroups =
 type alias TestId =
     String
 
+
 type TestStatus
     = TEST_RUNNING
     | TEST_SUCCESS
     | TEST_FAIL
     | TEST_PENDING
 
+
 testStatusToString : TestStatus -> String
 testStatusToString ts =
-            case ts of
-                 TEST_RUNNING -> "Running"
-                 TEST_SUCCESS -> "Success"
-                 TEST_FAIL -> "Fail"
-                 TEST_PENDING -> "Pending"
+    case ts of
+        TEST_RUNNING ->
+            "Running"
+
+        TEST_SUCCESS ->
+            "Success"
+
+        TEST_FAIL ->
+            "Fail"
+
+        TEST_PENDING ->
+            "Pending"
+
 
 decodeTestStatus : Decoder TestStatus
 decodeTestStatus =
-        string |>
-                andThen (\str -> case str of
-                                     "RUNNING" -> succeed TEST_RUNNING
-                                     "SUCCESS" -> succeed TEST_SUCCESS
-                                     "FAIL" -> succeed TEST_FAIL
-                                     "PENDING" -> succeed TEST_PENDING
-                                     _ -> fail ("unknown test state " ++ str)
-                        )
+    string
+        |> andThen
+            (\str ->
+                case str of
+                    "RUNNING" ->
+                        succeed TEST_RUNNING
+
+                    "SUCCESS" ->
+                        succeed TEST_SUCCESS
+
+                    "FAIL" ->
+                        succeed TEST_FAIL
+
+                    "PENDING" ->
+                        succeed TEST_PENDING
+
+                    _ ->
+                        fail ("unknown test state " ++ str)
+            )
+
 
 type alias Test =
     { id : TestId
@@ -615,6 +702,7 @@ decodeTestHistoryTestView =
         |> required "assignedAgent" string
         |> optional "agentGroup" string ""
 
+
 decodeTestHistoryJobView : Json.Decode.Decoder TestHistoryJobView
 decodeTestHistoryJobView =
     decode TestHistoryJobView
@@ -624,8 +712,6 @@ decodeTestHistoryJobView =
         |> required "buildBranch" string
         |> optional "jobConfigName" string ""
         |> optional "jobConfigId" string ""
-
-
 
 
 decodeTestHistoryItems : Decoder TestHistoryItems
@@ -644,23 +730,28 @@ encodeListOfStrings lst =
 
 -- convert from List Value to Value --
 
+
 decodeStatus : Decoder String
 decodeStatus =
     at [ "status" ] string
 
-agentGroupsJobFormat agentGroups =
-            case agentGroups of
-                       [] ->
-                            "N/A"
 
-                       _ ->
-                            String.join ", " agentGroups
+agentGroupsJobFormat agentGroups =
+    case agentGroups of
+        [] ->
+            "N/A"
+
+        _ ->
+            String.join ", " agentGroups
+
 
 agentGroupTestFormat agentGroup assignedAgent =
-            if assignedAgent /= "" then
-                if agentGroup == "" then
-                    "N/A"
-                else
-                    agentGroup
-            else
-                ""
+    if assignedAgent /= "" then
+        if agentGroup == "" then
+            "N/A"
+
+        else
+            agentGroup
+
+    else
+        ""

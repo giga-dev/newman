@@ -15,6 +15,7 @@ public class JobRequest {
     private String configId;
     private String author;
     private Set<String> agentGroups;
+    private  int priority;
 
     public JobRequest() {
     }
@@ -47,6 +48,10 @@ public class JobRequest {
 
     public Set<String> getAgentGroups() { return agentGroups; }
 
+    public int getPriority() { return priority; }
+
+    public void setPriority(int priority) { this.priority = priority; }
+
     @Override
     public String toString() {
         return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
@@ -55,6 +60,7 @@ public class JobRequest {
                 .append("configId", configId)
                 .append("author", author)
                 .append("agentGroups", agentGroups)
+                .append("priority", priority)
                 .toString();
     }
 

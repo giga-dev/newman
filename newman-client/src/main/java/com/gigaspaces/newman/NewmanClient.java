@@ -87,6 +87,14 @@ public class NewmanClient {
        return restClient.target(uri).path("futureJob").request().rx().post(Entity.json(futureJobRequest),new GenericType<List<FutureJob>>(){});
     }
 
+    public CompletionStage<Boolean> hasHigherPriorityJob(String agentId, String jobId) {
+        return restClient.target(uri).path("prioritizedJob").path(agentId).path(jobId).request().rx().get(Boolean.class);
+    }
+
+    public CompletionStage<Job> changePriorityJob(String jobId, int newPriority) {
+        return restClient.target(uri).path("job").path(jobId).path(Integer.toString(newPriority)).request().rx().post(Entity.text(""), Job.class);
+    }
+
     public CompletionStage<Test> createTest(Test test) {
         return restClient.target(uri).path("test").request().rx().put(Entity.json(test), Test.class);
     }
@@ -162,6 +170,10 @@ public class NewmanClient {
 
     public CompletionStage<Job> subscribe(Agent agent) {
         return restClient.target(uri).path("subscribe").request().rx().post(Entity.json(agent), Job.class);
+    }
+
+    public CompletionStage<Job> agentFinishJob(String jobId) {
+        return restClient.target(uri).path("job").path(jobId).request().rx().post(Entity.text(""), Job.class);
     }
 
     public CompletionStage<Batch<Agent>> getSubscriptions(int offset, int limit) {

@@ -29,6 +29,7 @@ public class Job {
     private Suite suite;
 
     private Set<String> agentGroups;
+    private int priority;
 
     @Indexed
     private Date submitTime;
@@ -63,9 +64,11 @@ public class Job {
 
     public void setAgentGroups(Set<String> agentGroups) { this.agentGroups = agentGroups; }
 
-    public Set<String> getAgentGroups() {
-        return agentGroups;
-    }
+    public Set<String> getAgentGroups() { return agentGroups; }
+
+    public int getPriority() { return priority; }
+
+    public void setPriority(int priority) { this.priority = priority; }
 
     public String getId() {
         return id;
@@ -223,7 +226,9 @@ public class Job {
         this.jobConfig = jobConfig;
     }
 
+    public Set<String> getAgents() { return agents; }
 
+    public void setAgents(Set<String> agents) { this.agents = agents; }
 
     @Override
     public String toString() {
@@ -248,16 +253,9 @@ public class Job {
                 ", preparingAgents=" + preparingAgents +
                 ", agents=" + agents +
                 ", agentGroups=" + agentGroups +
+                ", priority=" + priority +
                 ", jobSetupLogs=" + jobSetupLogs +
                 ", jobConfig=" + jobConfig +
                 '}';
-    }
-
-    public Set<String> getAgents() {
-        return agents;
-    }
-
-    public void setAgents(Set<String> agents) {
-        this.agents = agents;
     }
 }

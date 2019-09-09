@@ -247,6 +247,7 @@ fromLocation : Location -> Maybe Route
 fromLocation location =
     if String.isEmpty location.hash then
         Just HomeRoute
+
     else
         parseHash route location
 
@@ -672,9 +673,8 @@ view model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [         WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
-                  ,
-          SubmitNewJob.subscriptions model.submitNewJobModel |> Sub.map SubmitNewJobMsg
+        [ WebSocket.subscriptions model.webSocketModel |> Sub.map WebSocketMsg
+        , SubmitNewJob.subscriptions model.submitNewJobModel |> Sub.map SubmitNewJobMsg
         , Jobs.subscriptions model.jobsModel |> Sub.map JobsMsg
         , Agents.subscriptions model.agentsModel |> Sub.map AgentsMsg
         ]

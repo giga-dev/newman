@@ -26,6 +26,7 @@ hourStringFormat : String
 hourStringFormat =
     "%H:%M:%S"
 
+
 timestamp : List DateFormat.Token
 timestamp =
     [ DateFormat.yearNumber

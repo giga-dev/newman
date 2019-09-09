@@ -2,7 +2,6 @@ package com.gigaspaces.newman.beans;
 
 import com.gigaspaces.newman.utils.ToStringBuilder;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +15,7 @@ public class FutureJobsRequest {
     private String configId;
     private List<String> suites;
     private Set<String> agentGroups;
+    private int priority;
     private String author;
 
     public FutureJobsRequest() {
@@ -53,6 +53,10 @@ public class FutureJobsRequest {
         this.agentGroups = agentGroups;
     }
 
+    public int getPriority() { return priority; }
+
+    public void setPriority(int priority) { this.priority = priority; }
+
     public String getAuthor() {
         return author;
     }
@@ -67,8 +71,9 @@ public class FutureJobsRequest {
                 .append("buildId", buildId)
                 .append("suites", suites)
                 .append("configId",configId)
-                .append("author",author)
-                .append("agentGroups",agentGroups)
+                .append("author", author)
+                .append("agentGroups", agentGroups)
+                .append("priority", priority)
                 .toString();
     }
 }
