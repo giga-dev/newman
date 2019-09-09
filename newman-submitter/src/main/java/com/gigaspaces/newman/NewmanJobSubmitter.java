@@ -206,9 +206,9 @@ public class NewmanJobSubmitter {
 
     //0- suiteId, 1-buildId, 2-configId, 3- agentGroups, 4- priority, 5- host, 6- port, 7- user, 8- password
     public static void main(String[] args) throws Exception {
-        testSubmitterFromIntelliJ();
+        //testSubmitterFromIntelliJ();
 
-       //testSubmitterUsingArgs(args);
+       testSubmitterUsingArgs(args);
     }
 
     private static void testSubmitterFromIntelliJ() throws Exception {
