@@ -73,6 +73,7 @@ public class NewmanResource {
     public static final String CREATED_SUITE = "created-suite";
     public static final String CREATED_JOB_CONFIG = "created-job-config";
     public static final String MODIFIED_SUITE = "modified-suite";
+    public static final String DELETED_SUITE = "deleted-suite";
     public static final String CREATE_FUTURE_JOB = "created-future-job";
     public static final String DELETED_FUTURE_JOB = "deleted-future-job";
     private static final String MODIFY_SERVER_STATUS = "modified-server-status";
@@ -2515,6 +2516,22 @@ public class NewmanResource {
         }
         return Response.ok().build();
     }
+
+    @DELETE
+    @Path("suite/{suiteId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteSuite (final @PathParam("suiteId") String suite){
+        Suite suiteToDelete = suiteDAO.getDatastore().findAndDelete(suiteDAO.createIdQuery(suite));
+        if (suiteToDelete != null){
+            broadcastMessage(DELETED_SUITE, suiteToDelete);
+        }
+        else{
+            logger.info("The suite {} isn't exist", suite);
+        }
+
+        return Response.ok(Entity.json(suiteToDelete)).build();
+    }
+
 
     @GET
     @Path("user")

@@ -258,7 +258,7 @@ viewJob currTime job =
                         [ span [ class "ion-pause" ] [] ]
 
         changePriorityButton =
-            Button.button [ Button.roleLink, Button.attrs [ style [ ("padding", "0px 5px 0px 5px")], class "ion-android-options" ], Button.disabled <| job.state == DONE, Button.onClick <| ShowModalJobPriorityMsg job ] []
+            Button.button [ Button.roleLink, Button.attrs [ style [ ( "padding", "0px 5px 0px 5px" ) ], class "ion-android-options" ], Button.disabled <| job.state == DONE, Button.onClick <| ShowModalJobPriorityMsg job ] []
     in
     tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
         [ td [] [ jobState ]
@@ -464,16 +464,16 @@ update msg model =
                 ( { model | newPriorityMessage = "priority must be between: 0 - 4" }, Cmd.none )
 
         RequestCompletedChangeJobPriority result ->
-                case result of
-                    Ok data ->
-                        (model, Cmd.none )
+            case result of
+                Ok data ->
+                    ( model, Cmd.none )
 
-                    Err err ->
-                        let
-                            e =
-                                Debug.log "ERROR:onRequestCompletedDropJob" err
-                        in
-                        ( model, Cmd.none )
+                Err err ->
+                    let
+                        e =
+                            Debug.log "ERROR:onRequestCompletedDropJob" err
+                    in
+                    ( model, Cmd.none )
 
 
 filterQuery : String -> Job -> Bool
@@ -609,6 +609,7 @@ dropJobCmd jobId =
             , timeout = Nothing
             , withCredentials = False
             }
+
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =

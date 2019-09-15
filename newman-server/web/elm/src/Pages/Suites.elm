@@ -2,18 +2,16 @@ module Pages.Suites exposing (..)
 
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as FormInput
-import Date exposing (Date)
-import DateFormat
+import Bootstrap.Modal as Modal
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import List.Extra as ListExtra
 import Paginate exposing (..)
-import Time exposing (Time)
-import Utils.Common as Common
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
+import Views.NewmanModal as NewmanModal
 
 
 type alias Model =
@@ -21,6 +19,8 @@ type alias Model =
     , suites : PaginatedSuites
     , pageSize : Int
     , query : String
+    , suiteToDrop : Maybe Suite
+    , confirmationState : Modal.State
     }
 
 
@@ -33,6 +33,10 @@ type Msg
     | GoTo Int
     | FilterQuery String
     | WebSocketEvent WebSocket.Event
+    | OnClickDropSuite Suite
+    | NewmanModalMsg Modal.State
+    | OnSuiteDropConfirmed String
+    | RequestCompletedDropSuite (Result Http.Error String)
 
 
 init : ( Model, Cmd Msg )
@@ -45,6 +49,8 @@ init =
       , suites = Paginate.fromList pageSize []
       , pageSize = pageSize
       , query = ""
+      , suiteToDrop = Nothing
+      , confirmationState = Modal.hiddenState
       }
     , getSuitesCmd
     )
@@ -59,6 +65,10 @@ update msg model =
                     ( { model | suites = Paginate.fromList model.pageSize suitesFromResult, allSuites = suitesFromResult }, Cmd.none )
 
                 Err err ->
+                    let
+                        e =
+                            Debug.log "ERROR:GetSuitesCompleted" err
+                    in
                     ( model, Cmd.none )
 
         First ->
@@ -85,6 +95,27 @@ update msg model =
             , Cmd.none
             )
 
+        NewmanModalMsg newState ->
+            ( { model | suiteToDrop = Nothing, confirmationState = newState }, Cmd.none )
+
+        OnClickDropSuite suite ->
+            ( { model | confirmationState = Modal.visibleState, suiteToDrop = Just suite }, Cmd.none )
+
+        OnSuiteDropConfirmed suiteId ->
+            ( { model | confirmationState = Modal.hiddenState, suiteToDrop = Nothing }, dropSuiteCmd suiteId )
+
+        RequestCompletedDropSuite result ->
+            case result of
+                Ok suiteId ->
+                    ( model, Cmd.none )
+
+                Err err ->
+                    let
+                        e =
+                            Debug.log "ERROR:onRequestCompletedDropSuite" err
+                    in
+                    ( model, Cmd.none )
+
         WebSocketEvent event ->
             case event of
                 CreatedSuite suite ->
@@ -92,6 +123,9 @@ update msg model =
 
                 ModifiedSuite suite ->
                     ( updateSuiteUpdated model suite, Cmd.none )
+
+                DeletedSuite suite ->
+                    ( updateSuiteRemoved model suite, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -115,6 +149,15 @@ updateAll f model =
 updateSuiteAdded : Model -> Suite -> Model
 updateSuiteAdded model addedSuite =
     updateAll (\list -> addedSuite :: list) model
+
+
+updateSuiteRemoved : Model -> Suite -> Model
+updateSuiteRemoved model suite =
+    let
+        f =
+            ListExtra.filterNot (\item -> item.id == suite.id)
+    in
+    updateAll f model
 
 
 updateSuiteUpdated : Model -> Suite -> Model
@@ -195,22 +238,37 @@ view model =
                         [ th [] [ text "Name" ]
                         , th [] [ text "Id" ]
                         , th [] [ text "Custom" ]
+                        , th [ width 70 ] [ text "Actions" ]
                         ]
                     ]
                 , tbody [] (List.map viewSuite (Paginate.page model.suites))
                 ]
             , pagination
+            , NewmanModal.confirmSuiteDrop model.suiteToDrop NewmanModalMsg OnSuiteDropConfirmed model.confirmationState
             ]
         ]
 
 
-viewSuite : Suite -> Html msg
+viewSuite : Suite -> Html Msg
 viewSuite suite =
     tr []
         [ a [ href <| "#suite/" ++ suite.id ] [ text suite.name ]
         , td [] [ text suite.id ]
         , td [] [ text suite.customVariables ]
+        , td []
+            [ Button.button [ Button.danger, Button.small, Button.disabled <| validSuite suite.name, Button.onClick <| OnClickDropSuite suite ]
+                [ span [ class "ion-close" ] [] ]
+            ]
         ]
+
+
+validSuite : String -> Bool
+validSuite suiteName =
+    if String.startsWith "dev-" suiteName then
+        False
+
+    else
+        True
 
 
 getSuitesCmd : Cmd Msg
@@ -223,13 +281,27 @@ filterQuery query suite =
     if
         String.length query
             == 0
-            || String.startsWith query suite.name
+            || String.contains query suite.name
             || String.startsWith query suite.id
     then
         True
 
     else
         False
+
+
+dropSuiteCmd : String -> Cmd Msg
+dropSuiteCmd suiteId =
+    Http.send RequestCompletedDropSuite <|
+        Http.request <|
+            { method = "DELETE"
+            , headers = []
+            , url = "/api/newman/suite/" ++ suiteId
+            , body = Http.emptyBody
+            , expect = Http.expectString
+            , timeout = Nothing
+            , withCredentials = False
+            }
 
 
 handleEvent : WebSocket.Event -> Cmd Msg

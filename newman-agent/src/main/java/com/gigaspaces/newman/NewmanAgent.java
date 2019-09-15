@@ -169,6 +169,7 @@ public class NewmanAgent {
         Job prevJob = null;
         JobExecutor jobExecutor = null;
 
+
         while (isActive()) {
             boolean toStopafterOneIterate = false;
             Agent agent;
