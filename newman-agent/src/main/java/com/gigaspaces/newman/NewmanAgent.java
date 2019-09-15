@@ -169,6 +169,17 @@ public class NewmanAgent {
         Job prevJob = null;
         JobExecutor jobExecutor = null;
 
+        try {
+            c.deleteSuite("5d6e945d968ec30a23c9b11e").toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            System.out.println("success");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
+
         while (isActive()) {
             boolean toStopafterOneIterate = false;
             Agent agent;

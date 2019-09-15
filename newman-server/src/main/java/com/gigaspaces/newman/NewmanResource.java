@@ -2516,6 +2516,22 @@ public class NewmanResource {
         return Response.ok().build();
     }
 
+    @DELETE
+    @Path("suite/{suiteId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteSuite (final @PathParam("suiteId") String suite){//Todo- delete custom suite
+        Suite suiteToDelete = suiteDAO.getDatastore().findAndDelete(suiteDAO.createIdQuery(suite));
+        if (suiteToDelete == null){
+            logger.info("The suite {} isn't exist", suite);
+            System.out.println("didn't find the job");
+            return Response.status(Response.Status.NOT_FOUND).entity("Invalid request...").build(); //Todo-  phrasing
+        }
+        System.out.println("the suite that deleted: " + suiteToDelete.getName());
+        broadcastMessage(MODIFIED_SUITE, suiteDAO.count());
+        return Response.ok(Entity.json(suiteToDelete)).build();
+    }
+
+
     @GET
     @Path("user")
     @Produces(MediaType.APPLICATION_JSON)

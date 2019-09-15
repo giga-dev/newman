@@ -2,6 +2,7 @@ module Pages.Suites exposing (..)
 
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as FormInput
+import Bootstrap.Modal as Modal
 import Date exposing (Date)
 import DateFormat
 import Html exposing (..)
@@ -10,10 +11,12 @@ import Html.Events exposing (..)
 import Http
 import List.Extra as ListExtra
 import Paginate exposing (..)
+import Svg.Attributes exposing (result)
 import Time exposing (Time)
 import Utils.Common as Common
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
+import Views.NewmanModal as NewmanModal
 
 
 type alias Model =
@@ -21,6 +24,8 @@ type alias Model =
     , suites : PaginatedSuites
     , pageSize : Int
     , query : String
+    , suiteToDrop : Maybe String
+    , confirmationState : Modal.State
     }
 
 
@@ -33,6 +38,11 @@ type Msg
     | GoTo Int
     | FilterQuery String
     | WebSocketEvent WebSocket.Event
+    | OnClickDropSuite String
+    | NewmanModalMsg Modal.State
+    | OnSuiteDropConfirmed String
+    | RequestCompletedDropSuite  (Result Http.Error Suite)
+
 
 
 init : ( Model, Cmd Msg )
@@ -45,6 +55,8 @@ init =
       , suites = Paginate.fromList pageSize []
       , pageSize = pageSize
       , query = ""
+      , suiteToDrop = Nothing
+      , confirmationState = Modal.hiddenState
       }
     , getSuitesCmd
     )
@@ -85,6 +97,26 @@ update msg model =
             , Cmd.none
             )
 
+        NewmanModalMsg newState ->
+             ( { model | suiteToDrop = Nothing, confirmationState = newState }, Cmd.none )
+
+        OnClickDropSuite suite ->
+            ({model | confirmationState = Modal.visibleState, suiteToDrop = Just suite}, Cmd.none )
+
+        OnSuiteDropConfirmed suiteId ->
+            ({model | confirmationState = Modal.hiddenState, suiteToDrop = Nothing }, dropSuiteCmd suiteId ) {-Todo -delete-}
+
+        RequestCompletedDropSuite result suite->
+            case result of
+                Ok suiteId ->
+                    ( model, Cmd.none ) {-Todo- change Model???????????-}
+
+                Err err ->
+                    let
+                        e =
+                            Debug.log "ERROR:onRequestCompletedDropSuite" err
+                    in
+                    ( model, Cmd.none )
         WebSocketEvent event ->
             case event of
                 CreatedSuite suite ->
@@ -195,21 +227,27 @@ view model =
                         [ th [] [ text "Name" ]
                         , th [] [ text "Id" ]
                         , th [] [ text "Custom" ]
+                        , th [ width 70 ] [ text "Actions"]
                         ]
                     ]
                 , tbody [] (List.map viewSuite (Paginate.page model.suites))
                 ]
             , pagination
+            , NewmanModal.confirmSuiteDrop model.suiteToDrop NewmanModalMsg OnSuiteDropConfirmed model.confirmationState
             ]
         ]
 
 
-viewSuite : Suite -> Html msg
+viewSuite : Suite -> Html Msg
 viewSuite suite =
     tr []
         [ a [ href <| "#suite/" ++ suite.id ] [ text suite.name ]
         , td [] [ text suite.id ]
         , td [] [ text suite.customVariables ]
+        , td []
+            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickDropSuite suite.id ]
+                [ span [ class "ion-close" ] [] ]
+            ]
         ]
 
 
@@ -231,6 +269,18 @@ filterQuery query suite =
     else
         False
 
+dropSuiteCmd : String -> Cmd Msg
+dropSuiteCmd suiteId =
+    Http.send (RequestCompletedDropSuite result suiteId) <|
+        Http.request <|
+            { method = "DELETE"
+            , headers = []
+            , url = "/api/newman/suite/" ++ suiteId
+            , body = Http.emptyBody
+            , expect = Http.expectString
+            , timeout = Nothing
+            , withCredentials = False
+            }
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
