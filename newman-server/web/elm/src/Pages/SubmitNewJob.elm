@@ -309,7 +309,7 @@ view model =
         , br [] []
         , let
             toPriorityOption data =
-                Select.item [ value <| toString data, selected <| model.selectedPriority == data ] [ text <| toString data ]
+                Select.item [ value <| toString data, selected <| model.selectedPriority == data ] [ text <| legendPriority data ]
           in
           div
             []
@@ -418,6 +418,19 @@ subscriptions model =
         , Sub.map MultiSelectAgentGroupsMsg <| Multiselect.subscriptions model.selectedAgentGroups
         ]
 
+legendPriority : Int -> String
+legendPriority priority =
+    case priority of
+        1 ->
+            "1- medium"
+        2 ->
+            "2- high"
+        3 ->
+            "3- release (default)"
+        4 ->
+            "4- urgent"
+        _ ->
+            "0- low (default)"
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =

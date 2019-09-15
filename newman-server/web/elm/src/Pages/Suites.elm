@@ -223,7 +223,7 @@ filterQuery query suite =
     if
         String.length query
             == 0
-            || String.startsWith query suite.name
+            || String.contains query suite.name
             || String.startsWith query suite.id
     then
         True
