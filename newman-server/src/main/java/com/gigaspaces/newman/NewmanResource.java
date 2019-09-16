@@ -73,6 +73,7 @@ public class NewmanResource {
     public static final String CREATED_SUITE = "created-suite";
     public static final String CREATED_JOB_CONFIG = "created-job-config";
     public static final String MODIFIED_SUITE = "modified-suite";
+    public static final String DELETED_SUITE = "deleted-suite";
     public static final String CREATE_FUTURE_JOB = "created-future-job";
     public static final String DELETED_FUTURE_JOB = "deleted-future-job";
     private static final String MODIFY_SERVER_STATUS = "modified-server-status";
@@ -2527,7 +2528,7 @@ public class NewmanResource {
             return Response.status(Response.Status.NOT_FOUND).entity("Invalid request...").build(); //Todo-  phrasing
         }
         System.out.println("the suite that deleted: " + suiteToDelete.getName());
-        broadcastMessage(MODIFIED_SUITE, suiteDAO.count());
+        broadcastMessage(DELETED_SUITE, suiteToDelete);
         return Response.ok(Entity.json(suiteToDelete)).build();
     }
 

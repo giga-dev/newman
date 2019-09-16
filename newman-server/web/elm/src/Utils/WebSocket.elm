@@ -60,6 +60,7 @@ type Event
     | ModifiedBuild Build
     | CreatedSuite Suite
     | ModifiedSuite Suite
+    | DeletedSuite Suite
     | CreatedJobConfig JobConfig
     | CreatedFutureJob FutureJob
     | DeletedFutureJob FutureJob
@@ -125,6 +126,9 @@ toEvent msg =
 
                                 "modified-suite" ->
                                     parse ModifiedSuite decodeSuite
+
+                                "deleted-suite" ->
+                                    parse DeletedSuite decodeSuite
 
                                 "created-job-config" ->
                                     parse CreatedJobConfig decodeJobConfig

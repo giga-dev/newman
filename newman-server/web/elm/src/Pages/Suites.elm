@@ -41,7 +41,7 @@ type Msg
     | OnClickDropSuite String
     | NewmanModalMsg Modal.State
     | OnSuiteDropConfirmed String
-    | RequestCompletedDropSuite  (Result Http.Error Suite)
+    | RequestCompletedDropSuite  String (Result Http.Error String)
 
 
 
@@ -106,7 +106,7 @@ update msg model =
         OnSuiteDropConfirmed suiteId ->
             ({model | confirmationState = Modal.hiddenState, suiteToDrop = Nothing }, dropSuiteCmd suiteId ) {-Todo -delete-}
 
-        RequestCompletedDropSuite result suite->
+        RequestCompletedDropSuite suiteId result ->
             case result of
                 Ok suiteId ->
                     ( model, Cmd.none ) {-Todo- change Model???????????-}
@@ -125,6 +125,8 @@ update msg model =
                 ModifiedSuite suite ->
                     ( updateSuiteUpdated model suite, Cmd.none )
 
+                DeletedSuite suite ->
+                    ( updateSuiteRemoved model suite, Cmd.none )
                 _ ->
                     ( model, Cmd.none )
 
@@ -147,6 +149,15 @@ updateAll f model =
 updateSuiteAdded : Model -> Suite -> Model
 updateSuiteAdded model addedSuite =
     updateAll (\list -> addedSuite :: list) model
+
+
+updateSuiteRemoved : Model -> Suite -> Model
+updateSuiteRemoved model suite =
+    let
+        f =
+            ListExtra.filterNot (\item -> item.id == suite.id)
+    in
+    updateAll f model
 
 
 updateSuiteUpdated : Model -> Suite -> Model
@@ -245,10 +256,19 @@ viewSuite suite =
         , td [] [ text suite.id ]
         , td [] [ text suite.customVariables ]
         , td []
-            [ Button.button [ Button.danger, Button.small, Button.onClick <| OnClickDropSuite suite.id ]
+            [ Button.button [ Button.danger, Button.small, Button.disabled <| validSuite suite.name, Button.onClick <| OnClickDropSuite suite.id ]
                 [ span [ class "ion-close" ] [] ]
             ]
         ]
+
+validSuite : String -> Bool
+validSuite suiteName =
+    if
+       String.startsWith "dev-" suiteName
+    then
+        False
+    else
+        True
 
 
 getSuitesCmd : Cmd Msg
@@ -271,7 +291,7 @@ filterQuery query suite =
 
 dropSuiteCmd : String -> Cmd Msg
 dropSuiteCmd suiteId =
-    Http.send (RequestCompletedDropSuite result suiteId) <|
+    Http.send (RequestCompletedDropSuite suiteId) <|
         Http.request <|
             { method = "DELETE"
             , headers = []
