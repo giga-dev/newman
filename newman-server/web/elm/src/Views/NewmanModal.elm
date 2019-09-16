@@ -2,7 +2,7 @@ module Views.NewmanModal exposing (..)
 
 import Bootstrap.Button as Button
 import Bootstrap.Form as Form
-import Bootstrap.Form.Input as FormInput
+import Bootstrap.Form.Input as FormInput exposing (onInput)
 import Bootstrap.Modal as Modal exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -176,6 +176,58 @@ createSuiteForFailedTestsModal maybeSuiteName maybeMessage toMsg onInput onConfi
                         [ Button.success
                         , Button.onClick <| onConfirm suiteName
                         , Button.disabled createButtonDisabled
+                        ]
+                        [ text "Create" ]
+                    , Button.button
+                        [ Button.outlinePrimary
+                        , Button.disabled createButtonDisabled
+                        , Button.onClick <| toMsg Modal.hiddenState
+                        ]
+                        [ text "Close" ]
+                    ]
+                |> Modal.view modalState
+
+        Nothing ->
+            viewError "Suite name was not passed" toMsg modalState
+
+
+
+cloneSuiteModal : Maybe Suite -> Maybe String -> Maybe (Result String String) ->(State -> toMsg) -> (String -> toMsg) -> (Suite -> String -> toMsg) -> State -> Html toMsg
+cloneSuiteModal maybeSuite maybeName maybeMessage toMsg onInput confirmMsg modalState =
+    case maybeSuite of
+        Just suite ->
+            let
+                ( createButtonDisabled, message ) =
+                    case maybeMessage of
+                        Just msg ->
+                            case msg of
+                                Ok m ->
+                                    ( False, m )
+
+                                Err m ->
+                                    ( True, m )
+
+                        Nothing ->
+                            ( False, "" )
+
+                suiteName = Maybe.withDefault "Unknown error" maybeName
+
+            in
+            Modal.config toMsg
+                |> Modal.large
+                |> Modal.h3 [] [ text <| "Clone suite [" ++ suite.name ++ "] " ]
+                |> Modal.body []
+                    [ Form.group []
+                        [ Form.label [ for "suiteName" ] [ text "New Suite Name:" ]
+                        , FormInput.text [ FormInput.onInput onInput, FormInput.id "suiteName" , FormInput.defaultValue suiteName , FormInput.disabled createButtonDisabled ] {- Todo- why the disable??- usually not "," between, line doesn't clesr -}
+                        , Form.help [] [ text "Make sure it starts with 'dev-' prefix." ]
+                        ]
+                    ]
+                |> Modal.footer []
+                     [ div [ style [ ( "width", "100%" ) ] ] [ text message ]
+                     , Button.button
+                        [ Button.success
+                        , Button.onClick <| confirmMsg suite suiteName
                         ]
                         [ text "Create" ]
                     , Button.button

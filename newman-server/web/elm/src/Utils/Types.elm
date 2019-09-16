@@ -755,3 +755,21 @@ agentGroupTestFormat agentGroup assignedAgent =
 
     else
         ""
+
+legendPriority : Int -> String
+legendPriority priority =
+    case priority of
+        1 ->
+            "1- low"
+
+        2 ->
+            "2- high"
+
+        3 ->
+            "3- release-default"
+
+        4 ->
+            "4- urgent"
+
+        _ ->
+            "0- daily-default"

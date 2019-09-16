@@ -6,7 +6,7 @@ import Bootstrap.Modal as Modal
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Http
+import Http exposing (Error(..))
 import List.Extra as ListExtra
 import Paginate exposing (..)
 import Utils.Types exposing (..)
@@ -20,7 +20,11 @@ type alias Model =
     , pageSize : Int
     , query : String
     , suiteToDrop : Maybe Suite
-    , confirmationState : Modal.State
+    , confirmationDropState : Modal.State
+    , suiteToClone : Maybe Suite
+    , cloneSuiteName : Maybe String
+    , confirmationCloneState : Modal.State
+    , duplicateSuiteMessage : Maybe (Result String String)
     }
 
 
@@ -34,9 +38,14 @@ type Msg
     | FilterQuery String
     | WebSocketEvent WebSocket.Event
     | OnClickDropSuite Suite
-    | NewmanModalMsg Modal.State
+    | CloseDropSuiteModal Modal.State
+    | CloseCloneSuiteModal Modal.State
     | OnSuiteDropConfirmed String
-    | RequestCompletedDropSuite (Result Http.Error String)
+    | RequestCompletedDropSuite (Result Http.Error Suite)
+    | RequestCompletedCloneSuite (Result Http.Error Suite)
+    | OnClickCloneSuite Suite
+    | OnSuiteCloneConfirmed Suite String
+    | OnCloneSuiteNameChanged String
 
 
 init : ( Model, Cmd Msg )
@@ -50,7 +59,11 @@ init =
       , pageSize = pageSize
       , query = ""
       , suiteToDrop = Nothing
-      , confirmationState = Modal.hiddenState
+      , confirmationDropState = Modal.hiddenState
+      , suiteToClone = Nothing
+      , cloneSuiteName = Nothing
+      , confirmationCloneState = Modal.hiddenState
+      , duplicateSuiteMessage = Nothing
       }
     , getSuitesCmd
     )
@@ -95,19 +108,32 @@ update msg model =
             , Cmd.none
             )
 
-        NewmanModalMsg newState ->
-            ( { model | suiteToDrop = Nothing, confirmationState = newState }, Cmd.none )
+        CloseDropSuiteModal newState ->
+            ( { model | suiteToDrop = Nothing, confirmationDropState = newState }, Cmd.none )
+
+        CloseCloneSuiteModal modalState ->
+           ( { model | suiteToClone = Nothing, confirmationCloneState = modalState, cloneSuiteName = Nothing, duplicateSuiteMessage = Nothing }, Cmd.none )
 
         OnClickDropSuite suite ->
-            ( { model | confirmationState = Modal.visibleState, suiteToDrop = Just suite }, Cmd.none )
+            ( { model | confirmationDropState = Modal.visibleState, suiteToDrop = Just suite }, Cmd.none )
 
         OnSuiteDropConfirmed suiteId ->
-            ( { model | confirmationState = Modal.hiddenState, suiteToDrop = Nothing }, dropSuiteCmd suiteId )
+            ( { model | confirmationDropState = Modal.hiddenState, suiteToDrop = Nothing }, dropSuiteCmd suiteId )
+
+        OnClickCloneSuite suite ->
+            let
+                newSuiteName =
+                            "dev-copy-of-" ++ suite.name
+            in
+            ( { model | confirmationCloneState = Modal.visibleState, suiteToClone = Just suite, cloneSuiteName = Just newSuiteName }, Cmd.none )
+
+        OnCloneSuiteNameChanged cloneSuiteName ->
+             ( { model | cloneSuiteName = Just cloneSuiteName }, Cmd.none )
 
         RequestCompletedDropSuite result ->
             case result of
-                Ok suiteId ->
-                    ( model, Cmd.none )
+                Ok suite ->
+                    ( updateSuiteRemoved model suite , Cmd.none )
 
                 Err err ->
                     let
@@ -116,16 +142,45 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
+        OnSuiteCloneConfirmed suite newSuiteName ->
+             if String.startsWith "dev-" newSuiteName then
+                   ( { model | duplicateSuiteMessage = Just <| Err "Sending request..." }, cloneSuiteCmd suite newSuiteName )
+
+             else
+                   ( { model | duplicateSuiteMessage = Just <| Ok "Suite name does not start with 'dev-'" }, Cmd.none )
+
+        RequestCompletedCloneSuite result ->
+            case result of
+                Ok suite ->
+                    let
+                       newModel =
+                           updateSuiteAdded model suite
+                    in
+                    ( {newModel | duplicateSuiteMessage = Just <| Ok ("Suite with Id [" ++ suite.id ++ "] has been created")} , Cmd.none )
+
+
+                Err err ->
+                    let
+                        errMsg =
+                            case err of
+                                BadStatus msg ->
+                                    msg.body
+
+                                _ ->
+                                    toString err
+                    in
+                    ( { model | duplicateSuiteMessage = Just <| Ok errMsg }, Cmd.none )
+
         WebSocketEvent event ->
             case event of
                 CreatedSuite suite ->
-                    ( updateSuiteAdded model suite, Cmd.none )
+                    ( updateSuiteAdded model suite , Cmd.none )
 
                 ModifiedSuite suite ->
                     ( updateSuiteUpdated model suite, Cmd.none )
 
                 DeletedSuite suite ->
-                    ( updateSuiteRemoved model suite, Cmd.none )
+                    ( updateSuiteRemoved model suite  , Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -148,7 +203,10 @@ updateAll f model =
 
 updateSuiteAdded : Model -> Suite -> Model
 updateSuiteAdded model addedSuite =
-    updateAll (\list -> addedSuite :: list) model
+    if (List.member addedSuite model.allSuites) /= True then
+        updateAll (\list -> List.sortBy .name (addedSuite :: list)) model
+    else
+        model
 
 
 updateSuiteRemoved : Model -> Suite -> Model
@@ -244,7 +302,8 @@ view model =
                 , tbody [] (List.map viewSuite (Paginate.page model.suites))
                 ]
             , pagination
-            , NewmanModal.confirmSuiteDrop model.suiteToDrop NewmanModalMsg OnSuiteDropConfirmed model.confirmationState
+            , NewmanModal.confirmSuiteDrop model.suiteToDrop CloseDropSuiteModal OnSuiteDropConfirmed model.confirmationDropState
+            , NewmanModal.cloneSuiteModal model.suiteToClone model.cloneSuiteName model.duplicateSuiteMessage CloseCloneSuiteModal OnCloneSuiteNameChanged OnSuiteCloneConfirmed model.confirmationCloneState
             ]
         ]
 
@@ -256,14 +315,17 @@ viewSuite suite =
         , td [] [ text suite.id ]
         , td [] [ text suite.customVariables ]
         , td []
-            [ Button.button [ Button.danger, Button.small, Button.disabled <| validSuite suite.name, Button.onClick <| OnClickDropSuite suite ]
+            [ Button.button [ Button.danger, Button.small, Button.disabled <| validSuiteToDelete suite.name, Button.onClick <| OnClickDropSuite suite ]
                 [ span [ class "ion-close" ] [] ]
+            , text " "
+            , Button.button [Button.roleLink , Button.small, Button.onClick <| OnClickCloneSuite suite ]
+                [ span [ class "ion-android-options" ] [] ]
             ]
         ]
 
 
-validSuite : String -> Bool
-validSuite suiteName =
+validSuiteToDelete : String -> Bool
+validSuiteToDelete suiteName =
     if String.startsWith "dev-" suiteName then
         False
 
@@ -298,10 +360,15 @@ dropSuiteCmd suiteId =
             , headers = []
             , url = "/api/newman/suite/" ++ suiteId
             , body = Http.emptyBody
-            , expect = Http.expectString
+            , expect = Http.expectJson decodeSuite
             , timeout = Nothing
             , withCredentials = False
             }
+
+
+cloneSuiteCmd : Suite -> String -> Cmd Msg
+cloneSuiteCmd sourceSuite newSuiteName  =
+    Http.send RequestCompletedCloneSuite <| Http.post ("/api/newman/suite/" ++ sourceSuite.id  ++ "/" ++ newSuiteName) Http.emptyBody decodeSuite
 
 
 handleEvent : WebSocket.Event -> Cmd Msg

@@ -211,7 +211,7 @@ public class NewmanClient {
     }
 
     public CompletionStage<Suite> addSuite(Suite suite) {
-        return restClient.target(uri).path("suite").request().rx().post(Entity.json(suite), Suite.class);
+        return restClient.target(uri).path("suite").request().rx().post(Entity.json(suite), Suite.class); //Todo - not consists with newman resource
     }
 
     public CompletionStage<Suite> getSuite(String id) {

@@ -145,7 +145,11 @@ update msg model =
         GetJobsInfoCompleted result ->
             case result of
                 Ok jobsFromResult ->
-                    ( { model | maybeJobsTableModel = Just (JobsTable.init jobsFromResult) }, requestTime )
+                    let
+                        jobsSorted =
+                            getJobsSorted jobsFromResult
+                    in
+                    ( { model | maybeJobsTableModel = Just (JobsTable.init jobsSorted) }, requestTime )
 
                 Err err ->
                     ( model, Cmd.none )
@@ -194,6 +198,29 @@ getJobsInfoCmd buildId =
     Http.send GetJobsInfoCompleted <|
         Http.get ("/api/newman/job?buildId=" ++ buildId ++ "&all=true") <|
             Json.Decode.field "values" (Json.Decode.list decodeJob)
+
+
+sortResults: Job -> Job -> Order
+sortResults a b =
+            if a.failed3TimesTests /= b.failed3TimesTests then
+                 descending a.failed3TimesTests b.failed3TimesTests
+            else
+                 if a.failedTests /= b.failedTests then
+                    descending a.failedTests b.failedTests
+                 else
+                    compare a.suiteName b.suiteName
+
+descending: Int -> Int -> Order
+descending a b =
+    case compare a b of
+        LT -> GT
+        EQ -> EQ
+        GT -> LT
+
+
+getJobsSorted :List Job -> List Job
+getJobsSorted  listJobs =
+    ( List.sortWith sortResults listJobs )
 
 
 requestTime : Cmd Msg

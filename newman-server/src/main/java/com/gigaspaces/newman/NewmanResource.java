@@ -2520,13 +2520,14 @@ public class NewmanResource {
     @DELETE
     @Path("suite/{suiteId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteSuite (final @PathParam("suiteId") String suite){
+    public Response deleteSuite(final @PathParam("suiteId") String suite){
         Suite suiteToDelete = suiteDAO.getDatastore().findAndDelete(suiteDAO.createIdQuery(suite));
         if (suiteToDelete != null){
             broadcastMessage(DELETED_SUITE, suiteToDelete);
         }
         else{
-            logger.info("The suite {} isn't exist", suite);
+            logger.info("The suite {} doesn't exist", suite);
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         return Response.ok(Entity.json(suiteToDelete)).build();
@@ -2566,17 +2567,28 @@ public class NewmanResource {
     @POST
     @Path("suite/{sourceSuiteId}/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Suite addSuite(final @PathParam("sourceSuiteId") String sourceSuiteId, final @PathParam("name") String name) {
-
+    public Response addSuite(final @PathParam("sourceSuiteId") String sourceSuiteId, final @PathParam("name") String name) {
         Suite sourceSuite = getSuite(sourceSuiteId);
+
+        if (sourceSuite == null){
+            logger.info("The suite {} doesn't exist", sourceSuiteId);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        Suite existingSuite = suiteDAO.findOne(suiteDAO.createQuery().field("name").equal(name));
+        if (existingSuite != null) {
+            logger.info("Failed to create suite with name " + name);
+            return Response.status(Response.Status.BAD_REQUEST).entity("Suite [" + name + "] already exists").build();
+        }
+
         Suite duplicatedSuite = sourceSuite;
         duplicatedSuite.setName(name);
         duplicatedSuite.setId(null);
 
         suiteDAO.save(duplicatedSuite);
         logger.info("---addSuite---" + duplicatedSuite);
-        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(duplicatedSuite));
-        return duplicatedSuite;
+        broadcastMessage(CREATED_SUITE, duplicatedSuite);
+        return Response.ok(duplicatedSuite).build();
     }
 
     @POST
@@ -2586,7 +2598,7 @@ public class NewmanResource {
     public Suite addSuite(Suite suite) {
         suiteDAO.save(suite);
         logger.info("---addSuite---" + suite);
-        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(suite));
+        broadcastMessage(CREATED_SUITE, suite);
         return suite;
     }
 

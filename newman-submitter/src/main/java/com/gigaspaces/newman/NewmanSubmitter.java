@@ -80,19 +80,21 @@ public class NewmanSubmitter {
         String mode = EnvUtils.getEnvironment(NEWMAN_MODE, false, logger);
         String requiredAgentGroups = properties.get("main").fetch("AGENT_GROUPS_DEFAULT");
         Set<String> agentGroups = parse(requiredAgentGroups);
-        String priorityNum = properties.get("main").fetch("JOB_PRIORITY_DEFAULT");
-        int priority = Integer.parseInt(priorityNum);
+        String dailyPriorityDefault = properties.get("main").fetch("DAILY_JOB_PRIORITY_DEFAULT");
+        String nightlyPriorityDefault = properties.get("main").fetch("NIGHTLY_JOB_PRIORITY_DEFAULT ");
+        int dailyPriority = Integer.parseInt(dailyPriorityDefault);
+        int nightlyPriority = Integer.parseInt(nightlyPriorityDefault);
 
         if (mode == null || mode.length() == 0) {
             mode = "DAILY";
         }
 
-        int status = newmanSubmitter.start(branch, tags, mode, agentGroups, priority);
+        int status = newmanSubmitter.start(branch, tags, mode, agentGroups, dailyPriority, nightlyPriority);
 
         System.exit(status);
     }
 
-    private int start(String branch, String tags, String mode, Set<String> agentGroups, int priority) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    private int start(String branch, String tags, String mode, Set<String> agentGroups, int dailyPriority, int nightlyPriority) throws InterruptedException, ExecutionException, TimeoutException, IOException {
         while (true) {
             ServerStatus serverStatus = newmanClient.getServerStatus().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if (!serverStatus.getStatus().equals(ServerStatus.Status.RUNNING)) {
@@ -102,7 +104,7 @@ public class NewmanSubmitter {
             }
 
             if (mode.equals("NIGHTLY") && isNightlyRequired()) {
-                submitJobs(getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(),getConfigToSubmit(), mode, agentGroups, priority);
+                submitJobs(getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(),getConfigToSubmit(), mode, agentGroups, nightlyPriority);
                 properties.get("main").put("LAST_NIGHTLY_RUN", DateTimeFormatter.ofPattern("yyy/MM/dd").format(LocalDate.now()));
                 properties.store();
                 return 0;
@@ -123,7 +125,7 @@ public class NewmanSubmitter {
                 if (buildToRun != null) {
                     int numOfRunningJobs = Integer.parseInt(newmanClient.hasRunningJobs().toCompletableFuture().get());
                     if (numOfRunningJobs == 0) {
-                        submitJobs(buildToRun, getDailySuiteToSubmit(),getConfigToSubmit(), mode, agentGroups, priority);
+                        submitJobs(buildToRun, getDailySuiteToSubmit(),getConfigToSubmit(), mode, agentGroups, dailyPriority);
                     }
                 }
                 return 0;
