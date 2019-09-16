@@ -2520,15 +2520,15 @@ public class NewmanResource {
     @DELETE
     @Path("suite/{suiteId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteSuite (final @PathParam("suiteId") String suite){//Todo- delete custom suite
+    public Response deleteSuite (final @PathParam("suiteId") String suite){//Todo- delete only custom suite also in sever?
         Suite suiteToDelete = suiteDAO.getDatastore().findAndDelete(suiteDAO.createIdQuery(suite));
-        if (suiteToDelete == null){
-            logger.info("The suite {} isn't exist", suite);
-            System.out.println("didn't find the job");
-            return Response.status(Response.Status.NOT_FOUND).entity("Invalid request...").build(); //Todo-  phrasing
+        if (suiteToDelete != null){
+            broadcastMessage(DELETED_SUITE, suiteToDelete);
         }
-        System.out.println("the suite that deleted: " + suiteToDelete.getName());
-        broadcastMessage(DELETED_SUITE, suiteToDelete);
+        else{
+            logger.info("The suite {} isn't exist", suite);  //Todo - needed? other delete places don't have
+        }
+
         return Response.ok(Entity.json(suiteToDelete)).build();
     }
 

@@ -41,8 +41,7 @@ type Msg
     | OnClickDropSuite String
     | NewmanModalMsg Modal.State
     | OnSuiteDropConfirmed String
-    | RequestCompletedDropSuite  String (Result Http.Error String)
-
+    | RequestCompletedDropSuite (Result Http.Error String)
 
 
 init : ( Model, Cmd Msg )
@@ -98,18 +97,18 @@ update msg model =
             )
 
         NewmanModalMsg newState ->
-             ( { model | suiteToDrop = Nothing, confirmationState = newState }, Cmd.none )
+            ( { model | suiteToDrop = Nothing, confirmationState = newState }, Cmd.none )
 
         OnClickDropSuite suite ->
-            ({model | confirmationState = Modal.visibleState, suiteToDrop = Just suite}, Cmd.none )
+            ( { model | confirmationState = Modal.visibleState, suiteToDrop = Just suite }, Cmd.none )
 
         OnSuiteDropConfirmed suiteId ->
-            ({model | confirmationState = Modal.hiddenState, suiteToDrop = Nothing }, dropSuiteCmd suiteId ) {-Todo -delete-}
+            ( { model | confirmationState = Modal.hiddenState, suiteToDrop = Nothing }, dropSuiteCmd suiteId )
 
-        RequestCompletedDropSuite suiteId result ->
+        RequestCompletedDropSuite result ->
             case result of
                 Ok suiteId ->
-                    ( model, Cmd.none ) {-Todo- change Model???????????-}
+                    ( model, Cmd.none )
 
                 Err err ->
                     let
@@ -117,6 +116,7 @@ update msg model =
                             Debug.log "ERROR:onRequestCompletedDropSuite" err
                     in
                     ( model, Cmd.none )
+
         WebSocketEvent event ->
             case event of
                 CreatedSuite suite ->
@@ -127,6 +127,7 @@ update msg model =
 
                 DeletedSuite suite ->
                     ( updateSuiteRemoved model suite, Cmd.none )
+
                 _ ->
                     ( model, Cmd.none )
 
@@ -238,7 +239,7 @@ view model =
                         [ th [] [ text "Name" ]
                         , th [] [ text "Id" ]
                         , th [] [ text "Custom" ]
-                        , th [ width 70 ] [ text "Actions"]
+                        , th [ width 70 ] [ text "Actions" ]
                         ]
                     ]
                 , tbody [] (List.map viewSuite (Paginate.page model.suites))
@@ -261,12 +262,12 @@ viewSuite suite =
             ]
         ]
 
+
 validSuite : String -> Bool
 validSuite suiteName =
-    if
-       String.startsWith "dev-" suiteName
-    then
+    if String.startsWith "dev-" suiteName then
         False
+
     else
         True
 
@@ -289,9 +290,10 @@ filterQuery query suite =
     else
         False
 
+
 dropSuiteCmd : String -> Cmd Msg
 dropSuiteCmd suiteId =
-    Http.send (RequestCompletedDropSuite suiteId) <|
+    Http.send RequestCompletedDropSuite <|
         Http.request <|
             { method = "DELETE"
             , headers = []
@@ -301,6 +303,7 @@ dropSuiteCmd suiteId =
             , timeout = Nothing
             , withCredentials = False
             }
+
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =

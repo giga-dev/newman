@@ -65,6 +65,7 @@ confirmFutureJobDrop maybeJob toMsg confirmMsg modalState =
                 |> Modal.h3 [] [ text "Error: Future Job is not defined" ]
                 |> Modal.view modalState
 
+
 confirmSuiteDrop : Maybe String -> (State -> toMsg) -> (String -> toMsg) -> State -> Html toMsg
 confirmSuiteDrop maybeSuite toMsg confirmMsg modalState =
     case maybeSuite of
@@ -92,6 +93,7 @@ confirmSuiteDrop maybeSuite toMsg confirmMsg modalState =
                 |> Modal.large
                 |> Modal.h3 [] [ text "Error: Suite is not defined" ]
                 |> Modal.view modalState
+
 
 confirmAgentDrop : String -> (State -> toMsg) -> (String -> toMsg) -> State -> Html toMsg
 confirmAgentDrop maybeAgent toMsg confirmMsg modalState =

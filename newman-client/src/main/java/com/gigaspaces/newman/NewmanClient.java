@@ -224,8 +224,8 @@ public class NewmanClient {
         });
     }
 
-    public CompletionStage<Response> deleteSuite(String suiteId) {
-        return restClient.target(uri).path("suite").path(suiteId).request().rx().delete(Response.class);
+    public CompletionStage<Suite> deleteSuite(String suiteId) {
+        return restClient.target(uri).path("suite").path(suiteId).request().rx().delete(Suite.class);
     }
 
     public CompletionStage<Test> getTestToRun(Agent agent) {
