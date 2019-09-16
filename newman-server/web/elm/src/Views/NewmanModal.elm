@@ -6,6 +6,7 @@ import Bootstrap.Form.Input as FormInput
 import Bootstrap.Modal as Modal exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Utils.Types exposing (Suite)
 
 
 confirmJobDrop : Maybe String -> (State -> toMsg) -> (String -> toMsg) -> State -> Html toMsg
@@ -66,18 +67,18 @@ confirmFutureJobDrop maybeJob toMsg confirmMsg modalState =
                 |> Modal.view modalState
 
 
-confirmSuiteDrop : Maybe String -> (State -> toMsg) -> (String -> toMsg) -> State -> Html toMsg
+confirmSuiteDrop : Maybe Suite -> (State -> toMsg) -> (String -> toMsg) -> State -> Html toMsg
 confirmSuiteDrop maybeSuite toMsg confirmMsg modalState =
     case maybeSuite of
-        Just suiteId ->
+        Just suite ->
             Modal.config toMsg
                 |> Modal.large
                 |> Modal.h3 [] [ text "Confirmation is required" ]
-                |> Modal.body [] [ p [] [ text <| "Are you sure you want to delete suite " ++ suiteId ] ]
+                |> Modal.body [] [ p [] [ text <| "Are you sure you want to delete suite " ++ suite.name ++ "?"  ] ]
                 |> Modal.footer []
                     [ Button.button
                         [ Button.danger
-                        , Button.onClick <| confirmMsg suiteId
+                        , Button.onClick <| confirmMsg suite.id
                         ]
                         [ text "Confirm" ]
                     , Button.button

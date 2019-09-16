@@ -3,17 +3,12 @@ module Pages.Suites exposing (..)
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as FormInput
 import Bootstrap.Modal as Modal
-import Date exposing (Date)
-import DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import List.Extra as ListExtra
 import Paginate exposing (..)
-import Svg.Attributes exposing (result)
-import Time exposing (Time)
-import Utils.Common as Common
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal
@@ -24,7 +19,7 @@ type alias Model =
     , suites : PaginatedSuites
     , pageSize : Int
     , query : String
-    , suiteToDrop : Maybe String
+    , suiteToDrop : Maybe Suite
     , confirmationState : Modal.State
     }
 
@@ -38,7 +33,7 @@ type Msg
     | GoTo Int
     | FilterQuery String
     | WebSocketEvent WebSocket.Event
-    | OnClickDropSuite String
+    | OnClickDropSuite Suite
     | NewmanModalMsg Modal.State
     | OnSuiteDropConfirmed String
     | RequestCompletedDropSuite (Result Http.Error String)
@@ -70,6 +65,10 @@ update msg model =
                     ( { model | suites = Paginate.fromList model.pageSize suitesFromResult, allSuites = suitesFromResult }, Cmd.none )
 
                 Err err ->
+                    let
+                        e =
+                            Debug.log "ERROR:GetSuitesCompleted" err
+                    in
                     ( model, Cmd.none )
 
         First ->
