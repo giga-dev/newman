@@ -21,6 +21,8 @@ type alias Model =
     , query : String
     , suiteToDrop : Maybe Suite
     , confirmationState : Modal.State
+    , suiteToClone : Maybe Suite
+    , cloneSuiteState : Modal.State
     }
 
 
@@ -34,9 +36,13 @@ type Msg
     | FilterQuery String
     | WebSocketEvent WebSocket.Event
     | OnClickDropSuite Suite
-    | NewmanModalMsg Modal.State
+    | CloseDropSuiteModal Modal.State
+    | CloseCloneSuiteModal Modal.State
     | OnSuiteDropConfirmed String
     | RequestCompletedDropSuite (Result Http.Error String)
+    | CloneSuiteResponse (Result Http.Error String)
+    | OnClickCloneSuite Suite
+    | OnSuiteCloneConfirmed String
 
 
 init : ( Model, Cmd Msg )
@@ -51,6 +57,8 @@ init =
       , query = ""
       , suiteToDrop = Nothing
       , confirmationState = Modal.hiddenState
+      , suiteToClone = Nothing
+      , cloneSuiteState = Modal.hiddenState
       }
     , getSuitesCmd
     )
@@ -95,14 +103,20 @@ update msg model =
             , Cmd.none
             )
 
-        NewmanModalMsg newState ->
+        CloseDropSuiteModal newState ->
             ( { model | suiteToDrop = Nothing, confirmationState = newState }, Cmd.none )
+
+        CloseCloneSuiteModal newState ->
+            ( { model | suiteToClone = Nothing, cloneSuiteState = newState }, Cmd.none )
 
         OnClickDropSuite suite ->
             ( { model | confirmationState = Modal.visibleState, suiteToDrop = Just suite }, Cmd.none )
 
         OnSuiteDropConfirmed suiteId ->
             ( { model | confirmationState = Modal.hiddenState, suiteToDrop = Nothing }, dropSuiteCmd suiteId )
+
+        OnClickCloneSuite suite ->
+            ( { model | cloneSuiteState = Modal.visibleState, suiteToClone = Just suite }, Cmd.none )
 
         RequestCompletedDropSuite result ->
             case result of
@@ -116,6 +130,20 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
+        OnSuiteCloneConfirmed newSuiteName ->
+            ( { model | cloneSuiteState = Modal.hiddenState, suiteToClone = Nothing }, cloneSuiteCmd Just <| model.suiteToClone newSuiteName )
+
+        CloneSuiteResponse result -> {-Todo - be consistent with names-}
+            case result of
+                Ok suiteId ->
+                    ( model, Cmd.none )
+
+                Err err ->
+                    let
+                        e =
+                            Debug.log "ERROR:onCloneSuiteResponse" err
+                    in
+                    ( model, Cmd.none )
         WebSocketEvent event ->
             case event of
                 CreatedSuite suite ->
@@ -129,6 +157,7 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
 
 
 updateAll : (List Suite -> List Suite) -> Model -> Model
@@ -244,7 +273,8 @@ view model =
                 , tbody [] (List.map viewSuite (Paginate.page model.suites))
                 ]
             , pagination
-            , NewmanModal.confirmSuiteDrop model.suiteToDrop NewmanModalMsg OnSuiteDropConfirmed model.confirmationState
+            , NewmanModal.confirmSuiteDrop model.suiteToDrop CloseDropSuiteModal OnSuiteDropConfirmed model.confirmationState
+            , NewmanModal.cloneSuiteModal model.suiteToClone CloseCloneSuiteModal OnSuiteCloneConfirmed model.cloneSuiteState
             ]
         ]
 
@@ -256,8 +286,11 @@ viewSuite suite =
         , td [] [ text suite.id ]
         , td [] [ text suite.customVariables ]
         , td []
-            [ Button.button [ Button.danger, Button.small, Button.disabled <| validSuite suite.name, Button.onClick <| OnClickDropSuite suite.id ]
+            [ Button.button [ Button.danger, Button.small, Button.disabled <| validSuite suite.name, Button.onClick <| OnClickDropSuite suite ]
                 [ span [ class "ion-close" ] [] ]
+            , text " "
+            , Button.button [Button.roleLink , Button.small, Button.onClick <| OnClickCloneSuite suite ]
+                [ span [ class "ion-android-options" ] [] ]
             ]
         ]
 
@@ -302,6 +335,12 @@ dropSuiteCmd suiteId =
             , timeout = Nothing
             , withCredentials = False
             }
+
+
+cloneSuiteCmd : Suite -> String -> Cmd Msg
+cloneSuiteCmd sourceSuite newSuiteName  =
+    Http.send CloneSuiteResponse <| Http.post ("/api/newman/suite/" ++ sourceSuite.id  ++ "/" ++ newSuiteName) Http.emptyBody decodeSuite
+
 
 
 handleEvent : WebSocket.Event -> Cmd Msg

@@ -2,7 +2,7 @@ module Views.NewmanModal exposing (..)
 
 import Bootstrap.Button as Button
 import Bootstrap.Form as Form
-import Bootstrap.Form.Input as FormInput
+import Bootstrap.Form.Input as FormInput exposing (onInput)
 import Bootstrap.Modal as Modal exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -189,3 +189,39 @@ createSuiteForFailedTestsModal maybeSuiteName maybeMessage toMsg onInput onConfi
 
         Nothing ->
             viewError "Suite name was not passed" toMsg modalState
+
+
+
+cloneSuiteModal : Maybe Suite -> (State -> toMsg) -> (String -> toMsg) -> State -> Html toMsg
+cloneSuiteModal maybeSuite toMsg confirmMsg modalState =
+    case maybeSuite of
+        Just suite ->
+            Modal.config toMsg
+                |> Modal.large
+                |> Modal.h3 [] [ text <| "Copy suite [" ++ suite.name ++ "] configuration?" ]
+                |> Modal.body []
+                    [ p [] [ text <| "This will create a suite of all failing tests in this job" ]
+                    , Form.group []
+                        [ Form.label [ for "suiteName" ] [ text "Suite Name:" ]
+                        , FormInput.text [ FormInput.onInput onInput, FormInput.id "suiteName", FormInput.defaultValue suite.name ]
+                        ]
+                    ]
+                |> Modal.footer []
+                    [ Button.button
+                        [ Button.outlinePrimary
+                        , Button.onClick <| confirmMsg suiteName
+                        ]
+                        [ text "Create" ]
+                    , Button.button
+                        [ Button.outlinePrimary
+                        , Button.onClick <| toMsg Modal.hiddenState
+                        ]
+                        [ text "Close" ]
+                    ]
+                |> Modal.view modalState
+
+        Nothing ->
+            Modal.config toMsg
+                |> Modal.large
+                |> Modal.h3 [] [ text "Error: Suite is not defined" ]
+                |> Modal.view modalState
