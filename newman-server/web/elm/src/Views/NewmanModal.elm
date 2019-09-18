@@ -192,24 +192,43 @@ createSuiteForFailedTestsModal maybeSuiteName maybeMessage toMsg onInput onConfi
 
 
 
-cloneSuiteModal : Maybe Suite -> (State -> toMsg) -> (String -> toMsg) -> State -> Html toMsg
-cloneSuiteModal maybeSuite toMsg confirmMsg modalState =
+cloneSuiteModal : Maybe Suite -> (State -> toMsg) -> (String -> toMsg) -> (Suite -> String -> toMsg) -> State -> Html toMsg
+cloneSuiteModal maybeSuite toMsg onInput confirmMsg modalState =
     case maybeSuite of
         Just suite ->
+{-            let
+                ( createButtonDisabled, message ) =
+                    case maybeMessage of
+                        Just msg ->
+                            case msg of
+                                Ok m ->
+                                    ( False, m )
+
+                                Err m ->
+                                    ( True, m )
+
+                        Nothing ->
+                            ( False, "" )
+            in-}
+          {-  let
+                message =
+
+
+            in-}
             Modal.config toMsg
                 |> Modal.large
-                |> Modal.h3 [] [ text <| "Copy suite [" ++ suite.name ++ "] configuration?" ]
+                |> Modal.h3 [] [ text <| "Copy suite [" ++ suite.name ++ "] configuration" ]
                 |> Modal.body []
                     [ p [] [ text <| "This will create a suite of all failing tests in this job" ]
                     , Form.group []
                         [ Form.label [ for "suiteName" ] [ text "Suite Name:" ]
-                        , FormInput.text [ FormInput.onInput onInput, FormInput.id "suiteName", FormInput.defaultValue suite.name ]
+                        , FormInput.text [ FormInput.onInput onInput, FormInput.id "suiteName" , FormInput.defaultValue ("copy of " ++ suite.name) ]
                         ]
                     ]
                 |> Modal.footer []
                     [ Button.button
                         [ Button.outlinePrimary
-                        , Button.onClick <| confirmMsg suiteName
+                        , Button.onClick <| confirmMsg suite "suiteName"
                         ]
                         [ text "Create" ]
                     , Button.button

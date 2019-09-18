@@ -17,7 +17,7 @@ type alias Model =
     , oldBuild : Maybe Build
     , newBuild : Maybe Build
     , newerBuilds : Builds
-    , confirmationState : Modal.State
+    , confirmationDropState : Modal.State
     }
 
 
@@ -106,13 +106,13 @@ update msg model =
             ( { model | newBuild = maybeGetBuild model.allBuilds build }, Cmd.none )
 
         ClickCompareBuilds ->
-            ( { model | confirmationState = Modal.visibleState }, Cmd.none )
+            ( { model | confirmationDropState = Modal.visibleState }, Cmd.none )
 
         AcknowledgeDialog ->
-            ( { model | confirmationState = Modal.hiddenState }, Cmd.none )
+            ( { model | confirmationDropState = Modal.hiddenState }, Cmd.none )
 
         ModalMsg newState ->
-            ( { model | confirmationState = newState }, Cmd.none )
+            ( { model | confirmationDropState = newState }, Cmd.none )
 
         WebSocketEvent event ->
             case event of
@@ -165,7 +165,7 @@ viewDialog model toMsg confirmMsg =
                         ]
                         [ text "Close" ]
                     ]
-                |> Modal.view model.confirmationState
+                |> Modal.view model.confirmationDropState
 
         body oldShas newShas =
             [ ul [] <| List.map buildBody (Dict.toList (createUrls oldShas newShas)) ]
@@ -205,7 +205,7 @@ viewDialog model toMsg confirmMsg =
                                 ]
                                 [ text "Close" ]
                             ]
-                        |> Modal.view model.confirmationState
+                        |> Modal.view model.confirmationDropState
 
                 Nothing ->
                     errorModel

@@ -2575,7 +2575,7 @@ public class NewmanResource {
 
         suiteDAO.save(duplicatedSuite);
         logger.info("---addSuite---" + duplicatedSuite);
-        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(duplicatedSuite));
+        broadcastMessage(CREATED_SUITE, duplicatedSuite);
         return duplicatedSuite;
     }
 
@@ -2586,7 +2586,7 @@ public class NewmanResource {
     public Suite addSuite(Suite suite) {
         suiteDAO.save(suite);
         logger.info("---addSuite---" + suite);
-        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(suite));
+        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(suite)); //Todo- broadcast don't work
         return suite;
     }
 
@@ -3065,7 +3065,7 @@ public class NewmanResource {
         try {
             Suite suite = createSuiteFromFailingTests(jobId, newSuiteName);
 
-            addSuite(suite);
+            addSuite(suite); //Todo- from resource call to rest method??/
 
             logger.info("Created suite: " + suite);
             return Response.ok(suite).build();

@@ -20,9 +20,10 @@ type alias Model =
     , pageSize : Int
     , query : String
     , suiteToDrop : Maybe Suite
-    , confirmationState : Modal.State
+    , confirmationDropState : Modal.State
     , suiteToClone : Maybe Suite
-    , cloneSuiteState : Modal.State
+    , newSuiteName : Maybe String
+    , confirmationCloneState : Modal.State
     }
 
 
@@ -40,9 +41,10 @@ type Msg
     | CloseCloneSuiteModal Modal.State
     | OnSuiteDropConfirmed String
     | RequestCompletedDropSuite (Result Http.Error String)
-    | CloneSuiteResponse (Result Http.Error String)
+    | CloneSuiteResponse (Result Http.Error Suite)
     | OnClickCloneSuite Suite
-    | OnSuiteCloneConfirmed String
+    | OnSuiteCloneConfirmed Suite String
+    | OnCloneSuiteNameChanged String
 
 
 init : ( Model, Cmd Msg )
@@ -56,9 +58,10 @@ init =
       , pageSize = pageSize
       , query = ""
       , suiteToDrop = Nothing
-      , confirmationState = Modal.hiddenState
+      , confirmationDropState = Modal.hiddenState
       , suiteToClone = Nothing
-      , cloneSuiteState = Modal.hiddenState
+      , newSuiteName = Nothing
+      , confirmationCloneState = Modal.hiddenState
       }
     , getSuitesCmd
     )
@@ -104,19 +107,22 @@ update msg model =
             )
 
         CloseDropSuiteModal newState ->
-            ( { model | suiteToDrop = Nothing, confirmationState = newState }, Cmd.none )
+            ( { model | suiteToDrop = Nothing, confirmationDropState = newState }, Cmd.none )
 
         CloseCloneSuiteModal newState ->
-            ( { model | suiteToClone = Nothing, cloneSuiteState = newState }, Cmd.none )
+            ( { model | suiteToClone = Nothing, confirmationCloneState = newState }, Cmd.none )
 
         OnClickDropSuite suite ->
-            ( { model | confirmationState = Modal.visibleState, suiteToDrop = Just suite }, Cmd.none )
+            ( { model | confirmationDropState = Modal.visibleState, suiteToDrop = Just suite }, Cmd.none )
 
         OnSuiteDropConfirmed suiteId ->
-            ( { model | confirmationState = Modal.hiddenState, suiteToDrop = Nothing }, dropSuiteCmd suiteId )
+            ( { model | confirmationDropState = Modal.hiddenState, suiteToDrop = Nothing }, dropSuiteCmd suiteId )
 
         OnClickCloneSuite suite ->
-            ( { model | cloneSuiteState = Modal.visibleState, suiteToClone = Just suite }, Cmd.none )
+            ( { model | confirmationCloneState = Modal.visibleState, suiteToClone = Just suite }, Cmd.none )
+
+        OnCloneSuiteNameChanged cloneSuiteName ->
+             ( { model | newSuiteName = Just cloneSuiteName }, Cmd.none )
 
         RequestCompletedDropSuite result ->
             case result of
@@ -130,8 +136,8 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
-        OnSuiteCloneConfirmed newSuiteName ->
-            ( { model | cloneSuiteState = Modal.hiddenState, suiteToClone = Nothing }, cloneSuiteCmd Just <| model.suiteToClone newSuiteName )
+        OnSuiteCloneConfirmed suite newSuiteName ->
+            ( { model | confirmationCloneState = Modal.hiddenState, suiteToClone = Nothing }, cloneSuiteCmd suite newSuiteName )
 
         CloneSuiteResponse result -> {-Todo - be consistent with names-}
             case result of
@@ -273,8 +279,8 @@ view model =
                 , tbody [] (List.map viewSuite (Paginate.page model.suites))
                 ]
             , pagination
-            , NewmanModal.confirmSuiteDrop model.suiteToDrop CloseDropSuiteModal OnSuiteDropConfirmed model.confirmationState
-            , NewmanModal.cloneSuiteModal model.suiteToClone CloseCloneSuiteModal OnSuiteCloneConfirmed model.cloneSuiteState
+            , NewmanModal.confirmSuiteDrop model.suiteToDrop CloseDropSuiteModal OnSuiteDropConfirmed model.confirmationDropState
+            , NewmanModal.cloneSuiteModal model.suiteToClone CloseCloneSuiteModal OnCloneSuiteNameChanged OnSuiteCloneConfirmed model.confirmationCloneState
             ]
         ]
 
@@ -286,7 +292,7 @@ viewSuite suite =
         , td [] [ text suite.id ]
         , td [] [ text suite.customVariables ]
         , td []
-            [ Button.button [ Button.danger, Button.small, Button.disabled <| validSuite suite.name, Button.onClick <| OnClickDropSuite suite ]
+            [ Button.button [ Button.danger, Button.small, Button.disabled <| validSuiteToDelete suite.name, Button.onClick <| OnClickDropSuite suite ]
                 [ span [ class "ion-close" ] [] ]
             , text " "
             , Button.button [Button.roleLink , Button.small, Button.onClick <| OnClickCloneSuite suite ]
@@ -295,8 +301,8 @@ viewSuite suite =
         ]
 
 
-validSuite : String -> Bool
-validSuite suiteName =
+validSuiteToDelete : String -> Bool
+validSuiteToDelete suiteName =
     if String.startsWith "dev-" suiteName then
         False
 

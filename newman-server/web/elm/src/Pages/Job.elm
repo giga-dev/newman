@@ -28,7 +28,7 @@ type alias Model =
     , testsTable : TestsTable.Model
     , currTime : Maybe Time
     , statusState : RadioState
-    , confirmationState : Modal.State
+    , confirmationDropState : Modal.State
     , newSuiteName : Maybe String
     , newSuiteMessage : Maybe (Result String String)
     }
@@ -75,7 +75,7 @@ initModel jobId state =
     , testsTable = TestsTable.init jobId [] state
     , currTime = Nothing
     , statusState = state
-    , confirmationState = Modal.hiddenState
+    , confirmationDropState = Modal.hiddenState
     , newSuiteName = Nothing
     , newSuiteMessage = Nothing
     }
@@ -243,7 +243,7 @@ view model =
                 [ h2 [ class "text" ] [ text <| "Details for job " ++ job.id ]
                 , viewHeader model job
                 , viewBody model
-                , NewmanModal.createSuiteForFailedTestsModal model.newSuiteName model.newSuiteMessage NewmanModalMsg OnNewSuiteNameChanged OnNewSuiteConfirm model.confirmationState
+                , NewmanModal.createSuiteForFailedTestsModal model.newSuiteName model.newSuiteMessage NewmanModalMsg OnNewSuiteNameChanged OnNewSuiteConfirm model.confirmationDropState
                 ]
 
         Nothing ->
@@ -332,7 +332,7 @@ update msg model =
                                 ( _, _ ) ->
                                     "..."
             in
-            ( { model | confirmationState = Modal.visibleState, newSuiteName = Just suiteName }, Cmd.none )
+            ( { model | confirmationDropState = Modal.visibleState, newSuiteName = Just suiteName }, Cmd.none )
 
         NewmanModalMsg newState ->
             let
@@ -340,7 +340,7 @@ update msg model =
                     newState == Modal.hiddenState
 
                 newModel =
-                    { model | confirmationState = newState }
+                    { model | confirmationDropState = newState }
             in
             if cleanup then
                 ( { newModel | newSuiteName = Nothing, newSuiteMessage = Nothing }, Cmd.none )
@@ -358,7 +358,7 @@ update msg model =
                         ( { model | newSuiteMessage = Just <| Ok "Suite name does not start with 'dev-'" }, Cmd.none )
 
                 Nothing ->
-                    ( { model | confirmationState = Modal.hiddenState, newSuiteName = Nothing, newSuiteMessage = Nothing }, Cmd.none )
+                    ( { model | confirmationDropState = Modal.hiddenState, newSuiteName = Nothing, newSuiteMessage = Nothing }, Cmd.none )
 
         CreateSuiteResponse result ->
             case result of
