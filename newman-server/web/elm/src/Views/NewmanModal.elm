@@ -74,7 +74,7 @@ confirmSuiteDrop maybeSuite toMsg confirmMsg modalState =
             Modal.config toMsg
                 |> Modal.large
                 |> Modal.h3 [] [ text "Confirmation is required" ]
-                |> Modal.body [] [ p [] [ text <| "Are you sure you want to delete suite " ++ suite.name ++ "?"  ] ]
+                |> Modal.body [] [ p [] [ text <| "Are you sure you want to delete suite " ++ suite.name ++ "?"  ] ]  {-Todo- question mark needed?-}
                 |> Modal.footer []
                     [ Button.button
                         [ Button.danger
@@ -125,7 +125,7 @@ confirmAgentDrop maybeAgent toMsg confirmMsg modalState =
                 |> Modal.view modalState
 
 
-viewError : String -> (State -> toMsg) -> State -> Html toMsg
+viewError : String -> (State -> toMsg) -> State -> Html toMsg   {-Todo- not working at create suite fron failing tests-}
 viewError txt toMsg modalState =
     Modal.config toMsg
         |> Modal.small
@@ -192,11 +192,11 @@ createSuiteForFailedTestsModal maybeSuiteName maybeMessage toMsg onInput onConfi
 
 
 
-cloneSuiteModal : Maybe Suite -> (State -> toMsg) -> (String -> toMsg) -> (Suite -> String -> toMsg) -> State -> Html toMsg
-cloneSuiteModal maybeSuite toMsg onInput confirmMsg modalState =
+cloneSuiteModal : Maybe Suite -> Maybe String -> Maybe (Result String String) ->(State -> toMsg) -> (String -> toMsg) -> (Suite -> String -> toMsg) -> State -> Html toMsg
+cloneSuiteModal maybeSuite maybeName maybeMessage toMsg onInput confirmMsg modalState =
     case maybeSuite of
         Just suite ->
-{-            let
+            let
                 ( createButtonDisabled, message ) =
                     case maybeMessage of
                         Just msg ->
@@ -209,38 +209,39 @@ cloneSuiteModal maybeSuite toMsg onInput confirmMsg modalState =
 
                         Nothing ->
                             ( False, "" )
-            in-}
-          {-  let
-                message =
 
+                suiteName =
+                    case maybeName of
+                        Just maybeName ->
+                            maybeName
+                        Nothing ->
+                            ""   {-Todo -this is an error??- needed result String like create suite from tests -}
 
-            in-}
+            in
             Modal.config toMsg
                 |> Modal.large
                 |> Modal.h3 [] [ text <| "Copy suite [" ++ suite.name ++ "] configuration" ]
                 |> Modal.body []
-                    [ p [] [ text <| "This will create a suite of all failing tests in this job" ]
-                    , Form.group []
-                        [ Form.label [ for "suiteName" ] [ text "Suite Name:" ]
-                        , FormInput.text [ FormInput.onInput onInput, FormInput.id "suiteName" , FormInput.defaultValue ("copy of " ++ suite.name) ]
+                    [ Form.group []
+                        [ Form.label [ for "suiteName" ] [ text "Duplicated Suite Name:" ]
+                        , FormInput.text [ FormInput.onInput onInput, FormInput.id "suiteName" , FormInput.defaultValue suiteName , FormInput.disabled createButtonDisabled ] {- Todo- why the disable??-}
+                        , Form.help [] [ text "Make sure it starts with 'dev-' prefix." ]
                         ]
                     ]
                 |> Modal.footer []
-                    [ Button.button
-                        [ Button.outlinePrimary
-                        , Button.onClick <| confirmMsg suite "suiteName"
+                     [ div [ style [ ( "width", "100%" ) ] ] [ text message ]
+                     , Button.button
+                        [ Button.success
+                        , Button.onClick <| confirmMsg suite suiteName
                         ]
                         [ text "Create" ]
                     , Button.button
                         [ Button.outlinePrimary
-                        , Button.onClick <| toMsg Modal.hiddenState
+                        , Button.onClick <| toMsg modalState
                         ]
                         [ text "Close" ]
                     ]
                 |> Modal.view modalState
 
         Nothing ->
-            Modal.config toMsg
-                |> Modal.large
-                |> Modal.h3 [] [ text "Error: Suite is not defined" ]
-                |> Modal.view modalState
+            viewError "Suite name was not passed" toMsg modalState

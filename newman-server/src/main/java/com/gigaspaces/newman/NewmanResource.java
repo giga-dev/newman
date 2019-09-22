@@ -2566,9 +2566,25 @@ public class NewmanResource {
     @POST
     @Path("suite/{sourceSuiteId}/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Suite addSuite(final @PathParam("sourceSuiteId") String sourceSuiteId, final @PathParam("name") String name) {
+    public Suite addSuite(final @PathParam("sourceSuiteId") String sourceSuiteId, final @PathParam("name") String name) {  //Todo- who used it before? there's no reference in newman client, maybe old newman
+      Suite sourceSuite = getSuite(sourceSuiteId);
 
-        Suite sourceSuite = getSuite(sourceSuiteId);
+        if (sourceSuite == null){
+            logger.info("The suite {} isn't exist", sourceSuiteId);
+            //Response.status(Response.Status.NOT_FOUND).build();
+            return null;
+        }
+
+        Suite existingSuite = suiteDAO.findOne(suiteDAO.createQuery().field("name").equal(name));
+        if (existingSuite != null) {
+            try {
+                throw new Exception("Suite ["+name+"] already exists");
+            } catch (Exception e) {
+                logger.warn("exception has happen: " + e);
+                //Response.status(Response.Status.FORBIDDEN).build();
+            }
+        }
+
         Suite duplicatedSuite = sourceSuite;
         duplicatedSuite.setName(name);
         duplicatedSuite.setId(null);
