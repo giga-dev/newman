@@ -31,7 +31,7 @@ type alias Model =
     , query : String
     , filterFailingAgents : Bool
     , filterOfflineAgents : Bool
-    , confirmationDropState : Modal.State
+    , confirmationState : Modal.State
     , agentToDrop : Maybe String
     , offlineAgentToDrop : Maybe String
     }
@@ -71,7 +71,7 @@ init =
       , query = ""
       , filterFailingAgents = False
       , filterOfflineAgents = False
-      , confirmationDropState = Modal.hiddenState
+      , confirmationState = Modal.hiddenState
       , agentToDrop = Nothing
       , offlineAgentToDrop = Nothing
       }
@@ -184,19 +184,19 @@ update msg model =
                     ( model, Cmd.none )
 
         OnClickDropAgent agentId ->
-            ( { model | confirmationDropState = Modal.visibleState, agentToDrop = Just agentId }, Cmd.none )
+            ( { model | confirmationState = Modal.visibleState, agentToDrop = Just agentId }, Cmd.none )
 
         OnClickDropOfflineAgent agentName ->
-            ( { model | confirmationDropState = Modal.visibleState, offlineAgentToDrop = Just agentName }, Cmd.none )
+            ( { model | confirmationState = Modal.visibleState, offlineAgentToDrop = Just agentName }, Cmd.none )
 
         NewmanModalMsg newState ->
-            ( { model | agentToDrop = Nothing, offlineAgentToDrop = Nothing, confirmationDropState = newState }, Cmd.none )
+            ( { model | agentToDrop = Nothing, offlineAgentToDrop = Nothing, confirmationState = newState }, Cmd.none )
 
         OnAgentDropConfirmed agentId ->
-            ( { model | confirmationDropState = Modal.hiddenState }, dropAgentCmd agentId )
+            ( { model | confirmationState = Modal.hiddenState }, dropAgentCmd agentId )
 
         OnOfflineAgentDropConfirmed agentName ->
-            ( { model | confirmationDropState = Modal.hiddenState }, dropOfflineAgentCmd agentName )
+            ( { model | confirmationState = Modal.hiddenState }, dropOfflineAgentCmd agentName )
 
         RequestCompletedDropAgent offlineOrOnline agentId result ->
             onRequestCompletedDropAgent offlineOrOnline agentId model result
@@ -374,15 +374,15 @@ view model =
         confirmAgentDropDialog =
             case model.agentToDrop of
                 Just agentId ->
-                    NewmanModal.confirmAgentDrop agentId NewmanModalMsg OnAgentDropConfirmed model.confirmationDropState
+                    NewmanModal.confirmAgentDrop agentId NewmanModalMsg OnAgentDropConfirmed model.confirmationState
 
                 Nothing ->
                     case model.offlineAgentToDrop of
                         Just agentName ->
-                            NewmanModal.confirmAgentDrop agentName NewmanModalMsg OnOfflineAgentDropConfirmed model.confirmationDropState
+                            NewmanModal.confirmAgentDrop agentName NewmanModalMsg OnOfflineAgentDropConfirmed model.confirmationState
 
                         Nothing ->
-                            NewmanModal.confirmAgentDrop "agentNotFound" NewmanModalMsg OnOfflineAgentDropConfirmed model.confirmationDropState
+                            NewmanModal.confirmAgentDrop "agentNotFound" NewmanModalMsg OnOfflineAgentDropConfirmed model.confirmationState
     in
     div [ class "container-fluid" ] <|
         [ h2 [ class "text" ] [ text <| "Agents (" ++ (toString <| Paginate.length model.agents) ++ ")" ]
