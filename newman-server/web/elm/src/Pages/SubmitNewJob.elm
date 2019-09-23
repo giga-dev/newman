@@ -429,7 +429,7 @@ legendPriority priority =
             "2- high"
 
         3 ->
-            "3- release (default)"
+            "3- release-default"
 
         4 ->
             "4- urgent"
