@@ -55,7 +55,7 @@ type alias Model =
     { allJobs : List Job
     , jobs : PaginatedList Job
     , pageSize : Int
-    , confirmationDropState : Modal.State
+    , confirmationState : Modal.State
     , jobToDrop : Maybe String
     , jobToChangePriority : Maybe Job
     , newPriority : Int
@@ -182,7 +182,7 @@ viewTable model currTime =
             , tbody [] (List.map (viewJob currTime) <| Paginate.page model.jobs)
             ]
         , pagination
-        , NewmanModal.confirmJobDrop model.jobToDrop NewmanModalMsg OnJobDropConfirmed model.confirmationDropState
+        , NewmanModal.confirmJobDrop model.jobToDrop NewmanModalMsg OnJobDropConfirmed model.confirmationState
         , viewModal model
         ]
 
@@ -403,13 +403,13 @@ update msg model =
             onRequestCompletedToggleJobs model result
 
         NewmanModalMsg newState ->
-            ( { model | jobToDrop = Nothing, confirmationDropState = newState }, Cmd.none )
+            ( { model | jobToDrop = Nothing, confirmationState = newState }, Cmd.none )
 
         OnClickJobDrop jobId ->
-            ( { model | confirmationDropState = Modal.visibleState, jobToDrop = Just jobId }, Cmd.none )
+            ( { model | confirmationState = Modal.visibleState, jobToDrop = Just jobId }, Cmd.none )
 
         OnJobDropConfirmed jobId ->
-            ( { model | confirmationDropState = Modal.hiddenState }, dropJobCmd jobId )
+            ( { model | confirmationState = Modal.hiddenState }, dropJobCmd jobId )
 
         RequestCompletedDropJob jobId result ->
             onRequestCompletedDropJob jobId model result

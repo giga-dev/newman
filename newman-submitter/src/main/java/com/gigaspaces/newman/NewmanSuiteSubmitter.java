@@ -50,7 +50,6 @@ public class NewmanSuiteSubmitter {
 //        submitter.manualSubmitTgridRocksDB();
 //        submitter.manualSubmitTgridMapdb();
 //        submitter.manualSubmitTgridOffHeap();
-         submitter.manualSubmitCustomJetty9();
     }
 
     public void submit() throws Exception {
@@ -110,7 +109,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("efiiiiiiii");
+            suite.setName("dev-meshi-jetty9");
             suite.setCustomVariables("SUITE_TYPE=sgtest,CUSTOM_SETUP_TIMEOUT=1800000,THREADS_LIMIT=1,JETTY_VERSION=9,WEBUI_CUSTOM_SYSTEM_PROPS=-Dselenium.browser=Firefox -Dcom.gs.test.use.newman=true");
             // TODO note - if set is empty, mongodb will NOT write that filed to DB
             String Requirements = "DOCKER,LINUX";

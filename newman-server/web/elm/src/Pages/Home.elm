@@ -32,7 +32,7 @@ type alias Model =
     , pendingBuilds : List Build
     , activeBuilds : List Build
     , activeJobs : ActiveJobsDashboard
-    , confirmationDropState : Modal.State
+    , confirmationState : Modal.State
     , futureJobToDrop : Maybe String
     }
 
@@ -44,7 +44,7 @@ init =
       , pendingBuilds = []
       , activeBuilds = []
       , activeJobs = Dict.empty
-      , confirmationDropState = Modal.hiddenState
+      , confirmationState = Modal.hiddenState
       , futureJobToDrop = Nothing
       }
     , getDashboardDataCmd
@@ -76,13 +76,13 @@ update msg model =
                     ( model, Cmd.none )
 
         NewmanModalMsg newState ->
-            ( { model | futureJobToDrop = Nothing, confirmationDropState = newState }, Cmd.none )
+            ( { model | futureJobToDrop = Nothing, confirmationState = newState }, Cmd.none )
 
         OnClickDropFutureJob id ->
-            ( { model | futureJobToDrop = Just id, confirmationDropState = Modal.visibleState }, Cmd.none )
+            ( { model | futureJobToDrop = Just id, confirmationState = Modal.visibleState }, Cmd.none )
 
         OnFutureJobDropConfirmed id ->
-            ( { model | confirmationDropState = Modal.hiddenState }, dropFutureJobCmd id )
+            ( { model | confirmationState = Modal.hiddenState }, dropFutureJobCmd id )
 
         RequestCompletedDropFutureJob id result ->
             onRequestCompletedDropFutureJob id model result
@@ -257,7 +257,7 @@ view model =
         , viewPendingBuilds model.pendingBuilds
         , viewHistory model.historyBuilds
         , viewFutureJobs model.futureJobs
-        , NewmanModal.confirmFutureJobDrop model.futureJobToDrop NewmanModalMsg OnFutureJobDropConfirmed model.confirmationDropState
+        , NewmanModal.confirmFutureJobDrop model.futureJobToDrop NewmanModalMsg OnFutureJobDropConfirmed model.confirmationState
         ]
 
 
