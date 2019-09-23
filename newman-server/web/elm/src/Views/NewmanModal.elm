@@ -74,7 +74,7 @@ confirmSuiteDrop maybeSuite toMsg confirmMsg modalState =
             Modal.config toMsg
                 |> Modal.large
                 |> Modal.h3 [] [ text "Confirmation is required" ]
-                |> Modal.body [] [ p [] [ text <| "Are you sure you want to delete suite " ++ suite.name ++ "?"  ] ]  {-Todo- question mark needed?-}
+                |> Modal.body [] [ p [] [ text <| "Are you sure you want to delete suite " ++ suite.name ++ "?"  ] ]
                 |> Modal.footer []
                     [ Button.button
                         [ Button.danger
