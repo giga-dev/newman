@@ -256,7 +256,7 @@ viewSuite suite =
         , td [] [ text suite.id ]
         , td [] [ text suite.customVariables ]
         , td []
-            [ Button.button [ Button.danger, Button.small, Button.disabled <| validSuite suite.name, Button.onClick <| OnClickDropSuite suite.id ]
+            [ Button.button [ Button.danger, Button.small, Button.disabled <| validSuite suite.name, Button.onClick <| OnClickDropSuite suite ]
                 [ span [ class "ion-close" ] [] ]
             ]
         ]
