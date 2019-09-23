@@ -175,7 +175,7 @@ viewTable model currTime =
                         , text "/ "
                         , Badge.badge [ class "job-tests-badge", title "All Tests" ] [ text "Total" ]
                         ]
-                    , th [ width 94 ]
+                    , th [ width 100 ]
                         [ text "Actions" ]
                     ]
                 ]
@@ -310,7 +310,7 @@ viewJob currTime job =
                 [ span [ class "ion-close" ] [] ]
             , text "  "
             , playPauseButton
-            , text "   "
+            , text "  "
             , changePriorityButton
             ]
         ]

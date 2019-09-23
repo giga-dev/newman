@@ -71,7 +71,7 @@ init =
       , selectedAgentGroups = Multiselect.initModel [] ""
       , agentGroups = []
       , priorities = [ 0, 1, 2, 3, 4 ]
-      , selectedPriority = 0
+      , selectedPriority = 1
       , submittedFutureJobs = []
       , isSelect = True
       , modalState = Modal.hiddenState
@@ -423,7 +423,7 @@ legendPriority : Int -> String
 legendPriority priority =
     case priority of
         1 ->
-            "1- medium"
+            "1- low"
 
         2 ->
             "2- high"
@@ -435,7 +435,7 @@ legendPriority priority =
             "4- urgent"
 
         _ ->
-            "0- low (default)"
+            "0- daily-default"
 
 
 handleEvent : WebSocket.Event -> Cmd Msg
