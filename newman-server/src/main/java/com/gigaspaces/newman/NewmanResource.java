@@ -2527,7 +2527,6 @@ public class NewmanResource {
         }
         else{
             logger.info("The suite {} isn't exist", suite);
-
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -2571,11 +2570,10 @@ public class NewmanResource {
     public Response addSuite(final @PathParam("sourceSuiteId") String sourceSuiteId, final @PathParam("name") String name) {  //Todo- who used it before? there's no reference in newman client, maybe old newman
         Suite sourceSuite = getSuite(sourceSuiteId);
 
-/*        if (sourceSuite == null){
+        if (sourceSuite == null){
             logger.info("The suite {} isn't exist", sourceSuiteId);
-            //Response.status(Response.Status.NOT_FOUND).build();
-            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();  //Todo- usually what if it's not exists?
-        }*/
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
 
         Suite existingSuite = suiteDAO.findOne(suiteDAO.createQuery().field("name").equal(name));
         if (existingSuite != null) {
@@ -2594,7 +2592,6 @@ public class NewmanResource {
 
         suiteDAO.save(duplicatedSuite);
         logger.info("---addSuite---" + duplicatedSuite);
-
         broadcastMessage(CREATED_SUITE, duplicatedSuite);
         return Response.ok(duplicatedSuite).build();
     }
