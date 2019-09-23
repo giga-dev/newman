@@ -125,7 +125,7 @@ confirmAgentDrop maybeAgent toMsg confirmMsg modalState =
                 |> Modal.view modalState
 
 
-viewError : String -> (State -> toMsg) -> State -> Html toMsg   {-Todo- not working at create suite fron failing tests-}
+viewError : String -> (State -> toMsg) -> State -> Html toMsg
 viewError txt toMsg modalState =
     Modal.config toMsg
         |> Modal.small
@@ -188,7 +188,7 @@ createSuiteForFailedTestsModal maybeSuiteName maybeMessage toMsg onInput onConfi
                 |> Modal.view modalState
 
         Nothing ->
-            viewError "Suite name was not passed" toMsg modalState
+            viewError "Suite name was not passed" toMsg modalState   {-Todo- not working at create suite from failing tests-}
 
 
 
@@ -237,7 +237,8 @@ cloneSuiteModal maybeSuite maybeName maybeMessage toMsg onInput confirmMsg modal
                         [ text "Create" ]
                     , Button.button
                         [ Button.outlinePrimary
-                        , Button.onClick <| toMsg modalState
+                        , Button.disabled createButtonDisabled
+                        , Button.onClick <| toMsg Modal.hiddenState
                         ]
                         [ text "Close" ]
                     ]

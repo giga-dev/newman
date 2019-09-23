@@ -2566,22 +2566,23 @@ public class NewmanResource {
     @POST
     @Path("suite/{sourceSuiteId}/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Suite addSuite(final @PathParam("sourceSuiteId") String sourceSuiteId, final @PathParam("name") String name) {  //Todo- who used it before? there's no reference in newman client, maybe old newman
-      Suite sourceSuite = getSuite(sourceSuiteId);
+    public Response addSuite(final @PathParam("sourceSuiteId") String sourceSuiteId, final @PathParam("name") String name) {  //Todo- who used it before? there's no reference in newman client, maybe old newman
+        Suite sourceSuite = getSuite(sourceSuiteId);
 
-        if (sourceSuite == null){
+/*        if (sourceSuite == null){
             logger.info("The suite {} isn't exist", sourceSuiteId);
             //Response.status(Response.Status.NOT_FOUND).build();
-            return null;
-        }
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();  //Todo- usually what if it's not exists?
+        }*/
 
         Suite existingSuite = suiteDAO.findOne(suiteDAO.createQuery().field("name").equal(name));
         if (existingSuite != null) {
             try {
-                throw new Exception("Suite ["+name+"] already exists");
+                throw new Exception("Suite [" + name + "] already exists");  //Todo- try pass exception?
             } catch (Exception e) {
-                logger.warn("exception has happen: " + e);
-                //Response.status(Response.Status.FORBIDDEN).build();
+                logger.info("Failed to create suite ", e);
+
+                return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
             }
         }
 
@@ -2591,8 +2592,9 @@ public class NewmanResource {
 
         suiteDAO.save(duplicatedSuite);
         logger.info("---addSuite---" + duplicatedSuite);
+
         broadcastMessage(CREATED_SUITE, duplicatedSuite);
-        return duplicatedSuite;
+        return Response.ok(duplicatedSuite).build();
     }
 
     @POST
@@ -2602,7 +2604,7 @@ public class NewmanResource {
     public Suite addSuite(Suite suite) {
         suiteDAO.save(suite);
         logger.info("---addSuite---" + suite);
-        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(suite)); //Todo- broadcast don't work
+        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(suite)); //Todo- broadcast doesn't work
         return suite;
     }
 

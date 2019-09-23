@@ -203,7 +203,7 @@ updateAll f model =
 
 updateSuiteAdded : Model -> Suite -> Model
 updateSuiteAdded model addedSuite =
-    updateAll (\list -> addedSuite :: list) model
+    updateAll (\list -> List.sortBy .name (addedSuite :: list)) model
 
 
 updateSuiteRemoved : Model -> Suite -> Model
