@@ -42,7 +42,7 @@ type Msg
     | CloseCloneSuiteModal Modal.State
     | OnSuiteDropConfirmed String
     | RequestCompletedDropSuite (Result Http.Error String)
-    | CloneSuiteResponse (Result Http.Error Suite)
+    | RequestCompletedCloneSuite (Result Http.Error Suite)
     | OnClickCloneSuite Suite
     | OnSuiteCloneConfirmed Suite String
     | OnCloneSuiteNameChanged String
@@ -149,17 +149,12 @@ update msg model =
              else
                    ( { model | duplicateSuiteMessage = Just <| Ok "Suite name does not start with 'dev-'" }, Cmd.none )
 
-        CloneSuiteResponse result -> {-Todo - be consistent with names-}
+        RequestCompletedCloneSuite result ->
             case result of
                 Ok suite ->
-                    ( { model | duplicateSuiteMessage = Just <| Ok ("Suite with Id [" ++ suite.id ++ "] has been created") }, Cmd.none )
+                    ( {model | duplicateSuiteMessage = Just <| Ok ("Suite with Id [" ++ suite.id ++ "] has been created") }, Cmd.none )
 
                 Err err ->
- {-                   let
-                        e =
-                            Debug.log "ERROR:onCloneSuiteResponse" err
-                    in
-                    ( model, Cmd.none ) -}
                     let
                         errMsg =
                             case err of
@@ -365,7 +360,7 @@ dropSuiteCmd suiteId =
 
 cloneSuiteCmd : Suite -> String -> Cmd Msg
 cloneSuiteCmd sourceSuite newSuiteName  =
-    Http.send CloneSuiteResponse <| Http.post ("/api/newman/suite/" ++ sourceSuite.id  ++ "/" ++ newSuiteName) Http.emptyBody decodeSuite
+    Http.send RequestCompletedCloneSuite <| Http.post ("/api/newman/suite/" ++ sourceSuite.id  ++ "/" ++ newSuiteName) Http.emptyBody decodeSuite
 
 
 

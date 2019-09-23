@@ -2520,13 +2520,15 @@ public class NewmanResource {
     @DELETE
     @Path("suite/{suiteId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteSuite (final @PathParam("suiteId") String suite){//Todo- delete only custom suite also in sever?
+    public Response deleteSuite(final @PathParam("suiteId") String suite){
         Suite suiteToDelete = suiteDAO.getDatastore().findAndDelete(suiteDAO.createIdQuery(suite));
         if (suiteToDelete != null){
             broadcastMessage(DELETED_SUITE, suiteToDelete);
         }
         else{
-            logger.info("The suite {} isn't exist", suite);  //Todo - needed? other delete places don't have
+            logger.info("The suite {} isn't exist", suite);
+
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         return Response.ok(Entity.json(suiteToDelete)).build();
@@ -2604,7 +2606,7 @@ public class NewmanResource {
     public Suite addSuite(Suite suite) {
         suiteDAO.save(suite);
         logger.info("---addSuite---" + suite);
-        broadcastMessage(CREATED_SUITE, new SuiteWithJobs(suite)); //Todo- broadcast doesn't work
+        broadcastMessage(CREATED_SUITE, suite);
         return suite;
     }
 

@@ -188,7 +188,7 @@ createSuiteForFailedTestsModal maybeSuiteName maybeMessage toMsg onInput onConfi
                 |> Modal.view modalState
 
         Nothing ->
-            viewError "Suite name was not passed" toMsg modalState   {-Todo- not working at create suite from failing tests-}
+            viewError "Suite name was not passed" toMsg modalState
 
 
 
@@ -224,7 +224,7 @@ cloneSuiteModal maybeSuite maybeName maybeMessage toMsg onInput confirmMsg modal
                 |> Modal.body []
                     [ Form.group []
                         [ Form.label [ for "suiteName" ] [ text "Duplicated Suite Name:" ]
-                        , FormInput.text [ FormInput.onInput onInput, FormInput.id "suiteName" , FormInput.defaultValue suiteName , FormInput.disabled createButtonDisabled ] {- Todo- why the disable??-}
+                        , FormInput.text [ FormInput.onInput onInput, FormInput.id "suiteName" , FormInput.defaultValue suiteName , FormInput.disabled createButtonDisabled ] {- Todo- why the disable??- usually not "," between, line doesn't clesr -}
                         , Form.help [] [ text "Make sure it starts with 'dev-' prefix." ]
                         ]
                     ]
