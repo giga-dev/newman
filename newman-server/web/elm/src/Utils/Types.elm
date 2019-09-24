@@ -759,11 +759,8 @@ agentGroupTestFormat agentGroup assignedAgent =
 legendPriority : Int -> String
 legendPriority priority =
     case priority of
-        0 ->
-            "0 - daily-default"
-
         1 ->
-            "1 - low"
+            "1- low"
 
         2 ->
             "2- high"
@@ -773,3 +770,6 @@ legendPriority priority =
 
         4 ->
             "4- urgent"
+
+        _ ->
+            "0- daily-default"

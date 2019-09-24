@@ -46,7 +46,6 @@ type Msg
     | OnClickCloneSuite Suite
     | OnSuiteCloneConfirmed Suite String
     | OnCloneSuiteNameChanged String
-    | ExampleMsg Suite
 
 
 init : ( Model, Cmd Msg )
@@ -114,7 +113,6 @@ update msg model =
 
         CloseCloneSuiteModal modalState ->
            ( { model | suiteToClone = Nothing, confirmationCloneState = modalState, cloneSuiteName = Nothing, duplicateSuiteMessage = Nothing }, Cmd.none )
-           {-(updateSuiteAdded model Just model.suiteToClone, Cmd.none)-}
 
         OnClickDropSuite suite ->
             ( { model | confirmationDropState = Modal.visibleState, suiteToDrop = Just suite }, Cmd.none )
@@ -134,8 +132,8 @@ update msg model =
 
         RequestCompletedDropSuite result ->
             case result of
-                Ok suiteId ->
-                    ( model, Cmd.none )
+                Ok suite ->
+                    ( updateSuiteAdded model suite , Cmd.none )
 
                 Err err ->
                     let
@@ -154,7 +152,11 @@ update msg model =
         RequestCompletedCloneSuite result ->
             case result of
                 Ok suite ->
-                    ( {model | duplicateSuiteMessage = Just <| Ok ("Suite with Id [" ++ suite.id ++ "] has been created")} , Cmd.none )
+                    let
+                        newModel =
+                            updateSuiteAdded model suite
+                    in
+                    ( {newModel | duplicateSuiteMessage = Just <| Ok ("Suite with Id [" ++ suite.id ++ "] has been created")} , Cmd.none )
 
                 Err err ->
                     let
@@ -168,13 +170,10 @@ update msg model =
                     in
                     ( { model | duplicateSuiteMessage = Just <| Ok errMsg }, Cmd.none )
 
-        ExampleMsg suite ->
-            (updateSuiteAdded model suite, Cmd.none)
-
         WebSocketEvent event ->
             case event of
                 CreatedSuite suite ->
-                    ( {-updateSuiteAdded model suite-} model, Cmd.none )
+                    ( updateSuiteAdded model suite , Cmd.none )
 
                 ModifiedSuite suite ->
                     ( updateSuiteUpdated model suite, Cmd.none )
@@ -185,9 +184,6 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-examplecmd : Suite -> Msg
-examplecmd  suite =
-    ExampleMsg suite
 
 updateAll : (List Suite -> List Suite) -> Model -> Model
 updateAll f model =

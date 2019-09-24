@@ -5,6 +5,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Dropdown as Dropdown
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
+import Bootstrap.Form.Select as Select
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Modal as Modal exposing (..)
@@ -21,7 +22,7 @@ import List.Extra as ListExtra
 import Paginate exposing (PaginatedList)
 import Time exposing (Time)
 import Utils.Common as Common
-import Utils.Types exposing (..)
+import Utils.Types as Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
 
@@ -338,6 +339,9 @@ viewModal model =
                             [ Col.sm7 ]
                             [ text right ]
                         ]
+
+        {-        toPriorityOption data =
+                    Select.item [ HtmlAttr.value <| toString data, selected <| model.newPriority == data ] [ text <| Types.legendPriority data ]-}
             in
             Modal.config AnimateModal
                 |> Modal.large
@@ -352,8 +356,13 @@ viewModal model =
                                 [ text "New Priority" ]
                             , Grid.col
                                 [ Col.sm7 ]
-                                [ input [ onInput NewJobPriorityMsg, HtmlAttr.type_ "number", HtmlAttr.max <| toString 4, HtmlAttr.min <| toString 0, HtmlAttr.value <| toString model.newPriority ] [] ]
+                               {- [ input [ onInput NewJobPriorityMsg, HtmlAttr.type_ "string", HtmlAttr.max <| legendPriority 4, HtmlAttr.min <| legendPriority 0, HtmlAttr.value <| legendPriority model.newPriority ] [] ]-}
+                                {-[ Select.select [ Select.onChange NewJobPriorityMsg, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
+                                 (List.map toPriorityOption model.priorities)
+                                ]-}
+                                 [ input [ onInput NewJobPriorityMsg, HtmlAttr.type_ "number", HtmlAttr.max <| toString 4, HtmlAttr.min <| toString 0, HtmlAttr.value <|  toString model.newPriority ] [] ]
                             ]
+
                         ]
                     ]
                 |> Modal.footer []
