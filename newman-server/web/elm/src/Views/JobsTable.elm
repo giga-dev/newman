@@ -3,6 +3,7 @@ module Views.JobsTable exposing (..)
 import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Button as Button
 import Bootstrap.Dropdown as Dropdown
+import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
@@ -23,6 +24,7 @@ import Utils.Common as Common
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
+
 
 
 type Msg

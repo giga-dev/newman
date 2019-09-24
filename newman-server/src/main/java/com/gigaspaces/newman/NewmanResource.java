@@ -2581,7 +2581,6 @@ public class NewmanResource {
                 throw new Exception("Suite [" + name + "] already exists");  //Todo- try pass exception?
             } catch (Exception e) {
                 logger.info("Failed to create suite ", e);
-
                 return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
             }
         }

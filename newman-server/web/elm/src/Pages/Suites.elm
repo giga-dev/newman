@@ -41,11 +41,12 @@ type Msg
     | CloseDropSuiteModal Modal.State
     | CloseCloneSuiteModal Modal.State
     | OnSuiteDropConfirmed String
-    | RequestCompletedDropSuite (Result Http.Error String)
+    | RequestCompletedDropSuite (Result Http.Error Suite)
     | RequestCompletedCloneSuite (Result Http.Error Suite)
     | OnClickCloneSuite Suite
     | OnSuiteCloneConfirmed Suite String
     | OnCloneSuiteNameChanged String
+    | ExampleMsg Suite
 
 
 init : ( Model, Cmd Msg )
@@ -112,7 +113,8 @@ update msg model =
             ( { model | suiteToDrop = Nothing, confirmationDropState = newState }, Cmd.none )
 
         CloseCloneSuiteModal modalState ->
-            ( { model | suiteToClone = Nothing, confirmationCloneState = modalState, cloneSuiteName = Nothing, duplicateSuiteMessage = Nothing }, Cmd.none )
+           ( { model | suiteToClone = Nothing, confirmationCloneState = modalState, cloneSuiteName = Nothing, duplicateSuiteMessage = Nothing }, Cmd.none )
+           {-(updateSuiteAdded model Just model.suiteToClone, Cmd.none)-}
 
         OnClickDropSuite suite ->
             ( { model | confirmationDropState = Modal.visibleState, suiteToDrop = Just suite }, Cmd.none )
@@ -144,7 +146,7 @@ update msg model =
 
         OnSuiteCloneConfirmed suite newSuiteName ->
              if String.startsWith "dev-" newSuiteName then
-                   ( { model | duplicateSuiteMessage = Just <| Err "Sending request..." }, cloneSuiteCmd suite newSuiteName ) {-Todo -why this is error?-}
+                   ( { model | duplicateSuiteMessage = Just <| Err "Sending request..." }, cloneSuiteCmd suite newSuiteName ) {-Todo -why this is error?-  guess for close modal-}
 
              else
                    ( { model | duplicateSuiteMessage = Just <| Ok "Suite name does not start with 'dev-'" }, Cmd.none )
@@ -152,7 +154,7 @@ update msg model =
         RequestCompletedCloneSuite result ->
             case result of
                 Ok suite ->
-                    ( {model | duplicateSuiteMessage = Just <| Ok ("Suite with Id [" ++ suite.id ++ "] has been created") }, Cmd.none )
+                    ( {model | duplicateSuiteMessage = Just <| Ok ("Suite with Id [" ++ suite.id ++ "] has been created")} , Cmd.none )
 
                 Err err ->
                     let
@@ -165,10 +167,14 @@ update msg model =
                                     toString err
                     in
                     ( { model | duplicateSuiteMessage = Just <| Ok errMsg }, Cmd.none )
+
+        ExampleMsg suite ->
+            (updateSuiteAdded model suite, Cmd.none)
+
         WebSocketEvent event ->
             case event of
                 CreatedSuite suite ->
-                    ( updateSuiteAdded model suite, Cmd.none )
+                    ( {-updateSuiteAdded model suite-} model, Cmd.none )
 
                 ModifiedSuite suite ->
                     ( updateSuiteUpdated model suite, Cmd.none )
@@ -179,7 +185,9 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-
+examplecmd : Suite -> Msg
+examplecmd  suite =
+    ExampleMsg suite
 
 updateAll : (List Suite -> List Suite) -> Model -> Model
 updateAll f model =
@@ -352,7 +360,7 @@ dropSuiteCmd suiteId =
             , headers = []
             , url = "/api/newman/suite/" ++ suiteId
             , body = Http.emptyBody
-            , expect = Http.expectString
+            , expect = Http.expectJson decodeSuite  {-Todo- strange worked also with expect string? -}
             , timeout = Nothing
             , withCredentials = False
             }
@@ -361,6 +369,22 @@ dropSuiteCmd suiteId =
 cloneSuiteCmd : Suite -> String -> Cmd Msg
 cloneSuiteCmd sourceSuite newSuiteName  =
     Http.send RequestCompletedCloneSuite <| Http.post ("/api/newman/suite/" ++ sourceSuite.id  ++ "/" ++ newSuiteName) Http.emptyBody decodeSuite
+
+{-
+onRequestCompletedDeleteSuite : Model ->  ( Model, Cmd Msg )
+onRequestCompletedDeleteSuite model result =
+    case result of
+        Ok suite ->
+            ( updateSuiteAdded model suite, Cmd.none )
+
+        Err err ->
+            let
+                e =
+                    Debug.log "ERROR:onRequestCompletedDeleteSuite" err
+            in
+            ( model, Cmd.none )
+-}
+
 
 
 

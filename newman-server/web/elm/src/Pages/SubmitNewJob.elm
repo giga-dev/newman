@@ -71,7 +71,7 @@ init =
       , selectedAgentGroups = Multiselect.initModel [] ""
       , agentGroups = []
       , priorities = [ 0, 1, 2, 3, 4 ]
-      , selectedPriority = 0
+      , selectedPriority = 1
       , submittedFutureJobs = []
       , isSelect = True
       , modalState = Modal.hiddenState
@@ -309,7 +309,7 @@ view model =
         , br [] []
         , let
             toPriorityOption data =
-                Select.item [ value <| toString data, selected <| model.selectedPriority == data ] [ text <| legendPriority data ]
+                Select.item [ value <| toString data, selected <| model.selectedPriority == data ] [ text <| Types.legendPriority data ]
           in
           div
             []
@@ -417,26 +417,6 @@ subscriptions model =
         [ Sub.map MultiSelectMsg <| Multiselect.subscriptions model.selectedSuites
         , Sub.map MultiSelectAgentGroupsMsg <| Multiselect.subscriptions model.selectedAgentGroups
         ]
-
-
-legendPriority : Int -> String
-legendPriority priority =
-    case priority of
-        1 ->
-            "1- medium"
-
-        2 ->
-            "2- high"
-
-        3 ->
-            "3- release (default)"
-
-        4 ->
-            "4- urgent"
-
-        _ ->
-            "0- low (default)"
-
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
