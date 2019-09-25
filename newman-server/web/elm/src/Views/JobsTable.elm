@@ -3,7 +3,6 @@ module Views.JobsTable exposing (..)
 import Bootstrap.Badge as Badge exposing (..)
 import Bootstrap.Button as Button
 import Bootstrap.Dropdown as Dropdown
-import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
 import Bootstrap.Form.Select as Select
 import Bootstrap.Grid as Grid
@@ -66,6 +65,7 @@ type alias Model =
     , actionState : Dropdown.State
     , modalState : Modal.State
     , newPriorityMessage : String
+    , priorities : List Int
     }
 
 
@@ -75,7 +75,7 @@ init jobs =
         pageSize =
             15
     in
-    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing Nothing 0 "" Dropdown.initialState Modal.hiddenState ""
+    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing Nothing 0 "" Dropdown.initialState Modal.hiddenState "" [0, 1, 2, 3, 4]
 
 
 viewTable : Model -> Maybe Time -> Html Msg
@@ -339,9 +339,11 @@ viewModal model =
                             [ Col.sm7 ]
                             [ text right ]
                         ]
+                currentPriority =
+                    Maybe.withDefault 0 job.priority
 
-        {-        toPriorityOption data =
-                    Select.item [ HtmlAttr.value <| toString data, selected <| model.newPriority == data ] [ text <| Types.legendPriority data ]-}
+                toPriorityOption data =
+                    Select.item [ HtmlAttr.value <| toString data, selected <| currentPriority == data ] [ text <| Types.legendPriority data ]
             in
             Modal.config AnimateModal
                 |> Modal.large
@@ -356,13 +358,11 @@ viewModal model =
                                 [ text "New Priority" ]
                             , Grid.col
                                 [ Col.sm7 ]
-                               {- [ input [ onInput NewJobPriorityMsg, HtmlAttr.type_ "string", HtmlAttr.max <| legendPriority 4, HtmlAttr.min <| legendPriority 0, HtmlAttr.value <| legendPriority model.newPriority ] [] ]-}
-                                {-[ Select.select [ Select.onChange NewJobPriorityMsg, Select.attrs [ style [ ( "width", "500px" ) ] ] ]
-                                 (List.map toPriorityOption model.priorities)
-                                ]-}
-                                 [ input [ onInput NewJobPriorityMsg, HtmlAttr.type_ "number", HtmlAttr.max <| toString 4, HtmlAttr.min <| toString 0, HtmlAttr.value <|  toString model.newPriority ] [] ]
+                                    [ Select.select
+                                         [ Select.onChange NewJobPriorityMsg, Select.attrs [ style [ ( "width", "200px" ) ] ] ]
+                                          (List.map toPriorityOption model.priorities)
+                                    ]
                             ]
-
                         ]
                     ]
                 |> Modal.footer []
