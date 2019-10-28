@@ -81,7 +81,7 @@ public class NewmanSubmitter {
         String requiredAgentGroups = properties.get("main").fetch("AGENT_GROUPS_DEFAULT");
         Set<String> agentGroups = parse(requiredAgentGroups);
         String dailyPriorityDefault = properties.get("main").fetch("DAILY_JOB_PRIORITY_DEFAULT");
-        String nightlyPriorityDefault = properties.get("main").fetch("NIGHTLY_JOB_PRIORITY_DEFAULT ");
+        String nightlyPriorityDefault = properties.get("main").fetch("NIGHTLY_JOB_PRIORITY_DEFAULT");
         int dailyPriority = Integer.parseInt(dailyPriorityDefault);
         int nightlyPriority = Integer.parseInt(nightlyPriorityDefault);
 
