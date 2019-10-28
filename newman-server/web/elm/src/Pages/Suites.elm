@@ -296,7 +296,7 @@ view model =
                         [ th [] [ text "Name" ]
                         , th [] [ text "Id" ]
                         , th [] [ text "Custom" ]
-                        , th [ width 70 ] [ text "Actions" ]
+                        , th [ width 80 ] [ text "Actions" ]
                         ]
                     ]
                 , tbody [] (List.map viewSuite (Paginate.page model.suites))
