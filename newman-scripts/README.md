@@ -16,7 +16,7 @@ similarly:
 * _update_etc_hosts.sh_: copies newman-scripts/new_host/etc_hosts/hosts to the /etc/hosts file in the agent machine
 * _update_static_ip.sh_: changes hosts static ip according to the mapping in newman-scripts/new_host/static_ip/newman-hosts-mapping
 * _update_host_name.sh_: changes hosts host-name according to the mapping in newman-scripts/new_host/update_hostname/newman-hosts-mapping
-* _install_java.sh_: installs java to specified path (experimental)
+* _install_java.sh_: installs java to specified kpath (experimental)
 
 ## Update Agents
 
@@ -36,3 +36,12 @@ both scripts call killall -9 java after the update to trigger restart nby superv
  * _clearDockerImages.sh_: deletes the docker images cached in the agents to free space
  * _killJavaAndSupervisor_: run kill -9 java and kill supervisor on all hosts
  * _run_command.sh_: takes the command you wish to run as an argument and runs it on all hosts
+ 
+### Examples
+ ##### Newman Agents restarting
+ ###### For restarting all newman agents following actions should be done:
+    1. Create newman-hosts file, copy there content of both files: newman-hosts.imc-srv01 and newman-hosts.imc-srv02
+    2. Go to Newman web, select Manage Newman, press on "Suspend"
+    3. Run follwoing script with command as a parameter: ./run_command.sh "killall java"  
+    4. Wait untill all agents appear in Newman web 
+    5. Go to Newman web, select Manage Newman, press on "Unuspend"
