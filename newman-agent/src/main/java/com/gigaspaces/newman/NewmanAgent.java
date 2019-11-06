@@ -231,7 +231,9 @@ public class NewmanAgent {
                 agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 c.setSetupRetries(agent, 0).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             } catch (Exception e) {
-                logger.warn("Failed to find agent: " + name + ", retrying in " + config.getJobPollInterval() + "milliseconds");
+                logger.warn("Failed to find agent: " + name + ", retrying in " + config.getJobPollInterval() + "milliseconds", e);
+                jobExecutor.teardown();
+                keepAliveTask.cancel();
                 try {
                     Thread.sleep(config.getJobPollInterval());
                 } catch (InterruptedException ignored) {
