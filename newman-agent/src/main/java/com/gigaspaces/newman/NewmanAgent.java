@@ -32,11 +32,11 @@ public class NewmanAgent {
     private static final int DEFAULT_TIMEOUT_SECONDS = 60;
     private static final int MILLISECONDS_IN_SECOND = 1000;
     private volatile boolean workerShouldStop = false;
-    private volatile long lastPriorityCheckedTime ;
+    private volatile long lastPriorityCheckedTime;
 
     public static void main(String[] args) throws Exception {
         NewmanAgent agent = new NewmanAgent();
-        if (args.length > 0 && args[0].trim().equalsIgnoreCase("setup")){
+        if (args.length > 0 && args[0].trim().equalsIgnoreCase("setup")) {
             createJobSetupEnv(args, agent);
         }
         agent.initialize(true);
@@ -57,12 +57,11 @@ public class NewmanAgent {
             logger.error("invalid num of args");
             logger.error("Usage: java -jar newman-agent-1.0.jar <setup> <suiteId> <buildId> <CONFIG_ID> ... [list-of-regular-system-properties]");
             System.exit(1);
-        }
-        else {
+        } else {
             String suiteId = args[1];
             String buildId = args[2];
             String configId = args[3];
-            agent.prepareJobSetupEnv(suiteId, buildId,configId);
+            agent.prepareJobSetupEnv(suiteId, buildId, configId);
             System.exit(0);
         }
     }
@@ -88,10 +87,11 @@ public class NewmanAgent {
                 break;
             } catch (Exception e) {
                 final int timeToWait = 20 * 1000;
-                logger.warn("Failed to initialize newman agent in ["+config.getHostName()+"] retrying in "+timeToWait/1000+" seconds", e);
+                logger.warn("Failed to initialize newman agent in [" + config.getHostName() + "] retrying in " + timeToWait / 1000 + " seconds", e);
                 try {
                     Thread.sleep(timeToWait);
-                } catch (InterruptedException ignored) {}
+                } catch (InterruptedException ignored) {
+                }
             }
         }
         setFinalAgentName();
@@ -100,7 +100,7 @@ public class NewmanAgent {
         }
     }
 
-    private void prepareJobSetupEnv(String suiteId, String buildId,String configId) throws ExecutionException, InterruptedException, IOException, TimeoutException {
+    private void prepareJobSetupEnv(String suiteId, String buildId, String configId) throws ExecutionException, InterruptedException, IOException, TimeoutException {
         Suite suite = client.getSuite(suiteId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (suite == null) {
             throw new RuntimeException("no suite with id " + suiteId);
@@ -164,55 +164,69 @@ public class NewmanAgent {
     }
 
     private void start() {
-        NewmanClient c = getClient();
         KeepAliveTask keepAliveTask = null;
         Job prevJob = null;
         JobExecutor jobExecutor = null;
 
         while (isActive()) {
-            boolean toStopafterOneIterate = false;
+            boolean stopAfterOneIteration = false;
             Agent agent;
 
-            if(prevJob != null){
-                toStopafterOneIterate = true;
+            if (prevJob != null) {
+                stopAfterOneIteration = true;
             }
 
-            final Job job = waitForJob(toStopafterOneIterate);
+            final Job job = waitForJob(stopAfterOneIteration);
+            NewmanClient c = getClient();
 
-            if(job == null){
-                keepAliveTask.cancel();
-                jobExecutor.teardown();
-                prevJob = null;
-                continue;
-            }
-
-            if (prevJob != null && job.getId().equals(prevJob.getId())) {
-                logger.info("Job {}: The same job was found, no need to setup job again", job.getId());
-                prevJob = null;
-
-            } else {
+            if (job == null) {
                 if (prevJob != null) {
+                    logger.info("Didn't find a new job, finishing the previous job...");
                     try {
-                        prevJob = c.agentFinishJob(prevJob.getId()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                        c.agentFinishJob(prevJob.getId()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                     } catch (Exception e) {
                         logger.warn("Failed to change the state of job {}: {} : ", prevJob, e);
                     }
-                    keepAliveTask.cancel();
                     jobExecutor.teardown();
+                    keepAliveTask.cancel();
+                    prevJob = null;
                 }
+                continue;
+            }
 
-                // ping server during job setup and execution
-                keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
-                jobExecutor = new JobExecutor(job, config.getNewmanHome());
+            boolean doJobSetup = true;
+            if (prevJob != null) {
+                if (job.getId().equals(prevJob.getId())) {
+                    logger.info("Job {}: The same job was found, no need to setup job again", job.getId());
+                    doJobSetup = false;
+                } else {
+                    logger.info("Job {}: Got different job than previous one, tearing down and triggering new job setup", job.getId());
+                    try {
+                        c.agentFinishJob(prevJob.getId()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    } catch (Exception e) {
+                        logger.error("Failed to change the state of job {}: {} : ", prevJob, e);
+                    }
+                    jobExecutor.teardown();
+                    keepAliveTask.cancel();
+                }
+                prevJob = null;
+            }
+
+            // ping server during job setup and execution
+            keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
+            jobExecutor = new JobExecutor(job, config.getNewmanHome());
+
+            if (doJobSetup) {
                 boolean setupFinished = jobExecutor.setup();
                 reportJobSetup(job.getId(), name, jobExecutor.getJobFolder());
 
                 if (!setupFinished) {
                     logger.error("Setup of job {} failed, will wait for a new job", job.getId());
                     jobExecutor.teardown();
+                    keepAliveTask.cancel();
                     //inform the server that agent is not working on this job
                     try {
-                        agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS , TimeUnit.SECONDS);
+                        agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                         c.unsubscribe(agent).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                         c.setSetupRetries(agent, agent.getSetupRetries() + 1).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                     } catch (IllegalStateException e) {
@@ -227,6 +241,7 @@ public class NewmanAgent {
                     continue;
                 }
             }
+
             try {
                 agent = c.getAgent(name).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 c.setSetupRetries(agent, 0).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -251,32 +266,31 @@ public class NewmanAgent {
             for (int i = 0; i < calculateNumberOfWorkers(job); i++) {
                 final int id = i;
 
-                Future<?> worker = workers.submit(()-> {
-                        logger.info("Starting worker #{} for job {}", id, currJobExecutor.getJob().getId());
-                        Test test;
-                        while(!workerShouldStop){
-                            long timeNow = System.currentTimeMillis();
-                            if((timeNow - lastPriorityCheckedTime) > (MILLISECONDS_IN_SECOND * 60)){
-                               workerShouldStop = hasPrioritizedJob(currentAgent.getId(), job.getId());
-                                lastPriorityCheckedTime = System.currentTimeMillis();
-                                if(workerShouldStop){
-                                    break;
-                                }
-                            }
-
-                            if((test = findTest(currJobExecutor.getJob())) != null){
-                                Test testResult = currJobExecutor.run(test);
-                                if (testResult.getStatus().equals(Test.Status.FAIL)) {
-                                    resubmitFailed(job.getId(), testResult);
-                                }
-                                reportTest(testResult);
-                            }
-                            else{
-                              break;
+                Future<?> worker = workers.submit(() -> {
+                    logger.info("Starting worker #{} for job {}", id, currJobExecutor.getJob().getId());
+                    Test test;
+                    while (!workerShouldStop) {
+                        long timeNow = System.currentTimeMillis();
+                        if ((timeNow - lastPriorityCheckedTime) > (MILLISECONDS_IN_SECOND * 60)) {
+                            workerShouldStop = hasPrioritizedJob(currentAgent.getId(), job.getId());
+                            lastPriorityCheckedTime = System.currentTimeMillis();
+                            if (workerShouldStop) {
+                                break;
                             }
                         }
-                        logger.info("Finished Worker #{} for job {}", id, currJobExecutor.getJob().getId());
-                    });
+
+                        if ((test = findTest(currJobExecutor.getJob())) != null) {
+                            Test testResult = currJobExecutor.run(test);
+                            if (testResult.getStatus().equals(Test.Status.FAIL)) {
+                                resubmitFailed(job.getId(), testResult);
+                            }
+                            reportTest(testResult);
+                        } else {
+                            break;
+                        }
+                    }
+                    logger.info("Finished Worker #{} for job {}", id, currJobExecutor.getJob().getId());
+                });
                 workersTasks.add(worker);
             }
 
@@ -301,9 +315,9 @@ public class NewmanAgent {
     }
 
 
-    private boolean hasPrioritizedJob(final String agentId, final String jobId){
+    private boolean hasPrioritizedJob(final String agentId, final String jobId) {
         try {
-            if(client.hasHigherPriorityJob(agentId, jobId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)){
+            if (client.hasHigherPriorityJob(agentId, jobId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                 return true;
             }
         } catch (Exception e) {
@@ -313,7 +327,7 @@ public class NewmanAgent {
         return false;
     }
 
-    private void resubmitFailed(String jobId, Test failedTest){
+    private void resubmitFailed(String jobId, Test failedTest) {
         Job job = null;
         try {
             job = client.getJob(jobId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -324,21 +338,21 @@ public class NewmanAgent {
         } catch (TimeoutException e) {
             e.printStackTrace();
         }
-        if(job == null){
+        if (job == null) {
             return;
         }
-        if(failedTest.getRunNumber() > 2 || job.getFailedTests() > 100){
+        if (failedTest.getRunNumber() > 2 || job.getFailedTests() > 100) {
             return;
         }
         List<Test> tests = new ArrayList<>(1);
-            Test newTest = new Test();
-            newTest.setName(failedTest.getName());
-            newTest.setArguments(failedTest.getArguments());
-            newTest.setTestType(failedTest.getTestType());
-            newTest.setTimeout(1500000L);
-            newTest.setJobId(failedTest.getJobId());
-            newTest.setRunNumber(failedTest.getRunNumber() + 1);
-            tests.add(newTest);
+        Test newTest = new Test();
+        newTest.setName(failedTest.getName());
+        newTest.setArguments(failedTest.getArguments());
+        newTest.setTestType(failedTest.getTestType());
+        newTest.setTimeout(1500000L);
+        newTest.setJobId(failedTest.getJobId());
+        newTest.setRunNumber(failedTest.getRunNumber() + 1);
+        tests.add(newTest);
         try {
             client.createTests(tests, "don't count").toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 5, TimeUnit.SECONDS);
         } catch (InterruptedException | TimeoutException e) {
@@ -355,13 +369,13 @@ public class NewmanAgent {
         }
         String limit = Suite.parseCustomVariables(job.getSuite().getCustomVariables()).getOrDefault(Suite.THREADS_LIMIT, Integer.toString(config.getNumOfWorkers()));
         int min = Math.min(config.getNumOfWorkers(), Integer.parseInt(limit));
-        logger.info("Calculated number of workers: " + min + " (config: " + config.getNumOfWorkers() + ", limit: " + limit+")s");
+        logger.info("Calculated number of workers: " + min + " (config: " + config.getNumOfWorkers() + ", limit: " + limit + ")s");
         return min;
     }
 
 
     private KeepAliveTask startKeepAliveTask(String jobId, final KeepAliveTask prevKeepAliveTask) {
-        if(prevKeepAliveTask != null){
+        if (prevKeepAliveTask != null) {
             prevKeepAliveTask.cancel();
         }
 
@@ -426,7 +440,7 @@ public class NewmanAgent {
             try {
                 ServerStatus serverStatus = c.getServerStatus().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 if (serverStatus.getStatus().equals(ServerStatus.Status.SUSPENDED)) {
-                    logger.info("Server is suspended, will retry in " +config.getRetryIntervalOnSuspended()/1000+ " seconds");
+                    logger.info("Server is suspended, will retry in " + config.getRetryIntervalOnSuspended() / 1000 + " seconds");
                     Thread.sleep(config.getRetryIntervalOnSuspended());
                     continue;
                 }
@@ -443,22 +457,19 @@ public class NewmanAgent {
                         logger.info("Agent[{}] did not find a job to run, will try again in {} ms", agent, config.getJobPollInterval());
                     }
                 }
-            }
-            catch (IllegalStateException e) {
+            } catch (IllegalStateException e) {
                 logger.warn("Agent failed while polling newman-server at {} for a job (retry in {} ms): " + e, config.getNewmanServerHost(), config.getJobPollInterval());
                 c = getClient();
-            }
-            catch (ExecutionException e) {
-                if (e.getCause() instanceof WebApplicationException){
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof WebApplicationException) {
                     WebApplicationException ex = (WebApplicationException) e.getCause();
                     String responseText = ex.getResponse().readEntity(String.class);
-                    logger.warn("Agent failed while polling newman-server. Got status: " + ex.getResponse().getStatus()+", message: " + responseText);
+                    logger.warn("Agent failed while polling newman-server. Got status: " + ex.getResponse().getStatus() + ", message: " + responseText);
                     c = getClient();
                 } else {
                     c = onClientFailure(c);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 logger.warn("Agent failed while polling newman-server at {} for a job (retry in {} ms): " + e, config.getNewmanServerHost(), config.getJobPollInterval());
                 c = onClientFailure(c);
             }
@@ -484,10 +495,10 @@ public class NewmanAgent {
             client.close();
         }
         while (true) {
-            long currentTime =  System.currentTimeMillis();
+            long currentTime = System.currentTimeMillis();
             long timePassedSinceStartToFail = currentTime - lastTimeFailedToConnectToServer;
             long timePassedSinceStartToFailMinutes = TimeUnit.MILLISECONDS.toMinutes(timePassedSinceStartToFail);
-            if(timePassedSinceStartToFailMinutes >= minutesToPassBeforeExit){
+            if (timePassedSinceStartToFailMinutes >= minutesToPassBeforeExit) {
                 logger.error("agent {} can't connect to server host: {}, port: {}. Existing agent...", name, config.getNewmanServerHost(), config.getNewmanServerPort());
                 throw new IllegalArgumentException("agent did not connect for the last " + timePassedSinceStartToFailMinutes + " minutes, restarting agent...");
             }
@@ -517,7 +528,7 @@ public class NewmanAgent {
             logger.info("Worker was interrupted while waiting for test");
             return null;
         } catch (ExecutionException e) {
-            logger.error("Worker failed while waiting for test: " + e);
+            logger.error("Worker failed while waiting for test: ", e);
             return null;
         }
     }
@@ -532,22 +543,21 @@ public class NewmanAgent {
                 logger.info("finished test [{}].", finishedTest);
                 Path logs = append(config.getNewmanHome(), "logs");
                 Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
-                Test testLog = c.uploadTestLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS*4, TimeUnit.SECONDS);
+                Test testLog = c.uploadTestLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 4, TimeUnit.SECONDS);
                 logger.info("update log testLog [{}].", testLog);
                 break;
-            }
-            catch (IllegalStateException e){ // client was closed
-                logger.warn("Got IllegalStateException while reporting test" , e);
+            } catch (IllegalStateException e) { // client was closed
+                logger.warn("Got IllegalStateException while reporting test", e);
                 c = getClient();
             } catch (ExecutionException e) {
-                if (e.getCause() instanceof WebApplicationException){
+                if (e.getCause() instanceof WebApplicationException) {
                     WebApplicationException ex = (WebApplicationException) e.getCause();
                     String responseText = ex.getResponse().readEntity(String.class);
-                    logger.warn("Agent failed while updating test result. Got status: " + ex.getResponse().getStatus()+", message: " + responseText);
+                    logger.warn("Agent failed while updating test result. Got status: " + ex.getResponse().getStatus() + ", message: " + responseText);
                     c = getClient();
                     break;
                 } else {
-                    logger.warn("Got ExecutionException" , e);
+                    logger.warn("Got ExecutionException", e);
                     c = onClientFailure(c);
                 }
             } catch (Exception e) {
@@ -557,12 +567,12 @@ public class NewmanAgent {
         }
     }
 
-    private void reportJobSetup(String jobId, String agentName,  Path jobFolder) {
+    private void reportJobSetup(String jobId, String agentName, Path jobFolder) {
         NewmanClient c = getClient();
         logger.info("Reporting job setup log {}", jobId);
         Path logFile = append(jobFolder, "job-setup.log");
         try {
-            c.uploadJobSetupLog(jobId,agentName, logFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS*4, TimeUnit.SECONDS);
+            c.uploadJobSetupLog(jobId, agentName, logFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 4, TimeUnit.SECONDS);
         } catch (Exception e) {
             logger.error("Failed to upload job setup log", e);
         }
@@ -584,8 +594,7 @@ public class NewmanAgent {
                 try {
                     //logger.info("sending ping to server, jobid= {}", jobId);
                     c.ping(name, jobId).toCompletableFuture().get(10, TimeUnit.SECONDS);
-                }
-                catch (Exception ignored) {
+                } catch (Exception ignored) {
                 }
             }
         }
