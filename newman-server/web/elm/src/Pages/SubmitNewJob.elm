@@ -6,14 +6,17 @@ import Bootstrap.Form.Select as Select
 import Bootstrap.Modal as Modal
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick)
 import Http exposing (..)
-import Json.Decode exposing (Decoder, int)
-import Json.Decode.Pipeline exposing (decode, required)
+import Json.Decode exposing (Decoder)
+import Json.Decode.Pipeline exposing (decode)
 import Json.Encode
-import Maybe exposing (withDefault)
+import List exposing (filter)
+import List.Extra exposing (unique, zip)
+import Maybe
 import Multiselect
-import Utils.Types as Types exposing (Agent, Agents, Build, JobConfig, Suite, decodeAgentGroups, decodeJobConfigs, decodeSuite)
+import String exposing (contains)
+import Utils.Types as Types exposing (Agent, Agents, Build, Builds, JobConfig, Suite, decodeAgentGroups, decodeFirstBuild, decodeJobConfigs, decodeSuite)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal
 
@@ -32,6 +35,8 @@ type Msg
     | UpdatedBuildSelection Bool
     | NewmanModalMsg Modal.State
     | WebSocketEvent WebSocket.Event
+    | SelectNightlySuites (Result Http.Error Build)
+    | OnClickSelectNightly
 
 
 type alias Model =
@@ -84,7 +89,6 @@ init =
         ]
     )
 
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -132,6 +136,36 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
+        SelectNightlySuites result ->
+            case result of
+                Ok build ->
+                    let
+                        preselectedSuitesTuple : List (String, String)
+                        preselectedSuitesTuple =
+                            filter (\(id, name) ->
+                                if (contains "dev-" name  || contains "custom-" name) then
+                                    False
+                                else
+                                    True
+                            )
+                            <| unique
+                            <| zip build.buildStatus.suitesIds build.buildStatus.suitesNames
+
+                        allSuitesAsTuple : List (String, String)
+                        allSuitesAsTuple =
+                             suiteToTuple model.buildsAndSuites.suites
+
+                    in
+                        ( { model | selectedSuites = Multiselect.populateValues model.selectedSuites allSuitesAsTuple preselectedSuitesTuple }, Cmd.none )
+                Err err ->
+                    let
+                        e =
+                            Debug.log "ERROR:SelectNightlySuites" err
+                    in
+                        ( model, Cmd.none )
+        OnClickSelectNightly ->
+            ( model, getNightlySuitesCmd )
+
         UpdateSelectedBuild build ->
             ( { model | selectedBuild = build }, Cmd.none )
 
@@ -147,6 +181,7 @@ update msg model =
 
         MultiSelectMsg subMsg ->
             let
+                _ = Debug.log "MultiSelectMsg" subMsg
                 ( subModel, subCmd, outMsg ) =
                     Multiselect.update subMsg model.selectedSuites
             in
@@ -210,6 +245,11 @@ update msg model =
                     ( model, Cmd.none )
 
 
+suiteToTuple : List Suite -> List (String, String)
+suiteToTuple suites =
+    List.map (\suite -> ( suite.id, suite.name )) suites
+
+
 updateBuildAdded : Model -> Build -> Model
 updateBuildAdded model build =
     let
@@ -242,6 +282,12 @@ getAllAgentGroupsCmd =
 getAllConfigsCmd : Cmd Msg
 getAllConfigsCmd =
     Http.send GetAllConfigsCompleted <| Http.get "/api/newman/job-config" decodeJobConfigs
+
+
+getNightlySuitesCmd : Cmd Msg
+getNightlySuitesCmd =
+    Http.send SelectNightlySuites
+    <| Http.get "/api/newman/latest-builds?limit=1&tags=NIGHTLY&with-all-jobs-completed=true" decodeFirstBuild
 
 
 submitFutureJobCmd : String -> List String -> String -> List String -> Int -> Cmd Msg
@@ -283,6 +329,13 @@ view model =
     div [ class "container-fluid" ]
         [ h2 [ class "page-header" ]
             [ text "Submit New Job" ]
+        , Button.button [ Button.secondary, Button.onClick OnClickSelectNightly , Button.attrs
+        [ style
+            [
+                ("margin", "24px 0 0 515px")
+                ,("position", "absolute")
+            ]
+        ] ] [ text "Select Nightly Suites" ]
         , div [ style [ ( "width", "500px" ) ] ]
             [ text "Select suites:"
             , Multiselect.view model.selectedSuites |> Html.map MultiSelectMsg

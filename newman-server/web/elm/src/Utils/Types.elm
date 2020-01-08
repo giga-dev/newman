@@ -360,7 +360,6 @@ decodeBuild =
         |> required "shas" (dict string)
 
 
-
 ---
 
 
@@ -478,7 +477,12 @@ decodeDashboardData =
         |> required "activeJobs" (dict (list decodeDashboardJob))
 
 
-decodeBuilds : Decoder Builds
+decodeFirstBuild : Decoder Build
+decodeFirstBuild =
+    field "values" (index 0 decodeBuild)
+
+
+decodeBuilds : Decoder (List Build)
 decodeBuilds =
     field "values" (list decodeBuild)
 
@@ -510,7 +514,6 @@ decodeAgent =
         |> optionalAt [ "job", "build", "name" ] (maybe string) Nothing
         |> optionalAt [ "job", "suite", "name" ] (maybe string) Nothing
         |> optional "groupName" string "undefined"
-
 
 
 -- This is a temp fix ^|^
