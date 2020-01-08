@@ -23,3 +23,5 @@ Newman is a framework for distributing test load across multiple agents. It's na
 ## Newman Agent Flow.
 
 ![Newman-Agent-State-Machine.jpg](/docs/diagrams/Newman-Agent-State-Machine.jpg)
+
+ 
