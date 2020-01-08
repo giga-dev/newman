@@ -11,7 +11,7 @@ import Http exposing (..)
 import Json.Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (decode)
 import Json.Encode
-import List exposing (filter)
+import List exposing (filter, sortBy)
 import List.Extra exposing (unique, zip)
 import Maybe
 import Multiselect
@@ -142,7 +142,8 @@ update msg model =
                     let
                         preselectedSuitesTuple : List (String, String)
                         preselectedSuitesTuple =
-                            filter (\(id, name) ->
+                            sortBy Tuple.second
+                            <| filter (\(id, name) ->
                                 if (contains "dev-" name  || contains "custom-" name) then
                                     False
                                 else
