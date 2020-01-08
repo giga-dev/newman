@@ -30,6 +30,7 @@ alons=alons, user
 ayelet=ayelet, user
 root=root, admin
 support=support, user
+mishel=mishel, user
 _EOF
 
 fi
