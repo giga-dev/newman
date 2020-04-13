@@ -218,7 +218,7 @@ public class NewmanResource {
                 return true;
             }
         } else { // already seen as zombie
-            int hoursToWaitBeforeDelete = 5;
+            int hoursToWaitBeforeDelete = 10;
             if (isTimeExpired(potentialJob.getLastTimeZombie().getTime(), hoursToWaitBeforeDelete, TimeUnit.HOURS)) {
                 logger.info("Job state is BROKEN because it became zombie (no match agents) for {} hours. job: [id:{}, name: {}, build:{}].",
                         hoursToWaitBeforeDelete, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
