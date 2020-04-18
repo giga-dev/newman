@@ -218,7 +218,7 @@ public class NewmanResource {
                 return true;
             }
         } else { // already seen as zombie
-            int hoursToWaitBeforeDelete = 10;
+            int hoursToWaitBeforeDelete = 1;
             if (isTimeExpired(potentialJob.getLastTimeZombie().getTime(), hoursToWaitBeforeDelete, TimeUnit.HOURS)) {
                 logger.info("Job state is BROKEN because it became zombie (no match agents) for {} hours. job: [id:{}, name: {}, build:{}].",
                         hoursToWaitBeforeDelete, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
@@ -784,6 +784,8 @@ public class NewmanResource {
         Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
         if(job.getRunningTests() <= 0 && job.getState().equals(State.RUNNING)){
             UpdateOperations<Job> updateJobStatus = jobDAO.createUpdateOperations().set("state", State.READY);
+            // remove startPrepareTime after turning job to be on READY state
+            updateJobStatus.unset("startPrepareTime");
             job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(jobId), updateJobStatus);
             broadcastMessage(MODIFIED_JOB, job);
         }
@@ -2141,7 +2143,7 @@ public class NewmanResource {
                return job;
            }
 
-           UpdateOperations<Job> jobUpdate = jobDAO.createUpdateOperations().set("priority", newPriority);
+           UpdateOperations<Job> jobUpdate = jobDAO.createUpdateOperations().set("priority", updatePriority);
            job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), jobUpdate);
 
            if (currPriority == 0) {
@@ -2150,7 +2152,7 @@ public class NewmanResource {
                if (updatePriority == 0) {
                    deletePrioritizedJob(job);
                } else {
-                   UpdateOperations<PrioritizedJob> prioritizedJobUpdate = prioritizedJobDAO.createUpdateOperations().set("priority", newPriority);
+                   UpdateOperations<PrioritizedJob> prioritizedJobUpdate = prioritizedJobDAO.createUpdateOperations().set("priority", updatePriority);
                    PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), prioritizedJobUpdate);
                    highestPriorityJob = getHighestPriorityJob();
                }
