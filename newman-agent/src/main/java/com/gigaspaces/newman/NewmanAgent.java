@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static com.gigaspaces.newman.utils.FileUtils.append;
+import static com.gigaspaces.newman.utils.FileUtils.exists;
 
 /**
  * @author Boris
@@ -536,15 +537,24 @@ public class NewmanAgent {
     private void reportTest(Test testResult) {
         NewmanClient c = getClient();
         logger.info("Reporting Test #{} JobId #{} Status: {}", testResult.getId(), testResult.getJobId(), testResult.getStatus());
+        boolean finishTestSucceeded = false;
         while (true) {
             try {
-                //update test removes Agent assignment
-                Test finishedTest = c.finishTest(testResult).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                logger.info("finished test [{}].", finishedTest);
+                Test finishedTest = null;
+                if (!finishTestSucceeded) {
+                    //update test removes Agent assignment
+                    finishedTest = c.finishTest(testResult).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    finishTestSucceeded = true;
+                    logger.info("finished test [{}].", finishedTest);
+                }
                 Path logs = append(config.getNewmanHome(), "logs");
                 Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
-                Test testLog = c.uploadTestLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 4, TimeUnit.SECONDS);
-                logger.info("update log testLog [{}].", testLog);
+                if (exists(testLogsFile)){
+                    Test testLog = c.uploadTestLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 4, TimeUnit.SECONDS);
+                    logger.info("update log testLog [{}].", testLog);
+                } else {
+                    logger.warn("Failed to update log for test [{}], file [{}] doesn't exist", finishedTest, testLogsFile);
+                }
                 break;
             } catch (IllegalStateException e) { // client was closed
                 logger.warn("Got IllegalStateException while reporting test", e);
