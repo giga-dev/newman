@@ -534,28 +534,33 @@ public class NewmanAgent {
         }
     }
 
-    private void reportTest(Test testResult) {
+    private void reportTest(Test testResult){
         NewmanClient c = getClient();
-        logger.info("Reporting Test #{} JobId #{} Status: {}", testResult.getId(), testResult.getJobId(), testResult.getStatus());
-        boolean finishTestSucceeded = false;
+        execute(()-> {
+            Test finishedTest = c.finishTest(testResult).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            logger.info("finished test [{}].", finishedTest);
+            return null;
+        });
+        execute(()-> {
+            Path logs = append(config.getNewmanHome(), "logs");
+            Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
+            if (exists(testLogsFile)) {
+                c.uploadTestLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 4, TimeUnit.SECONDS);
+                logger.info("update log testLog [{}].", testResult.getId());
+            } else {
+                logger.warn("Failed to update log for test [{}], file [{}] doesn't exist", testResult.getId(), testLogsFile);
+            }
+            return null;
+        });
+    }
+
+    private void execute(Callable<Void> callable){
+        NewmanClient c =getClient();
+
         while (true) {
             try {
-                Test finishedTest = null;
-                if (!finishTestSucceeded) {
-                    //update test removes Agent assignment
-                    finishedTest = c.finishTest(testResult).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                    finishTestSucceeded = true;
-                    logger.info("finished test [{}].", finishedTest);
-                }
-                Path logs = append(config.getNewmanHome(), "logs");
-                Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
-                if (exists(testLogsFile)){
-                    Test testLog = c.uploadTestLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 4, TimeUnit.SECONDS);
-                    logger.info("update log testLog [{}].", testLog);
-                } else {
-                    logger.warn("Failed to update log for test [{}], file [{}] doesn't exist", finishedTest, testLogsFile);
-                }
-                break;
+               callable.call();
+               break;
             } catch (IllegalStateException e) { // client was closed
                 logger.warn("Got IllegalStateException while reporting test", e);
                 c = getClient();
@@ -571,7 +576,7 @@ public class NewmanAgent {
                     c = onClientFailure(c);
                 }
             } catch (Exception e) {
-                logger.warn("Worker failed to update test result: {} caught: {}", testResult, e);
+                logger.warn("Worker failed to update test result, caught:", e);
                 c = onClientFailure(c);
             }
         }
