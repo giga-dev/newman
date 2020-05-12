@@ -958,11 +958,12 @@ public class NewmanResource {
 
         if (!res.isEmpty()) {
             Test test = res.get(0);
-            // @QueryParam("toCount") - indicates if tests should be added to "totalTests"
-            // if a test fails and is resumitted (aka run number >1 ) we don't want it to be added to "totalTests".
+
             UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations();
             UpdateOperations<Build> buildUpdateOps = buildDAO.createUpdateOperations();
 
+            // @QueryParam("toCount") - indicates if tests should be added to "totalTests"
+            // if a test fails and is resumitted (aka run number >1 ) we don't want it to be added to "totalTests".
             if (toCountStr.equals("count")) {
                 jobUpdateOps.inc("totalTests", res.size());
                 buildUpdateOps.inc("buildStatus.totalTests", res.size());
