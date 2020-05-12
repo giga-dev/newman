@@ -945,20 +945,39 @@ public class NewmanResource {
         if (job == null) {
             return;
         }
+
+        int updateNumOfTestRetries = 0;
+
         List<Test> res = new ArrayList<>(tests.getValues().size());
         for (Test test : tests.getValues()) {
             res.add(addTest(test, job));
+            if ((test.getRunNumber() > 1)) {
+                ++updateNumOfTestRetries;
+            }
         }
 
         if (!res.isEmpty()) {
             Test test = res.get(0);
 
+            UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations();
+            UpdateOperations<Build> buildUpdateOps = buildDAO.createUpdateOperations();
+
             // @QueryParam("toCount") - indicates if tests should be added to "totalTests"
             // if a test fails and is resumitted (aka run number >1 ) we don't want it to be added to "totalTests".
             if (toCountStr.equals("count")) {
-                UpdateOperations<Job> jobUpdateOps = jobDAO.createUpdateOperations().inc("totalTests", res.size());
+                jobUpdateOps.inc("totalTests", res.size());
+                buildUpdateOps.inc("buildStatus.totalTests", res.size());
+            }
+
+            if (updateNumOfTestRetries > 0){
+                jobUpdateOps.inc("numOfTestRetries", updateNumOfTestRetries);
+                buildUpdateOps.inc("buildStatus.numOfTestRetries", updateNumOfTestRetries);
+            }
+
+            if (toCountStr.equals("count") || updateNumOfTestRetries > 0){
                 job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(test.getJobId()), jobUpdateOps, false, false);
-                Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), buildDAO.createUpdateOperations().inc("buildStatus.totalTests", res.size()));
+                Build build = buildDAO.getDatastore().findAndModify(buildDAO.createIdQuery(job.getBuild().getId()), buildUpdateOps, false, false);
+
                 broadcastMessage(MODIFIED_BUILD, build);
                 broadcastMessage(MODIFIED_JOB, job);
             }
@@ -1105,10 +1124,6 @@ public class NewmanResource {
                     updateJobStatus.inc("passedTests");
                     updateBuild.inc("buildStatus.passedTests");
                 }
-            }
-            if ((test.getRunNumber() > 1)) {
-                updateJobStatus.inc("numOfTestRetries");
-                updateBuild.inc("buildStatus.numOfTestRetries");
             }
             if ((test.getRunNumber() == 3) && (status == Test.Status.FAIL)) {
                 updateJobStatus.inc("failed3TimesTests");
@@ -1929,9 +1944,12 @@ public class NewmanResource {
                         broadcastMessage(MODIFIED_BUILD, build);
                     }
                 }
+
+                logger.info("agent [{}] got test id: [{}], test-state:[{}]", agent.getName(), result.getId(), result.getStatus());
                 broadcastMessage(MODIFIED_TEST, result);
             } else {
                 // return the test to the pool.
+                logger.info("Did not find relevant job, returning the test {} to the pool", result.getId());
                 updateOps = testDAO.createUpdateOperations().set("status", Test.Status.PENDING)
                         .unset("assignedAgent").unset("startTime");
                 Test test = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
@@ -1954,10 +1972,12 @@ public class NewmanResource {
                 }
                 return null;
             }
+        } else {
+            logger.info("agent [{}] didn't find ready test for job: [{}]", agent.getName(), jobId);
         }
         agent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, true);
         broadcastMessage(MODIFIED_AGENT, agent);
-        logger.warn("agent [{}] got test id: [{}], test-state:[{}]", agent.getName(), result.getId(), result.getStatus());
+
         return result;
     }
 
@@ -2105,25 +2125,26 @@ public class NewmanResource {
         Agent agent = agentDAO.findOne(agentDAO.createIdQuery(agentId));
 
         List<PrioritizedJob> prioritizedJobs = prioritizedJobDAO.find(prioritizedJobDAO.createQuery().filter("isPaused", false).order("-priority")).asList();
-        if(prioritizedJobs.isEmpty()){
+        if (prioritizedJobs.isEmpty()){
             return false;
         }
 
         Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
 
-        for(PrioritizedJob prioritizedJob: prioritizedJobs){
-            if(prioritizedJob.getPriority() > job.getPriority()){
-                if(prioritizedJob.getAgentGroups().contains(agent.getGroupName()) && agent.getCapabilities().containsAll(prioritizedJob.getRequirements())){
+        for (PrioritizedJob prioritizedJob: prioritizedJobs){
+            if (prioritizedJob.getPriority() > job.getPriority()){
+                if (prioritizedJob.getAgentGroups().contains(agent.getGroupName()) && agent.getCapabilities().containsAll(prioritizedJob.getRequirements())){
                     Query<Job> jobQuery = jobDAO.createIdQuery(prioritizedJob.getJobId());
                         jobQuery.or(jobQuery.and(jobQuery.criteria("preparingAgents").exists(),
                                 new WhereCriteria("this.preparingAgents.length < (this.totalTests + this.numOfTestRetries - this.passedTests - this.failedTests - this.runningTests)")),
                                 jobQuery.criteria("preparingAgents").doesNotExist());
-                     if(jobQuery.countAll() == 1){
+                        jobQuery.filter("totalTests != ", 0);
+                     if (jobQuery.countAll() == 1){
                         return true;
                      }
                 }
             }
-            else{
+            else {
                 break;
             }
         }

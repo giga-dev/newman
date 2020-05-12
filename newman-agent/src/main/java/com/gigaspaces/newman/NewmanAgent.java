@@ -310,7 +310,7 @@ public class NewmanAgent {
                 prevJob = null;
             } else {
                 prevJob = job;
-                logger.info("Job {} changed before it's finished, because there is a job in higher priority", job.getId());
+                logger.info("Agent found job in higher priority and stopped running current job {}", job.getId());
             }
         }
     }
