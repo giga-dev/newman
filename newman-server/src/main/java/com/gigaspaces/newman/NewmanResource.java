@@ -1944,6 +1944,8 @@ public class NewmanResource {
                         broadcastMessage(MODIFIED_BUILD, build);
                     }
                 }
+
+                logger.info("agent [{}] got test id: [{}], test-state:[{}]", agent.getName(), result.getId(), result.getStatus());
                 broadcastMessage(MODIFIED_TEST, result);
             } else {
                 // return the test to the pool.
