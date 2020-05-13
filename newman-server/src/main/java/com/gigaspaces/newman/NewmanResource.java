@@ -1949,6 +1949,7 @@ public class NewmanResource {
                 broadcastMessage(MODIFIED_TEST, result);
             } else {
                 // return the test to the pool.
+                logger.info("Did not find relevant job, returning the test {} to the pool", result.getId());
                 updateOps = testDAO.createUpdateOperations().set("status", Test.Status.PENDING)
                         .unset("assignedAgent").unset("startTime");
                 Test test = testDAO.getDatastore().findAndModify(query, updateOps, false, false);
