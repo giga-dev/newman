@@ -1971,10 +1971,12 @@ public class NewmanResource {
                 }
                 return null;
             }
+        } else {
+            logger.info("agent [{}] didn't find ready test for job: [{}]", agent.getName(), jobId);
         }
         agent = agentDAO.getDatastore().findAndModify(agentDAO.createIdQuery(agent.getId()), agentUpdateOps, false, true);
         broadcastMessage(MODIFIED_AGENT, agent);
-        logger.warn("agent [{}] got test id: [{}], test-state:[{}]", agent.getName(), result.getId(), result.getStatus());
+
         return result;
     }
 
