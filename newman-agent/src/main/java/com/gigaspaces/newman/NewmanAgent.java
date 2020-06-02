@@ -535,9 +535,8 @@ public class NewmanAgent {
     }
 
     private void reportTest(Test testResult){
-        NewmanClient c = getClient();
         execute(()-> {
-            Test finishedTest = c.finishTest(testResult).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            Test finishedTest = getClient().finishTest(testResult).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             logger.info("finished test [{}].", finishedTest);
             return null;
         });
@@ -545,7 +544,7 @@ public class NewmanAgent {
             Path logs = append(config.getNewmanHome(), "logs");
             Path testLogsFile = append(logs, "output-" + testResult.getId() + ".zip");
             if (exists(testLogsFile)) {
-                c.uploadTestLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 4, TimeUnit.SECONDS);
+                getClient().uploadTestLog(testResult.getJobId(), testResult.getId(), testLogsFile.toFile()).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 4, TimeUnit.SECONDS);
                 logger.info("update log testLog [{}].", testResult.getId());
             } else {
                 logger.warn("Failed to update log for test [{}], file [{}] doesn't exist", testResult.getId(), testLogsFile);
