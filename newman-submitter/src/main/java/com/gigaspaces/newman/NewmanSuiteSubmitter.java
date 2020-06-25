@@ -77,7 +77,7 @@ public class NewmanSuiteSubmitter {
         NewmanClient newmanClient = getNewmanClient();
         try {
             Suite suite = new Suite();
-            suite.setName("ops-ui-not-secured");
+            suite.setName("ops-ui");
             suite.setCustomVariables("SUITE_TYPE=ops-ui,SUITE_SUB_TYPE=ops-ui-not-secured,THREADS_LIMIT=1");
 
             String Requirements = "DOCKER,LINUX";
