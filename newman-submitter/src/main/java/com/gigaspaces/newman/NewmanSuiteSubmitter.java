@@ -50,6 +50,8 @@ public class NewmanSuiteSubmitter {
 //        submitter.manualSubmitTgridRocksDB();
 //        submitter.manualSubmitTgridMapdb();
 //        submitter.manualSubmitTgridOffHeap();
+//        submitter.manualSubmitOpsUiSecurity();
+//          submitter.manualSubmitOpsUiNotSecured();
     }
 
     public void submit() throws Exception {
@@ -66,6 +68,50 @@ public class NewmanSuiteSubmitter {
             Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
             logger.info("result: " + result);
 
+        } finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitOpsUiNotSecured() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("ops-ui-not-secured");
+            suite.setCustomVariables("SUITE_TYPE=ops-ui,SUITE_SUB_TYPE=ops-ui-not-secured,THREADS_LIMIT=1");
+
+            String Requirements = "DOCKER,LINUX";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            Criteria criteria = CriteriaBuilder.join(
+                    TestCriteria.createCriteriaByTestType("ops-ui"),
+                    exclude(PatternCriteria.containsCriteria(".secured"))
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
+        } finally {
+            newmanClient.close();
+        }
+    }
+
+    public void manualSubmitOpsUiSecurity() throws Exception {
+        NewmanClient newmanClient = getNewmanClient();
+        try {
+            Suite suite = new Suite();
+            suite.setName("ops-ui-secured");
+            suite.setCustomVariables("SUITE_TYPE=ops-ui,SUITE_SUB_TYPE=ops-ui-secured,THREADS_LIMIT=1");
+
+            String Requirements = "DOCKER,LINUX";
+            suite.setRequirements(CapabilitiesAndRequirements.parse(Requirements));
+            Criteria criteria = CriteriaBuilder.join(
+                    TestCriteria.createCriteriaByTestType("ops-ui"),
+                    include(PatternCriteria.containsCriteria(".secured"))
+            );
+            suite.setCriteria(criteria);
+            logger.info("Adding suite: " + suite);
+            Suite result = newmanClient.addSuite(suite).toCompletableFuture().get();
+            logger.info("result: " + result);
         } finally {
             newmanClient.close();
         }
