@@ -4,6 +4,7 @@ import Bootstrap.Badge as Badge
 import Bootstrap.Button as Button
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
+import Char exposing (isDigit)
 import Date exposing (Date)
 import DateFormat
 import Dict exposing (Dict)
@@ -25,6 +26,7 @@ type alias Model =
     , pageSize : Int
     , compareBuildsModel : CompareBuilds.Model
     , query : String
+    , maxEntries : String
     }
 
 
@@ -38,6 +40,8 @@ type Msg
     | FilterQuery String
     | CompareBuildsMsg CompareBuilds.Msg
     | WebSocketEvent WebSocket.Event
+    | UpdateBuildsNumber String
+    | ApplyBuildsNumberAndRetrieveBuilds
 
 
 init : ( Model, Cmd Msg )
@@ -45,14 +49,18 @@ init =
     let
         pageSize =
             20
+
+        maxEntries =
+            "60"
     in
     ( { allBuilds = []
       , builds = Paginate.fromList pageSize []
       , pageSize = pageSize
       , compareBuildsModel = CompareBuilds.init []
       , query = ""
+      , maxEntries = maxEntries
       }
-    , getBuildsCmd
+    , getBuildsCmd maxEntries
     )
 
 
@@ -111,6 +119,28 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        UpdateBuildsNumber buildsNumber ->
+            let
+                entriesNumber : String
+                entriesNumber =
+                    case String.all isDigit buildsNumber of
+                        True ->
+                            if buildsNumber == "0" then
+                                ""
+
+                            else
+                                buildsNumber
+
+                        False ->
+                            ""
+            in
+            ( { model | maxEntries = entriesNumber }, Cmd.none )
+
+        ApplyBuildsNumberAndRetrieveBuilds ->
+            ( { model | allBuilds = [], builds = Paginate.fromList model.pageSize [], compareBuildsModel = CompareBuilds.init [], query = "" }
+            , getBuildsCmd model.maxEntries
+            )
 
 
 updateAll : (List Build -> List Build) -> Model -> Model
@@ -179,8 +209,11 @@ view model =
                     )
                 ]
     in
-    div [ class "container-fluid" ] <|
-        [ h2 [ class "text" ] [ text "Builds" ]
+    div [ class "container-fluid" ]
+        [ h2 [ class "text" ]
+            [ text "Builds"
+            , viewMaxBuildsNumber model.maxEntries
+            ]
         , CompareBuilds.view model.compareBuildsModel
             |> Html.map CompareBuildsMsg
         , br [] []
@@ -218,6 +251,31 @@ view model =
         ]
 
 
+viewMaxBuildsNumber : String -> Html Msg
+viewMaxBuildsNumber maxEntries =
+    div [ class "form-inline builds-list-max-build-count" ]
+        [ div [ class "builds-list-max-build-count-label" ] [ text "Max. Build count:" ]
+        , div [ class "builds-list-max-build-count-input" ]
+            [ FormInput.text
+                [ FormInput.value <| maxEntries
+                , FormInput.onInput UpdateBuildsNumber
+                , FormInput.attrs [ style [ ( "margin-left", "2px" ), ( "width", "85px" ), ( "padding-right", "0px" ), ( "padding-left", "4px" ) ] ]
+                ]
+            ]
+        , div [ class "builds-list-max-build-count-button" ]
+            [ if String.isEmpty maxEntries then
+                Button.button
+                    [ Button.secondary, Button.disabled True ]
+                    [ text "Apply" ]
+
+              else
+                Button.button
+                    [ Button.primary, Button.onClick ApplyBuildsNumberAndRetrieveBuilds ]
+                    [ text "Apply" ]
+            ]
+        ]
+
+
 viewBuild : Build -> Html msg
 viewBuild build =
     let
@@ -248,9 +306,14 @@ viewBuild build =
         ]
 
 
-getBuildsCmd : Cmd Msg
-getBuildsCmd =
-    Http.send GetBuildsCompleted <| Http.get "/api/newman/build?orderBy=-buildTime" decodeBuilds
+getBuildsCmd : String -> Cmd Msg
+getBuildsCmd maxEntries =
+    let
+        getBuilds : Http.Request (List Build)
+        getBuilds =
+            Http.get ("/api/newman/build?limit=" ++ maxEntries ++ "&orderBy=-buildTime") decodeBuilds
+    in
+    Http.send GetBuildsCompleted getBuilds
 
 
 filterQuery : String -> Build -> Bool

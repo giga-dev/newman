@@ -5,6 +5,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as FormInput
 import Bootstrap.Progress as Progress exposing (..)
+import Char exposing (isDigit)
 import Date exposing (Date)
 import Date.Extra.Config.Config_en_au exposing (config)
 import Date.Extra.Duration as Duration
@@ -27,14 +28,13 @@ import Views.JobsTable as JobsTable
 
 type alias Model =
     { jobsTableModel : JobsTable.Model
-    , maxEntries : Int
+    , maxEntries : String
     , currTime : Maybe Time
     }
 
 
 type Msg
-    = UpdateMaxEntries String
-    | GetJobsCompleted (Result Http.Error (List Job))
+    = GetJobsCompleted (Result Http.Error (List Job))
     | ReceiveTime Time
     | JobsTableMsg JobsTable.Msg
     | UpdateJobsNumber String
@@ -45,7 +45,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         maxEntries =
-            60
+            "60"
     in
     ( { jobsTableModel = JobsTable.init []
       , maxEntries = maxEntries
@@ -58,13 +58,6 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        UpdateMaxEntries newValue ->
-            let
-                maxEntries =
-                    String.toInt newValue |> Result.toMaybe |> Maybe.withDefault 1
-            in
-            ( { model | maxEntries = maxEntries }, getJobsCmd maxEntries )
-
         GetJobsCompleted result ->
             onGetJobsCompleted model result
 
@@ -79,12 +72,24 @@ update msg model =
             ( { model | jobsTableModel = updatedJobsTableModel }, Cmd.batch [ cmd |> Cmd.map JobsTableMsg, requestTime ] )
 
         UpdateJobsNumber jobsNum ->
-            ( { model | maxEntries = String.toInt jobsNum |> Result.withDefault 1 }, Cmd.none )
+            let
+                entriesNumber : String
+                entriesNumber =
+                    case String.all isDigit jobsNum of
+                        True ->
+                            if jobsNum == "0" then
+                                ""
+
+                            else
+                                jobsNum
+
+                        False ->
+                            ""
+            in
+            ( { model | maxEntries = entriesNumber }, Cmd.none )
 
         ApplyJobsNumberAndRetrieveJobs ->
-            ( { model | jobsTableModel = JobsTable.init [] }
-            , getJobsCmd model.maxEntries
-            )
+            ( { model | jobsTableModel = JobsTable.init [] }, getJobsCmd model.maxEntries )
 
 
 view : Model -> Html Msg
@@ -95,13 +100,23 @@ view model =
             , div [ class "form-inline jobs-list-max-job-count" ]
                 [ div [ class "jobs-list-max-job-count-label" ] [ text "Max. Job count:" ]
                 , div [ class "jobs-list-max-job-count-input" ]
-                    [ FormInput.number
-                        [ FormInput.value <| toString <| model.maxEntries
+                    [ FormInput.text
+                        [ FormInput.value <| model.maxEntries
                         , FormInput.onInput UpdateJobsNumber
-                        , FormInput.attrs [ style [ ( "margin-left", "2px" ), ( "width", "85px" ) ] ]
+                        , FormInput.attrs [ style [ ( "margin-left", "2px" ), ( "width", "85px" ), ( "padding-right", "0px" ), ( "padding-left", "4px" ) ] ]
                         ]
                     ]
-                , div [ class "jobs-list-max-job-count-button" ] [ Button.button [ Button.primary, Button.onClick ApplyJobsNumberAndRetrieveJobs ] [ text "Apply" ] ]
+                , div [ class "jobs-list-max-job-count-button" ]
+                    [ if String.isEmpty model.maxEntries then
+                        Button.button
+                            [ Button.secondary, Button.disabled True ]
+                            [ text "Apply" ]
+
+                      else
+                        Button.button
+                            [ Button.primary, Button.onClick ApplyJobsNumberAndRetrieveJobs ]
+                            [ text "Apply" ]
+                    ]
                 ]
             ]
         , div [ class "container-fluid" ] <|
@@ -114,15 +129,15 @@ view model =
 ----
 
 
-getJobsCmd : Int -> Cmd Msg
+getJobsCmd : String -> Cmd Msg
 getJobsCmd limit =
-    Http.send GetJobsCompleted (getJobs limit)
-
-
-getJobs : Int -> Http.Request (List Job)
-getJobs limit =
-    Http.get ("/api/newman/jobs-view?limit=" ++ toString limit ++ "&orderBy=-submitTime") <|
-        Json.Decode.field "values" (Json.Decode.list decodeJobView)
+    let
+        getJobs : Http.Request (List Job)
+        getJobs =
+            Http.get ("/api/newman/jobs-view?limit=" ++ limit ++ "&orderBy=-submitTime") <|
+                Json.Decode.field "values" (Json.Decode.list decodeJobView)
+    in
+    Http.send GetJobsCompleted getJobs
 
 
 onGetJobsCompleted : Model -> Result Http.Error (List Job) -> ( Model, Cmd Msg )
