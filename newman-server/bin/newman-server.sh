@@ -31,6 +31,7 @@ ayelet=ayelet, user
 root=root, admin
 support=support, user
 mishel=mishel, user
+yonatan=yonatan, user
 _EOF
 
 fi
