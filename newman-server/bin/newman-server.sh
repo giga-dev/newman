@@ -32,6 +32,8 @@ root=root, admin
 support=support, user
 mishel=mishel, user
 yonatan=yonatan, user
+sagiv=sagiv, uesr
+tomer=tomer, user
 _EOF
 
 fi
