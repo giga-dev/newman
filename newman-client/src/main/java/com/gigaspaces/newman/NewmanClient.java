@@ -91,8 +91,11 @@ public class NewmanClient {
         return restClient.target(uri).path("prioritizedJob").path(agentId).path(jobId).request().rx().get(Boolean.class);
     }
 
-    public CompletionStage<Job> changePriorityJob(String jobId, int newPriority) {
-        return restClient.target(uri).path("job").path(jobId).path(Integer.toString(newPriority)).request().rx().post(Entity.text(""), Job.class);
+    public CompletionStage<Job> changeJob(String jobId, int newPriority, Set<String> agentGroups) {
+        EditJobRequest editJobRequest = new EditJobRequest();
+        editJobRequest.setAgentGroups(agentGroups);
+        editJobRequest.setPriority(newPriority);
+        return restClient.target(uri).path("job").path(jobId).path("edit").request().rx().post(Entity.json(editJobRequest), Job.class);
     }
 
     public CompletionStage<Test> createTest(Test test) {
