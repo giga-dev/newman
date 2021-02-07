@@ -2152,37 +2152,37 @@ public class NewmanResource {
     }
 
     @POST
-    @Path("job/{jobId}/{newPriority}")
+    @Path("job/{jobId}/edit")
     @Produces(MediaType.APPLICATION_JSON)
-    public Job changeJobPriority(final @PathParam("jobId") String jobId, final @PathParam("newPriority") String newPriority) {
-       Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
-       int updatePriority = Integer.parseInt(newPriority);
-       int currPriority = job.getPriority();
+    public Job changeJob(final @PathParam("jobId") String jobId, EditJobRequest jobRequest) {
+        Job job = jobDAO.findOne(jobDAO.createIdQuery(jobId));
+        int currPriority = job.getPriority();
+        Set<String> currAgentGroups = job.getAgentGroups();
+        synchronized (changeJobPriorityLock) {
+            boolean jobDidNotChange = currPriority == jobRequest.getPriority() && currAgentGroups.equals(jobRequest.getAgentGroups());
+            if (job.getState() == State.DONE || jobDidNotChange) {
+                return job;
+            }
 
-       synchronized (changeJobPriorityLock) {
-           if (job.getState() == State.DONE || currPriority == updatePriority) {
-               return job;
-           }
+            UpdateOperations<Job> jobUpdate = jobDAO.createUpdateOperations().set("priority", jobRequest.getPriority()).set("agentGroups",jobRequest.getAgentGroups());
+            job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), jobUpdate);
+            if(currPriority != jobRequest.getPriority()){
+                if (currPriority == 0) {
+                    createPrioritizedJob(job);
+                } else {
+                    if (jobRequest.getPriority() == 0) {
+                        deletePrioritizedJob(job);
+                    } else {
+                        UpdateOperations<PrioritizedJob> prioritizedJobUpdate = prioritizedJobDAO.createUpdateOperations().set("priority", jobRequest.getPriority()).set("agentGroups", jobRequest.getAgentGroups());;
+                        prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), prioritizedJobUpdate);
+                        highestPriorityJob = getHighestPriorityJob();
+                    }
+                }
+            }
+        }
 
-           UpdateOperations<Job> jobUpdate = jobDAO.createUpdateOperations().set("priority", updatePriority);
-           job = jobDAO.getDatastore().findAndModify(jobDAO.createIdQuery(job.getId()), jobUpdate);
-
-           if (currPriority == 0) {
-               createPrioritizedJob(job);
-           } else {
-               if (updatePriority == 0) {
-                   deletePrioritizedJob(job);
-               } else {
-                   UpdateOperations<PrioritizedJob> prioritizedJobUpdate = prioritizedJobDAO.createUpdateOperations().set("priority", updatePriority);
-                   PrioritizedJob prioritizedJob = prioritizedJobDAO.getDatastore().findAndModify(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()), prioritizedJobUpdate);
-                   highestPriorityJob = getHighestPriorityJob();
-               }
-           }
-       }
-
-       broadcastMessage(MODIFIED_JOB, job);
-       return job;
-
+        broadcastMessage(MODIFIED_JOB, job);
+        return job;
     }
 
     @GET
