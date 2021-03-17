@@ -2374,6 +2374,12 @@ public class NewmanResource {
         if (suite.getCustomVariables() != null) {
             updateOps.set("customVariables", suite.getCustomVariables());
         }
+        if (suite.getName() != null){
+            updateOps.set("name", suite.getName());
+        }
+        if (suite.getRequirements() != null){
+            updateOps.set("requirements", suite.getRequirements());
+        }
         String id = suite.getId();
         Query<Suite> query = suiteDAO.createIdQuery(id);
         Suite result = suiteDAO.getDatastore().findAndModify(query, updateOps);

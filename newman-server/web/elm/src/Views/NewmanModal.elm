@@ -6,7 +6,7 @@ import Bootstrap.Form.Input as FormInput exposing (onInput)
 import Bootstrap.Modal as Modal exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Utils.Types exposing (Suite)
+import Utils.Types exposing (Suite, SuiteWithCriteria)
 
 
 confirmJobDrop : Maybe String -> (State -> toMsg) -> (String -> toMsg) -> State -> Html toMsg
@@ -74,7 +74,7 @@ confirmSuiteDrop maybeSuite toMsg confirmMsg modalState =
             Modal.config toMsg
                 |> Modal.large
                 |> Modal.h3 [] [ text "Confirmation is required" ]
-                |> Modal.body [] [ p [] [ text <| "Are you sure you want to delete suite " ++ suite.name ++ "?"  ] ]
+                |> Modal.body [] [ p [] [ text <| "Are you sure you want to delete suite " ++ suite.name ++ "?" ] ]
                 |> Modal.footer []
                     [ Button.button
                         [ Button.danger
@@ -191,8 +191,7 @@ createSuiteForFailedTestsModal maybeSuiteName maybeMessage toMsg onInput onConfi
             viewError "Suite name was not passed" toMsg modalState
 
 
-
-cloneSuiteModal : Maybe Suite -> Maybe String -> Maybe (Result String String) ->(State -> toMsg) -> (String -> toMsg) -> (Suite -> String -> toMsg) -> State -> Html toMsg
+cloneSuiteModal : Maybe Suite -> Maybe String -> Maybe (Result String String) -> (State -> toMsg) -> (String -> toMsg) -> (Suite -> String -> toMsg) -> State -> Html toMsg
 cloneSuiteModal maybeSuite maybeName maybeMessage toMsg onInput confirmMsg modalState =
     case maybeSuite of
         Just suite ->
@@ -210,8 +209,8 @@ cloneSuiteModal maybeSuite maybeName maybeMessage toMsg onInput confirmMsg modal
                         Nothing ->
                             ( False, "" )
 
-                suiteName = Maybe.withDefault "Unknown error" maybeName
-
+                suiteName =
+                    Maybe.withDefault "Unknown error" maybeName
             in
             Modal.config toMsg
                 |> Modal.large
@@ -219,13 +218,15 @@ cloneSuiteModal maybeSuite maybeName maybeMessage toMsg onInput confirmMsg modal
                 |> Modal.body []
                     [ Form.group []
                         [ Form.label [ for "suiteName" ] [ text "New Suite Name:" ]
-                        , FormInput.text [ FormInput.onInput onInput, FormInput.id "suiteName" , FormInput.defaultValue suiteName , FormInput.disabled createButtonDisabled ] {- Todo- why the disable??- usually not "," between, line doesn't clesr -}
+                        , FormInput.text [ FormInput.onInput onInput, FormInput.id "suiteName", FormInput.defaultValue suiteName, FormInput.disabled createButtonDisabled ]
+
+                        {- Todo- why the disable??- usually not "," between, line doesn't clesr -}
                         , Form.help [] [ text "Make sure it starts with 'dev-' prefix." ]
                         ]
                     ]
                 |> Modal.footer []
-                     [ div [ style [ ( "width", "100%" ) ] ] [ text message ]
-                     , Button.button
+                    [ div [ style [ ( "width", "100%" ) ] ] [ text message ]
+                    , Button.button
                         [ Button.success
                         , Button.onClick <| confirmMsg suite suiteName
                         ]
@@ -241,3 +242,32 @@ cloneSuiteModal maybeSuite maybeName maybeMessage toMsg onInput confirmMsg modal
 
         Nothing ->
             viewError "Suite name was not passed" toMsg modalState
+
+
+updateSuiteConfirmationModal : SuiteWithCriteria -> (State -> toMsg) -> (SuiteWithCriteria -> toMsg) -> State -> Html toMsg
+updateSuiteConfirmationModal suite toMsg confirmMsg modalState =
+    let
+        msgStyle =
+            if String.startsWith "dev-" suite.name then
+                style [ ( "color", "black" ), ( "font-weight", "bold" ) ]
+
+            else
+                style [ ( "color", "red" ), ( "font-weight", "bold" ) ]
+    in
+    Modal.config toMsg
+        |> Modal.large
+        |> Modal.h3 [] [ text "Confirmation is required" ]
+        |> Modal.body [] [ p [ msgStyle ] [ text <| "Are you sure you want to apply changes to suite " ++ suite.name ++ "?" ] ]
+        |> Modal.footer []
+            [ Button.button
+                [ Button.danger
+                , Button.onClick <| confirmMsg suite
+                ]
+                [ text "Confirm" ]
+            , Button.button
+                [ Button.outlinePrimary
+                , Button.onClick <| toMsg Modal.hiddenState
+                ]
+                [ text "Close" ]
+            ]
+        |> Modal.view modalState

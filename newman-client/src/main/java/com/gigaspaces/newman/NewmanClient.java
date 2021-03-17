@@ -230,6 +230,10 @@ public class NewmanClient {
         return restClient.target(uri).path("suite").path(suiteId).request().rx().delete(Suite.class);
     }
 
+    public CompletionStage<Suite> updateSuite(Suite suite) {
+        return restClient.target(uri).path("update-suite").request().rx().post(Entity.json(suite), Suite.class);
+    }
+
     public CompletionStage<Test> getTestToRun(Agent agent) {
         return restClient.target(uri).path("agent").request().rx().post(Entity.json(agent), Test.class);
     }

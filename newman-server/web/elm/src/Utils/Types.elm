@@ -110,7 +110,7 @@ type alias SuiteWithCriteria =
     , name : String
     , customVariables : String
     , requirements : List String
-    , criteria : String
+    , criteria : Value
     }
 
 
@@ -360,6 +360,7 @@ decodeBuild =
         |> required "shas" (dict string)
 
 
+
 ---
 
 
@@ -516,6 +517,7 @@ decodeAgent =
         |> optional "groupName" string "undefined"
 
 
+
 -- This is a temp fix ^|^
 
 
@@ -539,7 +541,18 @@ decodeSuiteWithCriteria =
         |> required "name" string
         |> required "customVariables" string
         |> required "requirements" (list string)
-        |> required "criteria" (map (Json.Encode.encode 4) value)
+        |> required "criteria" value
+
+
+encodeSuiteWithCriteria : SuiteWithCriteria -> Json.Encode.Value
+encodeSuiteWithCriteria suite =
+    Json.Encode.object
+        [ ( "id", Json.Encode.string suite.id )
+        , ( "name", Json.Encode.string suite.name )
+        , ( "customVariables", Json.Encode.string suite.customVariables )
+        , ( "requirements", Json.Encode.list <| List.map Json.Encode.string suite.requirements )
+        , ( "criteria", suite.criteria )
+        ]
 
 
 decodeJobConfigs : Decoder JobConfigs
@@ -758,6 +771,7 @@ agentGroupTestFormat agentGroup assignedAgent =
 
     else
         ""
+
 
 legendPriority : Int -> String
 legendPriority priority =

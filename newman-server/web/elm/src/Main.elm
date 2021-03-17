@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Bootstrap.CDN exposing (stylesheet)
+import Bootstrap.Modal as Modal
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -115,7 +116,7 @@ routeToPage route =
             BuildPage <| Build.initModel
 
         SuiteRoute id ->
-            SuitePage (Suite.Model Nothing)
+            SuitePage (Suite.Model Nothing "" Modal.hiddenState Modal.hiddenState)
 
         TestRoute id ->
             TestPage <| Test.initModel
