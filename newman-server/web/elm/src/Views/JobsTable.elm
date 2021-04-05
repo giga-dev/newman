@@ -28,7 +28,6 @@ import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal exposing (..)
 
 
-
 type Msg
     = First
     | Last
@@ -71,7 +70,7 @@ type alias Model =
     , modalState : Modal.State
     , newPriorityMessage : String
     , priorities : List Int
-    , currentAgentGroups : List (String , String)
+    , currentAgentGroups : List ( String, String )
     }
 
 
@@ -81,7 +80,7 @@ init jobs =
         pageSize =
             15
     in
-    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing Nothing 0 (Multiselect.initModel [] "") "" Dropdown.initialState Modal.hiddenState "" [0, 1, 2, 3, 4] []
+    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing Nothing 0 (Multiselect.initModel [] "") "" Dropdown.initialState Modal.hiddenState "" [ 0, 1, 2, 3, 4 ] []
 
 
 viewTable : Model -> Maybe Time -> Html Msg
@@ -269,7 +268,7 @@ viewJob currTime job =
         editJobButton =
             Button.button [ Button.roleLink, Button.attrs [ style [ ( "padding", "0px 5px 0px 5px" ) ], class "ion-android-options" ], Button.disabled <| job.state == DONE, Button.onClick <| GetAllAgentGroupsCmd job ] []
     in
-    tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests ) ] ]
+    tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests && job.runningTests == 0 && job.failedTests == 0 ) ] ]
         [ td [] [ jobState ]
         , td [] [ progress ]
         , td [] [ a [ href <| "#job/" ++ job.id ++ "/ALL", title job.id ] [ text job.id ] ]
@@ -345,6 +344,7 @@ viewModal model =
                             [ Col.sm7 ]
                             [ text right ]
                         ]
+
                 currentPriority =
                     Maybe.withDefault 0 job.priority
 
@@ -357,17 +357,17 @@ viewModal model =
                 |> Modal.body []
                     [ Grid.containerFluid [ style [] ]
                         [ twoColsRow "Suite" job.suiteName
-                        , twoColsRow "Build" (job.buildName++" ("++job.buildBranch++")")
+                        , twoColsRow "Build" (job.buildName ++ " (" ++ job.buildBranch ++ ")")
                         , Grid.row []
                             [ Grid.col
                                 [ Col.sm3 ]
                                 [ text "New Priority" ]
                             , Grid.col
                                 [ Col.sm7 ]
-                                    [ Select.select
-                                         [ Select.onChange NewJobPriorityMsg, Select.attrs [ style [ ( "width", "200px"),(  "margin-bottom", "5px")] ] ]
-                                          (List.map toPriorityOption model.priorities)
-                                    ]
+                                [ Select.select
+                                    [ Select.onChange NewJobPriorityMsg, Select.attrs [ style [ ( "width", "200px" ), ( "margin-bottom", "5px" ) ] ] ]
+                                    (List.map toPriorityOption model.priorities)
+                                ]
                             ]
                         , Grid.row []
                             [ Grid.col
@@ -375,7 +375,7 @@ viewModal model =
                                 [ text "New Agent Groups" ]
                             , Grid.col
                                 [ Col.sm7 ]
-                                    [ Multiselect.view model.newAgentGroups |> Html.map MultiSelectAgentGroupsMsg]
+                                [ Multiselect.view model.newAgentGroups |> Html.map MultiSelectAgentGroupsMsg ]
                             ]
                         ]
                     ]
@@ -491,11 +491,12 @@ update msg model =
                     agentGroupsList =
                         List.map (\( v, k ) -> v) (Multiselect.getSelectedValues model.newAgentGroups)
                 in
-                    case agentGroupsList of
-                        [] ->
-                            ({ model | newPriorityMessage = "Please select one or more agent groups" }, Cmd.none )
-                        _ ->
-                            ({ model | modalState = Modal.hiddenState, jobToEdit = Nothing, newPriorityMessage = "" }, editJobCmd job.id model.newPriority agentGroupsList )
+                case agentGroupsList of
+                    [] ->
+                        ( { model | newPriorityMessage = "Please select one or more agent groups" }, Cmd.none )
+
+                    _ ->
+                        ( { model | modalState = Modal.hiddenState, jobToEdit = Nothing, newPriorityMessage = "" }, editJobCmd job.id model.newPriority agentGroupsList )
 
             else
                 ( { model | newPriorityMessage = "priority must be between: 0 - 4" }, Cmd.none )
@@ -519,7 +520,8 @@ update msg model =
                         agentGroups =
                             List.map (\item -> ( item, item )) data
                     in
-                        ( { model | modalState = Modal.visibleState, newAgentGroups = Multiselect.populateValues model.newAgentGroups agentGroups model.currentAgentGroups }, Cmd.none )
+                    ( { model | modalState = Modal.visibleState, newAgentGroups = Multiselect.populateValues model.newAgentGroups agentGroups model.currentAgentGroups }, Cmd.none )
+
                 Err err ->
                     let
                         e =
@@ -528,7 +530,8 @@ update msg model =
                     ( model, Cmd.none )
 
         GetAllAgentGroupsCmd job ->
-            ( { model | newPriority = job.priority |> Maybe.withDefault 0, jobToEdit = Just job,  currentAgentGroups = List.map (\item -> ( item, item )) job.agentGroups }, getAllAgentGroupsCmd )
+            ( { model | newPriority = job.priority |> Maybe.withDefault 0, jobToEdit = Just job, currentAgentGroups = List.map (\item -> ( item, item )) job.agentGroups }, getAllAgentGroupsCmd )
+
 
 filterQuery : String -> Job -> Bool
 filterQuery query job =
@@ -634,11 +637,12 @@ toggleJobsResumeCmd jobIds =
 
 editJobCmd : String -> Int -> List String -> Cmd Msg
 editJobCmd jobId updatePriority updateAgentGroupsList =
-    Http.send RequestCompletedEditJob <| Http.post ("/api/newman/job/" ++ jobId++"/edit") (Http.jsonBody (decodeJobForEdit updatePriority updateAgentGroupsList)) decodeJob
+    Http.send RequestCompletedEditJob <| Http.post ("/api/newman/job/" ++ jobId ++ "/edit") (Http.jsonBody (decodeJobForEdit updatePriority updateAgentGroupsList)) decodeJob
+
 
 decodeJobForEdit : Int -> List String -> Value
 decodeJobForEdit updatePriority updateAgentGroupsList =
-    Json.Encode.object [( "agentGroups", Json.Encode.list <| List.map Json.Encode.string updateAgentGroupsList ), ( "priority", Json.Encode.int updatePriority )]
+    Json.Encode.object [ ( "agentGroups", Json.Encode.list <| List.map Json.Encode.string updateAgentGroupsList ), ( "priority", Json.Encode.int updatePriority ) ]
 
 
 onRequestCompletedDropJob : String -> Model -> Result Http.Error String -> ( Model, Cmd Msg )
@@ -677,6 +681,7 @@ handleEvent event =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Dropdown.subscriptions model.actionState ActionStateMsg
+
 
 getAllAgentGroupsCmd : Cmd Msg
 getAllAgentGroupsCmd =
