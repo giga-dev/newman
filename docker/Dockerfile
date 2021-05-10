@@ -62,13 +62,17 @@ RUN echo 'installing elm' && \
      npm config set prefix "/home/${user}/.npm-global"
 ENV PATH=/home/${user}/.npm-global/bin:$PATH
 
-
-RUN npm install -g elm@0.18.0
+RUN wget --no-verbose -O /tmp/elm.gz https://github.com/elm-lang/elm-platform/releases/download/0.18.0-exp/elm-platform-linux-64bit.tar.gz
+RUN gunzip /tmp/elm.gz
+RUN chmod +x /tmp/elm
+#RUN sudo mv /tmp/elm /usr/local/bin
+#RUN npm install -g elm@0.18.0
 
 VOLUME /newman/
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 USER root
+RUN mv /tmp/elm /usr/local/bin
 RUN apt-get install sudo curl -y netbase
 
 USER ${user}
