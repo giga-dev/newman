@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
 
@@ -36,6 +37,7 @@ public class NewmanServer {
     private static final String WEB_FOLDER_PATH = "newman.server.web-folder-path";
     private static final String DEFAULT_WEB_FOLDER_PATH = "./web/elm";
     private static final String KEYS_PATH = "newman.keys-folder-path";
+    private static final String CERT_FILE = "newman.certificate";
 
     public static void main(String[] args) throws Exception {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -105,14 +107,7 @@ public class NewmanServer {
         webSocketHolder.setInitOrder(1);
 
         try {
-            Resource keyStoreResource = createKeystoreResource();
-            SslContextFactory sslContextFactory = new SslContextFactory(false);
-            sslContextFactory.setKeyStoreResource(keyStoreResource);
-            sslContextFactory.setKeyStorePassword("password");
-            sslContextFactory.setKeyManagerPassword("password");
-            sslContextFactory.setTrustStoreResource(keyStoreResource);
-            sslContextFactory.setTrustStorePassword("password");
-
+            SslContextFactory sslContextFactory = createSslContextFactory();
             ServerConnector https = new ServerConnector(server, sslContextFactory);
             https.setName("https");
             https.setPort(8443);
@@ -149,6 +144,28 @@ public class NewmanServer {
             constraint.setRoles(roles);
         }
         return mapping;
+    }
+
+    private static SslContextFactory createSslContextFactory() throws IOException {
+        boolean hasCertfile = Optional.ofNullable(System.getProperty(CERT_FILE)).map(path -> new File(path).exists()).orElse(false);
+        if (hasCertfile) {
+            SslContextFactory sslContextFactory = new SslContextFactory();
+            sslContextFactory.setKeyStoreType("PKCS12");
+            sslContextFactory.setKeyStorePath(System.getProperty(CERT_FILE));
+            sslContextFactory.setKeyStorePassword("password");
+            sslContextFactory.setKeyManagerPassword("password");
+            return sslContextFactory;
+
+        } else {
+            Resource keyStoreResource = createKeystoreResource();
+            SslContextFactory sslContextFactory = new SslContextFactory(false);
+            sslContextFactory.setKeyStoreResource(keyStoreResource);
+            sslContextFactory.setKeyStorePassword("password");
+            sslContextFactory.setKeyManagerPassword("password");
+            sslContextFactory.setTrustStoreResource(keyStoreResource);
+            sslContextFactory.setTrustStorePassword("password");
+            return sslContextFactory;
+        }
     }
 
     private static Resource createKeystoreResource() throws IOException {

@@ -55,5 +55,6 @@ java -Dproduction=true \
     -Dnewman.mongo.db.name=${NEWMAN_MONGO_DB_NAME} \
     -Dnewman.server.realm-config-path=../config/realm.properties \
     -Dnewman.keys-folder-path=../keys/server.keystore \
+    -Dnewman.certificate=../certs/keystore.p12 \
     -Dnewman.server.web-folder-path=../web/elm -jar \
     ../target/newman-server-1.0.jar 2>&1 > /tmp/newman.log
