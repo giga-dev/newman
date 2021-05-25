@@ -40,6 +40,7 @@ type alias Job =
     , startTime : Maybe Int
     , endTime : Maybe Int
     , jobSetupLogs : Dict String String
+    , selected : Bool
     }
 
 
@@ -310,6 +311,7 @@ decodeJob =
         |> optional "startTime" (nullable int) Nothing
         |> optional "endTime" (nullable int) Nothing
         |> optional "jobSetupLogs" (dict string) Dict.empty
+        |> optional "selected" bool False
 
 
 decodeJobList : Decoder (List Job)
@@ -344,6 +346,7 @@ decodeJobView =
         |> optional "startTime" (nullable int) Nothing
         |> optional "endTime" (nullable int) Nothing
         |> optional "jobSetupLogs" (dict string) Dict.empty
+        |> optional "selected" bool False
 
 
 decodeBuild : Decoder Build

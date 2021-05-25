@@ -2436,6 +2436,83 @@ public class NewmanResource {
 
         return Response.ok(Entity.json(jobId)).build();
     }
+    @POST
+    @Path("jobs/deletejobs")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public synchronized List<Job> deletejobs(final List<String> ids) {
+        List<Job> result = new ArrayList<>(ids.size());
+        for (String jobId : ids) {
+            Job deletedJob = performDeleteJob(jobId);
+            if (deletedJob.getPriority() > 0) {
+                deletePrioritizedJob(deletedJob);
+            }
+            performDeleteTestsLogs(jobId);
+            performDeleteJobSetupLogs(jobId);
+            updateBuildWithDeletedJob(deletedJob);
+            performDeleteTests(jobId);
+            result.add(deletedJob);
+            broadcastMessage(MODIFIED_JOB, deletedJob);
+        }
+        return result;
+    }
+//    @DELETE
+//    @Path("jobs/{jobsId}")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public Response deleteJobs(final @PathParam("jobsId") String concatJobsId) {
+//        String[] jobsId = concatJobsId.split(";");
+//        for( String jobId : jobsId){
+//            Job deletedJob = performDeleteJob(jobId);
+//            if (deletedJob.getPriority() > 0) {
+//                deletePrioritizedJob(deletedJob);
+//            }
+//            performDeleteTestsLogs(jobId);
+//            performDeleteJobSetupLogs(jobId);
+//            updateBuildWithDeletedJob(deletedJob);
+//            performDeleteTests(jobId);
+//        }
+//        return Response.ok(Entity.json(concatJobsId)).build();
+//    }
+
+//    @DELETE
+//    @Path("jobs/deletejobs")
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public synchronized List<Job> deleteMultipleJobs(final List<String> ids) {
+//        List<Job> result = new ArrayList<>(ids.size());
+//        for (String jobId : ids) {
+//            Job deletedJob = performDeleteJob(jobId);
+//            if (deletedJob.getPriority() > 0) {
+//                deletePrioritizedJob(deletedJob);
+//            }
+//            performDeleteTestsLogs(jobId);
+//            performDeleteJobSetupLogs(jobId);
+//            updateBuildWithDeletedJob(deletedJob);
+//            performDeleteTests(jobId);
+//            Job job = findOneJobById(jobId);
+//            if (job != null) {
+//                result.add(job);
+//            }
+//        }
+//        return result;
+//    }
+//    @DELETE
+//    @Path("jobs/deletejobs")
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public synchronized Response deleteMultipleJobs(final List<String> ids) {
+//        for(String jobId : ids){
+//            Job deletedJob = performDeleteJob(jobId);
+//            if (deletedJob.getPriority() > 0) {
+//                deletePrioritizedJob(deletedJob);
+//            }
+//            performDeleteTestsLogs(jobId);
+//            performDeleteJobSetupLogs(jobId);
+//            updateBuildWithDeletedJob(deletedJob);
+//            performDeleteTests(jobId);
+//        }
+//        return Response.ok(Entity.json("jobs")).build();
+//    }
 
     private void deletePrioritizedJob(Job job) {
         PrioritizedJob deletePrioritizedJob = prioritizedJobDAO.getDatastore().findAndDelete(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()));
