@@ -72,7 +72,6 @@ VOLUME /newman/
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 USER root
-RUN mv /tmp/elm /usr/local/bin
 RUN apt-get install sudo curl -y netbase
 
 USER ${user}
