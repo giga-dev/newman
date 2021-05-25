@@ -60,12 +60,12 @@ USER ${user}
 RUN echo 'installing elm' && \
     mkdir /home/${user}/.npm-global && \
      npm config set prefix "/home/${user}/.npm-global"
-ENV PATH=/home/${user}/.npm-global/bin:$PATH
 
-RUN wget --no-verbose -O /tmp/elm.gz https://github.com/elm-lang/elm-platform/releases/download/0.18.0-exp/elm-platform-linux-64bit.tar.gz
-RUN gunzip /tmp/elm.gz
-RUN chmod +x /tmp/elm
-#RUN sudo mv /tmp/elm /usr/local/bin
+ENV PATH=/home/${user}/.npm-global/:$PATH
+ENV globalDir="/home/${user}/.npm-global/"
+RUN cd ${globalDir} && wget --no-verbose -O "${globalDir}"/elm.tar.gz https://github.com/elm-lang/elm-platform/releases/download/0.18.0-exp/elm-platform-linux-64bit.tar.gz && \
+    tar -zxvf "${globalDir}"/elm.tar.gz 
+
 #RUN npm install -g elm@0.18.0
 
 VOLUME /newman/
