@@ -38,13 +38,18 @@ type Msg
     | OnClickToggleJob String
     | RequestCompletedToggleJob (Result Http.Error Job)
     | RequestCompletedToggleJobs (Result Http.Error (List Job))
+    | RequestCompletedDeleteJobs (Result Http.Error (List Job))
     | NewmanModalMsg Modal.State
     | OnClickJobDrop String
     | OnJobDropConfirmed String
+    | DeleteJobs
+    | OnJobsDropConfirmed (List String)
     | RequestCompletedDropJob String (Result Http.Error String)
     | WebSocketEvent WebSocket.Event
     | PauseAll
     | ResumeAll
+    | PauseJobs
+    | ResumeJobs
     | ActionStateMsg Dropdown.State
     | AnimateModal Modal.State
     | CloseModal
@@ -54,6 +59,8 @@ type Msg
     | MultiSelectAgentGroupsMsg Multiselect.Msg
     | GetAllAgentGroupsCompleted (Result Http.Error (List String))
     | GetAllAgentGroupsCmd Job
+    | SelectJobs Job Bool
+    | SelectAllJobs Bool
 
 
 type alias Model =
@@ -61,7 +68,9 @@ type alias Model =
     , jobs : PaginatedList Job
     , pageSize : Int
     , confirmationState : Modal.State
+    , multiJobsConfirmationState : Modal.State
     , jobToDrop : Maybe String
+    , jobsToDrop : List String
     , jobToEdit : Maybe Job
     , newPriority : Int
     , newAgentGroups : Multiselect.Model
@@ -80,7 +89,7 @@ init jobs =
         pageSize =
             15
     in
-    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Nothing Nothing 0 (Multiselect.initModel [] "") "" Dropdown.initialState Modal.hiddenState "" [ 0, 1, 2, 3, 4 ] []
+    Model jobs (Paginate.fromList pageSize jobs) pageSize Modal.hiddenState Modal.hiddenState Nothing [] Nothing 0 (Multiselect.initModel [] "") "" Dropdown.initialState Modal.hiddenState "" [ 0, 1, 2, 3, 4 ] []
 
 
 viewTable : Model -> Maybe Time -> Html Msg
@@ -131,16 +140,26 @@ viewTable model currTime =
         widthPct pct =
             style [ ( "width", pct ) ]
 
+        numberOfSelected =
+             "Actions ( " ++ toString (List.length (List.filter (\x -> x.selected == True) (Paginate.allItems model.jobs))) ++ " selected)"
+
+        actionDisable  =
+            List.isEmpty (List.filter (\job -> job.selected == True && not (List.member job.state [ DONE, PAUSED, BROKEN ] && (job.runningTests <= 0) && List.length job.agents <= 0)) (Paginate.allItems model.jobs))
+
         actionButton =
             div []
                 [ Dropdown.dropdown
                     model.actionState
                     { options = []
                     , toggleMsg = ActionStateMsg
-                    , toggleButton = Dropdown.toggle [ Button.primary ] [ text "Actions" ]
+                    , toggleButton = Dropdown.toggle [ Button.primary ] [ text  numberOfSelected]
                     , items =
-                        [ Dropdown.buttonItem [ onClick PauseAll ] [ text "Pause All" ]
-                        , Dropdown.buttonItem [ onClick ResumeAll ] [ text "Resume All" ]
+                        [ Dropdown.buttonItem [ onClick PauseJobs ] [ text "Pause" ]
+                        , Dropdown.buttonItem [ onClick ResumeJobs ] [ text "Resume" ]
+                        , Dropdown.buttonItem [ onClick DeleteJobs, disabled <| not actionDisable ] [ text "Delete" ]
+
+                        --, Dropdown.buttonItem [ onClick PauseAll ] [ text "Pause All" ]
+                        --, Dropdown.buttonItem [ onClick ResumeAll ] [ text "Resume All" ]
                         ]
                     }
                 ]
@@ -160,7 +179,16 @@ viewTable model currTime =
         , table [ class "table table-sm table-bordered table-striped table-nowrap table-hover" ]
             [ thead []
                 [ tr []
-                    [ th [ class "job-tests-state" ] [ text "State" ]
+                    [ th [ widthPct "2%" ]
+                        [ input
+                            [ type_ "checkbox"
+                            , checked (Paginate.page model.jobs == (List.filter(\x -> x.selected == True) (Paginate.page model.jobs)))
+                            , title "select all"
+                            , onCheck (\b -> SelectAllJobs b)
+                            ]
+                            []
+                        ]
+                    , th [ class "job-tests-state" ] [ text "State" ]
                     , th [ class "job-tests-progress" ] [ text "Progess" ]
                     , th [ widthPct "8%" ] [ text "Job Id" ]
                     , th [ widthPct "8%" ] [ text "Suite" ]
@@ -191,6 +219,7 @@ viewTable model currTime =
             ]
         , pagination
         , NewmanModal.confirmJobDrop model.jobToDrop NewmanModalMsg OnJobDropConfirmed model.confirmationState
+        , NewmanModal.confirmJobsDrop model.jobsToDrop NewmanModalMsg OnJobsDropConfirmed model.multiJobsConfirmationState
         , viewModal model
         ]
 
@@ -267,9 +296,18 @@ viewJob currTime job =
 
         editJobButton =
             Button.button [ Button.roleLink, Button.attrs [ style [ ( "padding", "0px 5px 0px 5px" ) ], class "ion-android-options" ], Button.disabled <| job.state == DONE, Button.onClick <| GetAllAgentGroupsCmd job ] []
+
+        checkboxInput =
+            input
+                [ type_ "checkbox"
+                , checked job.selected
+                , onCheck (SelectJobs job)
+                ]
+                []
     in
     tr [ classList [ ( "succeed-row", job.passedTests == job.totalTests && job.runningTests == 0 && job.failedTests == 0 ) ] ]
-        [ td [] [ jobState ]
+        [ td [] [ checkboxInput ]
+        , td [] [ jobState ]
         , td [] [ progress ]
         , td [] [ a [ href <| "#job/" ++ job.id ++ "/ALL", title job.id ] [ text job.id ] ]
         , td [ title job.suiteName ] [ text job.suiteName ]
@@ -427,14 +465,23 @@ update msg model =
         RequestCompletedToggleJobs result ->
             onRequestCompletedToggleJobs model result
 
+        RequestCompletedDeleteJobs result ->
+            onRequestCompletedDeleteJobs model result
+
         NewmanModalMsg newState ->
-            ( { model | jobToDrop = Nothing, confirmationState = newState }, Cmd.none )
+            ( { model | jobToDrop = Nothing, confirmationState = newState, multiJobsConfirmationState = newState }, Cmd.none )
 
         OnClickJobDrop jobId ->
             ( { model | confirmationState = Modal.visibleState, jobToDrop = Just jobId }, Cmd.none )
 
         OnJobDropConfirmed jobId ->
             ( { model | confirmationState = Modal.hiddenState }, dropJobCmd jobId )
+
+        DeleteJobs ->
+            ( { model | multiJobsConfirmationState = Modal.visibleState, jobsToDrop = List.filter (\x -> x.selected == True) (Paginate.allItems model.jobs) |> List.map .id }, Cmd.none )
+
+        OnJobsDropConfirmed jobsId ->
+            ( { model | multiJobsConfirmationState = Modal.hiddenState }, dropJobsCmd jobsId)
 
         RequestCompletedDropJob jobId result ->
             onRequestCompletedDropJob jobId model result
@@ -461,6 +508,22 @@ update msg model =
         ResumeAll ->
             ( model
             , Paginate.allItems model.jobs
+                |> List.filter (\job -> job.state == PAUSED)
+                |> List.map .id
+                |> toggleJobsResumeCmd
+            )
+
+        PauseJobs ->
+            ( model
+            , List.filter (\x -> x.selected == True) (Paginate.allItems model.jobs)
+                |> List.filter (\job -> job.state == RUNNING || job.state == READY)
+                |> List.map .id
+                |> toggleJobsPauseCmd
+            )
+
+        ResumeJobs ->
+            ( model
+            , List.filter (\x -> x.selected == True) (Paginate.allItems model.jobs)
                 |> List.filter (\job -> job.state == PAUSED)
                 |> List.map .id
                 |> toggleJobsResumeCmd
@@ -531,6 +594,36 @@ update msg model =
 
         GetAllAgentGroupsCmd job ->
             ( { model | newPriority = job.priority |> Maybe.withDefault 0, jobToEdit = Just job, currentAgentGroups = List.map (\item -> ( item, item )) job.agentGroups }, getAllAgentGroupsCmd )
+
+        SelectJobs job check ->
+            let
+                mapFunction curr =
+                    if curr.id == job.id then
+                        { curr | selected = check }
+
+                    else
+                        curr
+
+                updateSelectedPageJobs =
+                    Paginate.map (List.map mapFunction) model.jobs
+            in
+            ( { model | jobs = updateSelectedPageJobs }, Cmd.none )
+
+        SelectAllJobs check ->
+            let
+                jobFromCurrPage curr =
+                    not (List.isEmpty (List.filter(\x -> x.id == curr.id) (Paginate.page model.jobs)))
+
+                mapFunction curr =
+                    if jobFromCurrPage curr || model.query /= "" then
+                        { curr | selected = check }
+                    else
+                        curr
+
+                updateSelectedPageJobs =
+                   Paginate.map (List.map mapFunction) model.jobs
+            in
+            ( { model | jobs = updateSelectedPageJobs }, Cmd.none )
 
 
 filterQuery : String -> Job -> Bool
@@ -619,6 +712,19 @@ onRequestCompletedToggleJobs model result =
             in
             ( model, Cmd.none )
 
+onRequestCompletedDeleteJobs : Model -> Result Http.Error (List Job) -> ( Model, Cmd Msg )
+onRequestCompletedDeleteJobs model result =
+    case result of
+        Ok jobs ->
+            ( List.foldr (flip updateJobRemoved) model (List.map .id jobs), Cmd.none )
+
+        Err err ->
+            let
+                e =
+                    Debug.log "ERROR:onRequestCompletedToggleJobS" err
+            in
+            ( model, Cmd.none )
+
 
 toggleJobCmd : String -> Cmd Msg
 toggleJobCmd jobId =
@@ -658,6 +764,9 @@ onRequestCompletedDropJob jobId model result =
             in
             ( model, Cmd.none )
 
+dropJobsCmd : List String -> Cmd Msg
+dropJobsCmd jobsIds =
+    Http.send RequestCompletedDeleteJobs <| Http.post "/api/newman/jobs/deletejobs" (Http.jsonBody (encodeListOfStrings jobsIds)) decodeJobList
 
 dropJobCmd : String -> Cmd Msg
 dropJobCmd jobId =
@@ -671,7 +780,6 @@ dropJobCmd jobId =
             , timeout = Nothing
             , withCredentials = False
             }
-
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =

@@ -2436,6 +2436,26 @@ public class NewmanResource {
 
         return Response.ok(Entity.json(jobId)).build();
     }
+    @POST
+    @Path("jobs/deletejobs")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public synchronized List<Job> deletejobs(final List<String> ids) {
+        List<Job> result = new ArrayList<>(ids.size());
+        for (String jobId : ids) {
+            Job deletedJob = performDeleteJob(jobId);
+            if (deletedJob.getPriority() > 0) {
+                deletePrioritizedJob(deletedJob);
+            }
+            performDeleteTestsLogs(jobId);
+            performDeleteJobSetupLogs(jobId);
+            updateBuildWithDeletedJob(deletedJob);
+            performDeleteTests(jobId);
+            result.add(deletedJob);
+            broadcastMessage(MODIFIED_JOB, deletedJob);
+        }
+        return result;
+    }
 
     private void deletePrioritizedJob(Job job) {
         PrioritizedJob deletePrioritizedJob = prioritizedJobDAO.getDatastore().findAndDelete(prioritizedJobDAO.createQuery().field("jobId").equal(job.getId()));

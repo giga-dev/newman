@@ -8,6 +8,27 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Utils.Types exposing (Suite, SuiteWithCriteria)
 
+confirmJobsDrop : List String -> (State -> toMsg) -> (List String -> toMsg) -> State -> Html toMsg
+confirmJobsDrop jobsId toMsg confirmMsg modalState =
+    case jobsId of
+        jobsId ->
+            Modal.config toMsg
+                |> Modal.large
+                |> Modal.h3 [] [ text "Confirmation is required" ]
+                |> Modal.body [] [ p [] [ text <| "Are you sure you want to delete " ++ toString (List.length jobsId) ++ " jobs"] ]
+                |> Modal.footer []
+                    [ Button.button
+                        [ Button.danger
+                        , Button.onClick <| confirmMsg jobsId
+                        ]
+                        [ text "Confirm" ]
+                    , Button.button
+                        [ Button.outlinePrimary
+                        , Button.onClick <| toMsg Modal.hiddenState
+                        ]
+                        [ text "Close" ]
+                    ]
+                |> Modal.view modalState
 
 confirmJobDrop : Maybe String -> (State -> toMsg) -> (String -> toMsg) -> State -> Html toMsg
 confirmJobDrop maybeJob toMsg confirmMsg modalState =
