@@ -60,10 +60,13 @@ USER ${user}
 RUN echo 'installing elm' && \
     mkdir /home/${user}/.npm-global && \
      npm config set prefix "/home/${user}/.npm-global"
-ENV PATH=/home/${user}/.npm-global/bin:$PATH
 
+ENV PATH=/home/${user}/.npm-global/:$PATH
+ENV globalDir="/home/${user}/.npm-global/"
+RUN cd ${globalDir} && wget --no-verbose -O "${globalDir}"/elm.tar.gz https://github.com/elm-lang/elm-platform/releases/download/0.18.0-exp/elm-platform-linux-64bit.tar.gz && \
+    tar -zxvf "${globalDir}"/elm.tar.gz 
 
-RUN npm install -g elm@0.18.0
+#RUN npm install -g elm@0.18.0
 
 VOLUME /newman/
 ENV PATH=$JAVA_HOME/bin:$PATH
