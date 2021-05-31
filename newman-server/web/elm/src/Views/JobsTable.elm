@@ -650,8 +650,22 @@ filterQuery query job =
 updateAllJobs : (List Job -> List Job) -> Model -> Model
 updateAllJobs f model =
     let
+        findPrevJobState job =
+            List.filter(\y -> y.id == job.id) (Paginate.allItems model.jobs)
+
+        getPrevSelectedState job =
+            case List.head (findPrevJobState job) of
+                    Nothing -> False
+                    Just headJob -> .selected <| headJob
+
+        setSelected job =
+            { job | selected = getPrevSelectedState job}
+
+        saveSelectedState jobs =
+            List.map (\item -> setSelected item) jobs
+
         newList =
-            f model.allJobs
+            saveSelectedState (f model.allJobs)
 
         filtered =
             List.filter (filterQuery model.query) newList
