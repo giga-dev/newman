@@ -7,11 +7,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.*;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,51 +67,11 @@ public class FileUtils {
     }
 
     public static void download(URL source, Path target) throws IOException {
-        if (source.getProtocol().equalsIgnoreCase("https")) {
-            try {
-                downloadSSL(source, target);
-            }
-            catch (Exception e) {
-                throw new IOException(e);
-            }
-            return;
-        }
-        try (ReadableByteChannel rbc = Channels.newChannel(source.openStream())) {
+        boolean isSSL = source.getProtocol().equalsIgnoreCase("https");
+        HttpURLConnection connection = null;
+        try {
+            connection = getConnection(source, isSSL);
             String sourcePath = source.getPath();
-            String filename = sourcePath.substring(sourcePath.lastIndexOf('/') + 1);
-            Path output = append(target, filename);
-            try (FileOutputStream fos = new FileOutputStream(output.toFile())) {
-                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-            }
-        }catch(Exception e){
-            logger.error(e.toString(), e);
-            throw e;
-        }
-    }
-
-    private static HttpsURLConnection getHttpsConnection(URL url, SSLContext sc) throws NoSuchAlgorithmException, KeyManagementException, IOException {
-        TrustManager[] trustAllCerts = getMockTrustManagers();
-        HttpsURLConnection connection;
-        try {
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            connection = (HttpsURLConnection) url.openConnection();
-        }
-        catch (Exception e){
-            logger.error("failed to connect to url");
-            throw e;
-        }
-        return connection;
-    }
-
-    private static void downloadSSL(URL url, Path target) throws IOException, KeyManagementException, NoSuchAlgorithmException {
-        HttpsURLConnection connection = null;
-        try {
-            SSLContext sc = SSLContext.getInstance("TLS");
-            connection = getHttpsConnection(url, sc);
-            connection.setRequestMethod("GET");
-            connection.setDoOutput(true);
-            connection.setSSLSocketFactory(sc.getSocketFactory());
-            String sourcePath = url.getPath();
             String filename = sourcePath.substring(sourcePath.lastIndexOf('/') + 1);
             Path output = append(target, filename);
             try (InputStream in = connection.getInputStream();
@@ -123,16 +82,43 @@ public class FileUtils {
                     out.write(buff, 0, read);
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error(e.toString(), e);
-            throw e;
-        }
-        finally {
+            throw new IOException(e);
+        } finally {
             if (connection != null) {
                 connection.disconnect();
             }
         }
+
+    }
+
+    private static HttpURLConnection getHttpsConnection(URL url) throws NoSuchAlgorithmException, KeyManagementException, IOException {
+        SSLContext sc = SSLContext.getInstance("TLS");
+        TrustManager[] trustAllCerts = getMockTrustManagers();
+        HttpsURLConnection connection;
+        try {
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            connection = (HttpsURLConnection) url.openConnection();
+            connection.setSSLSocketFactory(sc.getSocketFactory());
+        }
+        catch (Exception e){
+            logger.error("failed to connect to url");
+            throw e;
+        }
+        return connection;
+    }
+
+    private static HttpURLConnection getConnection(URL url, boolean ssl) throws NoSuchAlgorithmException, IOException, KeyManagementException {
+        HttpURLConnection connection;
+        if (ssl) {
+            connection = getHttpsConnection(url);
+        } else {
+            connection = (HttpURLConnection) url.openConnection();
+        }
+        connection.setReadTimeout(60000);
+        connection.setReadTimeout(60000);
+        return connection;
     }
 
     private static TrustManager[] getMockTrustManagers() {
@@ -230,10 +216,10 @@ public class FileUtils {
     public static void validateUris(Collection<URI> resources) throws IOException {
         for (URI uri : resources) {
             InputStream inputStream = null;
-            HttpsURLConnection connection = null;
+            HttpURLConnection connection = null;
             try {
                 if (uri.toURL().getProtocol().equalsIgnoreCase("https")){
-                    connection = getHttpsConnection(uri.toURL(), SSLContext.getInstance("TLS"));
+                    connection = getHttpsConnection(uri.toURL());
                     inputStream = connection.getInputStream();
                     return;
                 }
