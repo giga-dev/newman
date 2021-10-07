@@ -12,9 +12,9 @@ fi
 
 # make sure realm properties exist, if not create a for development
 mkdir -p ../config
-if [ ! -e "../config/realm.properties" ]; then
+
 cat  << '_EOF' >> ../config/realm.properties
-efrat,efrat, user
+efrat=efrat, user
 meshi=meshi, user
 ester=ester, user
 yuval=yuval, user
@@ -31,12 +31,14 @@ ayelet=ayelet, user
 root=root, admin
 support=support, user
 mishel=mishel, user
+sagiv=sagiv, user
 yonatan=yonatan, user
-sagiv=sagiv, uesr
 tomer=tomer, user
+noi=noi, user
+anton=anton, user
+yuvalo=yuvalo, user
 _EOF
 
-fi
 
 # System environment variables
 # Mongo host address to connect to from newman server
