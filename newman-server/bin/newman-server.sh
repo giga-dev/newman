@@ -37,6 +37,9 @@ tomer=tomer, user
 noi=noi, user
 anton=anton, user
 yuvalo=yuvalo, user
+itaio=itaio, user
+orens=orens, user
+
 _EOF
 
 
