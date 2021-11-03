@@ -39,7 +39,8 @@ anton=anton, user
 yuvalo=yuvalo, user
 itaio=itaio, user
 orens=orens, user
-
+yuval.dror=yuval.dror, user
+oleksii=oleksii, user
 _EOF
 
 
