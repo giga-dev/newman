@@ -41,6 +41,8 @@ itaio=itaio, user
 orens=orens, user
 yuval.dror=yuval.dror, user
 oleksii=oleksii, user
+alesia=alesia, user
+olha=olha, user
 _EOF
 
 
