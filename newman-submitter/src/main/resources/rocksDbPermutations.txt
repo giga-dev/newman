@@ -900,7 +900,8 @@ com.gigaspaces.test.document.DocumentTypeAddIndexFailover  /./qaSpace?cluster_sc
 com.gigaspaces.test.document.DocumentTypeDistribution /./qaSpace?cluster_schema=partitioned-sync2backup&total_members=2,1 remote
 com.gigaspaces.test.document.DocumentTypeRecovery /./qaSpace?cluster_schema=partitioned-sync2backup&total_members=1,1 remote
 com.gigaspaces.test.document.DocumentTypeFailover /./qaSpace?cluster_schema=partitioned-sync2backup&total_members=1,1 remote
-com.gigaspaces.test.document.DropTypeTest /./qaSpace remote
+com.gigaspaces.test.document.DocumentTypeDropClassTest /./qaSpace remote
+com.gigaspaces.test.document.DocumentTypeDropClassTest /./qaSpace?cluster_schema=partitioned-sync2backup&total_members=1,1 remote
 com.gigaspaces.test.document.LocalCacheDocumentPojoInteropTest /./qaSpace remote POJO PUSH
 com.gigaspaces.test.document.LocalCacheDocumentPojoInteropTest /./qaSpace remote POJO PULL
 com.gigaspaces.test.document.LocalCacheDocumentTest /./qaSpace remote PUSH
