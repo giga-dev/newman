@@ -46,6 +46,8 @@ yuval.dror=yuval.dror, user
 oleksii=oleksii, user
 alesia=alesia, user
 olha=olha, user
+michaelg=michaelg, user
+sapir=sapir, user
 _EOF
 
 
