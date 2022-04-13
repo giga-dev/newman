@@ -48,6 +48,7 @@ alesia=alesia, user
 olha=olha, user
 michaelg=michaelg, user
 sapir=sapir, user
+user=user, user
 _EOF
 
 
