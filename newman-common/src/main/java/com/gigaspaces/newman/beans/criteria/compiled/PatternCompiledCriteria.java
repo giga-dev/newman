@@ -1,5 +1,7 @@
 package com.gigaspaces.newman.beans.criteria.compiled;
 
+
+
 import com.gigaspaces.newman.beans.Test;
 
 import java.util.regex.Pattern;
@@ -17,6 +19,8 @@ public class PatternCompiledCriteria implements CompiledCriteria {
 
     @Override
     public boolean accept(Test test) {
-        return pattern.matcher(test.getName()).matches();
+        if (test.getName() != null)
+            return pattern.matcher(test.getName()).matches();
+    return true;
     }
 }

@@ -6,9 +6,7 @@ import com.gigaspaces.newman.beans.criteria.*;
 import com.gigaspaces.newman.beans.criteria.CriteriaEvaluator;
 import org.junit.Assert;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -255,6 +253,43 @@ public class CriteriaEvaluatorTest {
 
         Test test3 = new Test();
         assertFalse(criteriaEvaluator.evaluate(test3));
+    }
+
+    @org.junit.Test
+    public void test_SuiteCriteria()
+    {
+        List<Criteria> include = new ArrayList<>();
+        Test t = new Test();
+        t.setTestType("tgrid");
+        include.add(new TestCriteria(t));
+        include.add(new PatternCriteria("com.gigaspaces.mytest.foo"));
+        include.add(new PatternCriteria("com.gigaspaces.test.foo"));
+        List<Criteria> exclude = new ArrayList<>();
+        exclude.add(PatternCriteria.startsWithCriteria("com.gigaspaces.test"));
+        SuiteCriteria criteria= new SuiteCriteria(include,exclude,"tgrid");
+        CriteriaEvaluator criteriaEvaluator = new CriteriaEvaluator(criteria);
+        Test testWithType = new Test();
+        testWithType.setTestType("tgrid");
+        criteriaEvaluator.evaluate(testWithType);
+        assertFalse(criteriaEvaluator.evaluate(testWithType));
+
+        Test testWithPackageName = new Test();
+        testWithPackageName.setTestType("tgrid");
+        testWithPackageName.setName("com.gigaspaces.test");
+        criteriaEvaluator.evaluate(testWithPackageName);
+        assertFalse(criteriaEvaluator.evaluate(testWithPackageName));
+
+        Test testWithPackageName2 = new Test();
+        testWithPackageName2.setTestType("tgrid");
+        testWithPackageName2.setName("com.gigaspaces.test.foo");
+        criteriaEvaluator.evaluate(testWithPackageName2);
+        assertFalse(criteriaEvaluator.evaluate(testWithPackageName2));
+
+        Test testWithPackageName3 = new Test();
+        testWithPackageName3.setTestType("tgrid");
+        testWithPackageName3.setName("com.gigaspaces.mytest.foo");
+        criteriaEvaluator.evaluate(testWithPackageName3);
+        assertTrue(criteriaEvaluator.evaluate(testWithPackageName3));
     }
 
     @org.junit.Test

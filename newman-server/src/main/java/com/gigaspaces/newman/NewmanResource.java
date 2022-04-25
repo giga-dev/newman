@@ -3095,13 +3095,6 @@ public class NewmanResource {
                 uniqueFailedTests.put(test.getName(), test.getArguments());
             }
         }
-
-        List<Criteria> criteriaList = new LinkedList<>();
-        for (List<String> testArguments : uniqueFailedTests.values()) {
-            TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(testArguments);
-            criteriaList.add(criteria);
-        }
-
         Suite suite = job.getSuite();
 
         String testType = getTestType(suite.getCriteria());
@@ -3109,15 +3102,36 @@ public class NewmanResource {
         if (testType == null) {
             throw new Exception("Could not analyze testType from suite");
         }
+        else if(suite.getCriteria() instanceof SuiteCriteria)
+        {
+            List<Criteria> include = new ArrayList<>();
+            List<Criteria> exclude = Collections.emptyList();
+            for (List<String> testArguments : uniqueFailedTests.values()) {
+                TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(testArguments);
+                include.add(criteria);
+            }
+            suite.setCriteria(new SuiteCriteria(include,exclude,testType));
+            suite.setId(null);
+            suite.setName(newSuiteName);
+        }
+        else {
+
+            List<Criteria> criteriaList = new LinkedList<>();
+            for (List<String> testArguments : uniqueFailedTests.values()) {
+                TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(testArguments);
+                criteriaList.add(criteria);
+            }
 
 
-        suite.setId(null);
-        suite.setName(newSuiteName);
+            suite.setId(null);
+            suite.setName(newSuiteName);
 
-        Criteria criteria = CriteriaBuilder.join(
-                CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
-                CriteriaBuilder.include(criteriaList));
-        suite.setCriteria(criteria);
+            Criteria criteria = CriteriaBuilder.join(
+                    CriteriaBuilder.include(TestCriteria.createCriteriaByTestType(testType)),
+                    CriteriaBuilder.include(criteriaList));
+            suite.setCriteria(criteria);
+        }
+
 
         return suite;
     }
@@ -3146,6 +3160,9 @@ public class NewmanResource {
         if (criteria instanceof TestCriteria) {
             TestCriteria tmp = (TestCriteria) criteria;
             return tmp.getTest().getTestType();
+        }
+        if (criteria instanceof SuiteCriteria) {
+            return ((SuiteCriteria) criteria).getType();
         }
         if (criteria instanceof AndCriteria) {
             AndCriteria tmp = (AndCriteria) criteria;

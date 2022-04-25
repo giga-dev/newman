@@ -33,6 +33,9 @@ public class CriteriaEvaluator {
             return compileTestCriteria(((TestCriteria) criteria));
         } else if (criteria instanceof ArgumentsCriteria) {
             return compileArgumentCriteria(((ArgumentsCriteria) criteria));
+        } else if (criteria instanceof SuiteCriteria) {
+            SuiteCriteria suiteCriteria = (SuiteCriteria) criteria;
+            return compileSuiteCriteria(suiteCriteria.getInclude(), suiteCriteria.getExclude(), suiteCriteria.getType());
         }
         return null;
     }
@@ -40,6 +43,9 @@ public class CriteriaEvaluator {
 
     private CompiledCriteria compileArgumentCriteria(ArgumentsCriteria criteria) {
         return new ArgumentCompiledCriteria(criteria.getArg());
+    }
+    private CompiledCriteria compileSuiteCriteria(List<Criteria> include, List<Criteria> exclude, String type) {
+        return new SuiteCompiledCriteria(compileAll(include), compileAll(exclude), type);
     }
 
     private CompiledCriteria compileTestCriteria(TestCriteria criteria) {
