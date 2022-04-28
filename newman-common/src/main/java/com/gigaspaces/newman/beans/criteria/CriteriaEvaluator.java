@@ -35,7 +35,7 @@ public class CriteriaEvaluator {
             return compileArgumentCriteria(((ArgumentsCriteria) criteria));
         } else if (criteria instanceof SuiteCriteria) {
             SuiteCriteria suiteCriteria = (SuiteCriteria) criteria;
-            return compileSuiteCriteria(suiteCriteria.getInclude(), suiteCriteria.getExclude(), suiteCriteria.getType());
+            return compileSuiteCriteria(suiteCriteria.getInclude(), suiteCriteria.getExclude(), suiteCriteria.getSuiteType());
         }
         return null;
     }

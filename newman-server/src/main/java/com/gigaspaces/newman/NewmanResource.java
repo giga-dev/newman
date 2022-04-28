@@ -3162,7 +3162,7 @@ public class NewmanResource {
             return tmp.getTest().getTestType();
         }
         if (criteria instanceof SuiteCriteria) {
-            return ((SuiteCriteria) criteria).getType();
+            return ((SuiteCriteria) criteria).getSuiteType();
         }
         if (criteria instanceof AndCriteria) {
             AndCriteria tmp = (AndCriteria) criteria;

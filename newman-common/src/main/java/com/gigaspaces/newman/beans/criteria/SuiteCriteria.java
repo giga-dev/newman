@@ -3,7 +3,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class SuiteCriteria implements Criteria {
-    private String type;
+    private String suiteType;
     private List<Criteria> include;
     private List<Criteria> exclude;
 
@@ -17,15 +17,15 @@ public class SuiteCriteria implements Criteria {
     public SuiteCriteria(List<Criteria> include, List<Criteria> exclude, String type) {
         this.include = include;
         this.exclude = exclude;
-        this.type = type;
+        this.suiteType = type;
     }
 
-    public String getType() {
-        return type;
+    public String getSuiteType() {
+        return suiteType;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setSuiteType(String suiteType) {
+        this.suiteType = suiteType;
     }
 
     public List<Criteria> getInclude(){
@@ -45,7 +45,7 @@ public class SuiteCriteria implements Criteria {
     @Override
     public String toString() {
         return "SuiteCriteria{" +
-                "type='" + type + '\'' +
+                "suiteType='" + suiteType + '\'' +
                 ", include=" + include +
                 ", exclude=" + exclude +
                 '}';
