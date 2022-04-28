@@ -54,6 +54,7 @@ _EOF
 
 # System environment variables
 # Mongo host address to connect to from newman server
+# remote mongo db - xap-builder.gspaces.com:27017
 export NEWMAN_MONGO_DB_HOST=${NEWMAN_MONGO_DB_HOST="mongo-server"}
 
 # Mongo db name to access in database
@@ -62,6 +63,7 @@ export NEWMAN_MONGO_DB_NAME=${NEWMAN_MONGO_DB_NAME="newman-db"}
 export NEWMAN_SERVER_SPOTINST_TOKEN=${NEWMAN_SERVER_SPOTINST_TOKEN=""}
 export NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=""}
 # run newman server
+# to debug, add java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 \
 java -Dproduction=true \
     -Dnewman.server.spotinst.token="${NEWMAN_SERVER_SPOTINST_TOKEN}" \
     -Dnewman.server.spotinst.accountId="${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID}" \

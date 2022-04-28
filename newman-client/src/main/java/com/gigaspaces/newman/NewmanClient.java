@@ -314,4 +314,10 @@ public class NewmanClient {
     public CompletionStage<Build> appendToBuild(Build build) {
         return restClient.target(uri).path("build").request().rx().post(Entity.json(build), Build.class);
     }
+
+    //calls the creates suite from failing test option in UI
+    public CompletionStage<Suite> createSuiteFromFailingTests(String jobId, String suiteName) {
+        return restClient.target(uri).path("suite").path("failedTests").queryParam("jobId",jobId)
+                .queryParam("suiteName",suiteName).request().rx().post(Entity.text(""), Suite.class);
+    }
 }

@@ -212,9 +212,9 @@ public class NewmanJobSubmitter {
     }
 
     private static void testSubmitterFromIntelliJ() throws Exception {
-        String suiteId = "5b6c24e7b385941b3b8ce4bf";
-        String buildId = "5d19f01a4cedfd000cd81982";
-        String configId = "5b4c9342b3859411ee82c265";
+        String suiteId = "6260486841b6b5b45f5d5c67";
+        String buildId = "5cf3f8ec4cedfd000c4ba171";
+        String configId = "5bf160bb1f31eb789fc0fb78";
         String requiredAgentGroups = "imc-srv01";
         int priority = 1;
 
@@ -225,6 +225,10 @@ public class NewmanJobSubmitter {
         String password = EnvUtils.getEnvironment(NewmanClientUtil.NEWMAN_PASSWORD, true /*required*/, logger);
         Set<String> agentGroups = NewmanJobSubmitter.parse(requiredAgentGroups);
 
+//        String host= "localhost";
+//        String port =  "8443";
+//        String username = "root";
+//        String password ="root";
 
         NewmanJobSubmitter submitter = new NewmanJobSubmitter(suiteId, buildId, configId, host, port, username, password, agentGroups, priority);
 

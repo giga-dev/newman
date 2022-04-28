@@ -1,18 +1,14 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Agent;
-import com.gigaspaces.newman.beans.Batch;
-import com.gigaspaces.newman.beans.Build;
-import com.gigaspaces.newman.beans.Job;
-import com.gigaspaces.newman.beans.JobRequest;
-import com.gigaspaces.newman.beans.Suite;
-import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.beans.criteria.CriteriaBuilder;
 import com.gigaspaces.newman.beans.criteria.PatternCriteria;
 import com.gigaspaces.newman.beans.criteria.TestCriteria;
 import com.gigaspaces.newman.utils.EnvUtils;
 import com.gigaspaces.newman.utils.FileUtils;
+//import com.google.gson.Gson;
+//import com.google.gson.GsonBuilder;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.client.rx.RxClient;
@@ -81,6 +77,45 @@ public class Main {
     }
 
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException {
+
+        NewmanClient newmanClient = createNewmanClient();
+        try {
+            CompletableFuture<Suite> suiteCompletableFuture = newmanClient.getSuite("625e9faf41b6b5b45f4b48f0").toCompletableFuture();
+            Suite suit =suiteCompletableFuture.get();
+            System.out.println(suit);
+//            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+//            System.out.println(gson.toJson(suit));
+            JobRequest jobRequest = new JobRequest();
+            jobRequest.setBuildId("5cf3f8ec4cedfd000c4ba171");
+            jobRequest.setSuiteId("625e9faf41b6b5b45f4b48f0");
+            jobRequest.setConfigId("5bf160bb1f31eb789fc0fb78");
+
+            Job job = newmanClient.createJob(jobRequest).toCompletableFuture().get();
+            List<Test> tests =new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                Test test = new Test();
+                test.setStatus(Test.Status.FAIL);
+                test.setJobId(job.getId());
+                test.setName("test_" + i);
+                test.setArguments(Arrays.asList(Test.class.getName()/*, "arg1", "arg2" */));
+                tests.add(test);
+                 logger.info("added test {}", test);
+            }
+            newmanClient.createTests(tests,"count").toCompletableFuture().get();
+
+
+            Suite suite = newmanClient.createSuiteFromFailingTests(job.getId(),"sapir_moran").toCompletableFuture().get();
+
+
+
+        } catch (Exception e) {
+            logger.error(e.toString(), e);
+        } finally {
+            newmanClient.close();
+        }
+    }
+
+    public static void main__2(String[] args) throws KeyManagementException, NoSuchAlgorithmException {
 
         NewmanClient newmanClient = createNewmanClient();
         try {
