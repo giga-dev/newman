@@ -12,7 +12,20 @@ import UrlParser exposing (Parser)
 import Utils.Types exposing (..)
 import Utils.WebSocket as WebSocket exposing (..)
 import Views.NewmanModal as NewmanModal
+import String exposing (..)
+import Json.Encode exposing (encode, string)
 
+appendNewLine: String -> String
+appendNewLine str = String.append str "\n"
+
+
+isNullable: String -> Bool
+isNullable x =
+  if contains "null," x  || endsWith "{}," x || endsWith "[]," x || (contains ": 0," x && contains "progressPercent" x || (contains "runNumber" x && contains ": 1," x) ) then
+
+    False
+  else
+    True
 
 type alias Model =
     { maybeSuite : Maybe SuiteWithCriteria
@@ -174,7 +187,12 @@ update msg model =
         GetSuiteInfoCompleted result ->
             case result of
                 Ok data ->
-                    ( { model | maybeSuite = Just data, criteriaString = Json.Encode.encode 4 data.criteria }, Cmd.none )
+                    ( Debug.log (toString data.criteria)
+                    {
+                    --model | maybeSuite = Just data, criteriaString = Json.Encode.encode 4  data.criteria }, Cmd.none )
+                    model | maybeSuite = Just data, criteriaString = concat (List.map appendNewLine (List.filter isNullable (split "\n" ( Json.Encode.encode 4 data.criteria)))) }, Cmd.none )
+
+                --    toString (List.filter isNullable (split ","(toString data.criteria)))
 
                 Err err ->
                     ( model, Cmd.none )
