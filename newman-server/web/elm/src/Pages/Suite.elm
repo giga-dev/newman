@@ -189,11 +189,7 @@ update msg model =
                 Ok data ->
                     ( Debug.log (toString data.criteria)
                     {
-                    --model | maybeSuite = Just data, criteriaString = Json.Encode.encode 4  data.criteria }, Cmd.none )
                     model | maybeSuite = Just data, criteriaString = concat (List.map appendNewLine (List.filter isNullable (split "\n" ( Json.Encode.encode 4 data.criteria)))) }, Cmd.none )
-
-                --    toString (List.filter isNullable (split ","(toString data.criteria)))
-
                 Err err ->
                     ( model, Cmd.none )
 
