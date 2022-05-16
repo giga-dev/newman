@@ -187,9 +187,7 @@ update msg model =
         GetSuiteInfoCompleted result ->
             case result of
                 Ok data ->
-                    ( Debug.log (toString data.criteria)
-                    {
-                    model | maybeSuite = Just data, criteriaString = concat (List.map appendNewLine (List.filter isNullable (split "\n" ( Json.Encode.encode 4 data.criteria)))) }, Cmd.none )
+                    ({ model | maybeSuite = Just data, criteriaString = concat (List.map appendNewLine (List.filter isNullable (split "\n" ( Json.Encode.encode 4 data.criteria)))) }, Cmd.none )
                 Err err ->
                     ( model, Cmd.none )
 
