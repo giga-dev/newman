@@ -546,31 +546,39 @@ public class NewmanResource {
         Date deleteUntilDate = cal.getTime();
         logger.info("Delete builds and jobs from the last " + numberOfDays + " days, until date: " + deleteUntilDate);
 
-        Query<Build> filteredQuery = buildDAO.createQuery().field("buildTime").lessThan(deleteUntilDate);
-        List<Build> buildList = buildDAO.find(filteredQuery).asList();
+        //stats
         int jobsDeleted = 0;
         int buildsDeleted = 0;
-        for (Build build : buildList) {
-            Query<Job> query = jobDAO.createQuery();
-            query.field("build.id").equal(build.getId())
-                    .field("submitTime").lessThan(deleteUntilDate);
-            List<Job> jobs = jobDAO.find(query).asList();
-            if (jobs.isEmpty()) {
-                logger.debug("No jobs for build, delete build: " + build.getId() + " with build time: " + build.getBuildTime());
-                performDeleteBuild(build.getId());
-                buildsDeleted++;
+
+        //old jobs
+        Query<Job> query = jobDAO.createQuery();
+        query.field("submitTime").lessThan(deleteUntilDate);
+        List<Job> jobs = jobDAO.find(query).asList();
+        for (Job job : jobs) {
+            if (job.getState().equals(State.RUNNING)) {
                 continue;
             }
-            for (Job job : jobs) {
-                if (job.getState().equals(State.RUNNING)) {
-                    continue;
-                }
-                deleteJob(job.getId());
-                performDeleteBuild(build.getId());
-                jobsDeleted++;
+            deleteJob(job.getId());
+            jobsDeleted++;
+            if (null != performDeleteBuild(job.getBuild().getId())) {
                 buildsDeleted++;
-                if (logger.isDebugEnabled()) {
-                    logger.debug("deleted job: " + job.getId() + " with build time " + job.getBuild().getBuildTime());
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("deleted job: " + job.getId() + " with build time " + job.getBuild().getBuildTime());
+            }
+        }
+
+        //old builds without jobs
+        Query<Build> filteredQuery = buildDAO.createQuery().field("buildTime").lessThan(deleteUntilDate);
+        List<Build> buildList = buildDAO.find(filteredQuery).asList();
+        for (Build build : buildList) {
+            Query<Job> queryJobs = jobDAO.createQuery();
+            queryJobs.field("build.id").equal(build.getId());
+            List<Job> jobList = jobDAO.find(queryJobs).asList();
+            if (jobList.isEmpty()) {
+                logger.debug("No jobs for build, delete build: " + build.getId() + " with build time: " + build.getBuildTime());
+                if (null != performDeleteBuild(build.getId())) {
+                    buildsDeleted++;
                 }
             }
         }
