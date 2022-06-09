@@ -3,8 +3,8 @@ package com.gigaspaces.newman;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gigaspaces.newman.beans.*;
-import com.gigaspaces.newman.beans.criteria.*;
 import com.gigaspaces.newman.beans.criteria.Criteria;
+import com.gigaspaces.newman.beans.criteria.*;
 import com.gigaspaces.newman.config.Config;
 import com.gigaspaces.newman.dao.*;
 import com.gigaspaces.newman.utils.FileUtils;
@@ -544,27 +544,39 @@ public class NewmanResource {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -numberOfDays);
         Date deleteUntilDate = cal.getTime();
+        logger.info("Delete builds and jobs from the last " + numberOfDays + " days, until date: " + deleteUntilDate);
+
         Query<Build> filteredQuery = buildDAO.createQuery().field("buildTime").lessThan(deleteUntilDate);
         List<Build> buildList = buildDAO.find(filteredQuery).asList();
         int jobsDeleted = 0;
+        int buildsDeleted = 0;
         for (Build build : buildList) {
             Query<Job> query = jobDAO.createQuery();
-            query.field("build.id").equal(build.getId());
+            query.field("build.id").equal(build.getId())
+                    .field("submitTime").lessThan(deleteUntilDate);
             List<Job> jobs = jobDAO.find(query).asList();
+            if (jobs.isEmpty()) {
+                logger.debug("No jobs for build, delete build: " + build.getId() + " with build time: " + build.getBuildTime());
+                performDeleteBuild(build.getId());
+                buildsDeleted++;
+                continue;
+            }
             for (Job job : jobs) {
-                if (!job.getState().equals(State.DONE)) {
+                if (job.getState().equals(State.RUNNING)) {
                     continue;
                 }
                 deleteJob(job.getId());
-                if (logger.isDebugEnabled()) {
-                    logger.debug(
-                            "deleted job: " + job.getId() + " with build time " + job.getBuild()
-                                    .getBuildTime());
-                }
+                performDeleteBuild(build.getId());
                 jobsDeleted++;
+                buildsDeleted++;
+                if (logger.isDebugEnabled()) {
+                    logger.debug("deleted job: " + job.getId() + " with build time " + job.getBuild().getBuildTime());
+                }
             }
         }
-        return "Deleted: " + jobsDeleted + " jobs from the last " + numberOfDays + " days.";
+
+        return "Builds deleted: " + buildsDeleted + ", Jobs deleted: " + jobsDeleted
+                + " - from the last " + numberOfDays + " days, until date: " + deleteUntilDate;
     }
 
 
@@ -2521,6 +2533,12 @@ public class NewmanResource {
             Build modifiedBuild = buildDAO.getDatastore().findAndModify(query, updateOps);
             broadcastMessage(MODIFIED_BUILD, modifiedBuild);
         }
+    }
+
+    private Build performDeleteBuild(String buildId) {
+        Query<Build> idBuildQuery = buildDAO.createIdQuery(buildId);
+        Datastore datastore = buildDAO.getDatastore();
+        return datastore.findAndDelete(idBuildQuery);
     }
 
     private Job performDeleteJob(String jobId) {

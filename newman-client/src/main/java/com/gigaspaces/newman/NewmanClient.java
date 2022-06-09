@@ -61,8 +61,8 @@ public class NewmanClient {
         return restClient.target(uri).path("job").path(jobId).request().rx().get(Job.class);
     }
 
-    public CompletionStage<String> deleteJobUntilDesiredSpace(String requiredFreeDiskSpacePercentage) {
-        return restClient.target(uri).path("jobs").path(requiredFreeDiskSpacePercentage).request().rx().delete(String.class);
+    public CompletionStage<String> deleteJobUntilDesiredSpace(String nubmerOfDaysToNotDelete) {
+        return restClient.target(uri).path("jobs").path(nubmerOfDaysToNotDelete).request().rx().delete(String.class);
     }
 
     public CompletionStage<Batch<Job>> getJobs() {
