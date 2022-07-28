@@ -3274,21 +3274,4 @@ public class NewmanResource {
             }
         }
     }
-//    class FailedTest
-//    {
-//        private List<String> arguments;
-//        private String testName;
-//        public FailedTest(String testName,List<String> arguments)
-//        {this.arguments= arguments;
-//        this.testName= testName;
-//        }
-//
-//        public String getTestName() {
-//            return testName;
-//        }
-//
-//        public List<String> getArguments() {
-//            return arguments;
-//        }
-//    }
 }
