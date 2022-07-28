@@ -3082,7 +3082,7 @@ public class NewmanResource {
             throw new Exception("Suite [" + newSuiteName + "] already exists");
         }
 
-        Query<Test> failedTestsQuery = testDAO.createQuery().field("jobId").equal(jobId).field("status").equal(Test.Status.FAIL);
+        Query<Test> failedTestsQuery = testDAO.createQuery().field("jobId").equal(jobId).field("status").equal(Test.Status.FAIL).field("runNumber").equal(1);
         List<Test> failedTests = testDAO.find(failedTestsQuery).asList();
 
         if (failedTests.size() == 0) {
