@@ -3108,21 +3108,15 @@ public class NewmanResource {
             throw new Exception("Suite [" + newSuiteName + "] already exists");
         }
 
-        Query<Test> failedTestsQuery = testDAO.createQuery().field("jobId").equal(jobId).field("status").equal(Test.Status.FAIL);
+        Query<Test> failedTestsQuery = testDAO.createQuery().field("jobId").equal(jobId).field("status").equal(Test.Status.FAIL).field("runNumber").equal(1);
         List<Test> failedTests = testDAO.find(failedTestsQuery).asList();
 
         if (failedTests.size() == 0) {
             throw new Exception("Job [" + jobId + "] has no failed tests");
         }
 
-        HashMap<String, List<String>> uniqueFailedTests = new HashMap<>();
-        for (Test test : failedTests) {
-            if (!uniqueFailedTests.containsKey(test.getName())) {
-                uniqueFailedTests.put(test.getName(), test.getArguments());
-            }
-        }
-        Suite suite = job.getSuite();
 
+        Suite suite = job.getSuite();
         String testType = getTestType(suite.getCriteria());
 
         if (testType == null) {
@@ -3132,23 +3126,15 @@ public class NewmanResource {
         {
             List<Criteria> include = new ArrayList<>();
             List<Criteria> exclude = Collections.emptyList();
-            for (List<String> testArguments : uniqueFailedTests.values()) {
-                TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(testArguments);
-                include.add(criteria);
-            }
+            failedTests.forEach(list->include.add(TestCriteria.createCriteriaByTestArgs(list.getArguments())));
+
             suite.setCriteria(new SuiteCriteria(include,exclude,testType));
             suite.setId(null);
             suite.setName(newSuiteName);
         }
         else {
-
             List<Criteria> criteriaList = new LinkedList<>();
-            for (List<String> testArguments : uniqueFailedTests.values()) {
-                TestCriteria criteria = TestCriteria.createCriteriaByTestArgs(testArguments);
-                criteriaList.add(criteria);
-            }
-
-
+            failedTests.forEach(list->criteriaList.add(TestCriteria.createCriteriaByTestArgs(list.getArguments())));
             suite.setId(null);
             suite.setName(newSuiteName);
 
