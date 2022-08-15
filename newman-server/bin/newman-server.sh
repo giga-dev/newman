@@ -15,39 +15,26 @@ mkdir -p ../config
 
 cat  << '_EOF' >> ../config/realm.properties
 efrat=efrat, user
-meshi=meshi, user
 ester=ester, user
 yuval=yuval, user
-inbar=inbar, user
-yohana=yohana, user
-yechiel=yechiel, user
 evgeny=evgeny, user
-niv=niv, user
 moran=moran, user
-barak=barak, user
-yael=yael, user
-alons=alons, user
-ayelet=ayelet, user
 root=root, admin
 support=support, user
 mishel=mishel, user
 sagiv=sagiv, user
 yonatan=yonatan, user
 michael=michael, user
-rotem=rotem, user
 irena=irena, user
 tomer=tomer, user
 noi=noi, user
 anton=anton, user
-yuvalo=yuvalo, user
-itaio=itaio, user
-orens=orens, user
-yuval.dror=yuval.dror, user
 oleksii=oleksii, user
 alesia=alesia, user
 olha=olha, user
 michaelg=michaelg, user
 sapir=sapir, user
+shai=shai, user
 user=user, user
 _EOF
 
