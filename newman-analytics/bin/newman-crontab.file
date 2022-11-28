@@ -1,24 +1,24 @@
 # --------------------------------------------------------
 # DAILY MORNING REPORT - run each day at 7-9am, every 15 min from sunday-saturday
 # --------------------------------------------------------
-*/15 7-9 * * SUN-SAT cd /data/newman/newman/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.tag=NIGHTLY,RELEASE > /data/newman/newman/newman-analytics/logs/xap-daily-suite-diff.log 2>&1
+*/15 7-11 * * SUN-SAT cd /data/newman/newman/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitedif$
 
 
 # ----------------------------------------------------------
 # INTERDAY REPORT - run every 1 hours from 9am to 21:00
 # ----------------------------------------------------------
-0 9-21/1 * * SUN-SAT cd /data/newman/newman/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitediff.branch=master crons.suitediff.trackLatest=false > /data/newman/newman/newman-analytics/logs/interday-suite-diff.log 2>&1
+#0 11-21/1 * * SUN-SAT cd /data/newman/newman/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/suitediff/suitediff.properties crons.suitedi$
 
 
 # ---------------------------------------------------------
 # run clean jobs every Tuesday at 12 am
 # ---------------------------------------------------------
-0 0 * * 2 cd /data/newman/newman/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/cleanse/cleanse.properties > /data/newman/newman/newman-analytics/logs/cleanse.log 2>&1
+0 0 * * 2 cd /data/newman/newman/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/cleanse/cleanse.properties > /data/newman/newman/newman-a$
 
 # ---------------------------------------------------------
 # run disk space usage alert at 7am,10am,3pm
 # ---------------------------------------------------------
-00 7,10,15 * * * cd /data/newman/newman/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/alert/alert.properties > /data/newman/newman/newman-analytics/logs/alert.log 2>&1
+00 7,10,15 * * * cd /data/newman/newman/newman-analytics/bin && ./newman-analytics.sh ../resources/crons/alert/alert.properties > /data/newman/newman/newma$
 00 7,10,15 * * * cd /data/newman/newman/newman-analytics/bin && ./diskspace.sh  > /data/newman/newman/newman-analytics/logs/ds_alert.log 2>&1
 
 #@reboot . /etc/environment; cd /home/xap/newman-server; ./run.sh
