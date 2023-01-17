@@ -1,0 +1,16 @@
+# This should be places in $HOME.config/systemd/user/newman-agent.service
+# and then activated manually using
+# 1. systemctl enable --user newman-agent
+# 2. systemctl start --user newman-agent
+[Unit]
+Description=Newman agent service
+After=network.target
+
+[Service]
+ExecStart=%h/newman/newman-agent/bin/newman-agent.sh
+WorkingDirectory=%h/xap-newman-agent
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
