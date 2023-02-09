@@ -1,14 +1,24 @@
-# This should be places in $HOME.config/systemd/user/newman-agent.service
+# This should be placed in /etc/systemd/system/newman-agent.service
 # and then activated manually using
-# 1. systemctl enable --user newman-agent
-# 2. systemctl start --user newman-agent
+# 1. sudo systemctl enable newman-agent
+# 2. sudo systemctl start newman-agent
 [Unit]
 Description=Newman agent service
 After=network.target
 
 [Service]
-ExecStart=%h/newman/newman-agent/bin/newman-agent.sh
-WorkingDirectory=%h/xap-newman-agent
+User=xap
+Group=xap
+Environment="JAVA_HOME=/usr/lib/jvm/default-java"
+Environment="NEWMAN_SERVER_HOST=groot.gspaces.com"
+Environment="NEWMAN_USERNAME=root"
+Environment="NEWMAN_PASSWORD=root"
+Environment="NEWMAN_SERVER_PORT=8443"
+Environment="NEWMAN_AGENT_DIR=/home/xap/newman/newman-agent"
+Environment="NEWMAN_AGENT_HOME=/home/xap/xap-newman-agent"
+Environment="NEWMAN_AGENT_CAPABILITIES=\"DOCKER,LINUX,MVN\""
+WorkingDirectory=/home/xap/newman
+ExecStart=java -Dnewman.agent.workers=${NEWMAN_AGENT_WORKERS} -Dnewman.agent.groupName="${NEWMAN_AGENT_GROUPNAME}" -Dnewman.agent.home=${NEWMAN_AGENT_HOME} -Dnewman.agent.hostname=%H -Dnewman.agent.server-host=${NEWMAN_SERVER_HOST} -Dnewman.agent.server-port=${NEWMAN_SERVER_PORT} -Dnewman.agent.server-rest-user=${NEWMAN_USERNAME} -Dnewman.agent.server-rest-pw=${NEWMAN_PASSWORD} -Dnewman.agent.capabilities=${NEWMAN_AGENT_CAPABILITIES} -jar ${NEWMAN_AGENT_DIR}/target/newman-agent-1.0.jar >> "nohup_agent1.out"
 Restart=always
 RestartSec=10
 
