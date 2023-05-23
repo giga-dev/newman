@@ -29,9 +29,8 @@ function install_newman {
     sudo bash -c 'echo "export JAVA_HOME=/home/xap/software/java/current" >> /etc/profile'
     sudo bash -c 'echo "export PATH=\${JAVA_HOME}/bin:\${PATH}" >> /etc/profile'
     sudo bash -c 'echo "export M2_HOME=/opt/apache-maven-3.3.9" >> /etc/profile'
+    sudo bash -c 'echo "export XAP_HOME=/home/ec2-user" >> /etc/profile'
     sudo bash -c 'echo "PATH=/opt/apache-maven-3.3.9/bin:\$PATH" >> /etc/profile'
-
-
 
      supervisorctl reread
      supervisorctl reload
