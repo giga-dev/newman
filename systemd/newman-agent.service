@@ -7,21 +7,20 @@ Description=Newman agent service
 After=network.target
 
 [Service]
-User=xap
-Group=xap
-Environment="JAVA_HOME=/usr/lib/jvm/jdk1.8.0_351"
-Environment="XAP_HOME=/home/xap"
+User=ec2-user
+Group=ec2-user
+Environment="JAVA_HOME=/usr/java/jdk1.8.0_45"
+Environment="XAP_HOME=/home/ec2-user"
 Environment="NEWMAN_SERVER_HOST=groot.gspaces.com"
 Environment="NEWMAN_USERNAME=root"
 Environment="NEWMAN_PASSWORD=root"
 Environment="NEWMAN_SERVER_PORT=8443"
-Environment="NEWMAN_AGENT_DIR=/home/xap/newman/newman-agent"
-Environment="NEWMAN_AGENT_HOME=/home/xap/xap-newman-agent"
+Environment="NEWMAN_AGENT_DIR=/data/newman/newman/newman-agent"
+Environment="NEWMAN_AGENT_HOME=/home/ec2-user/xap-newman-agent"
 Environment="NEWMAN_AGENT_CAPABILITIES=DOCKER,LINUX,MVN"
-Environment="NEWMAN_AGENT_GROUPNAME=AWS Agents"
-Environment="LC_ALL=C"
-WorkingDirectory=/home/xap/newman
-ExecStart=sudo java -Dnewman.agent.workers=${NEWMAN_AGENT_WORKERS} -Dnewman.agent.groupName="${NEWMAN_AGENT_GROUPNAME}" -Dnewman.agent.home=${NEWMAN_AGENT_HOME} -Dnewman.agent.hostname=%H -Dnewman.agent.server-host=${NEWMAN_SERVER_HOST} -Dnewman.agent.server-port=${NEWMAN_SERVER_PORT} -Dnewman.agent.server-rest-user=${NEWMAN_USERNAME} -Dnewman.agent.server-rest-pw=${NEWMAN_PASSWORD} -Dnewman.agent.capabilities=${NEWMAN_AGENT_CAPABILITIES} -jar ${NEWMAN_AGENT_DIR}/target/newman-agent-1.0.jar >> "nohup_agent1.out"
+Environment="NEWMAN_AGENT_GROUPNAME=AWSAgents"
+WorkingDirectory=/data/newman/newman/newman-agent/bin
+ExecStart=/usr/bin/sudo /usr/java/jdk1.8.0_45/bin/java -Dnewman.agent.workers=${NEWMAN_AGENT_WORKERS} -Dnewman.agent.groupName=${NEWMAN_AGENT_GROUPNAME} -Dnewman.agent.home=${NEWMAN_AGENT_HOME} -Dnewman.agent.hostname=%H -Dnewman.agent.server-host=${NEWMAN_SERVER_HOST} -Dnewman.agent.server-port=${NEWMAN_SERVER_PORT} -Dnewman.agent.server-rest-user=${NEWMAN_USERNAME} -Dnewman.agent.server-rest-pw=${NEWMAN_PASSWORD} -Dnewman.agent.capabilities=${NEWMAN_AGENT_CAPABILITIES} -jar ${NEWMAN_AGENT_DIR}/target/newman-agent-1.0.jar >> "nohup_agent1.out"
 Restart=always
 RestartSec=10
 
