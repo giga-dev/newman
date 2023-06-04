@@ -10,7 +10,6 @@ After=network.target
 User=ec2-user
 Group=ec2-user
 Environment="JAVA_HOME=/usr/java/jdk1.8.0_45"
-Environment="XAP_HOME=/home/ec2-user"
 Environment="NEWMAN_SERVER_HOST=groot.gspaces.com"
 Environment="NEWMAN_USERNAME=root"
 Environment="NEWMAN_PASSWORD=root"
