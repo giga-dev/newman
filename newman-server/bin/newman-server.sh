@@ -35,6 +35,7 @@ olha=olha, user
 michaelg=michaelg, user
 sapir=sapir, user
 shai=shai, user
+davyd=davyd, user
 user=user, user
 _EOF
 
