@@ -14,7 +14,6 @@ fi
 mkdir -p ../config
 
 cat  << '_EOF' >> ../config/realm.properties
-efrat=efrat, user
 ester=ester, user
 yuval=yuval, user
 evgeny=evgeny, user
@@ -36,6 +35,9 @@ michaelg=michaelg, user
 sapir=sapir, user
 shai=shai, user
 davyd=davyd, user
+esubotin=esubotin, user
+inbal=inbal, user
+tolik=tolik, user
 user=user, user
 _EOF
 
