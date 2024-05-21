@@ -1,0 +1,48 @@
+version: "3.9"
+
+networks:
+  default:
+    name: internal
+    driver: bridge
+  external:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_container
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: newmandb
+    volumes:
+      - ./mongo-data:/data/db
+
+  newman-server:
+    container_name: newman-server
+    image: gigaspaces/newman-server:latest
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    platform: ${PLATFORM:-linux/amd64}
+    ports:
+      - 8443:8443
+    depends_on:
+      - mongodb
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./:/newman
+    # healthcheck:
+    #   test: curl --fail https://127.0.0.1:8443 || exit 1
+    #   interval: 30s
+    #   retries: 10
+    #   start_period: 30s
+    #   timeout: 10s
