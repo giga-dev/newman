@@ -2,11 +2,11 @@ FROM ubuntu
 
 ARG user=newman
 ARG group=newman
-ARG uid=1000
-ARG gid=1000
+ARG uid=1025
+ARG gid=1025
 
 RUN apt-get update -y
-RUN apt-get install wget nano -y
+RUN apt-get install wget vim nano -y
 
 
 # Jenkins is run with user `newman`, uid = 1000
@@ -16,8 +16,8 @@ RUN groupadd -g ${gid} ${group} \
     && useradd -d "/home/${user}" -u ${uid} -g ${gid} -m -s /bin/bash ${user}
 
 # Install Java.
-RUN apt-get install openjdk-8-jdk -y
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+RUN apt-get install openjdk-17-jdk -y && apt-get clean
+ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64/
 
 # Install Maven
 RUN wget --no-verbose -O /tmp/apache-maven-3.3.9.tar.gz \
@@ -63,10 +63,12 @@ RUN echo 'installing elm' && \
 
 ENV PATH=/home/${user}/.npm-global/:$PATH
 ENV globalDir="/home/${user}/.npm-global/"
-RUN cd ${globalDir} && wget --no-verbose -O "${globalDir}"/elm.tar.gz https://github.com/elm-lang/elm-platform/releases/download/0.18.0-exp/elm-platform-linux-64bit.tar.gz && \
-    tar -zxvf "${globalDir}"/elm.tar.gz 
+RUN echo ELM
+RUN cd ${globalDir} && \
+    wget --no-verbose -O "${globalDir}"/elm.tar.gz https://github.com/elm-lang/elm-platform/releases/download/0.18.0-exp/elm-platform-linux-64bit.tar.gz && \
+    tar -zxvf "${globalDir}"/elm.tar.gz
 
-#RUN npm install -g elm@0.18.0
+#RUN npm install -g elm@0.19.0
 
 VOLUME /newman/
 ENV PATH=$JAVA_HOME/bin:$PATH
