@@ -20,7 +20,6 @@ evgeny=evgeny, user
 moran=moran, user
 root=root, admin
 support=support, user
-mishel=mishel, user
 sagiv=sagiv, user
 yonatan=yonatan, user
 michael=michael, user
@@ -39,6 +38,10 @@ esubotin=esubotin, user
 inbal=inbal, user
 tolik=tolik, user
 user=user, user
+yonatan=yonatan, user
+michaelg=michaelg, user
+shai=shai, user
+ariel=ariel, user
 _EOF
 
 

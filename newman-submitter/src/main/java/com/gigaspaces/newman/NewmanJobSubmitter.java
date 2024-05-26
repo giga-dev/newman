@@ -215,7 +215,7 @@ public class NewmanJobSubmitter {
         String suiteId = "6260486841b6b5b45f5d5c67";
         String buildId = "5cf3f8ec4cedfd000c4ba171";
         String configId = "5bf160bb1f31eb789fc0fb78";
-        String requiredAgentGroups = "imc-srv01";
+        String requiredAgentGroups = "AWSAgents";
         int priority = 1;
 
 
