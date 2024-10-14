@@ -25,7 +25,7 @@ import Pages.TestHistory as TestHistory
 import Task
 import UrlParser exposing (..)
 import Utils.Types exposing (BuildId, JobConfigId, JobId, JobRadioState, RadioState(..), SuiteId, TestId, stringToRadioState)
-import Utils.WebSocket as WebSocket exposing (Event(CreatedJob))
+import Utils.WebSocket as WebSocket exposing (Event(..))
 import Views.JobsTable as JobsTable
 import Views.TopBar as TopBar
 

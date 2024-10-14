@@ -2,11 +2,11 @@ module Views.TopBar exposing (..)
 
 import Filesize exposing (..)
 import Html exposing (Html, p, span, text)
-import Html.Attributes exposing (align, class, style)
+import Html.Attributes exposing (..., class)
 import Http
 import Json.Decode
 import Utils.Types exposing (..)
-import Utils.WebSocket as WebSocket exposing (..)
+import Utils.WebSocket as WebSocket
 
 
 type alias Model =
