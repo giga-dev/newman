@@ -38,6 +38,10 @@ davyd=davyd, user
 esubotin=esubotin, user
 inbal=inbal, user
 tolik=tolik, user
+rami=rami, user
+ariel=ariel, user
+chani=chani, user
+krystyna=krystyna, user
 user=user, user
 _EOF
 
