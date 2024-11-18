@@ -54,6 +54,13 @@ export NEWMAN_SERVER_SPOTINST_TOKEN=${NEWMAN_SERVER_SPOTINST_TOKEN=""}
 export NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=""}
 # run newman server
 # to debug, add java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 \
+
+# java --add-opens java.base/java.lang=ALL-UNNAMED \
+#    --add-opens java.base/java.net=ALL-UNNAMED \
+#    --add-opens java.base/java.nio=ALL-UNNAMED \
+#    --add-opens java.base/java.util=ALL-UNNAMED \
+#    --add-opens java.base/java.util.concurrent=ALL-UNNAMED \
+#    --add-opens java.base/java.time=ALL-UNNAMED \
 java -Dproduction=true \
     -Dnewman.server.spotinst.token="${NEWMAN_SERVER_SPOTINST_TOKEN}" \
     -Dnewman.server.spotinst.accountId="${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID}" \
@@ -62,5 +69,5 @@ java -Dproduction=true \
     -Dnewman.server.realm-config-path=../config/realm.properties \
     -Dnewman.keys-folder-path=../keys/server.keystore \
     -Dnewman.certificate=../certs/keystore.p12 \
-    -Dnewman.server.web-folder-path=../web/elm -jar \
+    -Dnewman.server.web-folder-path=../web/vue -jar \
     ../target/newman-server-1.0.jar 2>&1 > /tmp/newman.log

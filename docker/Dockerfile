@@ -39,34 +39,21 @@ RUN rm -f /tmp/apache-maven-3.3.9.tar.gz
 
 # get node
 RUN echo 'get node tar.gz'
-RUN wget --no-verbose -O /tmp/node-v8.9.3-linux-x64.tar.gz \
-    https://nodejs.org/dist/v8.9.3/node-v8.9.3-linux-x64.tar.gz
+RUN wget --no-verbose -O /tmp/node-v22.11.0-linux-x64.tar.gz \
+    https://nodejs.org/dist/v22.11.0/node-v22.11.0-linux-x64.tar.gz
 
 RUN mkdir /opt/node
 
 # unpack node tar.gz
 RUN echo 'unpacking node tar.gz' && \
-    tar zxvf /tmp/node-v8.9.3-linux-x64.tar.gz --strip-components=1 \
+    tar zxvf /tmp/node-v22.11.0-linux-x64.tar.gz --strip-components=1 \
     -C /opt/node && \
-    rm -f /tmp/node-v8.9.3-linux-x64.tar.gz
+    rm -f /tmp/node-v22.11.0-linux-x64.tar.gz
 
 RUN ln -s /opt/node/bin/node /usr/local/bin && ln -s /opt/node/bin/npm /usr/local/bin
 
 RUN node --version && \
      npm --version
-
-
-USER ${user}
-RUN echo 'installing elm' && \
-    mkdir /home/${user}/.npm-global && \
-     npm config set prefix "/home/${user}/.npm-global"
-
-ENV PATH=/home/${user}/.npm-global/:$PATH
-ENV globalDir="/home/${user}/.npm-global/"
-RUN cd ${globalDir} && wget --no-verbose -O "${globalDir}"/elm.tar.gz https://github.com/elm-lang/elm-platform/releases/download/0.18.0-exp/elm-platform-linux-64bit.tar.gz && \
-    tar -zxvf "${globalDir}"/elm.tar.gz 
-
-#RUN npm install -g elm@0.18.0
 
 VOLUME /newman/
 ENV PATH=$JAVA_HOME/bin:$PATH
