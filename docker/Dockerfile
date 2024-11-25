@@ -2,8 +2,8 @@ FROM ubuntu:24.04
 
 ARG user=newman
 ARG group=newman
-ARG uid=1000
-ARG gid=1000
+ARG uid=1001
+ARG gid=1001
 
 RUN apt-get update -y
 RUN apt-get install coreutils wget -y
