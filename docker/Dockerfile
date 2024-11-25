@@ -1,13 +1,17 @@
-FROM ubuntu
+FROM ubuntu:24.04
 
 ARG user=newman
 ARG group=newman
-ARG uid=1000
-ARG gid=1000
+ARG uid=1001
+ARG gid=1001
 
 RUN apt-get update -y
-RUN apt-get install wget nano -y
+RUN apt-get install coreutils wget -y
 
+ENV MAVEN_VERSION 3.6.3
+ENV MAVEN_FILE apache-maven-${MAVEN_VERSION}-bin.tar.gz
+ENV NODE_VERSION 22.11.0
+ENV NODE_FILE node-v${NODE_VERSION}-linux-x64.tar.gz
 
 # Jenkins is run with user `newman`, uid = 1000
 # If you bind mount a volume from the host or a data container,
@@ -20,53 +24,40 @@ RUN apt-get install openjdk-8-jdk -y
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 
 # Install Maven
-RUN wget --no-verbose -O /tmp/apache-maven-3.3.9.tar.gz \
-    http://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+RUN wget --no-verbose -O /tmp/${MAVEN_FILE} \
+    http://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/${MAVEN_FILE}
 
 # stop building if md5sum does not match
-RUN echo "516923b3955b6035ba6b0a5b031fbd8b  /tmp/apache-maven-3.3.9.tar.gz" | \
+RUN echo "9792c717f5845d952907d5144b8253c3  /tmp/${MAVEN_FILE}" | \
     md5sum -c
 
 
 # install in /opt/maven
 RUN mkdir -p /opt/maven
 
-RUN tar xzf /tmp/apache-maven-3.3.9.tar.gz --strip-components=1 \
+RUN tar xzf /tmp/${MAVEN_FILE} --strip-components=1 \
     -C /opt/maven
 
 RUN ln -s /opt/maven/bin/mvn /usr/local/bin
-RUN rm -f /tmp/apache-maven-3.3.9.tar.gz
+RUN rm -f /tmp/${MAVEN_FILE}
 
 # get node
 RUN echo 'get node tar.gz'
-RUN wget --no-verbose -O /tmp/node-v8.9.3-linux-x64.tar.gz \
-    https://nodejs.org/dist/v8.9.3/node-v8.9.3-linux-x64.tar.gz
+RUN wget --no-verbose -O /tmp/${NODE_FILE} \
+    https://nodejs.org/dist/v${NODE_VERSION}/${NODE_FILE}
 
 RUN mkdir /opt/node
 
 # unpack node tar.gz
 RUN echo 'unpacking node tar.gz' && \
-    tar zxvf /tmp/node-v8.9.3-linux-x64.tar.gz --strip-components=1 \
+    tar zxvf /tmp/${NODE_FILE} --strip-components=1 \
     -C /opt/node && \
-    rm -f /tmp/node-v8.9.3-linux-x64.tar.gz
+    rm -f /tmp/${NODE_FILE}
 
 RUN ln -s /opt/node/bin/node /usr/local/bin && ln -s /opt/node/bin/npm /usr/local/bin
 
 RUN node --version && \
      npm --version
-
-
-USER ${user}
-RUN echo 'installing elm' && \
-    mkdir /home/${user}/.npm-global && \
-     npm config set prefix "/home/${user}/.npm-global"
-
-ENV PATH=/home/${user}/.npm-global/:$PATH
-ENV globalDir="/home/${user}/.npm-global/"
-RUN cd ${globalDir} && wget --no-verbose -O "${globalDir}"/elm.tar.gz https://github.com/elm-lang/elm-platform/releases/download/0.18.0-exp/elm-platform-linux-64bit.tar.gz && \
-    tar -zxvf "${globalDir}"/elm.tar.gz 
-
-#RUN npm install -g elm@0.18.0
 
 VOLUME /newman/
 ENV PATH=$JAVA_HOME/bin:$PATH
