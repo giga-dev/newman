@@ -2,7 +2,7 @@ module Views.TopBar exposing (..)
 
 import Filesize exposing (..)
 import Html exposing (Html, p, span, text)
-import Html.Attributes exposing (..., class)
+import Html.Attributes exposing (cols, class)
 import Http
 import Json.Decode
 import Utils.Types exposing (..)
@@ -89,10 +89,10 @@ update msg model =
 
         WebSocketEvent event ->
             case event of
-                ModifiedAgentsCount agentsCount ->
+                WebSocket.ModifiedAgentsCount agentsCount ->
                     ( { model | agentsCount = agentsCount }, Cmd.none )
 
-                ModifiedFailingAgents failingAgents ->
+                WebSocket.ModifiedFailingAgents failingAgents ->
                     ( { model | failingAgents = failingAgents }, Cmd.none )
 
                 _ ->
@@ -147,4 +147,4 @@ getUserNameCmd =
 
 handleEvent : WebSocket.Event -> Cmd Msg
 handleEvent event =
-    event => WebSocketEvent
+    event >> WebSocketEvent
