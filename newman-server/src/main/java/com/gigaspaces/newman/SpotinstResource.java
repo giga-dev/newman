@@ -5,6 +5,7 @@ import com.gigaspaces.newman.config.Config;
 import com.gigaspaces.newman.dao.AgentDAO;
 import com.gigaspaces.newman.spotinst.ElasticGroup;
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClients;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.QueryResults;
@@ -17,6 +18,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,7 +33,7 @@ public class SpotinstResource {
     private final AgentDAO agentDAO;
     private final Config config;
 
-    public SpotinstResource(@Context ServletContext servletContext) {
+    public SpotinstResource(@Context ServletContext servletContext) throws UnknownHostException {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
         spotinstClient = new SpotinstClient();
         mongoClient = new MongoClient(config.getMongo().getHost());

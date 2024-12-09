@@ -11,6 +11,7 @@ import com.gigaspaces.newman.utils.FileUtils;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoInterruptedException;
 import com.mongodb.client.DistinctIterable;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -122,7 +123,7 @@ public class NewmanResource {
     private ServerStatus serverStatus = new ServerStatus(ServerStatus.Status.RUNNING);
     private Thread serverSuspendThread;
 
-    public NewmanResource(@Context ServletContext servletContext) {
+    public NewmanResource(@Context ServletContext servletContext) throws UnknownHostException {
         this.config = Config.fromString(servletContext.getInitParameter("config"));
         //noinspection SpellCheckingInspection
         mongoClient = new MongoClient(config.getMongo().getHost());
@@ -140,7 +141,7 @@ public class NewmanResource {
         jobConfigDAO = new JobConfigDAO(morphia, mongoClient, config.getMongo().getDb());
         prioritizedJobDAO = new PrioritizedJobDAO(morphia, mongoClient, config.getMongo().getDb());
 
-        MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
+        MongoDatabase db = MongoClients.create().getDatabase(config.getMongo().getDb());
         MongoCollection testCollection = db.getCollection("Test");
         distinctTestsByAssignedAgentFilter = testCollection.distinct("assignedAgent", String.class);
 
@@ -2429,7 +2430,7 @@ public class NewmanResource {
     @Path("db")
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteCollections() {
-        MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
+        MongoDatabase db = MongoClients.create().getDatabase(config.getMongo().getDb());
         List<String> deleted = new ArrayList<>();
         for (String name : db.listCollectionNames()) {
             if (!"system.indexes".equals(name)) {
@@ -2587,7 +2588,7 @@ public class NewmanResource {
     @Path("db/{collectionName}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteCollection(final @PathParam("collectionName") String collectionName) {
-        MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
+        MongoDatabase db = MongoClients.create().getDatabase(config.getMongo().getDb());
         MongoCollection myCollection = db.getCollection(collectionName);
         if (myCollection != null) {
             myCollection.drop();
@@ -2625,7 +2626,7 @@ public class NewmanResource {
     @Path("db")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCollections() {
-        MongoDatabase db = mongoClient.getDatabase(config.getMongo().getDb());
+        MongoDatabase db = MongoClients.create().getDatabase(config.getMongo().getDb());
         List<String> res = new ArrayList<>();
         for (String name : db.listCollectionNames()) {
             if (!"system.indexes".equals(name)) {
