@@ -1,0 +1,30 @@
+replicaCount: 1
+
+image:
+  repository: bitnami/mongodb
+  tag: 4.0.27-debian-9-r118
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 27017
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  storageClass: ""
+
+mongodb:
+  username: newman
+  password: newman
+  database: newman-db

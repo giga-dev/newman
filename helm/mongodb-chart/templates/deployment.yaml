@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-mongodb
+  labels:
+    app: mongodb
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: mongodb
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: mongodb
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: MONGODB_USERNAME
+              value: {{ .Values.mongodb.username | quote }}
+            - name: MONGODB_PASSWORD
+              value: {{ .Values.mongodb.password | quote }}
+            - name: MONGODB_DATABASE
+              value: {{ .Values.mongodb.database | quote }}
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /bitnami/mongodb
+      volumes:
+        - name: mongodb-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-mongodb
