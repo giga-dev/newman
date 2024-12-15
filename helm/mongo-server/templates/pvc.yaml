@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Release.Name }}-mongodb
+  name: "{{ .Release.Name }}-pvc"
+  namespace: {{ .Release.Namespace }}
   labels:
-    app: mongodb
-    release: {{ .Release.Name }}
+    app: mongo-server
 spec:
   accessModes: {{ .Values.persistence.accessModes | toJson }}
   resources:

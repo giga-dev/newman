@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: mongo-server
+spec:
+  selector:
+    matchLabels:
+      app: mongo-server
+  template:
+    metadata:
+      labels:
+        app: mongo-server
+    spec:
+      containers:
+        - name: mongo-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: MONGODB_ROOT_PASSWORD
+              value: {{ .Values.mongodb.password | quote }}
+            - name: MONGODB_USERNAME
+              value: {{ .Values.mongodb.username | quote }}
+            - name: MONGODB_PASSWORD
+              value: {{ .Values.mongodb.password | quote }}
+            - name: MONGODB_DATABASE
+              value: {{ .Values.mongodb.database | quote }}
+          command:
+            - mongod
+            - "--config"
+            - /etc/mongo/mongodb.conf
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data/db
+            - name: mongo-config
+              mountPath: /etc/mongo/mongodb.conf
+              subPath: mongodb.conf
+            - name: logs-volume
+              mountPath: /logs
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: "{{ .Release.Name }}-pvc"
+        - name: mongo-config
+          configMap:
+            name: "{{ .Release.Name }}-config"
+        - name: logs-volume
+          emptyDir: {}

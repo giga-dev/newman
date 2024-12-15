@@ -1,5 +1,3 @@
-replicaCount: 1
-
 image:
   repository: bitnami/mongodb
   tag: 4.0.27-debian-9-r118
@@ -17,14 +15,16 @@ resources:
     cpu: 250m
     memory: 256Mi
 
+mongodb:
+  username: newman
+  password: newman
+  database: newman-db
+
 persistence:
   enabled: true
   accessModes:
     - ReadWriteOnce
   size: 8Gi
-  storageClass: ""
-
-mongodb:
-  username: newman
-  password: newman
-  database: newman-db
+  storageClass: standard
+  
+tolerations: []  # Define tolerations if needed for running on specific nodes
