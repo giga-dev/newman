@@ -1,0 +1,6 @@
+apiVersion: v2
+name: newman-server
+description: Helm chart for the Newman Server application
+type: application
+version: 0.1.0
+appVersion: latest

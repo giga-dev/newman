@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ecr-secret-manager-binding
+  namespace: newman
+subjects:
+  - kind: ServiceAccount
+    name: ecr-refresh-serviceaccount
+    namespace: newman
+roleRef:
+  kind: Role
+  name: ecr-secret-manager
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: newman-server
+  namespace: newman
+  labels:
+    app: newman-server
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: newman-server
+  template:
+    metadata:
+      labels:
+        app: newman-server
+    spec:
+      containers:
+        - name: newman-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          env:
+            - name: MONGO_HOST
+              value: {{ .Values.mongodb.host | quote }}
+            - name: MONGO_PORT
+              value: {{ .Values.mongodb.port | quote }}
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data/newman-server
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: "{{ .Release.Name }}-pvc"
