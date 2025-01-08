@@ -10,7 +10,7 @@ service:
 resources:
   limits:
     cpu: 500m
-    memory: 512Mi
+    memory: 1024Mi
   requests:
     cpu: 250m
     memory: 256Mi
@@ -25,6 +25,6 @@ persistence:
   accessModes:
     - ReadWriteOnce
   size: 8Gi
-  storageClass: standard
+  storageClass: gp3
   
 tolerations: []  # Define tolerations if needed for running on specific nodes
