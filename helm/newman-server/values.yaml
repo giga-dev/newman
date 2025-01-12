@@ -25,7 +25,7 @@ persistence:
   size: 10Gi
   accessModes:
     - ReadWriteOnce
-  storageClass: ""
+  storageClass: gp3
 
 mongodb:
   host: mongo-server

@@ -36,12 +36,12 @@ spec:
             - /etc/mongo/mongodb.conf
           volumeMounts:
             - name: data-volume
-              mountPath: /data/db
+              mountPath: "/data/db"
             - name: mongo-config
-              mountPath: /etc/mongo/mongodb.conf
-              subPath: mongodb.conf
-            - name: logs-volume
-              mountPath: /logs
+              mountPath: "/etc/mongo/mongodb.conf"
+              subPath: "mongodb.conf"
+      securityContext:
+        fsGroup: 1001
       volumes:
         - name: data-volume
           persistentVolumeClaim:
@@ -49,5 +49,3 @@ spec:
         - name: mongo-config
           configMap:
             name: "{{ .Release.Name }}-config"
-        - name: logs-volume
-          emptyDir: {}

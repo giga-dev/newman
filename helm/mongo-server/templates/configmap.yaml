@@ -12,10 +12,5 @@ data:
     net:
       bindIp: 0.0.0.0
       port: 27017
-    systemLog:
-      destination: file
-      path: /logs/mongodb.log      
-      logAppend: true
-      verbosity: 0
     security:
       authorization: enabled
