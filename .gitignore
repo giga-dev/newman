@@ -272,3 +272,6 @@ logs
 elm-stuff
 *.keystore
 Main.js
+
+# Ignore helm charts
+*.tgz
