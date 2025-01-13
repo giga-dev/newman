@@ -1,11 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
   labels:
     app: mongo-server
 spec:
+  serviceName: mongo-server-headless
   replicas: 1
   selector:
     matchLabels:
@@ -15,6 +16,19 @@ spec:
       labels:
         app: mongo-server
     spec:
+      initContainers:
+        - name: init-mongo-config
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              cp /config/mongodb.conf /etc/mongo/mongodb.conf
+          volumeMounts:
+            - name: config-volume              
+              mountPath: /config
+            - name: mongo-config
+              mountPath: /etc/mongo
       containers:
         - name: mongo-server
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -35,17 +49,28 @@ spec:
             - "--config"
             - /etc/mongo/mongodb.conf
           volumeMounts:
-            - name: data-volume
+            - name: mongo-data
               mountPath: "/data/db"
             - name: mongo-config
-              mountPath: "/etc/mongo/mongodb.conf"
-              subPath: "mongodb.conf"
+              mountPath: "/etc/mongo/"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: "{{ .Release.Name }}-config"    
       securityContext:
         fsGroup: 1001
-      volumes:
-        - name: data-volume
-          persistentVolumeClaim:
-            claimName: "{{ .Release.Name }}-pvc"
-        - name: mongo-config
-          configMap:
-            name: "{{ .Release.Name }}-config"
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+    - metadata:
+        name: mongo-config
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
