@@ -59,10 +59,11 @@ RUN ln -s /opt/node/bin/node /usr/local/bin && ln -s /opt/node/bin/npm /usr/loca
 RUN node --version && \
      npm --version
 
-VOLUME /newman/
+VOLUME /data/
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 USER root
 RUN apt-get install sudo curl -y netbase
 
 USER ${user}
+COPY ../newman-server/ ./newman/

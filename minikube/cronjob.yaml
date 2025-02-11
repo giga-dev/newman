@@ -1,40 +1,26 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: ecr-token-refresh
-  namespace: newman
+  name: refresh-ecr-token
+  namespace: default
 spec:
-  schedule: "*/30 * * * *" # Run every 30 minutes
+  schedule: "0 */12 * * *" # Runs every 12 hours
   jobTemplate:
     spec:
       template:
         spec:
-          serviceAccountName: ecr-refresh-serviceaccount
           containers:
             - name: ecr-token-refresh
-              image: amazon/aws-cli:2.13.2 # Use AWS CLI image
+              image: amazon/aws-cli:latest
               args:
-                - /bin/sh
+                - /bin/bash
                 - -c
-                - |
-                  TOKEN=$(aws ecr get-login-password --region us-east-1)
-                  kubectl delete secret ecr-registry --ignore-not-found -n newman
-                  kubectl create secret docker-registry ecr-registry \
-                    --docker-server=573366771204.dkr.ecr.us-east-1.amazonaws.com \
-                    --docker-username=AWS \
-                    --docker-password=$TOKEN \
-                    --namespace newman
-              env:
-                - name: AWS_REGION
-                  value: us-east-1
-                - name: AWS_ACCESS_KEY_ID
-                  valueFrom:
-                    secretKeyRef:
-                      name: aws-credentials
-                      key: aws_access_key_id
-                - name: AWS_SECRET_ACCESS_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: aws-credentials
-                      key: aws_secret_access_key
+                - >
+                  aws ecr get-login-password --region us-east-1 |
+                  kubectl create secret docker-registry ecr-secret
+                  --docker-server=573366771204.dkr.ecr.us-east-1.amazonaws.com
+                  --docker-username=AWS
+                  --docker-password=$(aws ecr get-login-password --region us-east-1)
+                  --dry-run=client -o yaml |
+                  kubectl apply -f -
           restartPolicy: OnFailure

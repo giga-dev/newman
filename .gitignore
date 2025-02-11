@@ -275,3 +275,6 @@ Main.js
 
 # Ignore helm charts
 *.tgz
+
+# Ignore passhprases
+*/ecrpass.*

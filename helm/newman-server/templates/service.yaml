@@ -1,15 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: newman-server
-  namespace: newman
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
   labels:
     app: newman-server
 spec:
-  type: {{ .Values.service.type }}
+  type: NodePort
+  selector:
+    app: newman-server
   ports:
     - port: {{ .Values.service.port }}
       targetPort: {{ .Values.service.targetPort }}
       protocol: TCP
-  selector:
-    app: newman-server
+      nodePort: 30080

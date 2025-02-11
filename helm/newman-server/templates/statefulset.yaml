@@ -1,12 +1,13 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: newman-server
-  namespace: newman
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
   labels:
     app: newman-server
 spec:
-  replicas: {{ .Values.replicaCount }}
+  serviceName: newman-server-headless
+  replicas: 1
   selector:
     matchLabels:
       app: newman-server
@@ -21,6 +22,11 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
+          command:
+            - sh
+            - -c
+            - |
+              /newman/newman-server/bin/newman-server.sh
           env:
             - name: MONGO_HOST
               value: {{ .Values.mongodb.host | quote }}
@@ -29,7 +35,11 @@ spec:
           volumeMounts:
             - name: data-volume
               mountPath: /data/newman-server
-      volumes:
-        - name: data-volume
-          persistentVolumeClaim:
-            claimName: "{{ .Release.Name }}-pvc"
+  volumeClaimTemplates:
+    - metadata:
+        name: data-volume
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi            
