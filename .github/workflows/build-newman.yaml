@@ -13,11 +13,11 @@ on:
   pull_request:
     paths:
       - 'docker/**'
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - helm/**
+  # push:
+  #   branches:
+  #     - master
+  #   paths-ignore:
+  #     - helm/**
 
 jobs:
   build-docker-image:
@@ -68,10 +68,10 @@ jobs:
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.image_tag }}
 
-
-      - name: Update helm chart
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          event-type: helm-chart-update
-          client-payload: '{"application-image-tag": "${{ env.image_tag }}"}'
+      # an event for calling a listening workflow
+      # - name: Update helm chart
+      #   uses: peter-evans/repository-dispatch@v3
+      #   with:
+      #     event-type: helm-chart-update
+      #     client-payload: '{"application-image-tag": "${{ env.image_tag }}"}'
           
