@@ -37,7 +37,7 @@ jobs:
         id: get-latest-tag
         run: |
           # Get the latest tag from ECR (or set to default if no tags)
-          LATEST=$(aws ecr describe-images --repository-name ${{ env.ECR_REPOSITORY }} \
+          LATEST_TAG=$(aws ecr describe-images --repository-name ${{ env.ECR_REPOSITORY }} \
           --query 'sort_by(imageDetails, &imagePushedAt)[-1].imageTags[0]' \
           --output text 2>/dev/null | awk '{print ($0 == "None" || $0 == "" ? "0.1.8" : $0)}')
           
