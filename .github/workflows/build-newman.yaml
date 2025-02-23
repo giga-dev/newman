@@ -1,5 +1,10 @@
 name: build newman
 
+env:
+  AWS_GHA_ROLE: arn:aws:iam::573366771204:role/xap-github-actions
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: newman
+
 on:
   push:
     branches:
@@ -14,10 +19,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set image tag
-        id: tag
-        run: echo "image_tag=main-$(date +'%Y%m%d%H%M%S')-$(echo ${GITHUB_SHA::8})" >> $GITHUB_OUTPUT
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -27,6 +28,26 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Fetch latest ECR tag and increment patch version
+        id: get-latest-tag
+        run: |
+          # Get the latest tag from ECR (or set to default if no tags)
+          LATEST_TAG=$(aws ecr describe-images --repository-name ${{ env.ECR_REPOSITORY }} \
+            --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
+            --output text || echo "0.1.8")
+          
+          # Increment the patch version by 1
+          IFS='.' read -r -a TAG_PARTS <<< "$LATEST_TAG"
+          PATCH_VERSION=$((TAG_PARTS[2] + 1))
+          NEW_TAG="${TAG_PARTS[0]}.${TAG_PARTS[1]}.$PATCH_VERSION"
+          
+          # Save the new tag as an environment variable
+          echo "image_tag=$NEW_TAG" >> $GITHUB_ENV
+
+      - name: Set image tag
+        id: tag
+        run: echo "image_tag=${{ steps.get-latest-tag.outputs.image_tag }}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
