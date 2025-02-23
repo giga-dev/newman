@@ -3,7 +3,7 @@ name: build newman
 env:
   AWS_GHA_ROLE: arn:aws:iam::573366771204:role/xap-github-actions
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: newman
+  ECR_REPOSITORY: xap-newman/server
 
 on:
   push:
