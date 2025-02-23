@@ -63,7 +63,7 @@ jobs:
         with:
           platforms: |
             linux/amd64
-          context: .
+          context: './docker'
           push: true
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.image_tag }}
