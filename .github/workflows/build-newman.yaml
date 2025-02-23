@@ -70,3 +70,4 @@ jobs:
         with:
           event-type: helm-chart-update
           client-payload: '{"application-image-tag": "${{ steps.tag.outputs.image_tag }}"}'
+          
