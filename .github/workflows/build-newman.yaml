@@ -5,6 +5,10 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: xap-newman/server
 
+permissions:
+  id-token: write
+  contents: read
+
 on:
   push:
     branches:
