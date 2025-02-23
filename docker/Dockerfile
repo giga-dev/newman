@@ -20,7 +20,7 @@ RUN groupadd -g ${gid} ${group} \
     && useradd -d "/home/${user}" -u ${uid} -g ${gid} -m -s /bin/bash ${user}
 
 # Install Java.
-RUN apt-get install openjdk-8-jdk -y
+RUN apt-get update && apt-get install -y openjdk-8-jdk-headless unzip
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 
 # Install Maven
@@ -65,5 +65,15 @@ ENV PATH=$JAVA_HOME/bin:$PATH
 USER root
 RUN apt-get install sudo curl -y netbase
 
+RUN mkdir /.m2 && chown ${user}:${group} /.m2
+#COPY --chown=${user}:${group} --from=newman . /newman
+RUN wget https://github.com/giga-dev/newman/archive/refs/heads/master.zip -O /tmp/master.zip \
+    && unzip /tmp/master.zip -d /tmp \
+    && mv /tmp/newman-master /newman \
+    && rm /tmp/master.zip
+RUN chown -R ${user}:${group} /newman 
 USER ${user}
-COPY ../newman-server/ ./newman/
+WORKDIR /newman
+RUN mvn clean install
+WORKDIR /
+# ENTRYPOINT [ "sh", "-c", "/newman", "/newman/newman-server/bin/newman-server.sh"]

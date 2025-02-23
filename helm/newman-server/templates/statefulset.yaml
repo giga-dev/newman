@@ -23,7 +23,7 @@ spec:
           ports:
             - containerPort: {{ .Values.service.targetPort }}
           command:
-            - sh
+            - /bin/sh
             - -c
             - |
               /newman/newman-server/bin/newman-server.sh

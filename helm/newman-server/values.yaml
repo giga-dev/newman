@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: 573366771204.dkr.ecr.us-east-1.amazonaws.com/newman/newman-server
-  tag: "latest"
+  tag: 0.1.8
   pullPolicy: IfNotPresent
 
 service:

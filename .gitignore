@@ -274,7 +274,7 @@ elm-stuff
 Main.js
 
 # Ignore helm charts
-*.tgz
+*/*.tgz
 
 # Ignore passhprases
 */ecrpass.*
