@@ -39,7 +39,12 @@ jobs:
           # Get the latest tag from ECR (or set to default if no tags)
           LATEST_TAG=$(aws ecr describe-images --repository-name ${{ env.ECR_REPOSITORY }} \
             --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
-            --output text || echo "0.1.8")
+            --output text)
+
+          # If LATEST_TAG is empty or 'None', use the default value
+          if [[ -z "$LATEST_TAG" || "$LATEST_TAG" == "None" ]]; then
+            LATEST_TAG="0.1.8"
+          fi
           
           # Increment the patch version by 1
           IFS='.' read -r -a TAG_PARTS <<< "$LATEST_TAG"
