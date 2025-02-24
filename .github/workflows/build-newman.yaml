@@ -66,7 +66,7 @@ jobs:
           platforms: |
             linux/amd64
           context: './docker'
-          file: './docker/Docker.k8s'
+          file: './docker/Dockerfile.k8s'
           push: true
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.image_tag }}
