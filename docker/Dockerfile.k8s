@@ -8,10 +8,10 @@ ARG gid=1001
 RUN apt-get update -y
 RUN apt-get install coreutils wget -y
 
-ENV MAVEN_VERSION 3.6.3
-ENV MAVEN_FILE apache-maven-${MAVEN_VERSION}-bin.tar.gz
-ENV NODE_VERSION 22.11.0
-ENV NODE_FILE node-v${NODE_VERSION}-linux-x64.tar.gz
+ENV MAVEN_VERSION=3.6.3
+ENV MAVEN_FILE=apache-maven-${MAVEN_VERSION}-bin.tar.gz
+ENV NODE_VERSION=22.11.0
+ENV NODE_FILE=node-v${NODE_VERSION}-linux-x64.tar.gz
 
 # Jenkins is run with user `newman`, uid = 1000
 # If you bind mount a volume from the host or a data container,
@@ -20,8 +20,8 @@ RUN groupadd -g ${gid} ${group} \
     && useradd -d "/home/${user}" -u ${uid} -g ${gid} -m -s /bin/bash ${user}
 
 # Install Java.
-RUN apt-get install openjdk-8-jdk -y
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+RUN apt-get update && apt-get install -y openjdk-8-jdk-headless unzip
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 
 # Install Maven
 RUN wget --no-verbose -O /tmp/${MAVEN_FILE} \
@@ -59,10 +59,21 @@ RUN ln -s /opt/node/bin/node /usr/local/bin && ln -s /opt/node/bin/npm /usr/loca
 RUN node --version && \
      npm --version
 
-VOLUME /newman/
+VOLUME /data/
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 USER root
 RUN apt-get install sudo curl -y netbase
 
+RUN mkdir /.m2 && chown ${user}:${group} /.m2
+#COPY --chown=${user}:${group} --from=newman . /newman
+RUN wget https://github.com/giga-dev/newman/archive/refs/heads/master.zip -O /tmp/master.zip \
+    && unzip /tmp/master.zip -d /tmp \
+    && mv /tmp/newman-master /newman \
+    && rm /tmp/master.zip
+RUN chown -R ${user}:${group} /newman 
 USER ${user}
+WORKDIR /newman
+RUN mvn clean install
+WORKDIR /
+# ENTRYPOINT [ "sh", "-c", "/newman", "/newman/newman-server/bin/newman-server.sh"]
