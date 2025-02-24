@@ -31,7 +31,6 @@ RUN wget --no-verbose -O /tmp/${MAVEN_FILE} \
 RUN echo "9792c717f5845d952907d5144b8253c3  /tmp/${MAVEN_FILE}" | \
     md5sum -c
 
-
 # install in /opt/maven
 RUN mkdir -p /opt/maven
 
