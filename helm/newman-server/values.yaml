@@ -30,3 +30,6 @@ persistence:
 mongodb:
   host: mongo-server
   port: 27017
+  username: newman
+  password: newman
+  database: newman-db
