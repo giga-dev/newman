@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: 573366771204.dkr.ecr.us-east-1.amazonaws.com/xap-newman/server
-  tag: 0.1.14
+  tag: 0.1.15
   pullPolicy: IfNotPresent
 
 service:

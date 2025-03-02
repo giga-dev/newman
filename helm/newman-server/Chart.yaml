@@ -2,5 +2,5 @@ apiVersion: v2
 name: newman-server
 description: Helm chart for the Newman Server application
 type: application
-version: 0.1.14
-appVersion: 0.1.14
+version: 0.1.15
+appVersion: 0.1.15
