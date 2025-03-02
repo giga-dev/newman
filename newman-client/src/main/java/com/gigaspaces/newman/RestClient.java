@@ -3,7 +3,7 @@ package com.gigaspaces.newman;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.*;
 import com.gigaspaces.newman.beans.Batch;
 import com.gigaspaces.newman.beans.Job;
 import com.gigaspaces.newman.beans.JobRequest;
@@ -14,6 +14,7 @@ import org.glassfish.jersey.client.rx.RxClient;
 import org.glassfish.jersey.client.rx.RxWebTarget;
 import org.glassfish.jersey.client.rx.java8.RxCompletionStage;
 import org.glassfish.jersey.client.rx.java8.RxCompletionStageInvoker;
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;

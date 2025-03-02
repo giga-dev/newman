@@ -14,7 +14,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jetty.version>9.4.11.v20180605</jetty.version>
-        <jersey.version>2.18</jersey.version>
+        <jersey.version>3.1.3</jersey.version>
         <mongodb.version>3.0.0</mongodb.version>
         <morphia.version>0.111</morphia.version>
         <common.io.version>1.3.2</common.io.version>
@@ -110,7 +110,7 @@
             <dependency>
                 <groupId>org.glassfish.jersey.media</groupId>
                 <artifactId>jersey-media-json-jackson</artifactId>
-                <version>${jersey.version}</version>
+                <version>3.1.3</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.media</groupId>
@@ -134,7 +134,7 @@
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.ext.rx</groupId>
-                <artifactId>jersey-rx-client-java8</artifactId>
+                <artifactId>jersey-rx-client-rxjava</artifactId>
                 <version>${jersey.version}</version>
             </dependency>
             <dependency>
@@ -215,7 +215,81 @@
                 <version>${hamcrest.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-common</artifactId>
+                <version>2.35</version>
+            </dependency>
+
+            <!-- Jersey Client (If You Are Making REST Calls) -->
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-client</artifactId>
+                <version>2.35</version>
+            </dependency>
+
+            <!-- Jersey Server (If You Are Building a REST API) -->
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-server</artifactId>
+                <version>2.35</version>
+            </dependency>
+
+            <!-- Jersey Filters (Fixes 'org.glassfish.jersey.filter' Missing Error) -->
+            <dependency>
+                <groupId>org.glassfish.jersey.ext</groupId>
+                <artifactId>jersey-bean-validation</artifactId>
+                <version>2.35</version>
+            </dependency>
+
+            <!-- Jersey HK2 Dependency Injection -->
+            <dependency>
+                <groupId>org.glassfish.jersey.inject</groupId>
+                <artifactId>jersey-hk2</artifactId>
+                <version>2.35</version>
+            </dependency>
+
+            <!-- JAXB API (Required for Java 11+) -->
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>2.3.1</version>
+            </dependency>
+
+            <!-- JAXB Runtime Implementation -->
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>2.3.1</version>
+            </dependency>
+
+            <!-- Jackson Core (For JSON Handling) -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.15.3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>2.15.3</version>
+            </dependency>
+
+            <!-- Jackson Core API -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>2.15.3</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+                <artifactId>jackson-jakarta-rs-json-provider</artifactId>
+                <version>2.18.2</version>
+            </dependency>
         </dependencies>
+
     </dependencyManagement>
 
     <build>
