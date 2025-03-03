@@ -4,17 +4,17 @@ metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: newman-server
+    app: server
 spec:
   serviceName: newman-server-headless
   replicas: 1
   selector:
     matchLabels:
-      app: newman-server
+      app: server
   template:
     metadata:
       labels:
-        app: newman
+        app: server
     spec:
       containers:
         - name: newman-server
