@@ -1,15 +1,11 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Agent;
-import com.gigaspaces.newman.config.Config;
-import com.gigaspaces.newman.dao.AgentDAO;
+import com.gigaspaces.newman.beans.repository.AgentRepository;
+import com.gigaspaces.newman.config.JpaConfig;
 import com.gigaspaces.newman.spotinst.ElasticGroup;
-import com.mongodb.MongoClient;
-import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.Query;
-import org.mongodb.morphia.query.QueryResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
@@ -27,28 +23,15 @@ import java.util.stream.Collectors;
 public class SpotinstResource {
     private static final Logger logger = LoggerFactory.getLogger(SpotinstResource.class);
     private final SpotinstClient spotinstClient;
-    private final MongoClient mongoClient;
-    private final AgentDAO agentDAO;
-    private final Config config;
+    private final AgentRepository agentRepository;
+    private final AnnotationConfigApplicationContext context;
 
     public SpotinstResource(@Context ServletContext servletContext) {
-        this.config = Config.fromString(servletContext.getInitParameter("config"));
+        this.context = new AnnotationConfigApplicationContext(JpaConfig.class);
+
         spotinstClient = new SpotinstClient();
-        mongoClient = new MongoClient(config.getMongo().getHost());
-        Morphia morphia = initMorphia();
-        agentDAO = new AgentDAO(morphia, mongoClient, config.getMongo().getDb());
-    }
 
-
-    private Morphia initMorphia() {
-        Morphia morphia;
-        try {
-            morphia = new Morphia().mapPackage("com.gigaspaces.newman.beans.criteria").mapPackage("com.gigaspaces.newman.beans");
-        } catch (Exception e) {
-            logger.error("failed to init morphia", e);
-            throw e;
-        }
-        return morphia;
+        agentRepository = context.getBean(AgentRepository.class);
     }
 //
 //    @GET
@@ -64,9 +47,8 @@ public class SpotinstResource {
     public List<ElasticGroup> getElasticGroups() throws IOException {
 
 
-        return spotinstClient.getAgentsElasticGroups().stream().map(elasticGroup    -> {
-            QueryResults<Agent> res = agentDAO.find(agentDAO.createQuery().field("groupName").equal(elasticGroup.getTags().getName()));
-            elasticGroup.setConnectedAgents(res.asList().size());
+        return spotinstClient.getAgentsElasticGroups().stream().map(elasticGroup -> {
+            elasticGroup.setConnectedAgents(agentRepository.countAgentsByGroupName(elasticGroup.getTags().getName()));
             try {
                 elasticGroup.setRunningVMs(spotinstClient.getInstancesCountForElasticGroup(elasticGroup.getId()));
             } catch (IOException ignored) {

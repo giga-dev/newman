@@ -8,9 +8,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * 5/4/15.
  */
 @JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
+        use = JsonTypeInfo.Id.CLASS,
         include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
+        property = "className")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = AndCriteria.class),
         @JsonSubTypes.Type(value = OrCriteria.class),

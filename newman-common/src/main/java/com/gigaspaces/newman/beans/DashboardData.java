@@ -1,5 +1,9 @@
 package com.gigaspaces.newman.beans;
 
+import com.gigaspaces.newman.entities.Build;
+import com.gigaspaces.newman.entities.FutureJob;
+import com.gigaspaces.newman.projections.PJobForDashboard;
+
 import java.util.List;
 import java.util.Map;
 
@@ -13,12 +17,12 @@ public class DashboardData {
     private List<Build> historyBuilds;
     private List<FutureJob> futureJobs;
     //key is build id
-    private Map<String,List<Job>> activeJobs;
+    private Map<String,List<PJobForDashboard>> activeJobs;
 
     public DashboardData() {
     }
 
-    public DashboardData(List<Build> activeBuilds, List<Build> pendingBuilds, List<Build> historyBuilds, Map<String,List<Job>> activeJobs, List<FutureJob> futureJobs) {
+    public DashboardData(List<Build> activeBuilds, List<Build> pendingBuilds, List<Build> historyBuilds, Map<String,List<PJobForDashboard>> activeJobs, List<FutureJob> futureJobs) {
         this.activeBuilds = activeBuilds;
         this.pendingBuilds = pendingBuilds;
         this.historyBuilds = historyBuilds;
@@ -50,11 +54,11 @@ public class DashboardData {
         this.historyBuilds = historyBuilds;
     }
 
-    public Map<String, List<Job>> getActiveJobs() {
+    public Map<String, List<PJobForDashboard>> getActiveJobs() {
         return activeJobs;
     }
 
-    public void setActiveJobs(Map<String, List<Job>> activeJobs) {
+    public void setActiveJobs(Map<String, List<PJobForDashboard>> activeJobs) {
         this.activeJobs = activeJobs;
     }
 

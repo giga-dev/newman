@@ -1,8 +1,8 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Job;
-import com.gigaspaces.newman.beans.Suite;
-import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.entities.Job;
+import com.gigaspaces.newman.entities.Suite;
+import com.gigaspaces.newman.entities.Test;
 import com.gigaspaces.newman.utils.FileUtils;
 import com.gigaspaces.newman.utils.ProcessResult;
 import com.gigaspaces.newman.utils.ProcessUtils;

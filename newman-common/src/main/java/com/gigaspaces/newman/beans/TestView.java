@@ -1,6 +1,8 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import com.gigaspaces.newman.entities.Test;
+import com.gigaspaces.newman.projections.PTest;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Date;
 import java.util.List;
@@ -43,6 +45,25 @@ public class TestView {
         progressPercent = test.getProgressPercent();
         runNumber = test.getRunNumber();
         computeProgressPercent(test.getStatus());
+    }
+
+    public TestView( PTest test ) {
+
+        id = test.getId();
+        jobId = test.getJobId();
+        name = test.getName();
+        arguments = test.getArguments();
+        status = Test.Status.valueOf(test.getStatus());
+        errorMessage = test.getErrorMessage();
+        testScore = test.getTestScore();
+        historyStats = test.getHistoryStats();
+        assignedAgent = test.getAssignedAgent();
+        agentGroup = test.getAgentGroup();
+        startTime = test.getStartTime();
+        endTime = test.getEndTime();
+        progressPercent = test.getProgressPercent();
+        runNumber = test.getRunNumber();
+        computeProgressPercent(status);
     }
 
     public String getId() {
@@ -174,7 +195,7 @@ public class TestView {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName(), true)
+        return new ToStringBuilder(this)
                 .append("id", id)
                 .append("jobId", jobId)
                 .append("name", name)

@@ -1,6 +1,6 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.List;
 import java.util.Set;
@@ -67,7 +67,7 @@ public class FutureJobsRequest {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("buildId", buildId)
                 .append("suites", suites)
                 .append("configId",configId)

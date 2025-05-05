@@ -45,10 +45,10 @@ _EOF
 # System environment variables
 # Mongo host address to connect to from newman server
 # remote mongo db - xap-builder.gspaces.com:27017
-export NEWMAN_MONGO_DB_HOST=${NEWMAN_MONGO_DB_HOST="mongo-server"}
+export DB_HOST=${DB_HOST="xap-builder.gspaces.com:5432"}
 
 # Mongo db name to access in database
-export NEWMAN_MONGO_DB_NAME=${NEWMAN_MONGO_DB_NAME="newman-db"}
+export DB_NAME=${DB_NAME="newman-db"}
 
 export NEWMAN_SERVER_SPOTINST_TOKEN=${NEWMAN_SERVER_SPOTINST_TOKEN=""}
 export NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=""}
@@ -64,8 +64,8 @@ export NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=""}
 java -Dproduction=true \
     -Dnewman.server.spotinst.token="${NEWMAN_SERVER_SPOTINST_TOKEN}" \
     -Dnewman.server.spotinst.accountId="${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID}" \
-    -Dnewman.mongo.db.host=${NEWMAN_MONGO_DB_HOST} \
-    -Dnewman.mongo.db.name=${NEWMAN_MONGO_DB_NAME} \
+    -Dnewman.postgres.db.host=${DB_HOST} \
+    -Dnewman.postgres.db.name=${DB_NAME} \
     -Dnewman.server.realm-config-path=../config/realm.properties \
     -Dnewman.keys-folder-path=../keys/server.keystore \
     -Dnewman.certificate=../certs/keystore.p12 \

@@ -1,7 +1,7 @@
 package com.gigaspaces.newman.beans.criteria;
 
-import com.gigaspaces.newman.beans.Test;
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import com.gigaspaces.newman.entities.Test;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -71,7 +71,7 @@ public class TestCriteria implements Criteria {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("test", test)
                 .toString();
     }

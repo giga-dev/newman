@@ -1,7 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.CapabilitiesAndRequirements;
-import com.gigaspaces.newman.beans.Suite;
+import com.gigaspaces.newman.entities.Suite;
 import com.gigaspaces.newman.beans.criteria.*;
 import com.gigaspaces.newman.utils.EnvUtils;
 import com.gigaspaces.newman.utils.FileUtils;

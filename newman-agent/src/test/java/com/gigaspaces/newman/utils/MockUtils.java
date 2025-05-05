@@ -1,7 +1,7 @@
 package com.gigaspaces.newman.utils;
 
-import com.gigaspaces.newman.beans.Build;
-import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.entities.Build;
+import com.gigaspaces.newman.entities.Job;
 import com.gigaspaces.newman.beans.State;
 
 import java.net.URI;

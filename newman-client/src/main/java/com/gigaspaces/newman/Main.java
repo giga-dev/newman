@@ -5,6 +5,7 @@ import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.beans.criteria.CriteriaBuilder;
 import com.gigaspaces.newman.beans.criteria.PatternCriteria;
 import com.gigaspaces.newman.beans.criteria.TestCriteria;
+import com.gigaspaces.newman.entities.*;
 import com.gigaspaces.newman.utils.EnvUtils;
 import com.gigaspaces.newman.utils.FileUtils;
 //import com.google.gson.Gson;

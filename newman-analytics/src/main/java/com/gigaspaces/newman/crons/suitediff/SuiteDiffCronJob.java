@@ -4,6 +4,9 @@ import com.gigaspaces.newman.NewmanClient;
 import com.gigaspaces.newman.analytics.CronJob;
 import com.gigaspaces.newman.analytics.PropertiesConfigurer;
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.entities.Build;
+import com.gigaspaces.newman.entities.Job;
+import com.gigaspaces.newman.entities.Test;
 import com.gigaspaces.newman.server.NewmanServerConfig;
 import com.gigaspaces.newman.smtp.Mailman;
 import com.gigaspaces.newman.utils.StringUtils;
@@ -122,7 +125,7 @@ public class SuiteDiffCronJob implements CronJob {
         if (latestBuild.getTags().contains("NIGHTLY")) {
             htmlTemplate.setAttribute("suitesThatDidNotParticipate", suitesThatDidNotParticipate);
         }
-        htmlTemplate.setAttribute("totalSuites", latestBuild.getBuildStatus().getSuitesIds().size());
+        htmlTemplate.setAttribute("totalSuites", latestBuild.getBuildStatus().getSuites().size());
         htmlTemplate.setAttribute("totalPassed", latestBuild.getBuildStatus().getPassedTests());
         htmlTemplate.setAttribute("totalFailed", latestBuild.getBuildStatus().getFailedTests());
         htmlTemplate.setAttribute("totalFailedx", latestBuild.getBuildStatus().getFailed3TimesTests());

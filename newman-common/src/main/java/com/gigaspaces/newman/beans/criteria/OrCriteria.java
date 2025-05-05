@@ -1,6 +1,6 @@
 package com.gigaspaces.newman.beans.criteria;
 
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +29,7 @@ public class OrCriteria implements Criteria {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("criterias", criterias)
                 .toString();
     }

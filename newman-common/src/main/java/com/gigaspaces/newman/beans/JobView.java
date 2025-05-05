@@ -1,9 +1,12 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import com.gigaspaces.newman.entities.Build;
+import com.gigaspaces.newman.entities.Job;
+import com.gigaspaces.newman.entities.JobConfig;
+import com.gigaspaces.newman.entities.Suite;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 
@@ -37,7 +40,7 @@ public class JobView {
     private int failed3TimesTests;
     private int runningTests;
     private int numOfTestRetries;
-    private Set<String> preparingAgents = Collections.emptySet();
+    private Set<String> preparingAgents;
 
     public JobView( Job job ) {
 
@@ -255,7 +258,7 @@ public class JobView {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("id", id)
                 .append("submitTime", submitTime)
                 .append("startTime", startTime)

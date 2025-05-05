@@ -1,6 +1,7 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.beans.CapabilitiesAndRequirements;
+import com.gigaspaces.newman.entities.*;
 import com.gigaspaces.newman.utils.FileUtils;
 import com.gigaspaces.newman.utils.ProcessUtils;
 import org.slf4j.Logger;
@@ -161,7 +162,7 @@ public class NewmanAgent {
     }
 
     private void setFinalAgentName() {
-        this.name = config.getHostAddress() + "-" + UUID.randomUUID().toString();
+        this.name = config.getHostAddress() + "-" + UUID.randomUUID();
     }
 
     private void start() {
@@ -332,11 +333,7 @@ public class NewmanAgent {
         Job job = null;
         try {
             job = client.getJob(jobId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
         }
         if (job == null) {
@@ -356,9 +353,7 @@ public class NewmanAgent {
         tests.add(newTest);
         try {
             client.createTests(tests, "don't count").toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS * 5, TimeUnit.SECONDS);
-        } catch (InterruptedException | TimeoutException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | TimeoutException | ExecutionException e) {
             e.printStackTrace();
         }
     }

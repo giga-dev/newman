@@ -1,7 +1,7 @@
 package com.gigaspaces.newman.criteria;
 
 
-import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.entities.Test;
 import com.gigaspaces.newman.beans.criteria.*;
 import com.gigaspaces.newman.beans.criteria.CriteriaEvaluator;
 import org.junit.Assert;

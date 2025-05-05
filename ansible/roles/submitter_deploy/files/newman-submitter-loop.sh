@@ -3,8 +3,8 @@ while true; do
         source submitter-env.sh
 
         # take branches from file
-        branch_list=`cat ${BRANCH_FILE_PATH}`
-        IFS=',' read -a branch_array <<< "${branch_list}"
+#        branch_list=`cat ${BRANCH_FILE_PATH}`
+#        IFS=',' read -a branch_array <<< "${branch_list}"
         echo "starting loop over branches ..."
 
         # loop over all branches

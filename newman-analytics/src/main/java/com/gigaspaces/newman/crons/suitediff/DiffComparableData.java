@@ -1,6 +1,6 @@
 package com.gigaspaces.newman.crons.suitediff;
 
-import com.gigaspaces.newman.beans.Suite;
+import com.gigaspaces.newman.entities.Suite;
 
 /**
  * Created by moran on 8/19/15.

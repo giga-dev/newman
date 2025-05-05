@@ -1,6 +1,7 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import com.gigaspaces.newman.projections.PBuildThin;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Set;
 
@@ -14,7 +15,7 @@ public class BuildView {
     private String branch;
     private Set<String> tags;
 
-    public BuildView( Build build ) {
+    public BuildView( PBuildThin build ) {
         this.id = build.getId();
         this.name = build.getName();
         this.branch = build.getBranch();
@@ -47,7 +48,7 @@ public class BuildView {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("id", id)
                 .append("name", name)
                 .toString();

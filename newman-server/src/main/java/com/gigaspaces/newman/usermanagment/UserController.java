@@ -1,7 +1,5 @@
 package com.gigaspaces.newman.usermanagment;
 
-import org.eclipse.jetty.security.PropertyUserStore;
-
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
@@ -18,38 +16,32 @@ public class UserController {
 
     private final UserService userService;
 
-    public UserController(@Context ServletContext servletContext) throws Exception {
+    public UserController(@Context ServletContext servletContext) {
         this.userService = (UserService) servletContext.getAttribute("userService");
-
-        PropertyUserStore userStore = (PropertyUserStore) servletContext.getAttribute("userStore");
-        userStore.start();
     }
 
     @POST
     @Path("/add")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response addUser(UserDTO userDTO) {
-        userService.addUser(userDTO.toEntity());
-
-        // Return a response indicating success
-        return Response.status(Response.Status.CREATED).build();
+        if (userService.addUser(userDTO.toEntity())) {
+            // Return a response indicating success
+            return Response.status(Response.Status.CREATED).build();
+        }
+        return Response.status(Response.Status.BAD_REQUEST).build();
     }
 
     @DELETE
     @Path("/{username}")
     public Response removeUser(@PathParam("username") String username) {
         // Call UserService to remove the user
-        boolean success = userService.deleteUser(username);
-
-        if (success) {
-            // Return 204 No Content if user was successfully removed
+        if (userService.deleteUser(username)) {
             return Response.status(Response.Status.NO_CONTENT).build();
-        } else {
-            // Return 404 Not Found if user doesn't exist
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity("User not found with username: " + username)
-                    .build();
         }
+
+        return Response.status(Response.Status.NOT_FOUND)
+                .entity("User not found with username: " + username)
+                .build();
     }
 
     @GET

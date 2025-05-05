@@ -1,11 +1,14 @@
 package com.gigaspaces.newman;
 
 
-import com.gigaspaces.newman.config.Config;
+import com.gigaspaces.newman.config.JpaConfig;
 import com.gigaspaces.newman.filters.FrontendRoutingFilter;
 import com.gigaspaces.newman.filters.RootBasicLoginFilter;
 import com.gigaspaces.newman.usermanagment.UserService;
-import org.eclipse.jetty.security.*;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.PropertyUserStore;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -13,18 +16,16 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.*;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.mongodb.morphia.logging.MorphiaLoggerFactory;
-import org.mongodb.morphia.logging.slf4j.SLF4JLoggerImplFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
-
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -43,10 +44,6 @@ public class NewmanServer {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
-        MorphiaLoggerFactory.registerLogger(SLF4JLoggerImplFactory.class);
-
-        Config config = Config.fromArgs(args);
-
         Server server = new Server(8080);
         /* security */
 
@@ -58,7 +55,9 @@ public class NewmanServer {
         loginService.setUserStore(userStore);
         server.addBean(loginService);
 
-        final UserService userService = new UserService(userStore, config);
+        AnnotationConfigApplicationContext springContext = new AnnotationConfigApplicationContext(JpaConfig.class);
+        final UserService userService = springContext.getBean(UserService.class);
+        userService.updateUsers(userStore);
 
         // === USERS roles
         ConstraintSecurityHandler security = new ConstraintSecurityHandler();
@@ -68,9 +67,7 @@ public class NewmanServer {
         ConstraintMapping allowResourcesMapping = createConstraintMapping("auth2", false, "/api/newman/resource/*");
         ConstraintMapping allowMetadataMapping = createConstraintMapping("auth3", false, "/api/newman/metadata/*");
 
-        security.setConstraintMappings(Arrays.asList(new ConstraintMapping[]{
-                mapping, allowMetadataMapping, allowResourcesMapping
-        }));
+        security.setConstraintMappings(Arrays.asList(mapping, allowMetadataMapping, allowResourcesMapping));
 
         security.setAuthenticator(new BasicAuthenticator());
         security.setLoginService(loginService);
@@ -78,7 +75,6 @@ public class NewmanServer {
 
         // === Main page(root) Newman access configuration
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setInitParameter("config", config.asJSON());
         context.setContextPath("/");
         // security
         context.setSecurityHandler(security);
