@@ -8,10 +8,10 @@ ARG gid=1001
 RUN apt-get update -y
 RUN apt-get install coreutils wget -y
 
-ENV MAVEN_VERSION 3.6.3
-ENV MAVEN_FILE apache-maven-${MAVEN_VERSION}-bin.tar.gz
-ENV NODE_VERSION 22.11.0
-ENV NODE_FILE node-v${NODE_VERSION}-linux-x64.tar.gz
+ENV MAVEN_VERSION=3.6.3
+ENV MAVEN_FILE=apache-maven-${MAVEN_VERSION}-bin.tar.gz
+ENV NODE_VERSION=22.11.0
+ENV NODE_FILE=node-v${NODE_VERSION}-linux-x64.tar.gz
 
 # Jenkins is run with user `newman`, uid = 1000
 # If you bind mount a volume from the host or a data container,
@@ -21,7 +21,7 @@ RUN groupadd -g ${gid} ${group} \
 
 # Install Java.
 RUN apt-get install openjdk-8-jdk -y
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 
 # Install Maven
 RUN wget --no-verbose -O /tmp/${MAVEN_FILE} \
@@ -64,4 +64,13 @@ ENV PATH=$JAVA_HOME/bin:$PATH
 USER root
 RUN apt-get install sudo curl -y netbase
 
+RUN mkdir /.m2
+COPY . newman
+WORKDIR /newman
+RUN ls -lah
+RUN mvn clean install -DskipTests -Dmaven.repo.local=~/.m2/repository
+RUN mkdir -p /newman-server/bin \
+    && cp /newman/newman-server/target/newman-server-1.0.jar /newman-server/bin/newman-server.jar
+RUN chown -R ${user}:${group} /newman-server
+RUN rm -rf /newman
 USER ${user}
