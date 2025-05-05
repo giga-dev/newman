@@ -13,6 +13,7 @@ on:
   pull_request:
     paths:
       - 'docker/**'
+      - 'helm/**'
   # push:
   #   branches:
   #     - master
@@ -43,8 +44,8 @@ jobs:
         run: |
           # Get the latest tag from ECR (or set to default if no tags)
           LATEST_TAG=$(aws ecr describe-images --repository-name $ECR_REPOSITORY \
-          --query 'sort_by(imageDetails, &imagePushedAt)[-1].imageTags[0]' \
-          --output text 2>/dev/null | awk '{print ($0 == "None" || $0 == "" ? "0.1.8" : $0)}')
+                      --query 'sort_by(imageDetails, &imagePushedAt)[-1].imageTags[0]' \
+                      --output text 2>/dev/null | awk '{print ($0 == "None" || $0 == "" ? "0.1.8" : $0)}')
           
           # Increment the patch version by 1
           IFS='.' read -r -a TAG_PARTS <<< "$LATEST_TAG"
@@ -55,21 +56,21 @@ jobs:
           echo "image_tag=$NEW_TAG" >> $GITHUB_ENV
 
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
 
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        uses: docker/build-push-action@v6
-        timeout-minutes: 15
-        with:
-          platforms: |
-            linux/amd64
-          context: './docker'
-          file: './docker/Dockerfile.k8s'
-          push: true
-          tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.image_tag }}
+      # - name: Build, tag, and push image to Amazon ECR
+      #   id: build-image
+      #   uses: docker/build-push-action@v6
+      #   timeout-minutes: 15
+      #   with:
+      #     platforms: |
+      #       linux/amd64
+      #     context: './docker'
+      #     file: './docker/Dockerfile.k8s'
+      #     push: true
+      #     tags: |
+      #       ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.image_tag }}
 
       # an event for calling a listening workflow
       # - name: Update helm chart
@@ -78,3 +79,25 @@ jobs:
       #     event-type: helm-chart-update
       #     client-payload: '{"application-image-tag": "${{ env.image_tag }}"}'
           
+  check-updated-charts:
+    runs-on: ubuntu-22.04
+    outputs:
+      chart-list: ${{ steps.get-changed-files.outputs.chart-list }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: get list of changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          since_last_remote_commit: true
+      - name: Get of changed helm charts changed files
+        id: get-changed-files
+        run: |
+          set -xe
+          for CHART in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            [[ $(echo ${CHART} | grep 'helm/.*/') ]] && echo ${CHART} | awk -F / '{print $2}' >> changed_charts.txt
+          done
+          cat changed_charts.txt | uniq | jq --raw-input --slurp --compact-output 'split("\n") | map(select(length > 0))' > result.txt
+          cat result.txt
+          echo "chart-list=$(cat result.txt)" >> $GITHUB_OUTPUT

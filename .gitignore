@@ -129,6 +129,9 @@ crashlytics-build.properties
 *.war
 *.ear
 
+# MongoDB data
+docker/data/*
+
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
@@ -269,3 +272,9 @@ logs
 elm-stuff
 *.keystore
 Main.js
+
+# Ignore helm charts
+*/*.tgz
+
+# Ignore passhprases
+*/ecrpass.*

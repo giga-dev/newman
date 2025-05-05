@@ -19,8 +19,6 @@
             <layout>default</layout>
         </repository>
     </repositories>
-
-
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -48,6 +46,11 @@
             <artifactId>jersey-server</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
         </dependency>
@@ -61,7 +64,8 @@
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>${mongodb.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mongodb.morphia</groupId>
