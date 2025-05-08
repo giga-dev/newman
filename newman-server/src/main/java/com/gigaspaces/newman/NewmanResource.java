@@ -680,7 +680,7 @@ public class NewmanResource {
 
     private void managePrioritizedJob(Job job, boolean isPaused) {
         if (job.getPriority() > 0) {
-            Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findById(job.getId());
+            Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findByJobId(job.getId());
             PrioritizedJob prioritizedJob = opPrioritizedJob.orElseThrow(() -> new RuntimeException("PrioritizedJob [" + job.getId() + "] does not exist"));;
             prioritizedJob.setPaused(isPaused);
 
@@ -718,7 +718,7 @@ public class NewmanResource {
                         // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
                     job.setStartPrepareTime(null);
                     if (job.getPriority() > 0) {
-                        Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findById(job.getId());
+                        Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findByJobId(job.getId());
                         PrioritizedJob prioritizedJob = opPrioritizedJob.orElseThrow(() -> new RuntimeException("PrioritizedJob [" + id + "] does not exist"));;
                         prioritizedJob.setPaused(true);
 
@@ -778,7 +778,7 @@ public class NewmanResource {
                     job.setState(state); // .findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
                     result.add(job);
                     if (job.getPriority() > 0) {
-                        Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findPrioritizedJobByJobId(job.getId());
+                        Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findByJobId(job.getId());
                         if (!opPrioritizedJob.isPresent()) {
                             return null;
                         }
@@ -2086,12 +2086,15 @@ public class NewmanResource {
         newAgent.setGroupName(agent.getGroupName());
         
         if (job != null) {
-            agent.setJobId(job.getId());
-            agent.setState(Agent.State.PREPARING);
+            newAgent.setJobId(job.getId());
+            newAgent.setState(Agent.State.PREPARING);
             // update startPrepareTime only if not set
+            if (job.getPreparingAgents() == null) {
+                job.setPreparingAgents(new HashSet<>());
+            }
             job.getPreparingAgents().add(agent.getName());
             if (job.getStartPrepareTime() == null) {
-                logger.info("agent [host:[{}], name:[{}]] start prepare on job [id:[{}], name:[{}]].", agent.getHost(), agent.getName(), job.getId(), job.getSuite().getName());
+                logger.info("agent [host:[{}], name:[{}]] start prepare on job [id:[{}], name:[{}]].", newAgent.getHost(), newAgent.getName(), job.getId(), job.getSuite().getName());
                 job.setStartPrepareTime(new Date());
             }
             // job can be run = not a zombie
@@ -2174,7 +2177,7 @@ public class NewmanResource {
     }
 
     private int getNotPausedHighestPriorityJob() {
-        Optional<PrioritizedJob> prioritizedJob = prioritizedJobRepository.findTopByNotPausedOrderByPriorityDesc(); // highest: 4, lowest: 0
+        Optional<PrioritizedJob> prioritizedJob = prioritizedJobRepository.findTopByIsPausedFalseOrderByPriorityDesc(); // highest: 4, lowest: 0
         if (prioritizedJob.isPresent()) {
             return prioritizedJob.map(pj -> {
                 logger.info("Highest Priority of jobs: " + pj.getPriority());
@@ -2245,7 +2248,7 @@ public class NewmanResource {
                     if (jobRequest.getPriority() == 0) {
                         deletePrioritizedJob(job);
                     } else {
-                        Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findPrioritizedJobByJobId(job.getId());
+                        Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findByJobId(job.getId());
                         if (!opPrioritizedJob.isPresent()) {
                             return null;
                         }
@@ -2580,7 +2583,7 @@ public class NewmanResource {
     }
 
     private void deletePrioritizedJob(Job job) {
-        prioritizedJobRepository.deleteById(job.getId());
+        prioritizedJobRepository.deleteByJobId(job.getId());
         if (job.getPriority() == highestPriorityJob) {
             highestPriorityJob = getNotPausedHighestPriorityJob();
         }

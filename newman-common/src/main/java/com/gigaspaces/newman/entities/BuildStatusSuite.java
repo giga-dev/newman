@@ -4,8 +4,10 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import java.util.Objects;
+import java.util.UUID;
 
 
 @Entity
@@ -47,6 +49,13 @@ public class BuildStatusSuite {
 
     public void setSuiteName(String statusName) {
         this.suiteName = statusName;
+    }
+
+    @PrePersist
+    public void generateId() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID().toString();
+        }
     }
 
     @Override

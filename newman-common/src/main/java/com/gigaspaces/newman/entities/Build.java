@@ -87,7 +87,7 @@ public class Build {
     }
 
     public Collection<URI> getResources() {
-        return resources;
+        return ConvertUtils.unpackPersistentBag(resources);
     }
 
     public void setResources(Collection<URI> resources) {
@@ -111,7 +111,7 @@ public class Build {
     }
 
     public Collection<URI> getTestsMetadata() {
-        return testsMetadata;
+        return ConvertUtils.unpackPersistentBag(this.testsMetadata);
     }
 
     public void setTestsMetadata(Collection<URI> testsMetadata) {
@@ -143,15 +143,6 @@ public class Build {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
         }
-    }
-
-    /**
-     * This is needed when Build is being pulled as a dependency. Unpack removes extra brackets '[' & ']'
-     */
-    @PostLoad
-    public void postLoad() {
-        this.resources = ConvertUtils.unpackPersistentBag(this.resources);
-        this.testsMetadata = ConvertUtils.unpackPersistentBag(this.testsMetadata);
     }
 
     @Override

@@ -26,6 +26,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -82,16 +84,21 @@ public class NewmanServer {
         DefaultServlet defaultServlet = new DefaultServlet();
         ServletHolder holderPwd = new ServletHolder("default", defaultServlet);
         // locate where web files are stored - vue.js project
-        String webPath = getNonEmptySystemProperty(WEB_FOLDER_PATH, DEFAULT_WEB_FOLDER_PATH);
-        File webDir = new File(webPath);
-        if (!webDir.exists()) {
-            logger.info("File {} not found", webDir.getAbsolutePath());
-            String webDirInJar = NewmanServer.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
-            if (webDirInJar.toLowerCase().endsWith(".jar")) {
-                webPath = "jar:" + webDirInJar + "!/web";
+        String webPath = locateExternalWebFolder();
+        if (webPath == null) {
+            webPath = getNonEmptySystemProperty(WEB_FOLDER_PATH, DEFAULT_WEB_FOLDER_PATH);
+            File webDir = new File(webPath);
+            if (!webDir.exists()) {
+                logger.info("File {} not found", webDir.getAbsolutePath());
+                String webDirInJar = NewmanServer.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+                if (webDirInJar.toLowerCase().endsWith(".jar")) {
+                    webPath = "jar:" + webDirInJar + "!/web";
+                } else {
+                    logger.error("can't find webdir, either set web dir using system property {} or run newman with java -jar newman-server-1.0.jar", WEB_FOLDER_PATH);
+                    System.exit(1);
+                }
             } else {
-                logger.error("can't find webdir, either set web dir using system property {} or run newman with java -jar newman-server-1.0.jar", WEB_FOLDER_PATH);
-                System.exit(1);
+                logger.info("Web directory has been found: {}", webDir.getAbsolutePath());
             }
         }
         logger.info("Using {} to serve static content", webPath);
@@ -144,6 +151,35 @@ public class NewmanServer {
         } finally {
             server.destroy();
         }
+    }
+
+    private static String locateExternalWebFolder() {
+        String jarLocation = NewmanServer.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+        // Check if the JAR is indeed a .jar file
+        if (jarLocation.toLowerCase().endsWith(".jar")) {
+            try {
+                // Convert the JAR file URL to a File object and get the parent directory
+                File jarFile = new File(new URI(jarLocation));
+                File jarDir = jarFile.getParentFile();  // This is the directory containing the JAR
+
+                // Now construct the path to the 'web' folder next to the JAR
+                File webDir = new File(jarDir, "web");
+
+                // Check if the 'web' folder exists now
+                if (!webDir.exists()) {
+                    logger.info("The web directory could not be found next to the JAR.");
+                    return null;
+                } else {
+                    logger.info("Found external web directory: {}", webDir.getAbsolutePath());
+                    return webDir.getAbsolutePath();
+                }
+            } catch (URISyntaxException e) {
+                logger.error("Error parsing JAR file location", e);
+                System.exit(1);
+            }
+        }
+
+        return null;
     }
 
     private static ConstraintMapping createConstraintMapping(String name, boolean authenticate, String pathSpec, String... roles) {

@@ -63,6 +63,10 @@ public class SetStringArrayType implements UserType {
 
     @Override
     public Object deepCopy(Object value) throws HibernateException {
+        if (value == null) {
+            return new HashSet<>();
+        }
+
         Set<String> set = (Set<String>) value;
         return new HashSet<>(set);
     }

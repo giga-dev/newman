@@ -58,10 +58,9 @@ public class Job {
     // last time job seen as zombie
     private Date lastTimeZombie;
 
-//    @Convert(converter = StringSetConverter.class)
     @Type(type = "com.gigaspaces.newman.types.SetStringArrayType")
     @Column(name = "preparing_agents", columnDefinition = "TEXT[]")
-    private Set<String> preparingAgents;
+    private Set<String> preparingAgents = Collections.emptySet();;
 
     @Transient
     private Set<String> agents = Collections.emptySet();
