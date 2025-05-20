@@ -16,6 +16,7 @@ import com.gigaspaces.newman.dto.PSuiteDTO;
 import com.gigaspaces.newman.entities.*;
 import com.gigaspaces.newman.projections.*;
 import com.gigaspaces.newman.utils.FileUtils;
+import com.gigaspaces.newman.utils.StringUtils;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -401,7 +402,7 @@ public class NewmanResource {
             , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
 
-        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit); // // jobThin=false
+        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit); // jobThin=false
         return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
     }
 
@@ -2337,12 +2338,12 @@ public class NewmanResource {
     @Path("build")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Build createBuild(final Build build) {
+    public Build createBuild(Build build) {
         if (build.getBuildTime() == null) {
             build.setBuildTime(new Date());
         }
         build.setBuildStatus(new BuildStatus());
-        buildRepository.save(build);
+        build = buildRepository.save(build);
         broadcastMessage(CREATED_BUILD, build);
         return build;
     }
@@ -3222,11 +3223,13 @@ public class NewmanResource {
         broadcastMessage(CREATED_OFFLINE_AGENT, createAgentFromOfflineAgent(offlineAgents.get(agentIp)));
         broadcastMessage(MODIFIED_AGENTS_COUNT, agentRepository.count());
         //Delete agent from preparing agents in jobs
-        Optional<Job> opJob = jobRepository.findById(agentToDelete.getJobId());
-        if (opJob.isPresent()) {
-            Job job = opJob.get();
-            job.getPreparingAgents().remove(agentToDelete.getName());
-            jobRepository.save(job);
+        if (StringUtils.notEmpty(agentToDelete.getJobId())) {
+            Optional<Job> opJob = jobRepository.findById(agentToDelete.getJobId());
+            if (opJob.isPresent()) {
+                Job job = opJob.get();
+                job.getPreparingAgents().remove(agentToDelete.getName());
+                jobRepository.save(job);
+            }
         }
     }
 

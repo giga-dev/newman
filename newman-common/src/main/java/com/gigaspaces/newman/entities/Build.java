@@ -1,17 +1,16 @@
 package com.gigaspaces.newman.entities;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.gigaspaces.newman.converters.UriCollectionConverter;
 import com.gigaspaces.newman.converters.MapToJsonConverter;
 import javax.persistence.*;
 
-import com.gigaspaces.newman.utils.ConvertUtils;
+import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Barak Bar Orion
@@ -22,6 +21,7 @@ import java.util.*;
         @Index(name = "idx_suite_name", columnList = "name"),
         @Index(name = "idx_suite_branch", columnList = "branch")
 })
+@TypeDef(name = "list-array", typeClass = ListArrayType.class)
 public class Build {
 
     @Id
@@ -33,19 +33,13 @@ public class Build {
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, String> shas;
 
-    @Fetch(FetchMode.SUBSELECT)
-    @Convert(converter = UriCollectionConverter.class)
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "build_resources", joinColumns = @JoinColumn(name = "build_id"))
-    @Column(name = "resources", columnDefinition = "TEXT[]")
-    private Collection<URI> resources;
+    @Type(type = "list-array")
+    @Column(name = "resources", columnDefinition = "text[]")
+    private List<String> resources;
 
-    @Fetch(FetchMode.SUBSELECT)
-    @Convert(converter = UriCollectionConverter.class)
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "build_tests_metadata", joinColumns = @JoinColumn(name = "build_id"))
-    @Column(name = "tests_metadata", columnDefinition = "TEXT[]")
-    private Collection<URI> testsMetadata; //JSON metadata of the tests
+    @Type(type = "list-array")
+    @Column(name = "tests_metadata", columnDefinition = "text[]")
+    private List<String> testsMetadata;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "build_tags", joinColumns = @JoinColumn(name = "build_id"))
@@ -86,12 +80,23 @@ public class Build {
         this.branch = branch;
     }
 
+    @Transient
     public Collection<URI> getResources() {
-        return ConvertUtils.unpackPersistentBag(resources);
+        if (this.resources == null) return Collections.emptyList();
+        return this.resources.stream()
+                .map(URI::create)
+                .collect(Collectors.toList());
     }
 
-    public void setResources(Collection<URI> resources) {
-        this.resources = resources;
+    @Transient
+    public void setResources(Collection<URI> res) {
+        if (res == null) {
+            this.resources = new ArrayList<>();
+        } else {
+            this.resources = res.stream()
+                    .map(URI::toString)
+                    .collect(Collectors.toList());
+        }
     }
 
     public String getName() {
@@ -110,12 +115,23 @@ public class Build {
         this.buildTime = buildTime;
     }
 
+    @Transient
     public Collection<URI> getTestsMetadata() {
-        return ConvertUtils.unpackPersistentBag(this.testsMetadata);
+        if (this.testsMetadata == null) return new ArrayList<>();
+        return this.testsMetadata.stream()
+                .map(URI::create)
+                .collect(Collectors.toList());
     }
 
-    public void setTestsMetadata(Collection<URI> testsMetadata) {
-        this.testsMetadata = testsMetadata;
+    @Transient
+    public void setTestsMetadata(Collection<URI> uris) {
+        if (uris == null) {
+            this.testsMetadata = new ArrayList<>();
+        } else {
+            this.testsMetadata = uris.stream()
+                    .map(URI::toString)
+                    .collect(Collectors.toList());
+        }
     }
 
     public BuildStatus getBuildStatus() {
@@ -124,6 +140,9 @@ public class Build {
 
     public void setBuildStatus(BuildStatus buildStatus) {
         this.buildStatus = buildStatus;
+        if (buildStatus != null) {
+            this.buildStatus.setBuild(this);
+        }
     }
 
     public Set<String> getTags() {
