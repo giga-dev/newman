@@ -88,6 +88,13 @@
             <version>5.6.15.Final</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.hypersistence/hypersistence-utils-hibernate-55 -->
+        <dependency>
+            <groupId>io.hypersistence</groupId>
+            <artifactId>hypersistence-utils-hibernate-55</artifactId>
+            <version>3.9.5</version>
+        </dependency>
+
         <dependency>
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
