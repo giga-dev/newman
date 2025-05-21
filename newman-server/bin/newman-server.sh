@@ -58,16 +58,15 @@ export NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=""}
 # run newman server
 # to debug, add java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 \
 
-export JAVA_HOME=$(/usr/libexec/java_home -v "1.8.0_311")
-
+# --add-opens not needed unless it's java 9 or higher is used
 # java --add-opens java.base/java.lang=ALL-UNNAMED \
 #    --add-opens java.base/java.net=ALL-UNNAMED \
 #    --add-opens java.base/java.nio=ALL-UNNAMED \
 #    --add-opens java.base/java.util=ALL-UNNAMED \
 #    --add-opens java.base/java.util.concurrent=ALL-UNNAMED \
 #    --add-opens java.base/java.time=ALL-UNNAMED \
+
 java -Dproduction=true \
-    -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 \
     -Dnewman.server.spotinst.token="${NEWMAN_SERVER_SPOTINST_TOKEN}" \
     -Dnewman.server.spotinst.accountId="${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID}" \
     -Dnewman.postgres.db.host=${DB_HOST} \
