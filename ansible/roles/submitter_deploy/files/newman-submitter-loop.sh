@@ -33,7 +33,7 @@ while true; do
                 echo "NEWMAN_MODE=${NEWMAN_MODE}"
 
                 #checking future job
-                java -jar /Users/oleksiivedernikov/java_workspace/newman/newman-submitter/target/newman-submitter-1.0.jar
+                java -jar newman-submitter-1.0.jar
                 HAS_FUTURE_JOBS=$?
                 echo "FINISHED SUBMIT LOOP!! [HAS_FUTURE_JOBS=${HAS_FUTURE_JOBS}]. Date is [`date`]"
 #                if [ $HAS_FUTURE_JOBS -eq 0 ]; then
