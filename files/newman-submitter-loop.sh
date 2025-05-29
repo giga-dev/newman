@@ -14,8 +14,6 @@ while true; do
                 # current hour
                 HOURS=$(date +%H)
 
-                # check if nightly or daily mode - every branch
-#                if [ $HOURS -ge 20 -a $HOURS -le 23 ]; then
                 if [ $HOURS -ge 23 -o $HOURS -le 1 ]; then
                         echo "running in nightly mode, will trigger new jobs even if no changes where made, date is `date`"
                         export NEWMAN_MODE="NIGHTLY"
@@ -36,17 +34,6 @@ while true; do
                 java -jar newman-submitter-2.0.jar
                 HAS_FUTURE_JOBS=$?
                 echo "FINISHED SUBMIT LOOP!! [HAS_FUTURE_JOBS=${HAS_FUTURE_JOBS}]. Date is [`date`]"
-#                if [ $HAS_FUTURE_JOBS -eq 0 ]; then
-                    #echo "No future jobs, sleeping 1m"
-                    sleep 60
-#                fi
-#                while [ $HAS_FUTURE_JOBS -ne 0 ]; do
-#                        echo "Has future jobs, trying again..."
-#                        java -jar newman-submitter-1.0.jar
-#                        HAS_FUTURE_JOBS=$?
-#                        sleep 120
-#                done
-#                echo "finish submitter work!"
-
+                sleep 60
         done
 done
