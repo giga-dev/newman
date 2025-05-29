@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.beans.criteria.*;
 import com.gigaspaces.newman.beans.repository.*;
-import com.gigaspaces.newman.beans.specification.AgentSpecifications;
 import com.gigaspaces.newman.beans.specification.BuildSpecifications;
 import com.gigaspaces.newman.beans.specification.JobSpecifications;
 import com.gigaspaces.newman.beans.specification.TestSpecifications;
@@ -20,7 +19,6 @@ import com.gigaspaces.newman.utils.StringUtils;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -1157,25 +1155,20 @@ public class NewmanResource {
             if (test.getAssignedAgent() != null) {
                 Optional<Agent> opAgent = agentRepository.findByName(test.getAssignedAgent());
                 if (opAgent.isPresent()) {
-                    Agent agent = opAgent.get();
-                    agent.setLastTouchTime(new Date());
-                    agent.getCurrentTests().remove(test.getId());
+                    Agent currAssignedAgent = opAgent.get();
+                    currAssignedAgent.setLastTouchTime(new Date());
+                    currAssignedAgent.getCurrentTests().remove(test.getId());   // remove assigned tests one by one when they complete
 
-                    Agent idling = null;
-                    if (agent.getCurrentTests().isEmpty()) {
-                        Optional<Agent> opEmptyAgent = agentRepository.findOne(AgentSpecifications.hasNameAndNoCurrentTests(test.getAssignedAgent()));
-                        if (opEmptyAgent.isPresent()) {
-                            idling = opEmptyAgent.get();
-                            idling.setState(Agent.State.IDLING);
-
-                            idling = agentRepository.save(idling);
-                        }
-
-                        if (idling != null) {
-                            logger.debug("agent [{}] become idling because it finish all his tests", idling.getName());
-                        }
+                    if (currAssignedAgent.getCurrentTests().isEmpty()) {
+                        currAssignedAgent.setState(Agent.State.IDLING);     // set agent back to IDLING if it doesn't have tasks to run
                     }
-                    broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
+
+                    agentRepository.save(currAssignedAgent);
+                    broadcastMessage(MODIFIED_AGENT, currAssignedAgent);
+
+                    if (currAssignedAgent.getState() == Agent.State.IDLING) {
+                        logger.debug("agent [{}] become idling because it finish all his tests", currAssignedAgent.getName());
+                    }
                 }
             }
         }
@@ -2003,29 +1996,23 @@ public class NewmanResource {
                 if (opAgent.isPresent()) {
                     agent = opAgent.get();
                     agent.getCurrentTests().remove(result.getId());
-
-                    agent = agentRepository.save(agent);
                 }
 
                 Agent idling = null;
                 if (agent.getCurrentTests().isEmpty()) {
-                    Optional<Agent> opEmptyAgent = agentRepository.findOne(AgentSpecifications.byIdAndNoCurrentTests(agent.getId()));
-                    if (opEmptyAgent.isPresent()) {
-                        idling = opEmptyAgent.get();
-                        idling.setState(Agent.State.IDLING);
+                    agent.setState(Agent.State.IDLING);
 
-                        idling = agentRepository.save(idling);
-                    }
-
-                    if (idling != null) {
-                        logger.warn("agent [{}] is idling from getTest because finished all his tests", idling.getName());
-                    }
                 }
-
-                broadcastMessage(MODIFIED_AGENT, idling == null ? agent : idling);
+                agentRepository.save(agent);
+                broadcastMessage(MODIFIED_AGENT, agent);
                 if (pj != null) {
                     broadcastMessage(MODIFIED_JOB, pj);
                 }
+
+                if (agent.getState() == Agent.State.IDLING) {
+                    logger.warn("agent [{}] is idling from getTest because finished all his tests", idling.getName());
+                }
+
                 return null;
             }
         } else {
