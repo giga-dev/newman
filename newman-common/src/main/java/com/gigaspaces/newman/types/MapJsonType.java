@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Map;
+import java.util.Objects;
 
 public class MapJsonType implements UserType {
 
@@ -31,7 +32,7 @@ public class MapJsonType implements UserType {
 
     @Override
     public boolean equals(Object x, Object y) throws HibernateException {
-        return x.equals(y);
+        return Objects.equals(x, y);
     }
 
     @Override

@@ -123,12 +123,13 @@ public class JobSpecifications {
     }
 
     private static Expression<Integer> getArraySize(CriteriaBuilder cb, Path<?> arrayField) {
-        return cb.function(
+        Expression<Integer> arrayLength = cb.function(
                 "array_length",     // PostgreSQL function to get the array length
                 Integer.class,          // The return type
                 arrayField,  // The array field
                 cb.literal(1)   // The dimension of the array (1 for single-dimensional arrays)
         );
+        return cb.coalesce(arrayLength, cb.literal(0)); // array_length requires coalesce for empty arrays
     }
 
 }
