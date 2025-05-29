@@ -1083,6 +1083,7 @@ public class NewmanResource {
                 existingTest.setErrorMessage(test.getErrorMessage());
             }
             existingTest.setEndTime(new Date());
+            existingTest.setStatus(status);
 
             int historyLength = 25;
             List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
