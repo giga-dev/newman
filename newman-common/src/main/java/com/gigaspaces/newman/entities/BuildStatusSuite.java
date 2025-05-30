@@ -60,15 +60,14 @@ public class BuildStatusSuite {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BuildStatusSuite that = (BuildStatusSuite) o;
-        return id.equals(that.id) && suiteId.equals(that.suiteId) && suiteName.equals(that.suiteName);
+        return Objects.equals(suiteId, that.suiteId) && Objects.equals(suiteName, that.suiteName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, suiteId, suiteName);
+        return Objects.hash(suiteId, suiteName);
     }
 
     @Override

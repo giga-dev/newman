@@ -1409,9 +1409,6 @@ public class NewmanResource {
                 Test test = optionalTest.get();
 
                 for (String entry : entries) {
-                    if (test.getLogs() == null) {
-                        test.setLogs(new TestLog());
-                    }
                     test.getLogs().getTestLogs().put("logs." + entry, uri + "!/" + entry);
                 }
 

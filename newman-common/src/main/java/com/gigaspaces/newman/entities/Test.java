@@ -114,6 +114,7 @@ public class Test {
     }
 
     public TestLog getLogs() {
+        if (logs == null) logs = new TestLog();
         return logs;
     }
 
