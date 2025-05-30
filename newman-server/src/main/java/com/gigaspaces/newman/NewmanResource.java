@@ -115,6 +115,7 @@ public class NewmanResource {
     private static String HTTP_WEB_ROOT_PATH;
     private static String HTTPS_WEB_ROOT_PATH;
 
+    private static final Object subscribeToJobLock = new Object();
     private static final Object takenTestLock = new Object();
     private static final Object changeJobPriorityLock = new Object();
     private final AtomicLong latestLogSize = new AtomicLong(0);
@@ -2054,9 +2055,6 @@ public class NewmanResource {
             }
         }
 
-        Job job = findJob(agent.getCapabilities(), JobSpecifications.preparingAgentsCondition(), agent.getGroupName());
-
-
         Agent newAgent = new Agent();   // create new Agent to subscribe
         newAgent.setId(foundAgentId);
         newAgent.setLastTouchTime(new Date());
@@ -2069,30 +2067,35 @@ public class NewmanResource {
         newAgent.setName(agent.getName());
         newAgent.setCurrentTests(new HashSet<>());
         newAgent.setGroupName(agent.getGroupName());
-        
-        if (job != null) {
-            newAgent.setJobId(job.getId());
-            newAgent.setState(Agent.State.PREPARING);
-            // update startPrepareTime only if not set
-            if (job.getPreparingAgents() == null) {
-                job.setPreparingAgents(new HashSet<>());
+        newAgent.setState(Agent.State.IDLING);
+
+        Agent subscribedAgent;
+        Job job;
+        synchronized (subscribeToJobLock) { // prevent multiple agents pick up the same job because this awakens multiple agents for just 1 test
+            job = findJob(agent.getCapabilities(), JobSpecifications.preparingAgentsCondition(), agent.getGroupName());
+            if (job != null) {
+                newAgent.setJobId(job.getId());
+                newAgent.setState(Agent.State.PREPARING);
+
+                if (job.getPreparingAgents() == null) {
+                    job.setPreparingAgents(new HashSet<>());
+                }
+                job.getPreparingAgents().add(agent.getName());
+                if (job.getStartPrepareTime() == null) {
+                    logger.info("agent [host:[{}], name:[{}]] start prepare on job [id:[{}], name:[{}]].", newAgent.getHost(), newAgent.getName(), job.getId(), job.getSuite().getName());
+                    job.setStartPrepareTime(new Date());
+                }
+                // job can be run = not a zombie
+                if (job.getLastTimeZombie() != null) {
+                    job.setLastTimeZombie(null);
+                }
+                job = jobRepository.save(job);
+                broadcastMessage(MODIFIED_JOB, job);
             }
-            job.getPreparingAgents().add(agent.getName());
-            if (job.getStartPrepareTime() == null) {
-                logger.info("agent [host:[{}], name:[{}]] start prepare on job [id:[{}], name:[{}]].", newAgent.getHost(), newAgent.getName(), job.getId(), job.getSuite().getName());
-                job.setStartPrepareTime(new Date());
-            }
-            // job can be run = not a zombie
-            if (job.getLastTimeZombie() != null) {
-                job.setLastTimeZombie(null);
-            }
-            job = jobRepository.save(job);
-            broadcastMessage(MODIFIED_JOB, job);
-        } else {
-            newAgent.setState(Agent.State.IDLING);
+
+            subscribedAgent = agentRepository.save(newAgent);
         }
 
-        Agent readyAgent = agentRepository.save(newAgent);
         if (foundAgent == null) {
             String agentIp = agent.getHostAddress();
             if (offlineAgents.containsKey(agentIp)) {
@@ -2101,14 +2104,14 @@ public class NewmanResource {
             }
             broadcastMessage(MODIFIED_AGENTS_COUNT, agentRepository.count());
         }
-        if (readyAgent.getState().equals(Agent.State.IDLING)) {
-            logger.debug("agent [{}] is idling at subscribe because didn't find job", readyAgent.getName());
+        if (subscribedAgent.getState().equals(Agent.State.IDLING)) {
+            logger.debug("agent [{}] is idling at subscribe because didn't find job", subscribedAgent.getName());
         }
 
         //TODO this event is sent every 10 seconds (jobPollInteval) per agent
         //TODO Check if it is necessary to send it
         //logger.info(">>> Modified Agent " +agent.getHost()+ " subscribe");
-        broadcastMessage(MODIFIED_AGENT, readyAgent);
+        broadcastMessage(MODIFIED_AGENT, subscribedAgent);
         return Response.ok(job).build();
     }
 
