@@ -1300,6 +1300,7 @@ public class NewmanResource {
             logger.warn("uploadTestLog - the job of the test is not on database. testId:[{}], jobId:[{}].", id, jobId);
             return null;
         }
+        logger.info("Received log file for jobId:[{}], id:[{}]", jobId, id);
         FormDataBodyPart filePart = form.getField("file");
         ContentDisposition contentDispositionHeader = filePart.getContentDisposition();
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
@@ -1363,10 +1364,12 @@ public class NewmanResource {
 
     private void handleTestLogFile(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
         String filePath = calculateTestLogFilePath(jobId, testId) + fileName;
+        logger.info("Test log file path calculated: " + filePath);
         try {
             Optional<Test> opTest = testRepository.findById(testId);
             if (opTest.isPresent()) {
                 saveFile(fileInputStream, filePath);
+                logger.info("Log file saved on path: " + filePath);
                 URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
 
                 Test test = opTest.get();
@@ -1375,6 +1378,7 @@ public class NewmanResource {
                 String jobSetupLogsValue = uri.toASCIIString();
 
                 test.getLogs().getTestLogs().put(logName, jobSetupLogsValue);
+                logger.info("Test logs added to the test {}:  {}", test.getId(), test.getLogs().getTestLogs());
                 testRepository.save(test);
 
                 broadcastMessage(MODIFIED_TEST, test);
@@ -3176,8 +3180,8 @@ public class NewmanResource {
                             "Broadcasting message [" + type + "] with value [" + value + "] took " + (
                                     time2 - time1) + " ms");
                 }
-            } catch (Throwable ignored) {
-                logger.error("Invoking of broadcastMessage() failed");
+            } catch (Throwable e) {
+                logger.error("Invoking of broadcastMessage() failed: ", e);
             }
         }
     }

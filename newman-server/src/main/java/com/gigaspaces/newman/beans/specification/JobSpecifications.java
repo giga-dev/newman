@@ -95,14 +95,12 @@ public class JobSpecifications {
     // Specification to check if preparingAgents exists and its size is less than the required number
     private static Specification<Job> preparingAgentsLessThanRequired() {
         return (root, query, cb) -> {
-            // Expression to calculate the required number of agents
-            Expression<Integer> requiredAgents = cb.sum(
-                    cb.sum(root.get("totalTests"), root.get("numOfTestRetries")),
-                    cb.sum(
-                            root.get("passedTests"),
-                            cb.sum(root.get("failedTests"), root.get("runningTests"))
-                    )
+            Expression<Integer> totalPlannedTests = cb.sum(root.get("totalTests"), root.get("numOfTestRetries"));
+            Expression<Integer> alreadyProcessedTests = cb.sum(
+                    root.get("passedTests"),
+                    cb.sum(root.get("failedTests"), root.get("runningTests"))
             );
+            Expression<Integer> requiredAgents = cb.diff(totalPlannedTests, alreadyProcessedTests);
 
             // Predicate: preparingAgents.size < requiredAgents
             return cb.lessThan(getArraySize(cb, root.get("preparingAgents")), requiredAgents);
