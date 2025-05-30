@@ -3171,6 +3171,7 @@ public class NewmanResource {
 
     private void broadcastMessage(String type, Object value) {
         if (value != null) {
+            value = prepareEntityForBroadcasting(value);
             try {
                 long time1 = System.currentTimeMillis();
                 EventSocket.broadcast(new Message(type, value));
@@ -3184,6 +3185,24 @@ public class NewmanResource {
                 logger.error("Invoking of broadcastMessage() failed: ", e);
             }
         }
+    }
+
+    private Object prepareEntityForBroadcasting(Object value) {
+        Object entity = value;
+        if (value instanceof Job) {
+            Job job = (Job) value;
+            job.getBuild().getBuildStatus().setBuild(null);
+        } else if (value instanceof Test) {
+            Test test = (Test) value;
+            if (test.getLogs() != null) {
+                test.getLogs().setTest(null);
+            }
+        }  else if (value instanceof Build) {
+            Build build = (Build) value;
+            build.getBuildStatus().setBuild(null);
+        }
+
+        return entity;
     }
 
     private List<Agent> getAgentsNotSeenInLastMillis(long delay) {
