@@ -39160,7 +39160,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
                             disabled: _ctx.loading,
                             onClick: _cache[2] || (_cache[2] = ($event) => {
                               var _a2;
-                              return _ctx.$refs.createSuiteDialog.open((_a2 = this.jobDetails) == null ? void 0 : _a2.suite);
+                              return _ctx.$refs.createSuiteDialog.open((_a2 = __props.jobDetails) == null ? void 0 : _a2.suite);
                             })
                           }, null, 8, ["disabled"])
                         ])
@@ -41236,8 +41236,8 @@ function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
       ]),
       default: withCtx(() => [
         createBaseVNode("div", _hoisted_4$1, [
-          createTextVNode("User has been " + toDisplayString(this.snackbarInfo.action) + ": ", 1),
-          createBaseVNode("strong", null, toDisplayString(this.snackbarInfo.username), 1)
+          createTextVNode("User has been " + toDisplayString($data.snackbarInfo.action) + ": ", 1),
+          createBaseVNode("strong", null, toDisplayString($data.snackbarInfo.username), 1)
         ])
       ]),
       _: 1
@@ -45320,4 +45320,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-B9Hqh39c.js.map
+//# sourceMappingURL=index-lJ6_g2X6.js.map
