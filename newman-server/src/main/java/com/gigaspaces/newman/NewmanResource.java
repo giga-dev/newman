@@ -562,7 +562,7 @@ public class NewmanResource {
         if (opJobConfig.isPresent()) {
             job.setJobConfig(opJobConfig.get());
         }
-        jobRepository.save(job);
+        job = jobRepository.save(job);
         if (job.getPriority() > 0) {
             createPrioritizedJob(job);
         }
@@ -1894,12 +1894,12 @@ public class NewmanResource {
     @POST
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Test getTest(@PathParam("name") final String name, @PathParam("jobId") final String jobId) {
+    public Test getTest(@PathParam("name") final String agentName, @PathParam("jobId") final String jobId) {
         checkServerStatus();
 
-        Optional<Agent> opAgent = agentRepository.findByName(name);
+        Optional<Agent> opAgent = agentRepository.findByName(agentName);
         if (!opAgent.isPresent()) {
-            logger.error("Bad request. Unknown agent {}", name);
+            logger.error("Bad request. Unknown agent {}", agentName);
             return null;
         }
 
@@ -1909,6 +1909,7 @@ public class NewmanResource {
             return null;
         }
 
+        final String agentId = agent.getId();
 
         Job pj = null;
         final Object lock = getAgentLock(agent);
@@ -1924,102 +1925,93 @@ public class NewmanResource {
             }
         }
 
-        Test result = null;
-        synchronized (takenTestLock) {
-            Optional<Test> opTest = testRepository.findFirstByJobIdAndStatus(jobId, Test.Status.PENDING);
-            if (opTest.isPresent()) {
-                result = opTest.get();
-                result.setStatus(Test.Status.RUNNING);
-                result.setAssignedAgent(name);
-                result.setAgentGroup(agent.getGroupName());
-                result.setStartTime(new Date());
-
-                result = testRepository.save(result);
+        synchronized (takenTestLock) {      // this is the place where Tests assigned to Agents or removed if job PAUSED
+            Optional<Test> opTest = testRepository.findFirstByJobIdAndStatus(jobId, Test.Status.PENDING);  // find job waiting to run
+            if (!opTest.isPresent()) {
+                logger.info("agent [{}] didn't find ready test for job: [{}]", agent.getName(), jobId);
+                return null;
             }
-        }
 
-        if (result != null) {
-            Optional<Job> opJob = jobRepository.findByIdAndStateNot(jobId, State.PAUSED);
+            Test test = opTest.get();
+
+            Optional<Job> opJob = jobRepository.findByIdAndStateNot(jobId, State.PAUSED);  // find NOT PAUSED job and set everything RUNNING
             if (opJob.isPresent()) {
+                // TEST
+                test.setStatus(Test.Status.RUNNING);
+                test.setAssignedAgent(agentName);
+                test.setAgentGroup(agent.getGroupName());
+                test.setStartTime(new Date());
+
+                // JOB
                 Job job = opJob.get();
                 job.incRunningTests();
+                job.setState(State.RUNNING);
 
                 if (logger.isDebugEnabled()) {
                     logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]",
                             jobId, job.getRunningTests());
                 }
 
+                // BUILD
                 final String buildId = job.getBuild().getId();
                 Optional<Build> opBuild = buildRepository.findById(job.getBuild().getId());
-                Build build = opBuild.orElseThrow(() -> new RuntimeException("Build [" + buildId + "] does not exist"));;
-                job.setState(State.RUNNING);
+                Build build = opBuild.orElseThrow(() -> new RuntimeException("Build [" + buildId + "] does not exist"));
                 build.getBuildStatus().incRunningTests();
+
                 if (job.getStartTime() == null) {
                     job.setStartTime(new Date());
                     build.getBuildStatus().incRunningJobs().decPendingJobs();
                 }
 
+                logger.info("agent [{}] got test id: [{}], test-state:[{}]", agent.getName(), test.getId(), test.getStatus());
+
+                // AGENT
+                agent = agentRepository.findById(agent.getId()).orElseThrow(() -> new RuntimeException("Agent [" + agentId + "] does not exist"));
+                agent.setLastTouchTime(new Date());
+                agent.addCurrentTest(test.getId());
+                agent.setState(Agent.State.RUNNING);
+
+                // Save updates for TEST, JOB, BUILD, AGENT
+                test = testRepository.save(test);
                 job = jobRepository.save(job);
                 build = buildRepository.save(build);
+                agent = agentRepository.save(agent);
 
+                broadcastMessage(MODIFIED_TEST, test);
                 broadcastMessage(MODIFIED_JOB, job);
                 broadcastMessage(MODIFIED_BUILD, build);
-
-                logger.info("agent [{}] got test id: [{}], test-state:[{}]", agent.getName(), result.getId(), result.getStatus());
-
-                final String agentId = agent.getId();
-                Optional<Agent> optionalAgent = agentRepository.findById(agent.getId());
-                Agent foundAgent = optionalAgent.orElseThrow(() -> new RuntimeException("Agent [" + agentId + "] does not exist"));;
-                foundAgent.setLastTouchTime(new Date());
-                foundAgent.addCurrentTest(result.getId());
-                foundAgent.setState(Agent.State.RUNNING);
-
-                agent = agentRepository.save(foundAgent);
-
                 broadcastMessage(MODIFIED_AGENT, agent);
-                broadcastMessage(MODIFIED_TEST, result);
-            } else {
-                // return the test to the pool.
-                logger.info("Did not find relevant job, returning the test {} to the pool", result.getId());
-                Optional<Test> opTest = testRepository.findFirstByJobIdAndStatus(jobId, Test.Status.PENDING);
-                if (opTest.isPresent()) {
-                    Test test = opTest.get();
-                    test.setStatus(Test.Status.PENDING);
-                    test.setAssignedAgent(null);
-                    test.setStartTime(null);
+            } else {        // if PAUSED job was found - set everything PENDING
+                // TEST
+                test.setStatus(Test.Status.PENDING);
+                test.setAssignedAgent(null);
+                test.setStartTime(null);
 
-                    test = testRepository.save(test);
-                    broadcastMessage(MODIFIED_TEST, test);
-                }
-
-                opAgent = agentRepository.findById(agent.getId());
-                if (opAgent.isPresent()) {
-                    agent = opAgent.get();
-                    agent.getCurrentTests().remove(result.getId());
-                }
-
-                Agent idling = null;
+                // AGENT
+                agent = agentRepository.findById(agent.getId()).orElseThrow(() -> new RuntimeException("Agent [" + agentId + "] does not exist"));
+                agent.getCurrentTests().remove(test.getId());       // take the test assigment away from the agent
                 if (agent.getCurrentTests().isEmpty()) {
                     agent.setState(Agent.State.IDLING);
-
                 }
-                agentRepository.save(agent);
+
+                test = testRepository.save(test);
+                agent = agentRepository.save(agent);
+
+                logger.info("Did not find relevant job, returning the test {} to the pool", test.getId());
+
+                broadcastMessage(MODIFIED_TEST, test);
                 broadcastMessage(MODIFIED_AGENT, agent);
                 if (pj != null) {
                     broadcastMessage(MODIFIED_JOB, pj);
                 }
 
                 if (agent.getState() == Agent.State.IDLING) {
-                    logger.warn("agent [{}] is idling from getTest because finished all his tests", idling.getName());
+                    logger.warn("agent [{}] is idling from getTest because finished all his tests", agent.getName());
                 }
-
-                return null;
             }
-        } else {
-            logger.info("agent [{}] didn't find ready test for job: [{}]", agent.getName(), jobId);
-        }
 
-        return result;
+            return test;
+        }
     }
 
     private Object getAgentLock(Agent agent) {
