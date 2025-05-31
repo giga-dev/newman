@@ -1349,16 +1349,15 @@ public class NewmanResource {
                 URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
 
                 Job job = opJob.get();
-                // Update the map
-                String agentLogName = getLogName(agentName.replace(".", "_"));
+
                 String jobSetupLogsValue = uri.toASCIIString();
 
-                job.getJobSetupLog().getAgentLogs().put(agentLogName, jobSetupLogsValue);
+                job.getJobSetupLog().getAgentLogs().put(agentName, jobSetupLogsValue);
                 jobRepository.save(job);
 
                 broadcastMessage(MODIFIED_JOB, job);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("Failed to save log at {} for jobId {}", filePath, jobId, e);
         }
     }
@@ -1384,7 +1383,7 @@ public class NewmanResource {
 
                 broadcastMessage(MODIFIED_TEST, test);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("Failed to save log at {} for test {} jobId {}", filePath, testId, jobId, e);
         }
     }

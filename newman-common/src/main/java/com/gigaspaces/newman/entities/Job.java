@@ -279,6 +279,7 @@ public class Job {
     }
 
     public JobSetupLog getJobSetupLog() {
+        if (jobSetupLog == null) jobSetupLog = new JobSetupLog(this);
         return jobSetupLog;
     }
 

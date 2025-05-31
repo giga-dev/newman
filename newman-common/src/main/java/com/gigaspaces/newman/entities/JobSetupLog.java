@@ -25,6 +25,12 @@ public class JobSetupLog {
     @Column(name = "agent_logs", columnDefinition = "JSON")
     private Map<String, String> agentLogs = new HashMap<>();
 
+    public JobSetupLog() {
+    }
+
+    public JobSetupLog(Job job) {
+        this.job = job;
+    }
 
     public String getId() {
         return id;
