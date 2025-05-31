@@ -25,6 +25,13 @@ public class TestLog {
     @Column(name = "logs", columnDefinition = "JSON")
     private Map<String, String> testLogs = new HashMap<>();
 
+    public TestLog() {
+    }
+
+    public TestLog(Test test) {
+        this.test = test;
+    }
+
     public String getId() {
         return id;
     }

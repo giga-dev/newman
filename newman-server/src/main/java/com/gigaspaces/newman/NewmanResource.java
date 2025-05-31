@@ -1410,7 +1410,7 @@ public class NewmanResource {
                 Test test = optionalTest.get();
 
                 for (String entry : entries) {
-                    test.getLogs().getTestLogs().put("logs." + entry, uri + "!/" + entry);
+                    test.getLogs().getTestLogs().put(entry, uri + "!/" + entry);
                 }
 
                 testRepository.save(test);
