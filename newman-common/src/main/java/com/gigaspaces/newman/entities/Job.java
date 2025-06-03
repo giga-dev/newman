@@ -285,6 +285,10 @@ public class Job {
 
     public void setJobSetupLog(JobSetupLog jobSetupLog) {
         this.jobSetupLog = jobSetupLog;
+
+        if (this.jobSetupLog != null) {
+            this.jobSetupLog.setJob(this);
+        }
     }
 
     public JobConfig getJobConfig() {

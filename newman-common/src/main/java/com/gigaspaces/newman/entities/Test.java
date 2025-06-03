@@ -114,17 +114,14 @@ public class Test {
     }
 
     public TestLog getLogs() {
+        if (logs == null) logs = new TestLog(this);
         return logs;
-    }
-
-    public TestLog getOrCreateLogs() {
-        return logs == null ? logs = new TestLog(this) : getLogs();
     }
 
     public void setLogs(TestLog logs) {
         this.logs = logs;
 
-        if (this.logs != null && this.logs.getTest() == null) {
+        if (this.logs != null) {
             this.logs.setTest(this);
         }
     }
