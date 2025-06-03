@@ -278,6 +278,10 @@ public class Job {
         this.lastTimeZombie = lastTimeZombie;
     }
 
+    public boolean isJobSetupLogEmpty() {
+        return jobSetupLog == null;
+    }
+
     public JobSetupLog getJobSetupLog() {
         if (jobSetupLog == null) jobSetupLog = new JobSetupLog(this);
         return jobSetupLog;

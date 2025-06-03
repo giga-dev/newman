@@ -113,6 +113,10 @@ public class Test {
         this.errorMessage = errorMessage;
     }
 
+    public boolean isLogsEmpty() {
+        return logs == null;
+    }
+
     public TestLog getLogs() {
         if (logs == null) logs = new TestLog(this);
         return logs;
