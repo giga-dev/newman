@@ -67,7 +67,7 @@ public class TestLog {
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)
-                .append("testId", test.getId())
+                .append("testId", test != null ? test.getId() : null)
                 .append("testLogs", testLogs)
                 .toString();
     }

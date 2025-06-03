@@ -1374,10 +1374,9 @@ public class NewmanResource {
 
                 Test test = opTest.get();
                 // Update the map
-                String logName = "logs." + fileName;
                 String jobSetupLogsValue = uri.toASCIIString();
 
-                test.getLogs().getTestLogs().put(logName, jobSetupLogsValue);
+                test.getOrCreateLogs().getTestLogs().put(fileName, jobSetupLogsValue);
                 logger.info("Test logs added to the test {}:  {}", test.getId(), test.getLogs().getTestLogs());
                 testRepository.save(test);
 
@@ -1409,7 +1408,7 @@ public class NewmanResource {
                 Test test = optionalTest.get();
 
                 for (String entry : entries) {
-                    test.getLogs().getTestLogs().put(entry, uri + "!/" + entry);
+                    test.getOrCreateLogs().getTestLogs().put(entry, uri + "!/" + entry);
                 }
 
                 testRepository.save(test);
@@ -3196,9 +3195,7 @@ public class NewmanResource {
             job.getBuild().getBuildStatus().setBuild(null);
         } else if (value instanceof Test) {
             Test test = (Test) value;
-            if (test.getLogs() != null) {
-                test.getLogs().setTest(null);
-            }
+            test.getOrCreateLogs().setTest(null);
         }  else if (value instanceof Build) {
             Build build = (Build) value;
             build.getBuildStatus().setBuild(null);

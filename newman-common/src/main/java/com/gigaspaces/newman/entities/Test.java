@@ -114,12 +114,19 @@ public class Test {
     }
 
     public TestLog getLogs() {
-        if (logs == null) logs = new TestLog(this);
         return logs;
+    }
+
+    public TestLog getOrCreateLogs() {
+        return logs == null ? logs = new TestLog(this) : getLogs();
     }
 
     public void setLogs(TestLog logs) {
         this.logs = logs;
+
+        if (this.logs != null && this.logs.getTest() == null) {
+            this.logs.setTest(this);
+        }
     }
 
     public String getAssignedAgent() {
@@ -247,10 +254,6 @@ public class Test {
     @PostLoad
     void postLoad() {
         computeProgressPercent();
-
-        if (logs != null && logs.getTest() == null) {
-            logs.setTest(this);
-        }
     }
 
     @PrePersist
