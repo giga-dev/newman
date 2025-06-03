@@ -247,6 +247,10 @@ public class Test {
     @PostLoad
     void postLoad() {
         computeProgressPercent();
+
+        if (logs != null && logs.getTest() == null) {
+            logs.setTest(this);
+        }
     }
 
     @PrePersist
@@ -267,7 +271,7 @@ public class Test {
                 .append("timeout", timeout)
                 .append("status", status)
                 .append("errorMessage", errorMessage)
-                .append("logs", getLogs())
+                .append("logs", logs)
                 .append("assignedAgent", assignedAgent)
                 .append("agentGroup", agentGroup)
                 .append("startTime", startTime)
