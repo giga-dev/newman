@@ -62,7 +62,6 @@ public class Test {
     public Test() {
         properties = new HashMap<>();
         arguments = new ArrayList<>();
-        logs = new TestLog(this);
     }
 
     public String getId() {
@@ -114,20 +113,12 @@ public class Test {
         this.errorMessage = errorMessage;
     }
 
-    public boolean isLogsEmpty() {
-        return logs == null;
-    }
-
     public TestLog getLogs() {
         return logs;
     }
 
     public void setLogs(TestLog logs) {
         this.logs = logs;
-
-        if (this.logs != null) {
-            this.logs.setTest(this);
-        }
     }
 
     public String getAssignedAgent() {

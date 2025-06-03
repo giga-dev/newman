@@ -1352,9 +1352,10 @@ public class NewmanResource {
 
                 String jobSetupLogsValue = uri.toASCIIString();
 
+                if (job.getJobSetupLog() == null) job.setJobSetupLog(new JobSetupLog());
                 job.getJobSetupLog().getAgentLogs().put(agentName, jobSetupLogsValue);
-                jobRepository.save(job);
 
+                jobRepository.save(job);
                 broadcastMessage(MODIFIED_JOB, job);
             }
         } catch (Exception e) {
@@ -1376,10 +1377,11 @@ public class NewmanResource {
                 // Update the map
                 String jobSetupLogsValue = uri.toASCIIString();
 
+                if (test.getLogs() == null) test.setLogs(new TestLog());
                 test.getLogs().getTestLogs().put(fileName, jobSetupLogsValue);
                 logger.info("Test logs added to the test {}:  {}", test.getId(), test.getLogs().getTestLogs());
-                testRepository.save(test);
 
+                testRepository.save(test);
                 broadcastMessage(MODIFIED_TEST, test);
             }
         } catch (Exception e) {
@@ -1406,13 +1408,13 @@ public class NewmanResource {
             Optional<Test> optionalTest = testRepository.findById(testId);
             if (optionalTest.isPresent()) {
                 Test test = optionalTest.get();
+                if (test.getLogs() == null) test.setLogs(new TestLog());
 
                 for (String entry : entries) {
                     test.getLogs().getTestLogs().put(entry, uri + "!/" + entry);
                 }
 
                 testRepository.save(test);
-
                 broadcastMessage(MODIFIED_TEST, test);
             }
         } catch (IOException e) {
@@ -3190,16 +3192,24 @@ public class NewmanResource {
 
     private Object prepareEntityForBroadcasting(Object value) {
         Object entity = value;
-        if (value instanceof Job) {
+        if (value instanceof Job) {     // Job
             Job job = (Job) value;
-            job.getBuild().getBuildStatus().setBuild(null);
-            job.getJobSetupLog().setJob(null);
-        } else if (value instanceof Test) {
+            if (job.getBuild().getBuildStatus() != null) {
+                job.getBuild().getBuildStatus().setBuild(null);
+            }
+            if (job.getJobSetupLog() != null) {
+                job.getJobSetupLog().setJob(null);
+            }
+        } else if (value instanceof Test) {     // Test
             Test test = (Test) value;
-            test.getLogs().setTest(null);
-        }  else if (value instanceof Build) {
+            if (test.getLogs() != null) {
+                test.getLogs().setTest(null);
+            }
+        }  else if (value instanceof Build) {       // Build
             Build build = (Build) value;
-            build.getBuildStatus().setBuild(null);
+            if (build.getBuildStatus() != null) {
+                build.getBuildStatus().setBuild(null);
+            }
         }
 
         return entity;

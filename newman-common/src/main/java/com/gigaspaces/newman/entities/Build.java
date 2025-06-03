@@ -140,9 +140,6 @@ public class Build {
 
     public void setBuildStatus(BuildStatus buildStatus) {
         this.buildStatus = buildStatus;
-        if (buildStatus != null) {
-            this.buildStatus.setBuild(this);
-        }
     }
 
     public Set<String> getTags() {

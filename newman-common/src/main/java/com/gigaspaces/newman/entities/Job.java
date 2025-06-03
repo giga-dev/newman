@@ -86,7 +86,6 @@ public class Job {
 
     public Job() {
         state = State.READY;
-        jobSetupLog = new JobSetupLog(this);
     }
 
     public void setAgentGroups(Set<String> agentGroups) { this.agentGroups = agentGroups; }
@@ -285,10 +284,6 @@ public class Job {
 
     public void setJobSetupLog(JobSetupLog jobSetupLog) {
         this.jobSetupLog = jobSetupLog;
-
-        if (this.jobSetupLog != null) {
-            this.jobSetupLog.setJob(this);
-        }
     }
 
     public JobConfig getJobConfig() {
