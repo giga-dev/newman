@@ -267,7 +267,7 @@ public class Test {
                 .append("timeout", timeout)
                 .append("status", status)
                 .append("errorMessage", errorMessage)
-                .append("logs", logs)
+                .append("logs", getLogs())
                 .append("assignedAgent", assignedAgent)
                 .append("agentGroup", agentGroup)
                 .append("startTime", startTime)
