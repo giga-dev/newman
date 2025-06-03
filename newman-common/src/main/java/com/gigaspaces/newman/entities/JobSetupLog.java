@@ -67,7 +67,7 @@ public class JobSetupLog {
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)
-                .append("jobId", job.getId())
+                .append("jobId", job != null ? job.getId() : null)
                 .append("agentLogs", agentLogs)
                 .toString();
     }

@@ -62,6 +62,7 @@ public class Test {
     public Test() {
         properties = new HashMap<>();
         arguments = new ArrayList<>();
+        logs = new TestLog(this);
     }
 
     public String getId() {
@@ -118,7 +119,6 @@ public class Test {
     }
 
     public TestLog getLogs() {
-        if (logs == null) logs = new TestLog(this);
         return logs;
     }
 

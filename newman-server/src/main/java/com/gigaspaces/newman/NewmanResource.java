@@ -3193,14 +3193,10 @@ public class NewmanResource {
         if (value instanceof Job) {
             Job job = (Job) value;
             job.getBuild().getBuildStatus().setBuild(null);
-            if (!job.isJobSetupLogEmpty()) {       // this is something that might not exist for the moment
-                job.getJobSetupLog().setJob(null);
-            }
+            job.getJobSetupLog().setJob(null);
         } else if (value instanceof Test) {
             Test test = (Test) value;
-            if (!test.isLogsEmpty()) {       // this is something that might not exist for the moment
-                test.getLogs().setTest(null);
-            }
+            test.getLogs().setTest(null);
         }  else if (value instanceof Build) {
             Build build = (Build) value;
             build.getBuildStatus().setBuild(null);
