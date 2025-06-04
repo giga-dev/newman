@@ -44,8 +44,8 @@ public class Test {
     private String historyStats;
     /* name, url mapping */
 
-    @OneToOne(fetch = FetchType.EAGER,mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
-    private TestLog logs;
+    @OneToOne(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
+    private TestLog logs = new TestLog(this);
 
     private String assignedAgent;
     private String agentGroup;
@@ -119,11 +119,6 @@ public class Test {
 
     public void setLogs(TestLog logs) {
         this.logs = logs;
-    }
-
-    public void setLogsCyclic(TestLog logs) {
-        this.logs = logs;
-        this.logs.setTest(this);
     }
 
     public String getAssignedAgent() {

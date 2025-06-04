@@ -1352,8 +1352,6 @@ public class NewmanResource {
                 Job job = opJob.get();
 
                 String jobSetupLogsValue = uri.toASCIIString();
-
-                if (job.getJobSetupLog() == null) job.setJobSetupLogCyclic(new JobSetupLog()); // cyclic dependency
                 job.getJobSetupLog().getAgentLogs().put(agentName, jobSetupLogsValue);
 
                 job = jobRepository.save(job);
@@ -1377,8 +1375,6 @@ public class NewmanResource {
                 Test test = opTest.get();
                 // Update the map
                 String jobSetupLogsValue = uri.toASCIIString();
-
-                if (test.getLogs() == null) test.setLogsCyclic(new TestLog());
                 test.getLogs().getTestLogs().put(fileName, jobSetupLogsValue);
                 logger.info("Test logs added to the test {}:  {}", test.getId(), test.getLogs().getTestLogs());
 
@@ -1409,8 +1405,6 @@ public class NewmanResource {
             Optional<Test> optionalTest = testRepository.findById(testId);
             if (optionalTest.isPresent()) {
                 Test test = optionalTest.get();
-
-                if (test.getLogs() == null) test.setLogsCyclic(new TestLog());
                 for (String entry : entries) {
                     test.getLogs().getTestLogs().put(entry, uri + "!/" + entry);
                 }
@@ -2330,7 +2324,6 @@ public class NewmanResource {
         if (build.getBuildTime() == null) {
             build.setBuildTime(new Date());
         }
-        build.setBuildStatusCyclic(new BuildStatus());
         build = buildRepository.save(build);
         broadcastMessage(CREATED_BUILD, build);
 

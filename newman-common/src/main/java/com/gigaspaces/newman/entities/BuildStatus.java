@@ -54,6 +54,11 @@ public class BuildStatus {
         this.id = id;
     }
 
+    public BuildStatus(Build build) {
+        this();
+        this.build = build;
+    }
+
     public BuildStatus() {
         this.suites = new ArrayList<>();
     }

@@ -47,7 +47,7 @@ public class Build {
     private Set<String> tags;
 
     @OneToOne(mappedBy = "build", cascade = CascadeType.ALL, orphanRemoval = true)
-    private BuildStatus buildStatus;
+    private BuildStatus buildStatus = new BuildStatus(this);
 
     public Build() {
         this.shas = new HashMap<>();
@@ -140,11 +140,6 @@ public class Build {
 
     public void setBuildStatus(BuildStatus buildStatus) {
         this.buildStatus = buildStatus;
-    }
-
-    public void setBuildStatusCyclic(BuildStatus buildStatus) {
-        this.buildStatus = buildStatus;
-        this.buildStatus.setBuild(this);
     }
 
     public Set<String> getTags() {

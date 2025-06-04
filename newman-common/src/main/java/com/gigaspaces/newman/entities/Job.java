@@ -65,8 +65,8 @@ public class Job {
     @Transient
     private Set<String> agents = Collections.emptySet();
 
-    @OneToOne(fetch = FetchType.EAGER,mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
-    private JobSetupLog jobSetupLog;
+    @OneToOne(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    private JobSetupLog jobSetupLog = new JobSetupLog(this);
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "job_config_id")
@@ -284,11 +284,6 @@ public class Job {
 
     public void setJobSetupLog(JobSetupLog jobSetupLog) {
         this.jobSetupLog = jobSetupLog;
-    }
-
-    public void setJobSetupLogCyclic(JobSetupLog jobSetupLog) {
-        this.jobSetupLog = jobSetupLog;
-        this.jobSetupLog.setJob(this);
     }
 
     public JobConfig getJobConfig() {
