@@ -45,7 +45,7 @@ public class Test {
     /* name, url mapping */
 
     @OneToOne(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
-    private TestLog logs = new TestLog(this);
+    private TestLog logs;
 
     private String assignedAgent;
     private String agentGroup;
@@ -60,8 +60,8 @@ public class Test {
     private Map<String, String> properties;
 
     public Test() {
-        properties = new HashMap<>();
-        arguments = new ArrayList<>();
+        this.properties = new HashMap<>();
+        this.arguments = new ArrayList<>();
     }
 
     public String getId() {

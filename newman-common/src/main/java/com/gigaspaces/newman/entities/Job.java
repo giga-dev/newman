@@ -66,7 +66,7 @@ public class Job {
     private Set<String> agents = Collections.emptySet();
 
     @OneToOne(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
-    private JobSetupLog jobSetupLog = new JobSetupLog(this);
+    private JobSetupLog jobSetupLog;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "job_config_id")
@@ -85,7 +85,7 @@ public class Job {
     }
 
     public Job() {
-        state = State.READY;
+        this.state = State.READY;
     }
 
     public void setAgentGroups(Set<String> agentGroups) { this.agentGroups = agentGroups; }

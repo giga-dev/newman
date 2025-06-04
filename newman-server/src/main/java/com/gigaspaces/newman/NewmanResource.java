@@ -917,7 +917,7 @@ public class NewmanResource {
 
         List<Test> res = new ArrayList<>(tests.getValues().size());
         for (Test test : tests.getValues()) {
-            res.add(addTest(test, job));
+            res.add(addTest(test, job));    // first time test added with PENDING status
             if ((test.getRunNumber() > 1)) {
                 ++updateNumOfTestRetries;
             }
@@ -1047,7 +1047,10 @@ public class NewmanResource {
         test.setStatus(Test.Status.PENDING);
         test.setScheduledAt(new Date());
         test.setSha(Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId(), job.getBuild().getBranch()));
-        testRepository.save(test);
+        if (test.getLogs() == null) {
+            test.setLogs(new TestLog(test));
+        }
+        test = testRepository.save(test);
 
         broadcastMessage(CREATED_TEST, test);
         return test;
