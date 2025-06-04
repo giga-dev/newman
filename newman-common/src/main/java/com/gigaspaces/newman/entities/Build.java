@@ -142,6 +142,11 @@ public class Build {
         this.buildStatus = buildStatus;
     }
 
+    public void setBuildStatusCyclic(BuildStatus buildStatus) {
+        this.buildStatus = buildStatus;
+        this.buildStatus.setBuild(this);
+    }
+
     public Set<String> getTags() {
         return tags;
     }

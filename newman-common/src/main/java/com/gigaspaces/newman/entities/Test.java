@@ -121,6 +121,11 @@ public class Test {
         this.logs = logs;
     }
 
+    public void setLogsCyclic(TestLog logs) {
+        this.logs = logs;
+        this.logs.setTest(this);
+    }
+
     public String getAssignedAgent() {
         return assignedAgent;
     }

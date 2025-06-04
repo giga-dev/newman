@@ -1335,6 +1335,7 @@ public class NewmanResource {
         ContentDisposition contentDispositionHeader = filePart.getContentDisposition();
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
         String fileName = contentDispositionHeader.getFileName();
+
         handleJobSetupLogFile(jobId, agentName, uriInfo, fileInputStream, fileName);
 
         return null;
@@ -1352,10 +1353,10 @@ public class NewmanResource {
 
                 String jobSetupLogsValue = uri.toASCIIString();
 
-                if (job.getJobSetupLog() == null) job.setJobSetupLog(new JobSetupLog());
+                if (job.getJobSetupLog() == null) job.setJobSetupLogCyclic(new JobSetupLog()); // cyclic dependency
                 job.getJobSetupLog().getAgentLogs().put(agentName, jobSetupLogsValue);
 
-                jobRepository.save(job);
+                job = jobRepository.save(job);
                 broadcastMessage(MODIFIED_JOB, job);
             }
         } catch (Exception e) {
@@ -1377,11 +1378,11 @@ public class NewmanResource {
                 // Update the map
                 String jobSetupLogsValue = uri.toASCIIString();
 
-                if (test.getLogs() == null) test.setLogs(new TestLog());
+                if (test.getLogs() == null) test.setLogsCyclic(new TestLog());
                 test.getLogs().getTestLogs().put(fileName, jobSetupLogsValue);
                 logger.info("Test logs added to the test {}:  {}", test.getId(), test.getLogs().getTestLogs());
 
-                testRepository.save(test);
+                test = testRepository.save(test);
                 broadcastMessage(MODIFIED_TEST, test);
             }
         } catch (Exception e) {
@@ -1408,13 +1409,13 @@ public class NewmanResource {
             Optional<Test> optionalTest = testRepository.findById(testId);
             if (optionalTest.isPresent()) {
                 Test test = optionalTest.get();
-                if (test.getLogs() == null) test.setLogs(new TestLog());
 
+                if (test.getLogs() == null) test.setLogsCyclic(new TestLog());
                 for (String entry : entries) {
                     test.getLogs().getTestLogs().put(entry, uri + "!/" + entry);
                 }
 
-                testRepository.save(test);
+                test = testRepository.save(test);
                 broadcastMessage(MODIFIED_TEST, test);
             }
         } catch (IOException e) {
@@ -2329,9 +2330,10 @@ public class NewmanResource {
         if (build.getBuildTime() == null) {
             build.setBuildTime(new Date());
         }
-        build.setBuildStatus(new BuildStatus());
+        build.setBuildStatusCyclic(new BuildStatus());
         build = buildRepository.save(build);
         broadcastMessage(CREATED_BUILD, build);
+
         return build;
     }
 

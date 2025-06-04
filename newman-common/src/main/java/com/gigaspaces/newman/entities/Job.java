@@ -286,6 +286,11 @@ public class Job {
         this.jobSetupLog = jobSetupLog;
     }
 
+    public void setJobSetupLogCyclic(JobSetupLog jobSetupLog) {
+        this.jobSetupLog = jobSetupLog;
+        this.jobSetupLog.setJob(this);
+    }
+
     public JobConfig getJobConfig() {
         return jobConfig;
     }
