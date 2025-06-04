@@ -299,9 +299,13 @@ public class Job {
     public void setAgents(Set<String> agents) { this.agents = agents; }
 
     @PrePersist
-    public void generateId() {
+    public void prePersist() {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
+        }
+
+        if (jobSetupLog == null) {
+            jobSetupLog = new JobSetupLog(this);
         }
     }
 

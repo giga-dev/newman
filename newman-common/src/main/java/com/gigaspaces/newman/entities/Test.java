@@ -249,9 +249,13 @@ public class Test {
     }
 
     @PrePersist
-    public void generateId() {
+    public void prePersist() {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
+        }
+
+        if (logs == null) {
+            logs = new TestLog(this);
         }
     }
 

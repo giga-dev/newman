@@ -155,9 +155,13 @@ public class Build {
     }
 
     @PrePersist
-    public void generateId() {
+    public void prePersist() {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
+        }
+
+        if (buildStatus == null) {
+            buildStatus = new BuildStatus(this);
         }
     }
 
