@@ -60,10 +60,8 @@ public class Test {
     private Map<String, String> properties;
 
     public Test() {
-        this.properties = new HashMap<>();
-        this.arguments = new ArrayList<>();
-
-        this.logs = new TestLog(this);
+        properties = new HashMap<>();
+        arguments = new ArrayList<>();
     }
 
     public String getId() {
@@ -254,6 +252,10 @@ public class Test {
     public void prePersist() {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
+        }
+
+        if (logs == null) {
+            logs = new TestLog(this);
         }
     }
 

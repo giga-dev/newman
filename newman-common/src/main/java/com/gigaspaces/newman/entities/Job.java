@@ -82,14 +82,10 @@ public class Job {
         this.build.setId(buildId);
         this.build.setName(buildName);
         this.build.setBranch(buildBranch);
-
-        // creating Job using this constructor will never go to the db, otherwise JobSetupLog dependency will be lost
     }
 
     public Job() {
-        this.state = State.READY;
-
-        this.jobSetupLog = new JobSetupLog(this);
+        state = State.READY;
     }
 
     public void setAgentGroups(Set<String> agentGroups) { this.agentGroups = agentGroups; }
@@ -306,6 +302,10 @@ public class Job {
     public void prePersist() {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
+        }
+
+        if (jobSetupLog == null) {
+            jobSetupLog = new JobSetupLog(this);
         }
     }
 

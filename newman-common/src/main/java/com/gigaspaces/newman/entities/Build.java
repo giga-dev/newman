@@ -54,8 +54,6 @@ public class Build {
         this.resources = new ArrayList<>();
         this.testsMetadata = new ArrayList<>();
         this.tags = new HashSet<>();
-
-        this.buildStatus = new BuildStatus(this);
     }
 
     public String getId() {
@@ -160,6 +158,10 @@ public class Build {
     public void prePersist() {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
+        }
+
+        if (buildStatus == null) {
+            buildStatus = new BuildStatus(this);
         }
     }
 
