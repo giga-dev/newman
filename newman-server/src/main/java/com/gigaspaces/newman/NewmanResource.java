@@ -1047,9 +1047,8 @@ public class NewmanResource {
         test.setStatus(Test.Status.PENDING);
         test.setScheduledAt(new Date());
         test.setSha(Sha.compute(test.getName(), test.getArguments(), job.getSuite().getId(), job.getBuild().getBranch()));
-        if (test.getLogs() == null) {
-            test.setLogs(new TestLog(test));
-        }
+        test.getLogs().setTest(test);
+
         test = testRepository.save(test);
 
         broadcastMessage(CREATED_TEST, test);
