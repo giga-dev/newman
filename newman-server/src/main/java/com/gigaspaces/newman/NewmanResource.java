@@ -1995,6 +1995,8 @@ public class NewmanResource {
                 broadcastMessage(MODIFIED_JOB, job);
                 broadcastMessage(MODIFIED_BUILD, build);
                 broadcastMessage(MODIFIED_AGENT, agent);
+
+                return test;
             } else {        // if PAUSED job was found - set everything PENDING
                 // TEST
                 test.setStatus(Test.Status.PENDING);
@@ -2022,9 +2024,9 @@ public class NewmanResource {
                 if (agent.getState() == Agent.State.IDLING) {
                     logger.warn("agent [{}] is idling from getTest because finished all his tests", agent.getName());
                 }
-            }
 
-            return test;
+                return null;    // to stop agent going over and over the PAUSED test - return null
+            }
         }
     }
 
