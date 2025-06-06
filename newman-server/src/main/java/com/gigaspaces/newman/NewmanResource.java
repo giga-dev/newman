@@ -55,6 +55,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
+import static com.gigaspaces.newman.beans.specification.JobSpecifications.hasPreparingAgents;
+
 /**
  * Created by Barak Bar Orion
  * 4/16/15.
@@ -685,8 +687,15 @@ public class NewmanResource {
             prioritizedJob.setPaused(isPaused);
 
             prioritizedJob = prioritizedJobRepository.save(prioritizedJob);
-            if (prioritizedJob.getPriority() > highestPriorityJob) {
-                highestPriorityJob = isPaused ? getNotPausedHighestPriorityJob() : prioritizedJob.getPriority();
+
+            boolean priorityConditionTrue = isPaused
+                    ? prioritizedJob.getPriority() == highestPriorityJob
+                    : prioritizedJob.getPriority() > highestPriorityJob;
+
+            if (priorityConditionTrue) {
+                highestPriorityJob = isPaused
+                        ? getNotPausedHighestPriorityJob()
+                        : prioritizedJob.getPriority();
             }
         }
     }
@@ -2194,12 +2203,12 @@ public class NewmanResource {
         }
 
         Optional<Job> opJob = jobRepository.findById(jobId);
-        Job job = opJob.orElseThrow(() -> new RuntimeException("Job [" + jobId + "] does not exist"));;
+        Job job = opJob.orElseThrow(() -> new RuntimeException("Job [" + jobId + "] does not exist"));
 
         for (PrioritizedJob prioritizedJob : prioritizedJobs) {
             if (prioritizedJob.getPriority() > job.getPriority()) {
                 if (prioritizedJob.getAgentGroups().contains(agent.getGroupName()) && agent.getCapabilities().containsAll(prioritizedJob.getRequirements())) {
-                    if (jobRepository.count(JobSpecifications.hasPreparingAgents()) == 1) {
+                    if (jobRepository.count(JobSpecifications.whereJobId(prioritizedJob.getJobId()).and(hasPreparingAgents())) == 1) {
                         return true;
                     }
                 }

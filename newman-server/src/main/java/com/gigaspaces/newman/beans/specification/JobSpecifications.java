@@ -27,25 +27,36 @@ public class JobSpecifications {
         );
     }
 
+    public static Specification<Job> whereJobId(String jobId) {
+        return (root, query, cb) -> cb.equal(root.get("id"), jobId);
+    }
+
     public static Specification<Job> hasPreparingAgents() {
         return (root, query, cb) -> {
-            Expression<Integer> preparingAgentsLength = cb.size(root.get("preparingAgents"));
-            Expression<Long> totalTests = root.get("totalTests");
-            Expression<Long> numOfTestRetries = root.get("numOfTestRetries");
-            Expression<Long> passedTests = root.get("passedTests");
-            Expression<Long> failedTests = root.get("failedTests");
-            Expression<Long> runningTests = root.get("runningTests");
+            // array_length(preparing_agents, 1)
+            Expression<Integer> preparingAgentsLength = getArraySize(cb, root.get("preparingAgents"));
 
-            // Combined condition for preparingAgents presence and length check
+            // totalTests + numOfTestRetries - passedTests - failedTests - runningTests
+            Expression<Integer> neededAgentsCount = cb.sum(
+                    cb.sum(root.get("totalTests"), root.get("numOfTestRetries")), // this.totalTests + this.numOfTestRetries
+                    cb.neg(cb.sum(                                                   // minus
+                            cb.sum(root.get("passedTests"), root.get("failedTests")),   // this.passedTests + this.failedTests + this.runningTests
+                            root.get("runningTests")
+                    ))
+            );
+
+            // CASE 1: preparingAgents exists AND its preparingAgents.length < neededAgentsCount
+            Predicate preparingAgentsExistsAndLessThanNeeded = cb.lessThan(preparingAgentsLength, neededAgentsCount);
+
+            // CASE 2: preparingAgents does not exist => represented by empty array or null in SQL
+            Predicate preparingAgentsIsEmpty = cb.equal(getArraySize(cb, root.get("preparingAgents")), 0);
+
+            // totalTests != 0
+            Predicate totalTestsNonZero = cb.notEqual(root.get("totalTests"), 0);
+
             return cb.and(
-                    cb.or(
-                            cb.isNotNull(root.get("preparingAgents")),
-                            cb.lt(preparingAgentsLength, cb.sum(
-                                    cb.sum(totalTests, numOfTestRetries),
-                                    cb.sum(passedTests, cb.sum(failedTests, runningTests))
-                            ))
-                    ),
-                    cb.notEqual(totalTests, 0)
+                    cb.or(preparingAgentsIsEmpty, preparingAgentsExistsAndLessThanNeeded), // less than needed or no agents at all
+                    totalTestsNonZero   // and has tests to run
             );
         };
     }
