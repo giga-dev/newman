@@ -2046,7 +2046,7 @@ public class NewmanResource {
                     Optional<Job> opJob = jobRepository.findById(foundAgent.getJobId());
                     Job oldJob = opJob.orElseThrow(() -> new RuntimeException("Job [" + jobId + "] does not exist"));;
                     oldJob.getPreparingAgents().remove(foundAgent.getName());
-                    jobRepository.save(oldJob); // update old job if agent is not in charge of running it
+                    oldJob = jobRepository.save(oldJob); // update old job if agent is not in charge of running it
 
                     broadcastMessage(MODIFIED_JOB, oldJob);
                 }
@@ -3258,57 +3258,64 @@ public class NewmanResource {
      * @param agent the agent in hand.
      */
     private void returnTests(Agent agent) {
-        Set<Test> tests = new HashSet<>();
+        Set<Test> runningTestsPerAgent = new HashSet<>();
+        // reset tests
         for (String testId : agent.getCurrentTests()) {
             Optional<Test> opTest = testRepository.findByIdAndStatusAndAssignedAgent(testId, Test.Status.RUNNING, agent.getName());
+            // reset all tests were previously run by the current agent to their initial state
             if (opTest.isPresent()) {
-                Test found = opTest.get();
-                found.setAssignedAgent(null);
-                found.setAgentGroup(null);
-                found.setStartTime(null);
-                found.setStatus(Test.Status.PENDING);
+                Test existingTest = opTest.get();
+                existingTest.setAssignedAgent(null);
+                existingTest.setAgentGroup(null);
+                existingTest.setStartTime(null);
+                existingTest.setStatus(Test.Status.PENDING);
 
-                found = testRepository.save(found);
-                logger.warn("test {} was released since agent {} not seen for a long time", found.getId(), agent.getName());
-                tests.add(found);
+                existingTest = testRepository.save(existingTest);
+                logger.warn("test {} was released since agent {} not seen for a long time", existingTest.getId(), agent.getName());
+                runningTestsPerAgent.add(existingTest);
             }
         }
         Job job = null;
+        // reset job
         if (agent.getJobId() != null) {
             Optional<Job> opJob = jobRepository.findById(agent.getJobId());
             if (agent.getState() == Agent.State.PREPARING) {
                 if (opJob.isPresent()) {
                     job = opJob.get();
-                    job.getPreparingAgents().remove(agent.getName());
+                    job.getPreparingAgents().removeAll(Collections.singletonList(agent.getName()));
+
+                    job = jobRepository.save(job);
                 }
-            } else if (agent.getState() == Agent.State.RUNNING && !tests.isEmpty()) {
-                int runningTests = 0 - tests.size();
-                logger.info("returnTests for agent [{}], jobId [{}], running tests size [{}]",
-                        agent.getName(), agent.getJobId(), runningTests);
+            } else if (agent.getState() == Agent.State.RUNNING && !runningTestsPerAgent.isEmpty()) {
+                logger.info("returnTests for agent [{}], jobId [{}], amount of running tests by the agent [{}]", agent.getName(), agent.getJobId(), runningTestsPerAgent);
                 if (opJob.isPresent()) {
                     job = opJob.get();
-                    job.setRunningTests(job.getRunningTests() + runningTests);
+                    job.setRunningTests(job.getRunningTests() - runningTestsPerAgent.size());
+
+                    job = jobRepository.save(job);
                 }
             }
-            job = jobRepository.save(job);
         }
         Optional<Agent> opAgent = agentRepository.findById(agent.getId());
-        Agent ag = opAgent.orElseThrow(() -> new RuntimeException("Agent [" + agent.getId() + "] does not exist"));;
-        ag.setCurrentTests(new HashSet<>());
-        ag.setState(Agent.State.IDLING);
-        ag.setJob(job);
+        // reset agent
+        Agent existingAgent = opAgent.orElseThrow(() -> new RuntimeException("Agent [" + agent.getId() + "] does not exist"));;
+        existingAgent.setCurrentTests(new HashSet<>());
+        existingAgent.setState(Agent.State.IDLING);
 
-        if (ag.getState().equals(Agent.State.IDLING)) {
-            logger.warn("agent [{}] is idling while returning tests to pool", ag.getName());
+        existingAgent = agentRepository.save(existingAgent);
+
+        if (existingAgent.getState().equals(Agent.State.IDLING)) {
+            logger.warn("agent [{}] is idling while returning tests to pool", existingAgent.getName());
         }
-        for (Test test : tests) {
+        for (Test test : runningTestsPerAgent) {
             broadcastMessage(MODIFIED_TEST, test);
         }
         if (job != null) {
             broadcastMessage(MODIFIED_JOB, job);
         }
 
-        broadcastMessage(MODIFIED_AGENT, ag);
+        existingAgent.setJob(job);  // add job for the broadcasting
+        broadcastMessage(MODIFIED_AGENT, existingAgent);
     }
 
     private void checkServerStatus() {
