@@ -34,7 +34,7 @@ public interface BuildRepository extends CrudRepository<Build, String>, JpaRepos
             "WHERE :tag1 MEMBER OF b.tags AND " +
             ":tag2 MEMBER OF b.tags " +
             "ORDER BY b.buildTime DESC")
-    List<Build> findBuildsWithTags(String tag1, String tag2);
+    List<Build> findBuildsWithTags(@Param("tag1") String tag1, @Param("tag2") String tag2);
 
     List<Build> findByBuildTimeBefore(Date beforeDate);
 
