@@ -4,10 +4,11 @@ cd $DIRNAME
 source env.sh
 # System environment variables
 # username and password to connect to newman server
+HOME="/Users/oleksii.vedernikov"
 NEWMAN_USERNAME=${NEWMAN_USERNAME=root}
 NEWMAN_PASSWORD=${NEWMAN_PASSWORD=root}
 # newman server host address
-NEWMAN_SERVER_HOST=${NEWMAN_SERVER_HOST=xap-newman.gspaces.com}
+NEWMAN_SERVER_HOST=${NEWMAN_SERVER_HOST=localhost}
 # newman server port
 NEWMAN_SERVER_PORT=${NEWMAN_SERVER_PORT=8443}
 # newman agent home directory
@@ -17,7 +18,7 @@ NEWMAN_AGENT_CAPABILITIES=${NEWMAN_AGENT_CAPABILITIES="DOCKER,LINUX"}
 
 NEWMAN_AGENT_WORKERS=${NEWMAN_AGENT_WORKERS=3}
 
-NEWMAN_AGENT_GROUPNAME=${NEWMAN_AGENT_GROUPNAME="Undefined"}
+NEWMAN_AGENT_GROUPNAME=${NEWMAN_AGENT_GROUPNAME="Home-Aleksei"}
 
 echo "starting agent, date is `date`"
 echo "JAVA_HOME=${JAVA_HOME}"

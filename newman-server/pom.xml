@@ -11,6 +11,11 @@
     <artifactId>newman-server</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+        <build.version>${maven.build.timestamp}</build.version>
+        <maven.build.timestamp.format>yyyy-MM-dd/HH:mm</maven.build.timestamp.format>
+    </properties>
+
     <repositories>
         <repository>
             <id>snapshot-repository.java.net</id>
@@ -87,6 +92,7 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+                <filtering>true</filtering>
             </resource>
             <resource>
                 <directory>.</directory>

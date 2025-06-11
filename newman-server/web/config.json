@@ -1,4 +1,5 @@
 {
+    "WEB_HOST": "localhost",
     "WEB_PROTOCOL": "https",
     "WEB_PORT": "8443",
     "WEBSOCKET_PROTOCOL": "wss",

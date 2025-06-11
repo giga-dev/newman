@@ -1210,6 +1210,13 @@ public class NewmanResource {
     }
 
     @GET
+    @Path("version")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getVersion() {
+        return Response.ok(BuildVersionProvider.getVersion()).build();
+    }
+
+    @GET
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
     public Batch<TestView> getJobTests(@DefaultValue("0") @QueryParam("offset") int offset,
