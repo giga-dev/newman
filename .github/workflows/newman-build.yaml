@@ -24,7 +24,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build project with Maven
+      - name: Build all modules
         run: mvn clean package
 
       - name: Install GitHub CLI
@@ -32,17 +32,28 @@ jobs:
           sudo apt update
           sudo apt install -y gh
 
-      - name: Publish JARs to GitHub Release
+      - name: Zip all target directories
+        run: |
+          mkdir -p build-zips
+          for dir in */target; do
+            parent=$(dirname "$dir")
+            zipfile="build-zips/${parent}.zip"
+            echo "Zipping $dir -> $zipfile"
+            (cd "$dir" && zip -r "../../$zipfile" .)
+          done
+
+      - name: Publish ZIPs to GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 
-          # Create release if it doesn't exist
+          # Create release if not exists
           gh release view "v$VERSION" >/dev/null 2>&1 || \
             gh release create "v$VERSION" --title "v$VERSION" --notes "Release $VERSION"
 
-          # Upload JARs
-          for jar in target/*.jar; do
-            gh release upload "v$VERSION" "$jar" --clobber
+          # Upload each ZIP file
+          for zip in build-zips/*.zip; do
+            echo "Uploading $zip"
+            gh release upload "v$VERSION" "$zip" --clobber
           done
