@@ -42,7 +42,13 @@ jobs:
             (cd "$dir" && zip -r "../../$zipfile" .)
           done
 
-      - name: Publish ZIPs to GitHub Release
+      - name: Generate checksums
+        run: |
+          cd build-zips
+          sha256sum *.zip > checksums.sha256
+          cat checksums.sha256
+
+      - name: Create or update GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -50,10 +56,10 @@ jobs:
 
           # Create release if not exists
           gh release view "v$VERSION" >/dev/null 2>&1 || \
-            gh release create "v$VERSION" --title "v$VERSION" --notes "Release $VERSION"
+            gh release create "v$VERSION" --title "v$VERSION" --notes "SHA256 checksums below:"
 
-          # Upload each ZIP file
-          for zip in build-zips/*.zip; do
-            echo "Uploading $zip"
-            gh release upload "v$VERSION" "$zip" --clobber
+          # Upload all files including checksums
+          for file in build-zips/*.zip build-zips/checksums.sha256; do
+            echo "Uploading $file"
+            gh release upload "v$VERSION" "$file" --clobber
           done
