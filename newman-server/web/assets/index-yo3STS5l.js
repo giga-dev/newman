@@ -38932,7 +38932,7 @@ const _hoisted_8$4 = {
   align: "center"
 };
 const _hoisted_9$3 = { class: "d-block" };
-const _hoisted_10$2 = {
+const _hoisted_10$3 = {
   key: 1,
   align: "center",
   style: { "height": "1px" }
@@ -39230,7 +39230,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
             item.statsBranch ? (openBlock(), createElementBlock("div", _hoisted_8$4, [
               createBaseVNode("div", _hoisted_9$3, toDisplayString(unref(coloredHistoryStats)(item.statsBranch, false)), 1)
             ])) : createCommentVNode("", true),
-            item.statsMaster != null ? (openBlock(), createElementBlock("div", _hoisted_10$2, [
+            item.statsMaster != null ? (openBlock(), createElementBlock("div", _hoisted_10$3, [
               createBaseVNode("div", _hoisted_11$2, toDisplayString(unref(coloredHistoryStats)(item.statsMaster, true)), 1)
             ])) : createCommentVNode("", true)
           ]),
@@ -39634,7 +39634,7 @@ const _hoisted_7$3 = {
 };
 const _hoisted_8$2 = ["href"];
 const _hoisted_9$2 = { class: "ml-2" };
-const _hoisted_10$1 = {
+const _hoisted_10$2 = {
   key: 2,
   class: "log-tab"
 };
@@ -39716,7 +39716,7 @@ function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
                                         ], 8, _hoisted_8$2)
                                       ]);
                                     }), 128))
-                                  ])) : item.key == "xap" || item.key == "xappremium" ? (openBlock(), createElementBlock("div", _hoisted_10$1, [
+                                  ])) : item.key == "xap" || item.key == "xappremium" ? (openBlock(), createElementBlock("div", _hoisted_10$2, [
                                     createBaseVNode("a", {
                                       href: $data.buildDetails[item.key],
                                       target: "_blank"
@@ -39774,7 +39774,11 @@ const _hoisted_8$1 = {
   key: 4,
   class: "my-0"
 };
-const _hoisted_9$1 = { key: 5 };
+const _hoisted_9$1 = {
+  key: 5,
+  class: "my-0 preserve-whitespace"
+};
+const _hoisted_10$1 = { key: 6 };
 const __default__$4 = {
   props: {
     id: String
@@ -39855,7 +39859,7 @@ const _sfc_main$d = /* @__PURE__ */ Object.assign(__default__$4, {
             }),
             _: 1
           }),
-          createVNode(_component_v_container, { style: { "width": "80%", "max-width": "unset" } }, {
+          createVNode(_component_v_container, { style: { "width": "100%", "max-width": "unset" } }, {
             default: withCtx(() => [
               createBaseVNode("div", _hoisted_1$b, [
                 (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.info, (item, index) => {
@@ -39916,7 +39920,7 @@ const _sfc_main$d = /* @__PURE__ */ Object.assign(__default__$4, {
                               class: "font-bold",
                               to: { name: "History", params: { id: item.id } }
                             }, null, 8, ["to"])
-                          ])) : (openBlock(), createElementBlock("div", _hoisted_9$1, toDisplayString(_ctx.testDetails && _ctx.testDetails[item.key] || "N/A"), 1))
+                          ])) : item.key == "errorMessage" ? (openBlock(), createElementBlock("div", _hoisted_9$1, toDisplayString(_ctx.testDetails && _ctx.testDetails[item.key] || "N/A"), 1)) : (openBlock(), createElementBlock("div", _hoisted_10$1, toDisplayString(_ctx.testDetails && _ctx.testDetails[item.key] || "N/A"), 1))
                         ]),
                         _: 2
                       }, 1024)) : createCommentVNode("", true)
@@ -39934,7 +39938,7 @@ const _sfc_main$d = /* @__PURE__ */ Object.assign(__default__$4, {
     };
   }
 });
-const TestDetails = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["__scopeId", "data-v-90668a35"]]);
+const TestDetails = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["__scopeId", "data-v-ccaaed4a"]]);
 const _sfc_main$c = {
   components: {
     PromptDialog
@@ -40729,7 +40733,7 @@ const __default__$2 = {
         { key: "retries", title: "Retries", width: "1%" },
         { key: "jobId", title: "Job", width: "7%", maxWidth: "3%" },
         { key: "build", title: "Build", width: "7%", maxWidth: "3%" },
-        { key: "suite", title: "State", width: "7%", maxWidth: "3%" },
+        { key: "suite", title: "Suite", width: "7%", maxWidth: "3%" },
         { key: "tests", title: "Current Tests", width: "7%", maxWidth: "3%" },
         { key: "lastSeen", title: "Last Seen", width: "10%" },
         { key: "group", title: "Group", width: "7%", maxWidth: "3%" },
@@ -45341,4 +45345,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-tGGh8n9d.js.map
+//# sourceMappingURL=index-yo3STS5l.js.map

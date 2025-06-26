@@ -27064,14 +27064,17 @@ textarea.v-field__input::placeholder {
 }
 
 
-.log-tab[data-v-90668a35] {
+.preserve-whitespace[data-v-ccaaed4a] {
+  white-space: pre-wrap;
+}
+.log-tab[data-v-ccaaed4a] {
   margin-left: 20px;
 }
-.log-tab a[data-v-90668a35] {
+.log-tab a[data-v-ccaaed4a] {
   color: #1976d2;
   text-decoration: none;
 }
-.log-tab a[data-v-90668a35]:hover {
+.log-tab a[data-v-ccaaed4a]:hover {
   text-decoration: underline;
 }
 
