@@ -2385,7 +2385,10 @@ public class NewmanResource {
         }
 
         if (build.getTestsMetadata() != null && !build.getTestsMetadata().isEmpty()) {
-            found.getTestsMetadata().addAll(build.getTestsMetadata());
+            List<URI> appendedMetadata = (List<URI>) found.getTestsMetadata();
+            appendedMetadata.addAll(build.getTestsMetadata());
+            // replace metadata with appended
+            found.setTestsMetadata(appendedMetadata);
         }
 
         if (build.getTags() != null && !build.getTags().isEmpty()) {
