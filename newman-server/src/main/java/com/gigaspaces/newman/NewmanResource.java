@@ -2381,7 +2381,10 @@ public class NewmanResource {
         }
 
         if (build.getResources() != null && !build.getResources().isEmpty()) {
-            found.getResources().addAll(build.getResources());
+            List<URI> appendedResources = (List<URI>) found.getResources();
+            appendedResources.addAll(build.getResources());
+            // replace resources with appended
+            found.setResources(appendedResources);
         }
 
         if (build.getTestsMetadata() != null && !build.getTestsMetadata().isEmpty()) {
