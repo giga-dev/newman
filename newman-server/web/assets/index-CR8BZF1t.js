@@ -41306,7 +41306,7 @@ const _sfc_main$5 = {
 const _sfc_main$4 = /* @__PURE__ */ defineComponent$1({
   props: {
     text: { type: String },
-    job: { type: Object, required: true, default: () => ({ build: null, suite: null, priority: null, agentGroups: null }) }
+    job: { type: Object, required: true, default: () => ({ ref: null, build: null, suite: null, priority: null, agentGroups: null, allAgentGroups: null }) }
   },
   data() {
     return {
@@ -41320,9 +41320,6 @@ const _sfc_main$4 = /* @__PURE__ */ defineComponent$1({
       localJob: this.job
     };
   },
-  created() {
-    this.localJob.agentGroups = this.localJob.oldAgentGroups;
-  },
   computed: {
     formattedText() {
       return this.text.replace(/\n/g, "<br>");
@@ -41332,6 +41329,11 @@ const _sfc_main$4 = /* @__PURE__ */ defineComponent$1({
         id: priority.id,
         label: `${priority.id} - ${priority.subtitle}`
       }));
+    }
+  },
+  watch: {
+    "localJob.agentGroups"(newVal, oldVal) {
+      this.localJob.ref.agentGroups = this.localJob.agentGroups;
     }
   },
   methods: {
@@ -41458,36 +41460,39 @@ function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
             __: [6]
           }),
           createVNode(_component_v_col, { cols: "7" }, {
-            default: withCtx(() => [
-              createVNode(_component_v_select, {
-                variant: "outlined",
-                density: "compact",
-                color: "blue",
-                modelValue: _ctx.localJob.agentGroups,
-                "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => _ctx.localJob.agentGroups = $event),
-                items: _ctx.localJob && _ctx.localJob.oldAgentGroups || [],
-                chips: "",
-                multiple: "",
-                clearable: ""
-              }, {
-                chip: withCtx(({ item }) => [
-                  createVNode(_component_v_chip, {
-                    color: "blue",
-                    closable: "",
-                    size: "large",
-                    onMousedown: _cache[1] || (_cache[1] = withModifiers(() => {
-                    }, ["stop"])),
-                    "onClick:close": ($event) => _ctx.deselectAgent(item.title)
-                  }, {
-                    default: withCtx(() => [
-                      createTextVNode(toDisplayString(item.title), 1)
-                    ]),
-                    _: 2
-                  }, 1032, ["onClick:close"])
-                ]),
-                _: 1
-              }, 8, ["modelValue", "items"])
-            ]),
+            default: withCtx(() => {
+              var _a2;
+              return [
+                createVNode(_component_v_select, {
+                  variant: "outlined",
+                  density: "compact",
+                  color: "blue",
+                  modelValue: _ctx.localJob.agentGroups,
+                  "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => _ctx.localJob.agentGroups = $event),
+                  items: (_a2 = _ctx.localJob) == null ? void 0 : _a2.allAgentGroups,
+                  chips: "",
+                  multiple: "",
+                  clearable: ""
+                }, {
+                  chip: withCtx(({ item }) => [
+                    createVNode(_component_v_chip, {
+                      color: "blue",
+                      closable: "",
+                      size: "large",
+                      onMousedown: _cache[1] || (_cache[1] = withModifiers(() => {
+                      }, ["stop"])),
+                      "onClick:close": ($event) => _ctx.deselectAgent(item.title)
+                    }, {
+                      default: withCtx(() => [
+                        createTextVNode(toDisplayString(item.title), 1)
+                      ]),
+                      _: 2
+                    }, 1032, ["onClick:close"])
+                  ]),
+                  _: 1
+                }, 8, ["modelValue", "items"])
+              ];
+            }),
             _: 1
           })
         ]),
@@ -41525,7 +41530,7 @@ const StorageHelper = {
     if (existingItemIndex !== -1) {
       currentItems[existingItemIndex] = { ...currentItems[existingItemIndex], ...newItem };
     } else {
-      currentItems.push(newItem);
+      currentItems.unshift(newItem);
     }
     this.saveRawJobs(currentItems);
   }
@@ -41807,17 +41812,19 @@ const __default__$1 = {
     },
     configureJobPrompt(item) {
       this.dialogDisabled = false;
-      this.configItem = Object.assign(
-        {},
-        {
+      this.requestAgentsGroup().then((agentGroups) => {
+        this.configItem = Object.assign({}, {
+          ref: item,
           suite: item.suite,
           jobId: item.jobId,
           build: item.build,
           priority: item.priority,
-          oldAgentGroups: item.agentGroups
-        }
-      );
-      this.$refs.jobConfigDialog.openDialog();
+          agentGroups: item.agentGroups,
+          //assign response here
+          allAgentGroups: agentGroups
+        });
+        this.$refs.jobConfigDialog.openDialog();
+      });
     },
     deleteJobPrompt(item) {
       this.dialogDisabled = false;
@@ -41851,6 +41858,7 @@ const __default__$1 = {
     },
     confirmConfigureJob() {
       this.dialogDisabled = true;
+      this.configItem.allAgentGroups = null;
       this.$axios.post(`/api/newman/job/${this.configItem.jobId}/edit`, this.configItem).then((response) => {
       }).catch((error) => {
         console.error("Error fetching data:", error);
@@ -41895,6 +41903,14 @@ const __default__$1 = {
     handleBeforeUnload(event) {
       this.items = [];
       StorageHelper.clearRawJobs();
+    },
+    requestAgentsGroup() {
+      return this.$axios.get("/api/newman/availableAgentGroups").then((response) => {
+        return response.data;
+      }).catch((error) => {
+        console.error("Error fetching data:", error);
+        return [];
+      });
     }
   }
 };
@@ -42422,7 +42438,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-fb528e24"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-9eebefe8"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -45345,4 +45361,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-yo3STS5l.js.map
+//# sourceMappingURL=index-CR8BZF1t.js.map
