@@ -535,7 +535,7 @@ public class NewmanResource {
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createJob(JobRequest jobRequest, @Context SecurityContext sc) {
+    public synchronized Response createJob(JobRequest jobRequest, @Context SecurityContext sc) {
         checkServerStatus();
 
         Optional<Build> opBuild = buildRepository.findById(jobRequest.getBuildId());
@@ -596,7 +596,7 @@ public class NewmanResource {
     @Path("futureJob")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public List<FutureJob> createFutureJobs(FutureJobsRequest futureJobsRequest, @Context SecurityContext sc) {
+    public synchronized List<FutureJob> createFutureJobs(FutureJobsRequest futureJobsRequest, @Context SecurityContext sc) {
         checkServerStatus();
 
         String authorOpt = futureJobsRequest.getAuthor();
