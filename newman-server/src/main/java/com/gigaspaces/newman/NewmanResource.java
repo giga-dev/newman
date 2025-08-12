@@ -536,7 +536,7 @@ public class NewmanResource {
     @Path("job")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public synchronized Response createJob(JobRequest jobRequest, @Context SecurityContext sc) {
+    public Response createJob(JobRequest jobRequest, @Context SecurityContext sc) {
         checkServerStatus();
 
         Optional<Build> opBuild = buildRepository.findById(jobRequest.getBuildId());
@@ -597,7 +597,7 @@ public class NewmanResource {
     @Path("futureJob")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public synchronized List<FutureJob> createFutureJobs(FutureJobsRequest futureJobsRequest, @Context SecurityContext sc) {
+    public List<FutureJob> createFutureJobs(FutureJobsRequest futureJobsRequest, @Context SecurityContext sc) {
         checkServerStatus();
 
         String authorOpt = futureJobsRequest.getAuthor();
@@ -1073,7 +1073,7 @@ public class NewmanResource {
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public synchronized Test finishTest(final Test test) {
+    public Test finishTest(final Test test) {
         try {
             if (logger.isDebugEnabled()) {
                 logger.debug("trying to finish test - id:[{}], name:[{}]", test.getId(),
@@ -1084,19 +1084,22 @@ public class NewmanResource {
             }
 
             // LOCK job when manipulating with its counters and statuses
-//            final Object jobLock = getJobLock(test.getJobId());
-//            synchronized (jobLock) {
+            final Object jobLock = getJobLock(test.getJobId());
+            synchronized (jobLock) {
                 Job testJob = getJob(test.getJobId());
                 if (testJob == null) {
-                    throw new BadRequestException("finishTest - the job of the test is not on database. test: [" + test + "].");
+                    throw new BadRequestException("finishTest - the job of the test is not on database. Test: [" + test + "].");
                 }
                 Test.Status status = test.getStatus();
                 if (status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)) {
                     throw new BadRequestException("can't finish test without state set to success or fail state" + test);
                 }
                 // find TEST
-                Optional<Test> opTest = testRepository.findById(test.getId());
-                Test existingTest = opTest.orElseThrow(() -> new BadRequestException("test with id " + test.getId() + " not found"));
+                Optional<Test> opTest = testRepository.findByIdAndStatusNot(test.getId(), status);
+                if (!opTest.isPresent()) {
+                    return null;    // if no test with different status found - nothing to change then because it was already changed
+                }
+                Test existingTest = opTest.get();
                 if (test.getErrorMessage() != null) {
                     existingTest.setErrorMessage(test.getErrorMessage());
                 }
@@ -1168,7 +1171,7 @@ public class NewmanResource {
 
                 logger.info("succeed finish test- id:[{}], name:[{}]", savedTest.getId(), savedTest.getName());
                 return savedTest;
-//            }
+            }
         } catch (Exception e) {
             logger.error("failed to finish test because: ", e);
             throw e;
@@ -1953,8 +1956,8 @@ public class NewmanResource {
         }
 
         // LOCK job when manipulating with its counters and statuses
-//        final Object jobLock = getJobLock(jobId);
-//        synchronized (jobLock) {      // this is the place where Tests assigned to Agents or removed if job PAUSED
+        final Object jobLock = getJobLock(jobId);
+        synchronized (jobLock) {      // this is the place where Tests assigned to Agents or removed if job PAUSED
             Optional<Test> opTest = testRepository.findFirstByJobIdAndStatus(jobId, Test.Status.PENDING);  // find job waiting to run
             if (!opTest.isPresent()) {
                 logger.info("agent [{}] didn't find ready test for job: [{}]", agent.getName(), jobId);
@@ -2041,7 +2044,7 @@ public class NewmanResource {
                 }
 
                 return null;    // to stop agent going over and over the PAUSED test - return null
-//            }
+            }
         }
     }
 
