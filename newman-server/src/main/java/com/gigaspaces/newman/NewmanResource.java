@@ -104,6 +104,7 @@ public class NewmanResource {
     @SuppressWarnings("FieldCanBeLocal")
     private final Timer timer = new Timer(true);
 
+    private final ConcurrentHashMap<String, Object> jobLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Object> agentLocks = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, OfflineAgent> offlineAgents = new ConcurrentHashMap<>();
 
@@ -1081,88 +1082,93 @@ public class NewmanResource {
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
-            Job testJob = getJob(test.getJobId());
-            if (testJob == null) {
-                throw new BadRequestException("finishTest - the job of the test is not on database. test: [" + test + "].");
-            }
-            Test.Status status = test.getStatus();
-            if (status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)) {
-                throw new BadRequestException("can't finish test without state set to success or fail state" + test);
-            }
-            // find TEST
-            Optional<Test> opTest = testRepository.findById(test.getId());
-            Test existingTest = opTest.orElseThrow(() -> new BadRequestException("test with id " + test.getId() + " not found"));
-            if (test.getErrorMessage() != null) {
-                existingTest.setErrorMessage(test.getErrorMessage());
-            }
-            existingTest.setEndTime(new Date());
-            existingTest.setStatus(status);
 
-            int historyLength = 25;
-            List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
-            String historyStatsString = TestScoreUtils.decodeShortHistoryString(test, testHistory, test.getStatus(), testJob.getBuild()); // added current fail to history;
-            double reliabilityTestScore = TestScoreUtils.score(historyStatsString);
-
-            existingTest.setTestScore(reliabilityTestScore);
-            existingTest.setHistoryStats(historyStatsString);
-
-            if (logger.isDebugEnabled()) {
-                logger.debug(
-                        "got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}], running tests before decrement:[{}]",
-                        historyStatsString, test.getId(), test.getName(), test.getJobId(),
-                        testJob.getRunningTests());
-            }
-            // save updated TEST
-            Test savedTest = testRepository.save(existingTest); // SAVE Test
-
-            // Now, update TEST related things
-            Job updateJobStatus = jobRepository.findById(existingTest.getJobId()).get(); //existingTest.getJobId()
-            Build updateBuild = buildRepository.findById(updateJobStatus.getBuild().getId()).get(); //job.getBuild().getId())
-            if (test.getRunNumber() == 1) {
-                if (status == Test.Status.FAIL) {
-                    updateJobStatus.incFailedTests();
-                    updateBuild.getBuildStatus().incFailedTests();
-                } else {
-                    updateJobStatus.incPassedTests();
-                    updateBuild.getBuildStatus().incPassedTests();
+            // LOCK job when manipulating with its counters and statuses
+            final Object jobLock = getJobLock(test.getJobId());
+            synchronized (jobLock) {
+                Job testJob = getJob(test.getJobId());
+                if (testJob == null) {
+                    throw new BadRequestException("finishTest - the job of the test is not on database. test: [" + test + "].");
                 }
-            } else if (test.getRunNumber() == 3 && status == Test.Status.FAIL) {
-                updateJobStatus.incFailed3Tests();
-                updateBuild.getBuildStatus().incFailed3Tests();
-            }
-
-            updateJobStatus.decRunningTests();
-            updateBuild.getBuildStatus().decRunningTests();
-
-            boolean testEntryExists = testRepository.existsByJobIdAndStatusIn(existingTest.getJobId(), Arrays.asList(Test.Status.PENDING, Test.Status.RUNNING));
-            if (!testEntryExists) {
-                updateJobStatus.setState(State.DONE).setEndTime(new Date());
-                updateBuild.getBuildStatus().incDoneJobs().decRunningJobs();
-                if (testJob.getPriority() > 0) {
-                    deletePrioritizedJob(testJob);
+                Test.Status status = test.getStatus();
+                if (status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)) {
+                    throw new BadRequestException("can't finish test without state set to success or fail state" + test);
                 }
+                // find TEST
+                Optional<Test> opTest = testRepository.findById(test.getId());
+                Test existingTest = opTest.orElseThrow(() -> new BadRequestException("test with id " + test.getId() + " not found"));
+                if (test.getErrorMessage() != null) {
+                    existingTest.setErrorMessage(test.getErrorMessage());
+                }
+                existingTest.setEndTime(new Date());
+                existingTest.setStatus(status);
+
+                int historyLength = 25;
+                List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
+                String historyStatsString = TestScoreUtils.decodeShortHistoryString(test, testHistory, test.getStatus(), testJob.getBuild()); // added current fail to history;
+                double reliabilityTestScore = TestScoreUtils.score(historyStatsString);
+
+                existingTest.setTestScore(reliabilityTestScore);
+                existingTest.setHistoryStats(historyStatsString);
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug(
+                            "got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}], running tests before decrement:[{}]",
+                            historyStatsString, test.getId(), test.getName(), test.getJobId(),
+                            testJob.getRunningTests());
+                }
+                // save updated TEST
+                Test savedTest = testRepository.save(existingTest); // SAVE Test
+
+                // Now, update TEST related things
+                Job updateJobStatus = jobRepository.findById(existingTest.getJobId()).get(); //existingTest.getJobId()
+                Build updateBuild = buildRepository.findById(updateJobStatus.getBuild().getId()).get(); //job.getBuild().getId())
+                if (test.getRunNumber() == 1) {
+                    if (status == Test.Status.FAIL) {
+                        updateJobStatus.incFailedTests();
+                        updateBuild.getBuildStatus().incFailedTests();
+                    } else {
+                        updateJobStatus.incPassedTests();
+                        updateBuild.getBuildStatus().incPassedTests();
+                    }
+                } else if (test.getRunNumber() == 3 && status == Test.Status.FAIL) {
+                    updateJobStatus.incFailed3Tests();
+                    updateBuild.getBuildStatus().incFailed3Tests();
+                }
+
+                updateJobStatus.decRunningTests();
+                updateBuild.getBuildStatus().decRunningTests();
+
+                boolean testEntryExists = testRepository.existsByJobIdAndStatusIn(existingTest.getJobId(), Arrays.asList(Test.Status.PENDING, Test.Status.RUNNING));
+                if (!testEntryExists) {
+                    updateJobStatus.setState(State.DONE).setEndTime(new Date());
+                    updateBuild.getBuildStatus().incDoneJobs().decRunningJobs();
+                    if (testJob.getPriority() > 0) {
+                        deletePrioritizedJob(testJob);
+                    }
+                }
+
+                Job savedJob = jobRepository.save(updateJobStatus);     // SAVE Job
+                if (savedJob.getRunningTests() < 0) {
+                    logger.warn("Job: " + savedJob.getId() + " has an illegal number of running tests: " + savedJob.getRunningTests() +
+                            " after running test: " + test.getArguments() + " with agent: " + test.getAssignedAgent());
+                }
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug(
+                            "After modifying job ( after runningTests decrement ), runningTests:[{}]",
+                            savedJob.getRunningTests());
+                }
+
+                Build savedBuild = buildRepository.save(updateBuild);   // SAVE Build
+
+                broadcastMessage(MODIFIED_BUILD, savedBuild);
+                broadcastMessage(MODIFIED_TEST, savedTest);
+                broadcastMessage(MODIFIED_JOB, savedJob);
+
+                logger.info("succeed finish test- id:[{}], name:[{}]", savedTest.getId(), savedTest.getName());
+                return savedTest;
             }
-
-            Job savedJob = jobRepository.save(updateJobStatus);     // SAVE Job
-            if (savedJob.getRunningTests() < 0) {
-                logger.warn("Job: " + savedJob.getId() + " has an illegal number of running tests: "+ savedJob.getRunningTests() +
-                        " after running test: " + test.getArguments() + " with agent: " + test.getAssignedAgent());
-            }
-
-            if (logger.isDebugEnabled()) {
-                logger.debug(
-                        "After modifying job ( after runningTests decrement ), runningTests:[{}]",
-                        savedJob.getRunningTests());
-            }
-
-            Build savedBuild = buildRepository.save(updateBuild);   // SAVE Build
-
-            broadcastMessage(MODIFIED_BUILD, savedBuild);
-            broadcastMessage(MODIFIED_TEST, savedTest);
-            broadcastMessage(MODIFIED_JOB, savedJob);
-
-            logger.info("succeed finish test- id:[{}], name:[{}]", savedTest.getId(), savedTest.getName());
-            return savedTest;
         } catch (Exception e) {
             logger.error("failed to finish test because: ", e);
             throw e;
@@ -1933,9 +1939,9 @@ public class NewmanResource {
         final String agentId = agent.getId();
 
         Job pj = null;
-        final Object lock = getAgentLock(agent);
+        final Object agentLock = getAgentLock(agent);
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (lock) {
+        synchronized (agentLock) {
             if (agent.getState() == Agent.State.PREPARING) {
                 Optional<Job> opJob = jobRepository.findById(jobId);
                 if (opJob.isPresent()) {
@@ -1946,7 +1952,9 @@ public class NewmanResource {
             }
         }
 
-        synchronized (takenTestLock) {      // this is the place where Tests assigned to Agents or removed if job PAUSED
+        // LOCK job when manipulating with its counters and statuses
+        final Object jobLock = getJobLock(jobId);
+        synchronized (jobLock) {      // this is the place where Tests assigned to Agents or removed if job PAUSED
             Optional<Test> opTest = testRepository.findFirstByJobIdAndStatus(jobId, Test.Status.PENDING);  // find job waiting to run
             if (!opTest.isPresent()) {
                 logger.info("agent [{}] didn't find ready test for job: [{}]", agent.getName(), jobId);
@@ -2040,6 +2048,11 @@ public class NewmanResource {
     private Object getAgentLock(Agent agent) {
         agentLocks.putIfAbsent(agent.getName(), new Object());
         return agentLocks.get(agent.getName());
+    }
+
+    private Object getJobLock(String jobId) {
+        jobLocks.putIfAbsent(jobId, new Object());
+        return jobLocks.get(jobId);
     }
 
     @POST
