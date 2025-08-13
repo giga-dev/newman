@@ -1091,12 +1091,9 @@ public class NewmanResource {
             if (status == null || (status != Test.Status.FAIL && status != Test.Status.SUCCESS)) {
                 throw new BadRequestException("can't finish test without state set to success or fail state" + test);
             }
+
             // find TEST
-            Optional<Test> opTest = testRepository.findByIdAndStatusNot(test.getId(), status);
-            if (!opTest.isPresent()) {
-                return null;    // if no test with different status found - nothing to change then because it was already changed
-            }
-            Test existingTest = opTest.get();
+            Test existingTest = testRepository.findById(test.getId()).get();
             if (test.getErrorMessage() != null) {
                 existingTest.setErrorMessage(test.getErrorMessage());
             }
@@ -1973,19 +1970,7 @@ public class NewmanResource {
                 test.setStartTime(new Date());
                 test = testRepository.saveAndFlush(test);   // SAVE test
 
-                // JOB
                 Job job = opJobNotPaused.get();
-                job.incRunningTests();
-                job.setState(State.RUNNING);
-                if (job.getStartTime() == null) {
-                    job.setStartTime(new Date());
-                }
-                job = jobRepository.saveAndFlush(job);  // SAVE job
-
-                if (logger.isDebugEnabled()) {
-                    logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]",
-                            jobId, job.getRunningTests());
-                }
 
                 // BUILD
                 final String buildId = job.getBuild().getId();
@@ -1993,8 +1978,22 @@ public class NewmanResource {
 
                 Build build = opBuild.orElseThrow(() -> new RuntimeException("Build [" + buildId + "] does not exist"));
                 build.getBuildStatus().incRunningTests();
-                build.getBuildStatus().incRunningJobs().decPendingJobs();
+
+                // JOB
+                job.incRunningTests();
+                job.setState(State.RUNNING);
+                if (job.getStartTime() == null) {
+                    job.setStartTime(new Date());
+                    build.getBuildStatus().incRunningJobs().decPendingJobs();
+                }
+
+                job = jobRepository.saveAndFlush(job);      // SAVE job
                 build = buildRepository.saveAndFlush(build);    // SAVE build
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]",
+                            jobId, job.getRunningTests());
+                }
 
                 logger.info("agent [{}] got test id: [{}], test-state:[{}]", agent.getName(), test.getId(), test.getStatus());
 
