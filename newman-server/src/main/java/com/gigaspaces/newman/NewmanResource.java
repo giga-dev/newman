@@ -1121,7 +1121,7 @@ public class NewmanResource {
                             testJob.getRunningTests());
                 }
                 // save updated TEST
-                Test savedTest = testRepository.save(existingTest); // SAVE Test
+                Test savedTest = testRepository.saveAndFlush(existingTest); // SAVE Test
 
                 // Now, update TEST related things
                 Job updateJobStatus = jobRepository.findById(existingTest.getJobId()).get(); //existingTest.getJobId()
@@ -1151,7 +1151,7 @@ public class NewmanResource {
                     }
                 }
 
-                Job savedJob = jobRepository.save(updateJobStatus);     // SAVE Job
+                Job savedJob = jobRepository.saveAndFlush(updateJobStatus);     // SAVE Job
                 if (savedJob.getRunningTests() < 0) {
                     logger.warn("Job: " + savedJob.getId() + " has an illegal number of running tests: " + savedJob.getRunningTests() +
                             " after running test: " + test.getArguments() + " with agent: " + test.getAssignedAgent());
@@ -1163,7 +1163,7 @@ public class NewmanResource {
                             savedJob.getRunningTests());
                 }
 
-                Build savedBuild = buildRepository.save(updateBuild);   // SAVE Build
+                Build savedBuild = buildRepository.saveAndFlush(updateBuild);   // SAVE Build
 
                 broadcastMessage(MODIFIED_BUILD, savedBuild);
                 broadcastMessage(MODIFIED_TEST, savedTest);
@@ -1187,7 +1187,7 @@ public class NewmanResource {
                         currAssignedAgent.setState(Agent.State.IDLING);     // set agent back to IDLING if it doesn't have tasks to run
                     }
 
-                    agentRepository.save(currAssignedAgent);
+                    agentRepository.saveAndFlush(currAssignedAgent);
                     broadcastMessage(MODIFIED_AGENT, currAssignedAgent);
 
                     if (currAssignedAgent.getState() == Agent.State.IDLING) {
@@ -1950,7 +1950,7 @@ public class NewmanResource {
                 if (opJob.isPresent()) {
                     opJob.get().getPreparingAgents().remove(agent.getName());
 
-                    pj = jobRepository.save(opJob.get());
+                    pj = jobRepository.saveAndFlush(opJob.get());
                 }
             }
         }
@@ -1997,10 +1997,11 @@ public class NewmanResource {
                     agent.setState(Agent.State.RUNNING);
 
                     // Save updates for TEST, JOB, BUILD, AGENT
-                    test = testRepository.save(test);
-                    job = jobRepository.save(job);
-                    build = buildRepository.save(build);
-                    agent = agentRepository.save(agent);
+                    test = testRepository.saveAndFlush(test);
+                    job = jobRepository.saveAndFlush(job);
+                    build = buildRepository.saveAndFlush(build);
+                    agent = agentRepository.saveAndFlush(agent);
+
 
                     broadcastMessage(MODIFIED_TEST, test);
                     broadcastMessage(MODIFIED_JOB, job);
@@ -2021,8 +2022,8 @@ public class NewmanResource {
                         agent.setState(Agent.State.IDLING);
                     }
 
-                    test = testRepository.save(test);
-                    agent = agentRepository.save(agent);
+                    test = testRepository.saveAndFlush(test);
+                    agent = agentRepository.saveAndFlush(agent);
 
                     logger.info("Did not find relevant job, returning the test {} to the pool", test.getId());
 
@@ -2042,7 +2043,7 @@ public class NewmanResource {
                 logger.info("agent [{}] didn't find ready test for job: [{}]", agent.getName(), jobId);
             }
 
-            agent = agentRepository.save(agent);
+            agent = agentRepository.saveAndFlush(agent);
             broadcastMessage(MODIFIED_AGENT, agent);
 
             return null;    // this will stop agent seeking for a pending job

@@ -6,6 +6,7 @@ import com.gigaspaces.newman.projections.PJobForDashboard;
 import com.gigaspaces.newman.projections.PJobThin;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface JobRepository extends CrudRepository<Job, String>, JpaSpecificationExecutor<Job>, PagingAndSortingRepository<Job, String> {
+public interface JobRepository extends CrudRepository<Job, String>, JpaSpecificationExecutor<Job>, PagingAndSortingRepository<Job, String>, JpaRepository<Job, String> {
 
     @Query("SELECT j.id AS id, j.suite.id AS suiteId, j.suite.name AS suiteName, " +
             "j.build.id AS buildId, j.build.name AS buildName, j.build.branch AS buildBranch " +
