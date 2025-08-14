@@ -19,7 +19,7 @@ import java.util.*;
 @Repository
 public interface AgentRepository extends CrudRepository<Agent, String>, JpaRepository<Agent, String>, JpaSpecificationExecutor<Agent>, PagingAndSortingRepository<Agent, String> {
     @Query("SELECT DISTINCT a.groupName FROM Agent a")
-    Set<String> findDistinctAgentGroups();
+    List<String> findDistinctAgentGroups();
 
     long countBySetupRetriesGreaterThan(int zero);
 

@@ -565,7 +565,7 @@ public class NewmanResource {
         if (opJobConfig.isPresent()) {
             job.setJobConfig(opJobConfig.get());
         }
-        job = jobRepository.save(job);
+        job = jobRepository.saveAndFlush(job);
         if (job.getPriority() > 0) {
             createPrioritizedJob(job);
         }
@@ -576,7 +576,7 @@ public class NewmanResource {
         build.getBuildStatus().incTotalJobs();
         build.getBuildStatus().incPendingJobs();
 
-        buildRepository.save(build);
+        buildRepository.saveAndFlush(build);
 
         broadcastMessage(CREATED_JOB, job);
         broadcastMessage(MODIFIED_BUILD, build);
@@ -1967,7 +1967,7 @@ public class NewmanResource {
 
                 if (opJobNotPaused.isPresent()) {
                     Job job = opJobNotPaused.get();
-                    if (job.getState() == State.DONE || test.getStatus() == Test.Status.SUCCESS) {
+                    if (job.getState() == State.DONE) {
                         return null;        // if there are late requests coming up and the job is actually DONE - reject all of them
                     }
 
@@ -2125,11 +2125,11 @@ public class NewmanResource {
                 if (job.getLastTimeZombie() != null) {
                     job.setLastTimeZombie(null);
                 }
-                job = jobRepository.save(job);
+                job = jobRepository.saveAndFlush(job);
                 broadcastMessage(MODIFIED_JOB, job);
             }
 
-            subscribedAgent = agentRepository.save(newAgent);
+            subscribedAgent = agentRepository.saveAndFlush(newAgent);
         }
 
         if (foundAgent == null) {
@@ -2152,8 +2152,7 @@ public class NewmanResource {
     }
 
     private Job findJob(Set<String> capabilities, Specification<Job> additionalSpec, String agentGroup) {
-        Sort sort = Sort.by(Sort.Direction.ASC, "submitTime")
-                .and(Sort.by(Sort.Direction.DESC, "priority"));
+        Sort sort = Sort.by(Sort.Direction.ASC, "submitTime");
 
         List<Job> jobs;
         Specification<Job> spec;    // WHERE
@@ -2173,9 +2172,11 @@ public class NewmanResource {
                 spec = spec.and(additionalSpec);       // AND
             }
 
-            jobs = jobRepository.findAll(spec, sort);   // orderBy: submitTime, DESC
+            jobs = jobRepository.findAll(spec, sort);   // orderBy: submitTime
             if (!jobs.isEmpty()) {
-                return jobs.get(0); // job with capabilities
+                return jobs.stream()    // job with capabilities
+                        .max(Comparator.comparingInt(Job::getPriority))     // pick a job according to their priorities
+                        .orElse(null);  // null will never happen at this place
             }
         }
 
@@ -2193,7 +2194,9 @@ public class NewmanResource {
 
         jobs = jobRepository.findAll(spec, sort);
 
-        return jobs.isEmpty() ? null : jobs.get(0); // job without capabilities
+        return jobs.stream()      // job without capabilities
+                .max(Comparator.comparingInt(Job::getPriority))  // pick a job according to their priorities
+                .orElse(null);  // 'null' is allowed to happen here if empty
     }
 
     private Build getLatestBuild(String branch) {
@@ -2787,8 +2790,8 @@ public class NewmanResource {
     @GET
     @Path("availableAgentGroups")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<String> getAvailableAgentGroups() {
-        Set<String> availableAgentGroups = agentRepository.findDistinctAgentGroups();
+    public List<String> getAvailableAgentGroups() {
+        List<String> availableAgentGroups = agentRepository.findDistinctAgentGroups();
         return availableAgentGroups;
     }
 
