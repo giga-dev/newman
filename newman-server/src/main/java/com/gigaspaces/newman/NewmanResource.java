@@ -2152,7 +2152,8 @@ public class NewmanResource {
     }
 
     private Job findJob(Set<String> capabilities, Specification<Job> additionalSpec, String agentGroup) {
-        Sort sort = Sort.by(Sort.Direction.ASC, "submitTime");
+        Sort sort = Sort.by(Sort.Direction.DESC, "priority")
+                .and(Sort.by(Sort.Direction.ASC, "submitTime"));        // orderBy most priority first
 
         List<Job> jobs;
         Specification<Job> spec;    // WHERE
@@ -2172,11 +2173,9 @@ public class NewmanResource {
                 spec = spec.and(additionalSpec);       // AND
             }
 
-            jobs = jobRepository.findAll(spec, sort);   // orderBy: submitTime
+            jobs = jobRepository.findAll(spec, sort);
             if (!jobs.isEmpty()) {
-                return jobs.stream()    // job with capabilities
-                        .max(Comparator.comparingInt(Job::getPriority))     // pick a job according to their priorities
-                        .orElse(null);  // null will never happen at this place
+                return jobs.get(0); // job with capabilities
             }
         }
 
@@ -2194,9 +2193,7 @@ public class NewmanResource {
 
         jobs = jobRepository.findAll(spec, sort);
 
-        return jobs.stream()      // job without capabilities
-                .max(Comparator.comparingInt(Job::getPriority))  // pick a job according to their priorities
-                .orElse(null);  // 'null' is allowed to happen here if empty
+        return jobs.isEmpty() ? null : jobs.get(0);      // job without capabilities
     }
 
     private Build getLatestBuild(String branch) {
