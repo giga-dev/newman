@@ -749,7 +749,7 @@ public class NewmanResource {
     @Path("job/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Job AgentFinishJob(@PathParam("jobId") final String jobId) {
-        int updated = jobRepository.updateJobToReadyIfDone(jobId);
+        int updated = jobRepository.updateJobToReadyIfNoTestsRunning(jobId);
         if (updated > 0) {
             Job updatedJob = jobRepository.findById(jobId).orElseThrow(() -> new RuntimeException("Job [" + jobId + "] does not exist"));;
             broadcastMessage(MODIFIED_JOB, updatedJob);
