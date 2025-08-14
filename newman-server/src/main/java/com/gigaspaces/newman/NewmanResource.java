@@ -1098,6 +1098,13 @@ public class NewmanResource {
                 if (test.getErrorMessage() != null) {
                     existingTest.setErrorMessage(test.getErrorMessage());
                 }
+
+                // changing status to the same one means - one of the threads has missed its turn
+                // if the job is DONE - also reject all late requests
+                if (existingTest.getStatus() == status || testJob.getState() == State.DONE) {
+                    return null;
+                }
+
                 existingTest.setEndTime(new Date());
                 existingTest.setStatus(status);
 
@@ -1956,17 +1963,20 @@ public class NewmanResource {
 
             if (opTestPending.isPresent()) {
                 Test test = opTestPending.get();
-                Optional<Job> opJobNotPaused = jobRepository.findByIdAndStateNot(jobId, State.PAUSED);  // find NOT PAUSED job and set everything RUNNING
+                Optional<Job> opJobNotPaused = jobRepository.findByIdAndStateNot(jobId, State.PAUSED);  // find NOT PAUSED job
 
                 if (opJobNotPaused.isPresent()) {
+                    Job job = opJobNotPaused.get();
+                    if (job.getState() == State.DONE || test.getStatus() == Test.Status.SUCCESS) {
+                        return null;        // if there are late requests coming up and the job is actually DONE - reject all of them
+                    }
+
                     // TEST
                     test.setStatus(Test.Status.RUNNING);
                     test.setAssignedAgent(agentName);
                     test.setAgentGroup(agent.getGroupName());
                     test.setStartTime(new Date());
                     test = testRepository.saveAndFlush(test);   // SAVE test
-
-                    Job job = opJobNotPaused.get();
 
                     // BUILD
                     final String buildId = job.getBuild().getId();
