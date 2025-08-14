@@ -41661,7 +41661,7 @@ const __default__$1 = {
         (item) => this.selected.includes(item.jobId)
       );
       return selectedItems.every(
-        (item) => item.state == "PAUSED" || item.state == "DONE"
+        (item) => ["PAUSED", "DONE", "BROKEN"].includes(item.state)
       );
     },
     selectedResumeVisible() {
@@ -42379,8 +42379,8 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                 rounded: "",
                 icon: _ctx.getPlayBtnIcon(item.state),
                 color: _ctx.getPlayBtnColor(item.state),
-                disabled: _ctx.pauseBtnDisabledStates.includes(item.state),
-                onClick: ($event) => _ctx.startPauseToggle(item.jobId)
+                disabled: item.toggleRequested || _ctx.pauseBtnDisabledStates.includes(item.state),
+                onClick: ($event) => (item.toggleRequested = true, _ctx.startPauseToggle(item.jobId))
               }, null, 8, ["icon", "color", "disabled", "onClick"]),
               createVNode(_component_v_btn, {
                 tile: "",
@@ -42399,7 +42399,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                 height: "26px",
                 width: "26px",
                 rounded: "",
-                disabled: item.state == "DONE",
+                disabled: ["DONE", "BROKEN"].includes(item.state),
                 onClick: ($event) => _ctx.configureJobPrompt(item)
               }, null, 8, ["disabled", "onClick"])
             ])
@@ -42438,7 +42438,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-9eebefe8"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-ca7ee3ab"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -45361,4 +45361,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-CR8BZF1t.js.map
+//# sourceMappingURL=index-B8zccGYH.js.map

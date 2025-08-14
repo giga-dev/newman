@@ -57276,20 +57276,20 @@ textarea.v-field__input::placeholder {
   color: white !important;
 }
 
-[data-v-9eebefe8] .chip-button {
+[data-v-ca7ee3ab] .chip-button {
   color: white !important;
   width: 38px;
   height: 30px !important;
 }
-.select-list-item[data-v-9eebefe8]:hover {
+.select-list-item[data-v-ca7ee3ab]:hover {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.select-list-item[data-v-9eebefe8]:selected {
+.select-list-item[data-v-ca7ee3ab]:selected {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.list-header[data-v-9eebefe8] {
+.list-header[data-v-ca7ee3ab] {
   cursor: default;
   text-align: center;
   font-weight: bolder;
