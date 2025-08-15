@@ -57276,34 +57276,34 @@ textarea.v-field__input::placeholder {
   color: white !important;
 }
 
-[data-v-ca7ee3ab] .chip-button {
+[data-v-62444490] .chip-button {
   color: white !important;
   width: 38px;
   height: 30px !important;
 }
-.select-list-item[data-v-ca7ee3ab]:hover {
+.select-list-item[data-v-62444490]:hover {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.select-list-item[data-v-ca7ee3ab]:selected {
+.select-list-item[data-v-62444490]:selected {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.list-header[data-v-ca7ee3ab] {
+.list-header[data-v-62444490] {
   cursor: default;
   text-align: center;
   font-weight: bolder;
   margin: auto;
 }
 
-[data-v-698a5750] .v-list-item-title {
+[data-v-e98f8523] .v-list-item-title {
   font-weight: bold;
   font-size: 95%;
 }
-.user-mngmnt[data-v-698a5750] {
+.user-mngmnt[data-v-e98f8523] {
   color: orange;
 }
-.v-navigation-drawer.v-theme--light[data-v-698a5750] {
+.v-navigation-drawer.v-theme--light[data-v-e98f8523] {
   background-color: #2196F3;
 }
 

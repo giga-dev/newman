@@ -42390,7 +42390,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                 rounded: "",
                 color: "#D30000",
                 class: "mr-1",
-                disabled: !(_ctx.pauseBtnDisabledStates.includes(item.state) || item.state == "PAUSED") || item.runningTests > 0,
+                disabled: !(_ctx.pauseBtnDisabledStates.includes(item.state) || item.state == "PAUSED") || item.runningTests > 0 || item.toggleRequested,
                 onClick: ($event) => _ctx.deleteJobPrompt(item)
               }, null, 8, ["disabled", "onClick"]),
               createVNode(_component_v_btn, {
@@ -42438,7 +42438,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-ca7ee3ab"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-62444490"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -44857,7 +44857,8 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
         default: withCtx(() => [
           createVNode(_component_v_navigation_drawer, {
             "expand-on-hover": "",
-            rail: ""
+            rail: "",
+            permanent: ""
           }, {
             append: withCtx(() => [
               createBaseVNode("div", _hoisted_1$2, " v. " + toDisplayString($data.version), 1)
@@ -44986,7 +44987,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const SidePanel = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-698a5750"]]);
+const SidePanel = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-e98f8523"]]);
 const eventBus = reactive({
   events: {},
   $on(event, callback) {
@@ -45361,4 +45362,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-B8zccGYH.js.map
+//# sourceMappingURL=index-Buva1GdM.js.map

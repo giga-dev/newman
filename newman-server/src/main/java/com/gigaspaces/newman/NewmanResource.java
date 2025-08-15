@@ -1095,14 +1095,15 @@ public class NewmanResource {
 
                 // find TEST
                 Test existingTest = testRepository.findById(test.getId()).get();
-                if (test.getErrorMessage() != null) {
-                    existingTest.setErrorMessage(test.getErrorMessage());
-                }
 
                 // changing status to the same one means - one of the threads has missed its turn
-                // if the job is DONE - also reject all late requests
-                if (existingTest.getStatus() == status || testJob.getState() == State.DONE) {
+                // if the job is DONE - also reject all late requests + PENDING test cannot be finished
+                if (existingTest.getStatus() == status || existingTest.getStatus() == Test.Status.PENDING) {
                     return null;
+                }
+
+                if (test.getErrorMessage() != null) {
+                    existingTest.setErrorMessage(test.getErrorMessage());
                 }
 
                 existingTest.setEndTime(new Date());
@@ -1967,9 +1968,6 @@ public class NewmanResource {
 
                 if (opJobNotPaused.isPresent()) {
                     Job job = opJobNotPaused.get();
-                    if (job.getState() == State.DONE) {
-                        return null;        // if there are late requests coming up and the job is actually DONE - reject all of them
-                    }
 
                     // TEST
                     test.setStatus(Test.Status.RUNNING);
@@ -2015,31 +2013,26 @@ public class NewmanResource {
 
                     return test;
                 } else {
-                    // if PAUSED job was found - set everything PENDING
-                    // TEST
-                    test.setStatus(Test.Status.PENDING);
-                    test.setAssignedAgent(null);
-                    test.setStartTime(null);
-                    test = testRepository.saveAndFlush(test);   // SAVE test
-
                     // AGENT
-                    agent.getCurrentTests().remove(test.getId());       // take the test assigment away from the agent
-                    if (agent.getCurrentTests().isEmpty()) {
-                        agent.setState(Agent.State.IDLING);
-                    }
+                    if (agent.getCurrentTests().contains(test.getId())) {
 
-                    agent = agentRepository.saveAndFlush(agent);    // SAVE agent
+                        agent.getCurrentTests().remove(test.getId());       // take the test assigment away from the agent
+                        if (agent.getCurrentTests().isEmpty()) {
+                            agent.setState(Agent.State.IDLING);
+                        }
 
-                    logger.info("Did not find relevant job, returning the test {} to the pool", test.getId());
+                        agent = agentRepository.saveAndFlush(agent);    // SAVE agent
 
-                    broadcastMessage(MODIFIED_TEST, test);
-                    broadcastMessage(MODIFIED_AGENT, agent);
-                    if (pj != null) {
-                        broadcastMessage(MODIFIED_JOB, pj);
-                    }
+                        logger.info("Did not find relevant job, returning the test {} to the pool", test.getId());
 
-                    if (agent.getState() == Agent.State.IDLING) {
-                        logger.warn("agent [{}] is idling from getTest because finished all his tests", agent.getName());
+                        broadcastMessage(MODIFIED_AGENT, agent);
+                        if (pj != null) {
+                            broadcastMessage(MODIFIED_JOB, pj);
+                        }
+
+                        if (agent.getState() == Agent.State.IDLING) {
+                            logger.warn("agent [{}] is idling from getTest because finished all his tests", agent.getName());
+                        }
                     }
 
                     return null;    // to stop agent going over and over the PAUSED test - return null
@@ -3311,7 +3304,7 @@ public class NewmanResource {
                 existingTest.setStartTime(null);
                 existingTest.setStatus(Test.Status.PENDING);
 
-                existingTest = testRepository.save(existingTest);
+                existingTest = testRepository.saveAndFlush(existingTest);
                 logger.warn("test {} was released since agent {} not seen for a long time", existingTest.getId(), agent.getName());
                 runningTestsPerAgent.add(existingTest);
             }
@@ -3323,9 +3316,9 @@ public class NewmanResource {
             if (agent.getState() == Agent.State.PREPARING) {
                 if (opJob.isPresent()) {
                     job = opJob.get();
-                    job.getPreparingAgents().removeAll(Collections.singletonList(agent.getName()));
+                    job.getPreparingAgents().remove(agent.getName());
 
-                    job = jobRepository.save(job);
+                    job = jobRepository.saveAndFlush(job);
                 }
             } else if (agent.getState() == Agent.State.RUNNING && !runningTestsPerAgent.isEmpty()) {
                 logger.info("returnTests for agent [{}], jobId [{}], amount of running tests by the agent [{}]", agent.getName(), agent.getJobId(), runningTestsPerAgent);
@@ -3333,7 +3326,7 @@ public class NewmanResource {
                     job = opJob.get();
                     job.setRunningTests(job.getRunningTests() - runningTestsPerAgent.size());
 
-                    job = jobRepository.save(job);
+                    job = jobRepository.saveAndFlush(job);
                 }
             }
         }
