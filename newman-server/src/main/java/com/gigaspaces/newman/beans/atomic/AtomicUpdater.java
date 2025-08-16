@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 import java.util.*;
@@ -69,7 +70,6 @@ public class AtomicUpdater<T> {
     }
 
     // ---------- EXECUTE ----------
-    @Transactional
     public T execute() {
         if (sets.isEmpty() && incs.isEmpty() && decs.isEmpty()) {
             throw new IllegalStateException("Nothing to update");
@@ -105,9 +105,26 @@ public class AtomicUpdater<T> {
         if (entityManager != null) {
             Query q = entityManager.createQuery(jpql.toString());
             params.forEach(q::setParameter);
-            int updateRows = q.executeUpdate();
-            if (updateRows == 1)
-                return entityManager.find(entityClass, id);
+
+            EntityTransaction tx = entityManager.getTransaction();
+            try {
+                tx.begin();
+                int updateRows = q.executeUpdate();
+                tx.commit();
+
+                T updatedEntity = null;
+                if (updateRows == 1)
+                    updatedEntity = entityManager.find(entityClass, id);
+
+                return updatedEntity;
+            } catch (Exception e) {
+                if (entityManager.getTransaction().isActive())
+                    entityManager.getTransaction().rollback();
+
+                throw e;
+            } finally {
+                entityManager.close();
+            }
         } else {
             String result = jpql.toString();
             for (Map.Entry<String, Object> e : params.entrySet()) {
