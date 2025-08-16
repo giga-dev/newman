@@ -213,11 +213,11 @@ public class NewmanResource {
             deletePrioritizedJob(potentialJob);
         }
 
-        AtomicUpdater<Build> buildUpdater = getUpdater(Build.class);
-        buildUpdater
-                .inc("buildStatus.brokenJobs")
-                .dec("buildStatus.runningJobs")
-                .whereId(potentialJob.getBuild().getId()).execute();
+        AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
+        buildStatusUpdater
+                .inc("brokenJobs")
+                .dec("runningJobs")
+                .whereId(potentialJob.getBuild().getBuildStatus().getId()).execute();
     }
 
     public boolean handleZombie(Job potentialJob) {
@@ -557,13 +557,13 @@ public class NewmanResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("invalid suite id for Job request: " + jobRequest).build();
         }
 
-        AtomicUpdater<Build> buildUpdater = getUpdater(Build.class);
-        // update build
-        Build build = buildUpdater
-                .inc("buildStatus.totalJobs")
-                .inc("buildStatus.pendingJobs")
-                .whereId(jobRequest.getBuildId()).execute();
-        build.getBuildStatus().getSuites().add(new BuildStatusSuite(opSuite.get().getId(), opSuite.get().getName()));
+        AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
+        BuildStatus buildStatus = buildStatusUpdater
+                .inc("totalJobs")
+                .inc("pendingJobs")
+                .whereId(opBuild.get().getBuildStatus().getId()).execute();
+        buildStatus.getSuites().add(new BuildStatusSuite(opSuite.get().getId(), opSuite.get().getName()));
+        Build build = buildStatus.getBuild();
 
         buildRepository.saveAndFlush(build);
 
@@ -1137,27 +1137,27 @@ public class NewmanResource {
 
                 // Now, update TEST related things
                 AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
-                AtomicUpdater<Build> buildUpdater = getUpdater(Build.class);
+                AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
                 if (test.getRunNumber() == 1) {
                     if (status == Test.Status.FAIL) {
                         jobUpdater.inc("failedTests");
-                        buildUpdater.inc("buildStatus.failedTests");
+                        buildStatusUpdater.inc("failedTests");
                     } else {
                         jobUpdater.inc("passedTests");
-                        buildUpdater.inc("buildStatus.passedTests");
+                        buildStatusUpdater.inc("passedTests");
                     }
                 } else if (test.getRunNumber() == 3 && status == Test.Status.FAIL) {
                     jobUpdater.inc("failed3TimesTests");
-                    buildUpdater.inc("buildStatus.failed3TimesTests");
+                    buildStatusUpdater.inc("failed3TimesTests");
                 }
 
                 jobUpdater.dec("runningTests");
-                buildUpdater.dec("buildStatus.runningTests");
+                buildStatusUpdater.dec("runningTests");
 
                 boolean testEntryExists = testRepository.existsByJobIdAndStatusIn(existingTest.getJobId(), Arrays.asList(Test.Status.PENDING, Test.Status.RUNNING));
                 if (!testEntryExists) {
                     jobUpdater.set("state", State.DONE).set("endTime", new Date());
-                    buildUpdater.inc("buildStatus.doneJobs").dec("buildStatus.runningJobs");
+                    buildStatusUpdater.inc("doneJobs").dec("runningJobs");
                     if (testJob.getPriority() > 0) {
                         deletePrioritizedJob(testJob);
                     }
@@ -1175,9 +1175,9 @@ public class NewmanResource {
                             savedJob.getRunningTests());
                 }
 
-                Build savedBuild = buildUpdater.whereId(savedJob.getBuild().getId()).execute();   // SAVE Build
+                BuildStatus savedBuildStatus = buildStatusUpdater.whereId(savedJob.getBuild().getBuildStatus().getId()).execute();   // SAVE Build
 
-                broadcastMessage(MODIFIED_BUILD, savedBuild);
+                broadcastMessage(MODIFIED_BUILD, savedBuildStatus.getBuild());
                 broadcastMessage(MODIFIED_TEST, savedTest);
                 broadcastMessage(MODIFIED_JOB, savedJob);
 
@@ -1994,18 +1994,18 @@ public class NewmanResource {
                             .set("state", Test.Status.RUNNING);
 
                     // BUILD
-                    AtomicUpdater<Build> buildUpdater = getUpdater(Build.class);
-                    buildUpdater.inc("buildStatus.runningTests");
+                    AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
+                    buildStatusUpdater.inc("runningTests");
                     if (job.getStartTime() == null) {
                         jobUpdater.set("startTime", new Date());
-                        buildUpdater
-                                .inc("buildStatus.runningJobs")
-                                .dec("buildStatus.pendingJobs");
+                        buildStatusUpdater
+                                .inc("runningJobs")
+                                .dec("pendingJobs");
                     }
 
 
                     job = jobUpdater.whereId(job.getId()).execute();  // UPDATE job
-                    Build build = buildUpdater.whereId(job.getBuild().getId()).execute();  // UPDATE build
+                    BuildStatus buildStatus = buildStatusUpdater.whereId(job.getBuild().getBuildStatus().getId()).execute();  // UPDATE build
 
                     if (logger.isDebugEnabled()) {
                         logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]",
@@ -2021,7 +2021,7 @@ public class NewmanResource {
 
                     broadcastMessage(MODIFIED_TEST, test);
                     broadcastMessage(MODIFIED_JOB, job);
-                    broadcastMessage(MODIFIED_BUILD, build);
+                    broadcastMessage(MODIFIED_BUILD, buildStatus.getBuild());
                     broadcastMessage(MODIFIED_AGENT, agent);
 
                     return test;
@@ -2645,35 +2645,35 @@ public class NewmanResource {
     }
 
     private void updateBuildWithDeletedJob(Job deletedJob) {
-        Optional<Build> opAssociatedBuild = buildRepository.findById(deletedJob.getBuild().getId());
-        if (opAssociatedBuild.isPresent()) {
-            Build associatedBuild = opAssociatedBuild.get();
-            AtomicUpdater<Build> buildUpdater = getUpdater(Build.class);
+        Optional<Build> opBuild = buildRepository.findById(deletedJob.getBuild().getId());
+        if (opBuild.isPresent()) {
+            Build build = opBuild.get();
+            AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
 
             if (deletedJob.getState() == State.DONE) {
-                if (associatedBuild.getBuildStatus().getDoneJobs() > 0) {
-                    buildUpdater.dec("buildStatus.doneJobs");
+                if (build.getBuildStatus().getDoneJobs() > 0) {
+                    buildStatusUpdater.dec("doneJobs");
                 }
             } else if (deletedJob.getState() == State.PAUSED) {
-                if (associatedBuild.getBuildStatus().getPendingJobs() > 0) {
-                    buildUpdater.dec("buildStatus.pendingJobs");
+                if (build.getBuildStatus().getPendingJobs() > 0) {
+                    buildStatusUpdater.dec("pendingJobs");
                 }
             } else if (deletedJob.getState() == State.BROKEN) {
-                if (associatedBuild.getBuildStatus().getBrokenJobs() > 0) {
-                    buildUpdater.dec("buildStatus.brokenJobs");
+                if (build.getBuildStatus().getBrokenJobs() > 0) {
+                    buildStatusUpdater.dec("brokenJobs");
                 }
             }
 
-            associatedBuild = buildUpdater.whereId(associatedBuild.getId()).execute();
+            BuildStatus buildStatus = buildStatusUpdater.whereId(build.getBuildStatus().getId()).execute();
 
             Suite suite = deletedJob.getSuite();
             if (suite != null) {
-                associatedBuild.getBuildStatus().getSuites()
+                buildStatus.getSuites()
                         .remove(new BuildStatusSuite(suite.getId(), suite.getName()));
             }
 
-            buildRepository.saveAndFlush(associatedBuild);
-            broadcastMessage(MODIFIED_BUILD, associatedBuild);
+            buildRepository.saveAndFlush(buildStatus.getBuild());
+            broadcastMessage(MODIFIED_BUILD, buildStatus.getBuild());
         }
     }
 

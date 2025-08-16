@@ -69,6 +69,7 @@ public class AtomicUpdater<T> {
     }
 
     // ---------- EXECUTE ----------
+    @Transactional
     public T execute() {
         if (sets.isEmpty() && incs.isEmpty() && decs.isEmpty()) {
             throw new IllegalStateException("Nothing to update");
