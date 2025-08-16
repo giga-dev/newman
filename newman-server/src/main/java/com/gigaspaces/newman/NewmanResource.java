@@ -1991,7 +1991,7 @@ public class NewmanResource {
                     AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
                     jobUpdater
                             .inc("runningTests")
-                            .set("state", Test.Status.RUNNING);
+                            .set("state", State.RUNNING);
 
                     // BUILD
                     AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
