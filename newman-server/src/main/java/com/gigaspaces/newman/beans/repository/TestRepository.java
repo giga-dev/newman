@@ -4,15 +4,13 @@ import com.gigaspaces.newman.entities.Test;
 import com.gigaspaces.newman.projections.PTest;
 import com.gigaspaces.newman.projections.PTestForHistory;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.LockModeType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +41,7 @@ public interface TestRepository extends CrudRepository<Test, String>, JpaSpecifi
 
     Optional<Test> findByIdAndStatusNot(String id, Test.Status status);
 
+    @Lock(LockModeType.PESSIMISTIC_READ)
     Optional<Test> findFirstByJobIdAndStatus(String jobId, Test.Status status);
 
     @Query("SELECT t FROM Test t WHERE t.assignedAgent = :assignedAgent")

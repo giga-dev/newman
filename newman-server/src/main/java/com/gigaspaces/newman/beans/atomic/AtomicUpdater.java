@@ -118,8 +118,10 @@ public class AtomicUpdater<T> {
                 tx.commit();
 
                 T updatedEntity = null;
-                if (updateRows == 1)
+                if (updateRows == 1) {
+                    entityManager.clear();
                     updatedEntity = entityManager.find(entityClass, id);
+                }
 
                 return updatedEntity;
             } catch (Exception e) {
