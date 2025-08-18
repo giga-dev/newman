@@ -3337,7 +3337,9 @@ public class NewmanResource {
                 opJob = jobRepository.findById(agent.getJobId());
                 logger.info("returnTests for agent [{}], jobId [{}], amount of running tests by the agent [{}]", agent.getName(), agent.getJobId(), currentTestsOfAgent);
                 if (opJob.isPresent()) {
-                    job = getUpdater(Job.class).dec("runningTests", currentTestsOfAgent.size()).execute();
+                    job = getUpdater(Job.class)
+                            .dec("runningTests", currentTestsOfAgent.size())
+                            .whereId(opJob.get().getId()).execute();
                 }
             }
         }
