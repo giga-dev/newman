@@ -47,6 +47,11 @@ public class AtomicUpdater<T> {
         return this;
     }
 
+    public AtomicUpdater<T> dec(String field, Number value) {
+        decs.put(field, value);
+        return this;
+    }
+
     public AtomicUpdater<T> dec(String field) {
         decs.put(field, 1);
         return this;

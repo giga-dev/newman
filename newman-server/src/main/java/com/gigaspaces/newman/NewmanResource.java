@@ -3304,7 +3304,7 @@ public class NewmanResource {
      * @param agent the agent in hand.
      */
     private void returnTests(Agent agent) {
-        Set<Test> runningTestsPerAgent = new HashSet<>();
+        Set<Test> currentTestsOfAgent = new HashSet<>();
         // reset tests
         for (String testId : agent.getCurrentTests()) {
             Optional<Test> opTest = testRepository.findByIdAndStatusAndAssignedAgent(testId, Test.Status.RUNNING, agent.getName());
@@ -3318,27 +3318,26 @@ public class NewmanResource {
 
                 existingTest = testRepository.saveAndFlush(existingTest);
                 logger.warn("test {} was released since agent {} not seen for a long time", existingTest.getId(), agent.getName());
-                runningTestsPerAgent.add(existingTest);
+                currentTestsOfAgent.add(existingTest);
             }
         }
         Job job = null;
         // reset job
         if (agent.getJobId() != null) {
-            Optional<Job> opJob = jobRepository.findById(agent.getJobId());
+            Optional<Job> opJob;
             if (agent.getState() == Agent.State.PREPARING) {
+                opJob = jobRepository.findById(agent.getJobId());
                 if (opJob.isPresent()) {
                     job = opJob.get();
                     job.getPreparingAgents().remove(agent.getName());
 
                     job = jobRepository.saveAndFlush(job);
                 }
-            } else if (agent.getState() == Agent.State.RUNNING && !runningTestsPerAgent.isEmpty()) {
-                logger.info("returnTests for agent [{}], jobId [{}], amount of running tests by the agent [{}]", agent.getName(), agent.getJobId(), runningTestsPerAgent);
+            } else if (agent.getState() == Agent.State.RUNNING && !currentTestsOfAgent.isEmpty()) {
+                opJob = jobRepository.findById(agent.getJobId());
+                logger.info("returnTests for agent [{}], jobId [{}], amount of running tests by the agent [{}]", agent.getName(), agent.getJobId(), currentTestsOfAgent);
                 if (opJob.isPresent()) {
-                    job = opJob.get();
-                    job.setRunningTests(job.getRunningTests() - runningTestsPerAgent.size());
-
-                    job = jobRepository.saveAndFlush(job);
+                    job = getUpdater(Job.class).dec("runningTests", currentTestsOfAgent.size()).execute();
                 }
             }
         }
@@ -3353,7 +3352,7 @@ public class NewmanResource {
         if (existingAgent.getState().equals(Agent.State.IDLING)) {
             logger.warn("agent [{}] is idling while returning tests to pool", existingAgent.getName());
         }
-        for (Test test : runningTestsPerAgent) {
+        for (Test test : currentTestsOfAgent) {
             broadcastMessage(MODIFIED_TEST, test);
         }
         if (job != null) {
