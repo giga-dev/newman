@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.LockModeType;
@@ -41,6 +42,7 @@ public interface TestRepository extends CrudRepository<Test, String>, JpaSpecifi
 
     Optional<Test> findByIdAndStatusNot(String id, Test.Status status);
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Lock(LockModeType.PESSIMISTIC_READ)
     Optional<Test> findFirstByJobIdAndStatus(String jobId, Test.Status status);
 
