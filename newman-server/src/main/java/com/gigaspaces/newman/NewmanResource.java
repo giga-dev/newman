@@ -666,19 +666,20 @@ public class NewmanResource {
                     break;
             }
             if (state != null) {
-                State old = job.getState(); // TODO consider if that is needed
-                job.setState(state);
+                AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
+                jobUpdater.set("state", state);
 
                 if (state == State.PAUSED) {
                     // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
-                    job.setStartPrepareTime(null);
+                    jobUpdater.set("startPrepareTime", null);
                 } else if (state == State.READY) {  //change status of Test(s) from running to pending
                     int updatedCount = testRepository.updateStatusByJobIdAndCurrentStatus(id, Test.Status.RUNNING, Test.Status.PENDING);
                     logger.info("---ToggleJobPause, state is READY, affected count:" + updatedCount);
                 }
 
-                managePrioritizedJob(job, state == State.PAUSED);
-                job = jobRepository.saveAndFlush(job);//.findAndModify(jobRepository.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
+                managePrioritizedJob(job.getId(), job.getPriority(), state == State.PAUSED);
+                job = jobUpdater.whereId(job.getId()).execute();
+
                 broadcastMessage(MODIFIED_JOB, job);
 
                 return job;
@@ -687,13 +688,13 @@ public class NewmanResource {
         return null;
     }
 
-    private void managePrioritizedJob(Job job, boolean isPaused) {
-        if (job.getPriority() > 0) {
-            Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findByJobId(job.getId());
-            PrioritizedJob prioritizedJob = opPrioritizedJob.orElseThrow(() -> new RuntimeException("PrioritizedJob [" + job.getId() + "] does not exist"));;
-            prioritizedJob.setPaused(isPaused);
+    private void managePrioritizedJob(String jobId, int jobPriority, boolean isPaused) {
+        if (jobPriority > 0) {
+            Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findByJobId(jobId);
+            PrioritizedJob prioritizedJob = opPrioritizedJob.orElseThrow(() -> new RuntimeException("PrioritizedJob [" + jobId + "] does not exist"));
+            AtomicUpdater<PrioritizedJob> prioritizedJobUpdater = getUpdater(PrioritizedJob.class).set("ispaused", isPaused);
 
-            prioritizedJob = prioritizedJobRepository.save(prioritizedJob);
+            prioritizedJob = prioritizedJobUpdater.whereId(prioritizedJob.getId()).execute();
 
             boolean priorityConditionTrue = isPaused
                     ? prioritizedJob.getPriority() == highestPriorityJob
