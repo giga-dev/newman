@@ -943,27 +943,24 @@ public class NewmanResource {
         if (!res.isEmpty()) {
             Test test = res.get(0);
 
-            Optional<Job> opJob = jobRepository.findById(test.getJobId());
-            Optional<Build> opBuild = buildRepository.findById(job.getBuild().getId());
-            final String buildId = job.getBuild().getId();
-            job = opJob.orElseThrow(() -> new RuntimeException("Job [" + test.getJobId() + "] does not exist"));;
-            build = opBuild.orElseThrow(() -> new RuntimeException("Build [" + buildId + "] does not exist"));;
-
+            AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
+            AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
             // @QueryParam("toCount") - indicates if tests should be added to "totalTests"
             // if a test fails and is resumitted (aka run number >1 ) we don't want it to be added to "totalTests".
             if (toCountStr.equals("count")) {
-                job.setTotalTests(job.getTotalTests() + res.size());
-                build.getBuildStatus().setTotalTests(build.getBuildStatus().getTotalTests() + res.size());
+                jobUpdater.inc("totalTests", res.size());
+                buildStatusUpdater.inc("totalTests", res.size());
             }
 
             if (updateNumOfTestRetries > 0) {
-                job.setNumOfTestRetries(job.getNumOfTestRetries() + updateNumOfTestRetries);
-                build.getBuildStatus().setNumOfTestRetries(build.getBuildStatus().getNumOfTestRetries() + updateNumOfTestRetries);
+                jobUpdater.inc("numOfTestRetries", updateNumOfTestRetries);
+                buildStatusUpdater.inc("numOfTestRetries", updateNumOfTestRetries);
             }
 
             if (toCountStr.equals("count") || updateNumOfTestRetries > 0) {
-                job = jobRepository.save(job);
-                build = buildRepository.save(build);
+                job = jobUpdater.whereId(test.getJobId()).execute();
+                build = buildStatusUpdater.whereId(job.getBuild().getBuildStatus().getId()).execute()
+                        .getBuild();
 
                 broadcastMessage(MODIFIED_BUILD, build);
                 broadcastMessage(MODIFIED_JOB, job);
@@ -1069,7 +1066,7 @@ public class NewmanResource {
         } else if (test.getLogs().getTest() == null) {
             test.getLogs().setTest(test);
         }
-        test = testRepository.save(test);
+        test = testRepository.saveAndFlush(test);
 
         broadcastMessage(CREATED_TEST, test);
         return test;
@@ -1421,7 +1418,7 @@ public class NewmanResource {
                 test.getLogs().getTestLogs().put(fileName, jobSetupLogsValue);
                 logger.info("Test logs added to the test {}:  {}", test.getId(), test.getLogs().getTestLogs());
 
-                test = testRepository.save(test);
+                test = testRepository.saveAndFlush(test);
                 broadcastMessage(MODIFIED_TEST, test);
             }
         } catch (Exception e) {
@@ -1452,7 +1449,7 @@ public class NewmanResource {
                     test.getLogs().getTestLogs().put(entry, uri + "!/" + entry);
                 }
 
-                test = testRepository.save(test);
+                test = testRepository.saveAndFlush(test);
                 broadcastMessage(MODIFIED_TEST, test);
             }
         } catch (IOException e) {
