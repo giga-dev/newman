@@ -2024,6 +2024,12 @@ public class NewmanResource {
 
                 return test;
             } else {
+                // TEST - set back to PENDING if job is PAUSED
+                test = getUpdater(Test.class)
+                        .set("status", Test.Status.PENDING)
+                        .set("assignedAgent", null)
+                        .set("startTime", null).whereId(test.getId()).execute();
+
                 // AGENT
                 if (agent.getCurrentTests().contains(test.getId())) {
 
