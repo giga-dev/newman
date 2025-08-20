@@ -154,7 +154,7 @@ public class NewmanResource {
                 @Override
                 public void run() {
                     logger.info("Checking for not seen agents");
-                    getAgentsNotSeenInLastMillis(1000 * 60 * 1).forEach(NewmanResource.this::handleUnseenAgent);    // FIXME revert to 3 mins. Reduced unseen agent interval to 1 min
+                    getAgentsNotSeenInLastMillis(1000 * 60 * 5).forEach(NewmanResource.this::handleUnseenAgent);
                 }
             }, 1000 * 30, 1000 * 30);
 
