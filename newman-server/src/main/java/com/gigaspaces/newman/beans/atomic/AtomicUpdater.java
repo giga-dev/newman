@@ -73,20 +73,28 @@ public class AtomicUpdater<T> {
 
     public AtomicUpdater<T> whereId(Object id) {
         this.id = String.valueOf(id);
-        return where("e.id = ?", id);
+        return where("id = ?", id);
     }
 
-    @Override
-    public String toString() {
-        return super.toString();
+    private String toColumnName(String fieldName) {
+        return fieldName.toLowerCase();
     }
 
-    private void printJPQL(StringBuilder jpql) {
-        String result = jpql.toString();
+    private String getTableName(Class<?> entityClass) {
+        return entityClass.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2")  // insert underscore before uppercase
+                .toLowerCase();
+    }
+
+    private void printSQL(StringBuilder sql) {
+        String result = sql.toString();
         for (Map.Entry<String, Object> e : params.entrySet()) {
             result = result.replace(":"+e.getKey(), String.valueOf(e.getValue()));
         }
-        logger.info("Executing update: {}", result);
+        if (entityManager != null) {
+            logger.info("Executing update: {}", result);
+        } else {
+            System.out.println("Executing update: " + result);
+        }
     }
 
     // ---------- EXECUTE ----------
@@ -95,63 +103,65 @@ public class AtomicUpdater<T> {
             throw new IllegalStateException("Nothing to update");
         }
 
-        StringBuilder jpql = new StringBuilder("UPDATE " + entityClass.getSimpleName() + " e SET ");
+        // 1️⃣ Build native SQL
+        StringBuilder sql = new StringBuilder("UPDATE " + getTableName(entityClass) + " SET ");
         List<String> updates = new ArrayList<>();
 
+        // Simple assignments
         sets.forEach((f, v) -> {
             String p = "p" + (paramCounter++);
-            updates.add("e." + f + " = :" + p);
+            updates.add(toColumnName(f) + " = :" + p);
             params.put(p, v);
         });
 
+        // Increments
         incs.forEach((f, v) -> {
             String p = "p" + (paramCounter++);
-            updates.add("e." + f + " = e." + f + " + :" + p);
+            updates.add(toColumnName(f) + " = " + toColumnName(f) + " + :" + p);
             params.put(p, v);
         });
 
+        // Decrements
         decs.forEach((f, v) -> {
             String p = "p" + (paramCounter++);
-            updates.add("e." + f + " = e." + f + " - :" + p);
+            updates.add(toColumnName(f) + " = " + toColumnName(f) + " - :" + p);
             params.put(p, v);
         });
 
-        jpql.append(String.join(", ", updates));
+        sql.append(String.join(", ", updates));
 
+        // WHERE clause
         if (whereClause != null && !whereClause.isEmpty()) {
-            jpql.append(" WHERE ").append(whereClause);
+            sql.append(" WHERE ").append(whereClause);
         }
 
-        if (entityManager != null) {
-            Query q = entityManager.createQuery(jpql.toString());
-            params.forEach(q::setParameter);
+        // RETURNING * to fetch updated entity
+        sql.append(" RETURNING *");
 
-            printJPQL(jpql);
+        if (entityManager != null) {
+            Query query = entityManager.createNativeQuery(sql.toString(), entityClass);
+            params.forEach(query::setParameter);
+
+            printSQL(sql);
 
             EntityTransaction tx = entityManager.getTransaction();
             try {
                 tx.begin();
-                int updateRows = q.executeUpdate();
+                @SuppressWarnings("unchecked")
+                T updatedEntity = (T) query.getSingleResult();
                 tx.commit();
-
-                T updatedEntity = null;
-                if (updateRows == 1) {
-                    entityManager.clear();
-                    updatedEntity = entityManager.find(entityClass, id);
-                }
-
                 return updatedEntity;
             } catch (Exception e) {
-                if (entityManager.getTransaction().isActive()) {
-                    entityManager.getTransaction().rollback();
-                    logger.warn("Failed to execute update", e);
-                }
-
+                if (tx.isActive()) tx.rollback();
+                logger.warn("Failed to execute update", e);
                 throw e;
             } finally {
                 entityManager.close();
             }
+        } else {
+            printSQL(sql);
         }
+
         return null;
     }
 }
