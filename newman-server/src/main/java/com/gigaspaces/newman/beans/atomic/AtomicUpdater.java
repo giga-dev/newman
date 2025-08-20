@@ -1,5 +1,7 @@
 package com.gigaspaces.newman.beans.atomic;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +15,7 @@ import java.util.*;
 @Scope("prototype")
 @Transactional
 public class AtomicUpdater<T> {
-
+    private static final Logger logger = LoggerFactory.getLogger(AtomicUpdater.class);
     private final Class<T> entityClass;
 
     private final Map<String, Object> sets = new LinkedHashMap<>();
@@ -74,6 +76,19 @@ public class AtomicUpdater<T> {
         return where("e.id = ?", id);
     }
 
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+
+    private void printJPQL(StringBuilder jpql) {
+        String result = jpql.toString();
+        for (Map.Entry<String, Object> e : params.entrySet()) {
+            result = result.replace(":"+e.getKey(), String.valueOf(e.getValue()));
+        }
+        logger.info("Executing update: {}", result);
+    }
+
     // ---------- EXECUTE ----------
     public T execute() {
         if (sets.isEmpty() && incs.isEmpty() && decs.isEmpty()) {
@@ -111,6 +126,8 @@ public class AtomicUpdater<T> {
             Query q = entityManager.createQuery(jpql.toString());
             params.forEach(q::setParameter);
 
+            printJPQL(jpql);
+
             EntityTransaction tx = entityManager.getTransaction();
             try {
                 tx.begin();
@@ -125,19 +142,15 @@ public class AtomicUpdater<T> {
 
                 return updatedEntity;
             } catch (Exception e) {
-                if (entityManager.getTransaction().isActive())
+                if (entityManager.getTransaction().isActive()) {
                     entityManager.getTransaction().rollback();
+                    logger.warn("Failed to execute update", e);
+                }
 
                 throw e;
             } finally {
                 entityManager.close();
             }
-        } else {
-            String result = jpql.toString();
-            for (Map.Entry<String, Object> e : params.entrySet()) {
-                result = result.replace(":"+e.getKey(), String.valueOf(e.getValue()));
-            }
-            System.out.println("Execute:   " + result);
         }
         return null;
     }
