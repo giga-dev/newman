@@ -692,7 +692,7 @@ public class NewmanResource {
         if (jobPriority > 0) {
             Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findByJobId(jobId);
             PrioritizedJob prioritizedJob = opPrioritizedJob.orElseThrow(() -> new RuntimeException("PrioritizedJob [" + jobId + "] does not exist"));
-            AtomicUpdater<PrioritizedJob> prioritizedJobUpdater = getUpdater(PrioritizedJob.class).set("ispaused", isPaused);
+            AtomicUpdater<PrioritizedJob> prioritizedJobUpdater = getUpdater(PrioritizedJob.class).set("isPaused", isPaused);
 
             prioritizedJob = prioritizedJobUpdater.whereId(prioritizedJob.getId()).execute();
 
