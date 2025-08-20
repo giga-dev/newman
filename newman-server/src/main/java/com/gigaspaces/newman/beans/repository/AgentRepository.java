@@ -25,11 +25,11 @@ public interface AgentRepository extends CrudRepository<Agent, String>, JpaRepos
 
     Optional<Agent> findByName(String name);
 
-    @Query("SELECT a FROM Agent a WHERE a.state <> :state AND a.lastTouchTime < :timeThreshold")
-    List<Agent> findAgentsNotSeenInLastMillis(@Param("state") Agent.State idling, @Param("timeThreshold") Date timeThreshold);
+    @Query("SELECT a FROM Agent a WHERE a.state <> :idling AND a.lastTouchTime < :timeThreshold")
+    List<Agent> findAgentsNotSeenInLastMillis(@Param("idling") Agent.State idling, @Param("timeThreshold") Date timeThreshold);
 
-    @Query("SELECT a FROM Agent a WHERE a.state = :state AND a.lastTouchTime < :timeThreshold")
-    List<Agent> findZombieAgents(@Param("state") Agent.State idling, @Param("timeThreshold") Date timeThreshold);
+    @Query("SELECT a FROM Agent a WHERE a.state = :idling AND a.lastTouchTime < :timeThreshold")
+    List<Agent> findZombieAgents(@Param("idling") Agent.State idling, @Param("timeThreshold") Date timeThreshold);
 
     @Query("SELECT a FROM Agent a WHERE a.setupRetries > 0")
     Page<Agent> findAllWithPositiveSetupRetries(Pageable pageable);

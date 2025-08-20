@@ -154,7 +154,7 @@ public class NewmanResource {
                 @Override
                 public void run() {
                     logger.info("Checking for not seen agents");
-                    getAgentsNotSeenInLastMillis(1000 * 60 * 5).forEach(NewmanResource.this::handleUnseenAgent);
+                    getAgentsNotSeenInLastMillis(1000 * 60 * 30).forEach(NewmanResource.this::handleUnseenAgent);
                 }
             }, 1000 * 30, 1000 * 30);
 
@@ -1079,131 +1079,129 @@ public class NewmanResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Test finishTest(final Test test) {
         // LOCK job when manipulating with its counters and statuses
-        synchronized (takenTestLock) {
-            try {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("trying to finish test - id:[{}], name:[{}]", test.getId(),
-                            test.getName());
+        try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("trying to finish test - id:[{}], name:[{}]", test.getId(),
+                        test.getName());
+            }
+            if (test.getId() == null) {
+                throw new BadRequestException("can't finish test without testId: " + test);
+            }
+
+
+            Job testJob = getJob(test.getJobId());
+            if (testJob == null) {
+                throw new BadRequestException("finishTest - the job of the test is not on database. Test: [" + test + "].");
+            }
+            Test.Status status = test.getStatus();
+            if (status != Test.Status.FAIL && status != Test.Status.SUCCESS) {
+                throw new BadRequestException("can't finish test without state set to success or fail state" + test);
+            }
+
+            // find TEST
+            Test existingTest = testRepository.findById(test.getId()).get();
+
+            // changing status to the same one means - one of the threads has missed its turn
+            // if the job is DONE - also reject all late requests + PENDING test cannot be finished
+            if (existingTest.getStatus() == status || existingTest.getStatus() == Test.Status.PENDING) {
+                return null;
+            }
+
+            AtomicUpdater<Test> testUpdater = getUpdater(Test.class);
+            if (test.getErrorMessage() != null) {
+                testUpdater.set("errorMessage", test.getErrorMessage());
+            }
+            testUpdater
+                    .set("endTime", new Date())
+                    .set("status", status);
+
+            int historyLength = 25;
+            List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
+            String historyStatsString = TestScoreUtils.decodeShortHistoryString(test, testHistory, test.getStatus(), testJob.getBuild()); // added current fail to history;
+            double reliabilityTestScore = TestScoreUtils.score(historyStatsString);
+
+            testUpdater
+                    .set("testScore", reliabilityTestScore)
+                    .set("historyStats", historyStatsString);
+
+            if (logger.isDebugEnabled()) {
+                logger.debug(
+                        "got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}], running tests before decrement:[{}]",
+                        historyStatsString, test.getId(), test.getName(), test.getJobId(),
+                        testJob.getRunningTests());
+            }
+            // save updated TEST
+            Test savedTest = testUpdater.whereId(existingTest.getId()).execute();
+
+            // Now, update TEST related things
+            AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
+            AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
+            if (test.getRunNumber() == 1) {
+                if (status == Test.Status.FAIL) {
+                    jobUpdater.inc("failedTests");
+                    buildStatusUpdater.inc("failedTests");
+                } else {
+                    jobUpdater.inc("passedTests");
+                    buildStatusUpdater.inc("passedTests");
                 }
-                if (test.getId() == null) {
-                    throw new BadRequestException("can't finish test without testId: " + test);
+            } else if (test.getRunNumber() == 3 && status == Test.Status.FAIL) {
+                jobUpdater.inc("failed3TimesTests");
+                buildStatusUpdater.inc("failed3TimesTests");
+            }
+
+            jobUpdater.dec("runningTests");
+            buildStatusUpdater.dec("runningTests");
+
+            boolean testEntryExists = testRepository.existsByJobIdAndStatusIn(existingTest.getJobId(), Arrays.asList(Test.Status.PENDING, Test.Status.RUNNING));
+            if (!testEntryExists) {
+                jobUpdater.set("state", State.DONE).set("endTime", new Date());
+                buildStatusUpdater.inc("doneJobs").dec("runningJobs");
+                if (testJob.getPriority() > 0) {
+                    deletePrioritizedJob(testJob);
                 }
+            }
 
+            Job savedJob = jobUpdater.whereId(existingTest.getJobId()).execute();     // SAVE Job
+            if (savedJob.getRunningTests() < 0) {
+                logger.warn("Job: " + savedJob.getId() + " has an illegal number of running tests: " + savedJob.getRunningTests() +
+                        " after running test: " + test.getArguments() + " with agent: " + test.getAssignedAgent());
+            }
 
-                    Job testJob = getJob(test.getJobId());
-                    if (testJob == null) {
-                        throw new BadRequestException("finishTest - the job of the test is not on database. Test: [" + test + "].");
-                    }
-                    Test.Status status = test.getStatus();
-                    if (status != Test.Status.FAIL && status != Test.Status.SUCCESS) {
-                        throw new BadRequestException("can't finish test without state set to success or fail state" + test);
-                    }
+            if (logger.isDebugEnabled()) {
+                logger.debug(
+                        "After modifying job ( after runningTests decrement ), runningTests:[{}]",
+                        savedJob.getRunningTests());
+            }
 
-                    // find TEST
-                    Test existingTest = testRepository.findById(test.getId()).get();
+            BuildStatus savedBuildStatus = buildStatusUpdater.whereId(savedJob.getBuild().getBuildStatus().getId()).execute();   // SAVE Build
 
-                    // changing status to the same one means - one of the threads has missed its turn
-                    // if the job is DONE - also reject all late requests + PENDING test cannot be finished
-                    if (existingTest.getStatus() == status || existingTest.getStatus() == Test.Status.PENDING) {
-                        return null;
-                    }
+            broadcastMessage(MODIFIED_BUILD, savedBuildStatus.getBuild());
+            broadcastMessage(MODIFIED_TEST, savedTest);
+            broadcastMessage(MODIFIED_JOB, savedJob);
 
-                    AtomicUpdater<Test> testUpdater = getUpdater(Test.class);
-                    if (test.getErrorMessage() != null) {
-                        testUpdater.set("errorMessage", test.getErrorMessage());
-                    }
-                    testUpdater
-                            .set("endTime", new Date())
-                            .set("status", status);
+            logger.info("succeed finish test- id:[{}], name:[{}]", savedTest.getId(), savedTest.getName());
+            return savedTest;
 
-                    int historyLength = 25;
-                    List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
-                    String historyStatsString = TestScoreUtils.decodeShortHistoryString(test, testHistory, test.getStatus(), testJob.getBuild()); // added current fail to history;
-                    double reliabilityTestScore = TestScoreUtils.score(historyStatsString);
+        } catch (Exception e) {
+            logger.error("failed to finish test because: ", e);
+            throw e;
+        } finally {
+            if (test.getAssignedAgent() != null) {
+                Optional<Agent> opAgent = agentRepository.findByName(test.getAssignedAgent());
+                if (opAgent.isPresent()) {
+                    Agent currAssignedAgent = opAgent.get();
+                    currAssignedAgent.setLastTouchTime(new Date());
+                    currAssignedAgent.getCurrentTests().remove(test.getId());   // remove assigned tests one by one when they complete
 
-                    testUpdater
-                            .set("testScore", reliabilityTestScore)
-                            .set("historyStats", historyStatsString);
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(
-                                "got test history [{}] of test and prepare to update:  id:[{}], name:[{}], jobId:[{}], running tests before decrement:[{}]",
-                                historyStatsString, test.getId(), test.getName(), test.getJobId(),
-                                testJob.getRunningTests());
-                    }
-                    // save updated TEST
-                    Test savedTest = testUpdater.whereId(existingTest.getId()).execute();
-
-                    // Now, update TEST related things
-                    AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
-                    AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
-                    if (test.getRunNumber() == 1) {
-                        if (status == Test.Status.FAIL) {
-                            jobUpdater.inc("failedTests");
-                            buildStatusUpdater.inc("failedTests");
-                        } else {
-                            jobUpdater.inc("passedTests");
-                            buildStatusUpdater.inc("passedTests");
-                        }
-                    } else if (test.getRunNumber() == 3 && status == Test.Status.FAIL) {
-                        jobUpdater.inc("failed3TimesTests");
-                        buildStatusUpdater.inc("failed3TimesTests");
+                    if (currAssignedAgent.getCurrentTests().isEmpty()) {
+                        currAssignedAgent.setState(Agent.State.IDLING);     // set agent back to IDLING if it doesn't have tasks to run
                     }
 
-                    jobUpdater.dec("runningTests");
-                    buildStatusUpdater.dec("runningTests");
+                    agentRepository.saveAndFlush(currAssignedAgent);
+                    broadcastMessage(MODIFIED_AGENT, currAssignedAgent);
 
-                    boolean testEntryExists = testRepository.existsByJobIdAndStatusIn(existingTest.getJobId(), Arrays.asList(Test.Status.PENDING, Test.Status.RUNNING));
-                    if (!testEntryExists) {
-                        jobUpdater.set("state", State.DONE).set("endTime", new Date());
-                        buildStatusUpdater.inc("doneJobs").dec("runningJobs");
-                        if (testJob.getPriority() > 0) {
-                            deletePrioritizedJob(testJob);
-                        }
-                    }
-
-                    Job savedJob = jobUpdater.whereId(existingTest.getJobId()).execute();     // SAVE Job
-                    if (savedJob.getRunningTests() < 0) {
-                        logger.warn("Job: " + savedJob.getId() + " has an illegal number of running tests: " + savedJob.getRunningTests() +
-                                " after running test: " + test.getArguments() + " with agent: " + test.getAssignedAgent());
-                    }
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(
-                                "After modifying job ( after runningTests decrement ), runningTests:[{}]",
-                                savedJob.getRunningTests());
-                    }
-
-                    BuildStatus savedBuildStatus = buildStatusUpdater.whereId(savedJob.getBuild().getBuildStatus().getId()).execute();   // SAVE Build
-
-                    broadcastMessage(MODIFIED_BUILD, savedBuildStatus.getBuild());
-                    broadcastMessage(MODIFIED_TEST, savedTest);
-                    broadcastMessage(MODIFIED_JOB, savedJob);
-
-                    logger.info("succeed finish test- id:[{}], name:[{}]", savedTest.getId(), savedTest.getName());
-                    return savedTest;
-
-            } catch (Exception e) {
-                logger.error("failed to finish test because: ", e);
-                throw e;
-            } finally {
-                if (test.getAssignedAgent() != null) {
-                    Optional<Agent> opAgent = agentRepository.findByName(test.getAssignedAgent());
-                    if (opAgent.isPresent()) {
-                        Agent currAssignedAgent = opAgent.get();
-                        currAssignedAgent.setLastTouchTime(new Date());
-                        currAssignedAgent.getCurrentTests().remove(test.getId());   // remove assigned tests one by one when they complete
-
-                        if (currAssignedAgent.getCurrentTests().isEmpty()) {
-                            currAssignedAgent.setState(Agent.State.IDLING);     // set agent back to IDLING if it doesn't have tasks to run
-                        }
-
-                        agentRepository.saveAndFlush(currAssignedAgent);
-                        broadcastMessage(MODIFIED_AGENT, currAssignedAgent);
-
-                        if (currAssignedAgent.getState() == Agent.State.IDLING) {
-                            logger.debug("agent [{}] become idling because it finish all his tests", currAssignedAgent.getName());
-                        }
+                    if (currAssignedAgent.getState() == Agent.State.IDLING) {
+                        logger.debug("agent [{}] become idling because it finish all his tests", currAssignedAgent.getName());
                     }
                 }
             }
