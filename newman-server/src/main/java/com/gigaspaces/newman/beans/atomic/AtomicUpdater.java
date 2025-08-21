@@ -160,8 +160,7 @@ public class AtomicUpdater<T> {
 
                 // Acquire pessimistic lock on the row to update
                 Query selectQuery = entityManager.createNativeQuery(
-                        "SELECT id FROM " + getTableName(entityClass) + " WHERE " + whereClause + " FOR UPDATE",
-                        entityClass);
+                        "SELECT id FROM " + getTableName(entityClass) + " WHERE " + whereClause + " FOR UPDATE");
                 selectQuery.setParameter("p0", params.get("p0"));
                 selectQuery.getSingleResult(); // Execute to lock the row
 
@@ -170,6 +169,8 @@ public class AtomicUpdater<T> {
 
                 int rowsUpdated = query.executeUpdate(); // no entity mapping, just affected rows return
                 tx.commit();
+
+                logger.info("Rows updated {} for class {}", rowsUpdated, entityClass.getName());
                 return rowsUpdated; // return number of rows updated instead of entity
             } catch (Exception e) {
                 if (tx.isActive()) tx.rollback();
