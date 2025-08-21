@@ -95,17 +95,15 @@ public class AtomicUpdater<T> {
     }
 
     private void printSQL(StringBuilder sql) {
-//        if (logger.isDebugEnabled()) {
-            String result = sql.toString();
-            for (Map.Entry<String, Object> e : params.entrySet()) {
-                result = result.replace(":" + e.getKey(), String.valueOf(e.getValue()));
-            }
-            if (entityManager != null) {
-                logger.debug("Executing update: {}", result);
-            } else {
-                System.out.println("Executing update: " + result);
-            }
-//        }
+        String result = sql.toString();
+        for (Map.Entry<String, Object> e : params.entrySet()) {
+            result = result.replace(":" + e.getKey(), String.valueOf(e.getValue()));
+        }
+        if (entityManager != null) {
+            logger.info("Executing update: {}", result);
+        } else {
+            System.out.println("Executing update: " + result);
+        }
     }
 
     private void convertType(String name, Object value, Query query) {

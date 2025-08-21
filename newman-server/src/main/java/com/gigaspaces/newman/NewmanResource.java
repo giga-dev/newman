@@ -905,12 +905,13 @@ public class NewmanResource {
 
         Job job = null;
         if (agent.getState() == Agent.State.PREPARING) {
-            Optional<Job> opJob = jobRepository.findById(jobId);
-            job = opJob.orElseThrow(() -> new RuntimeException("Job [" + jobId + "] does not exist"));;
-            job.getPreparingAgents().remove(agent.getName());
+            AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
+            int updated = jobUpdater.remove("preparing_agents", agent.getName()).whereId(jobId).execute();
 
-            job = jobRepository.saveAndFlush(job);
-            broadcastMessage(MODIFIED_JOB, job);
+            if (updated != 0) {
+                job = jobRepository.findById(jobId).get();
+                broadcastMessage(MODIFIED_JOB, job);
+            }
         }
 
         agentRepository.unsetJobIdByName(agent.getName());
@@ -2526,21 +2527,18 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Job updateJob(final @PathParam("id") String id, final Job updatedJob) {
-        Optional<Job> opJob = jobRepository.findById(id);
-        if (!opJob.isPresent()) {
-            return null; // or throw, depending on your logic
-        }
-
-        Job job = opJob.get();
-
+        int updated = 0;
         if (updatedJob.getState() != null) {
-            job.setState(updatedJob.getState());
+            updated = getUpdater(Job.class).set("state", updatedJob.getState()).whereId(id).execute();
+        }
+        if (updated != 0) {
+            Job job = jobRepository.findById(id).get();
+            broadcastMessage(MODIFIED_JOB, job);
+
+            return job;
         }
 
-        Job savedJob = jobRepository.save(job);
-        broadcastMessage(MODIFIED_JOB, savedJob);
-
-        return savedJob;
+        return null;
     }
 
     @POST
