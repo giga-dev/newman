@@ -1,5 +1,6 @@
 package com.gigaspaces.newman.beans.atomic;
 
+import com.gigaspaces.newman.entities.BuildsCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -27,6 +28,7 @@ public class AtomicUpdater<T> {
     private final EntityManager entityManager;
     private int paramCounter = 0;
     private String id;
+    private Map<String,Object[]> updatesKeyValue;
 
     public AtomicUpdater(Class<T> entityClass, EntityManager entityManager) {
         this.entityClass = entityClass;
@@ -65,6 +67,20 @@ public class AtomicUpdater<T> {
 
     public AtomicUpdater<T> dec(String field) {
         decs.put(field, 1);
+        return this;
+    }
+
+    // key = JSON object key, value = JSON object value
+    public AtomicUpdater<T> putKeyValue(String fieldName, String key, Object value) {
+        String pKey = "p" + (paramCounter++);
+        String pVal = "p" + (paramCounter++);
+        String sqlExpr = String.format(
+                "%s = COALESCE(%s, '{}') || jsonb_build_object(:%s, :%s)",
+                toColumnName(fieldName),         // column name
+                toColumnName(fieldName),         // column name
+                pKey, pVal
+        );
+        updatesKeyValue.put(sqlExpr, new Object[]{key, value});
         return this;
     }
 
@@ -163,6 +179,12 @@ public class AtomicUpdater<T> {
             String p = "p" + (paramCounter++);
             updates.add(toColumnName(f) + " = array_append(" + toColumnName(f) + ", :" + p + ")");
             params.put(p, v);
+        });
+
+        updatesKeyValue.forEach((expr, kv) -> {
+            updates.add(expr);
+            params.put("p" + (paramCounter - 2), kv[0]); // key
+            params.put("p" + (paramCounter - 1), kv[1]); // value
         });
 
         sql.append(String.join(", ", updates));

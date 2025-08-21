@@ -22,7 +22,7 @@ public class JobSetupLog {
     private Job job;
 
     @Type(type = "com.gigaspaces.newman.types.MapJsonType")
-    @Column(name = "agent_logs", columnDefinition = "JSON")
+    @Column(name = "agent_logs", columnDefinition = "jsonb")
     private Map<String, String> agentLogs = new HashMap<>();
 
     public JobSetupLog() {

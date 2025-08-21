@@ -1413,7 +1413,7 @@ public class NewmanResource {
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
         String fileName = contentDispositionHeader.getFileName();
 
-        // handleJobSetupLogFile(jobId, agentName, uriInfo, fileInputStream, fileName);
+        handleJobSetupLogFile(jobId, agentName, uriInfo, fileInputStream, fileName);
 
         return null;
     }
@@ -1426,12 +1426,14 @@ public class NewmanResource {
                 saveFile(fileInputStream, filePath);
                 URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
 
-                Job job = opJob.get();
-
                 String jobSetupLogsValue = uri.toASCIIString();
-                job.getJobSetupLog().getAgentLogs().put(agentName, jobSetupLogsValue);
 
-                job = jobRepository.save(job);
+                // Update agent setup logs in atomic way to avoid collision with other agents updates
+                AtomicUpdater<JobSetupLog> JobSetupLogUpdater = getUpdater(JobSetupLog.class);
+                JobSetupLogUpdater.putKeyValue("agent_logs", agentName, jobSetupLogsValue)
+                        .whereId(opJob.get().getJobSetupLog().getId()).execute();
+
+                Job job = jobRepository.findById(jobId).get();
                 broadcastMessage(MODIFIED_JOB, job);
             }
         } catch (Exception e) {
