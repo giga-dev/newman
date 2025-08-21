@@ -5,9 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Query;
+import javax.persistence.*;
 import javax.transaction.Transactional;
 import java.util.*;
 
@@ -86,14 +84,32 @@ public class AtomicUpdater<T> {
     }
 
     private void printSQL(StringBuilder sql) {
-        String result = sql.toString();
-        for (Map.Entry<String, Object> e : params.entrySet()) {
-            result = result.replace(":"+e.getKey(), String.valueOf(e.getValue()));
+        if (logger.isDebugEnabled()) {
+            String result = sql.toString();
+            for (Map.Entry<String, Object> e : params.entrySet()) {
+                result = result.replace(":" + e.getKey(), String.valueOf(e.getValue()));
+            }
+            if (entityManager != null) {
+                logger.debug("Executing update: {}", result);
+            } else {
+                System.out.println("Executing update: " + result);
+            }
         }
-        if (entityManager != null) {
-            logger.info("Executing update: {}", result);
+    }
+
+    private void convertType(String name, Object value, Query query) {
+        if (value == null) {
+            if (name.toLowerCase().contains("time")) {
+                query.setParameter(name, (java.util.Date) null, TemporalType.TIMESTAMP); // null timestamp
+            } else {
+                query.setParameter(name, null);
+            }
+        } else if (value instanceof java.util.Date && !(value instanceof java.sql.Timestamp)) {
+            query.setParameter(name, new java.sql.Timestamp(((java.util.Date) value).getTime()));
+        } else if (value instanceof Enum) {
+            query.setParameter(name, ((Enum<?>) value).name());
         } else {
-            System.out.println("Executing update: " + result);
+            query.setParameter(name, value);
         }
     }
 
@@ -138,21 +154,20 @@ public class AtomicUpdater<T> {
         if (entityManager != null) {
             printSQL(sql);
 
-            Query query = entityManager.createNativeQuery(sql.toString(), entityClass);
-            // auto-convert Date → Timestamp when binding parameters
-            params.forEach((name, value) -> {
-                if (value instanceof java.util.Date && !(value instanceof java.sql.Timestamp)) {
-                    query.setParameter(name, new java.sql.Timestamp(((java.util.Date) value).getTime()));
-                }else if (value instanceof Enum) {
-                    query.setParameter(name, ((Enum<?>) value).name());
-                } else {
-                    query.setParameter(name, value);
-                }
-            });
-
             EntityTransaction tx = entityManager.getTransaction();
             try {
                 tx.begin();
+
+                // Acquire pessimistic lock on the row to update
+                entityManager.createNativeQuery(
+                        "SELECT id FROM " + getTableName(entityClass) +
+                                " WHERE " + whereClause + " FOR UPDATE")
+                        .setParameter("id", params.get("id"))
+                        .getSingleResult();
+
+                Query query = entityManager.createNativeQuery(sql.toString(), entityClass);
+                params.forEach((name, value) -> convertType(name, value, query));
+
                 int rowsUpdated = query.executeUpdate(); // no entity mapping, just affected rows return
                 tx.commit();
                 return rowsUpdated; // return number of rows updated instead of entity
