@@ -126,7 +126,7 @@ public class AtomicUpdater<T> {
 
     // ---------- EXECUTE ----------
     public int execute() {
-        if (sets.isEmpty() && incs.isEmpty() && decs.isEmpty()) {
+        if (sets.isEmpty() && incs.isEmpty() && decs.isEmpty() && removes.isEmpty() && adds.isEmpty()) {
             throw new IllegalStateException("Nothing to update");
         }
 
