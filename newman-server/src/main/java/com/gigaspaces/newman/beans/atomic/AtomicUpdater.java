@@ -162,7 +162,7 @@ public class AtomicUpdater<T> {
                 entityManager.createNativeQuery(
                         "SELECT id FROM " + getTableName(entityClass) +
                                 " WHERE " + whereClause + " FOR UPDATE")
-                        .setParameter("id", params.get("p0"))
+                        .setParameter("p0", params.get("p0"))
                         .getSingleResult();
 
                 Query query = entityManager.createNativeQuery(sql.toString(), entityClass);
