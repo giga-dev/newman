@@ -136,10 +136,17 @@ public class AtomicUpdater<T> {
         }
 
         if (entityManager != null) {
-            Query query = entityManager.createNativeQuery(sql.toString(), entityClass);
-            params.forEach(query::setParameter);
-
             printSQL(sql);
+
+            Query query = entityManager.createNativeQuery(sql.toString(), entityClass);
+            // auto-convert Date → Timestamp when binding parameters
+            params.forEach((name, value) -> {
+                if (value instanceof java.util.Date && !(value instanceof java.sql.Timestamp)) {
+                    query.setParameter(name, new java.sql.Timestamp(((java.util.Date) value).getTime()));
+                } else {
+                    query.setParameter(name, value);
+                }
+            });
 
             EntityTransaction tx = entityManager.getTransaction();
             try {
