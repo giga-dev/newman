@@ -1413,7 +1413,7 @@ public class NewmanResource {
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
         String fileName = contentDispositionHeader.getFileName();
 
-        handleJobSetupLogFile(jobId, agentName, uriInfo, fileInputStream, fileName);
+        // handleJobSetupLogFile(jobId, agentName, uriInfo, fileInputStream, fileName);
 
         return null;
     }
