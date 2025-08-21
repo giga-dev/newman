@@ -159,11 +159,12 @@ public class AtomicUpdater<T> {
                 tx.begin();
 
                 // Acquire pessimistic lock on the row to update
-                entityManager.createNativeQuery(
-                        "SELECT id FROM " + getTableName(entityClass) +
-                                " WHERE " + whereClause + " FOR UPDATE")
-                        .setParameter("p0", params.get("p0"))
-                        .getSingleResult();
+                Query selectQuery = entityManager.createNativeQuery(
+                        "SELECT id FROM " + getTableName(entityClass) + " WHERE " + whereClause + " FOR UPDATE",
+                        entityClass);
+                selectQuery.setLockMode(LockModeType.PESSIMISTIC_WRITE); // Explicitly set lock mode
+                selectQuery.setParameter("p0", params.get("p0"));
+                selectQuery.getSingleResult(); // Execute to lock the row
 
                 Query query = entityManager.createNativeQuery(sql.toString(), entityClass);
                 params.forEach((name, value) -> convertType(name, value, query));
