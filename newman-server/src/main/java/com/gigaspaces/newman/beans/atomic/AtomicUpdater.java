@@ -98,7 +98,7 @@ public class AtomicUpdater<T> {
     }
 
     // ---------- EXECUTE ----------
-    public T execute() {
+    public int execute() {
         if (sets.isEmpty() && incs.isEmpty() && decs.isEmpty()) {
             throw new IllegalStateException("Nothing to update");
         }
@@ -135,9 +135,6 @@ public class AtomicUpdater<T> {
             sql.append(" WHERE ").append(whereClause);
         }
 
-        // RETURNING * to fetch updated entity
-        sql.append(" RETURNING *");
-
         if (entityManager != null) {
             Query query = entityManager.createNativeQuery(sql.toString(), entityClass);
             params.forEach(query::setParameter);
@@ -147,10 +144,9 @@ public class AtomicUpdater<T> {
             EntityTransaction tx = entityManager.getTransaction();
             try {
                 tx.begin();
-                @SuppressWarnings("unchecked")
-                T updatedEntity = (T) query.getSingleResult();
+                int rowsUpdated = query.executeUpdate(); // no entity mapping, just affected rows return
                 tx.commit();
-                return updatedEntity;
+                return rowsUpdated; // return number of rows updated instead of entity
             } catch (Exception e) {
                 if (tx.isActive()) tx.rollback();
                 logger.warn("Failed to execute update", e);
@@ -162,7 +158,7 @@ public class AtomicUpdater<T> {
             printSQL(sql);
         }
 
-        return null;
+        return 0;
     }
 }
 

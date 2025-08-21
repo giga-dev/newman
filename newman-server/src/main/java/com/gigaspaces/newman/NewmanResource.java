@@ -558,12 +558,17 @@ public class NewmanResource {
         }
 
         AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
-        BuildStatus buildStatus = buildStatusUpdater
+        int updated = buildStatusUpdater
                 .inc("totalJobs")
                 .inc("pendingJobs")
                 .whereId(opBuild.get().getBuildStatus().getId()).execute();
-        buildStatus.getSuites().add(new BuildStatusSuite(opSuite.get().getId(), opSuite.get().getName()));
-        Build build = buildStatus.getBuild();
+
+        if (updated == 0) {
+            return Response.serverError().build();
+        }
+
+        Build build = buildRepository.findById(jobRequest.getBuildId()).get();
+        build.getBuildStatus().getSuites().add(new BuildStatusSuite(opSuite.get().getId(), opSuite.get().getName()));
 
         buildRepository.saveAndFlush(build);
 
@@ -678,8 +683,13 @@ public class NewmanResource {
                 }
 
                 managePrioritizedJob(job.getId(), job.getPriority(), state == State.PAUSED);
-                job = jobUpdater.whereId(job.getId()).execute();
+                int updated = jobUpdater.whereId(job.getId()).execute();
+                if (updated == 0) {
+                    logger.error("Job {} cannot be updated", id);
+                    return null;
+                }
 
+                job = jobRepository.findById(id).get();
                 broadcastMessage(MODIFIED_JOB, job);
 
                 return job;
@@ -694,8 +704,12 @@ public class NewmanResource {
             PrioritizedJob prioritizedJob = opPrioritizedJob.orElseThrow(() -> new RuntimeException("PrioritizedJob [" + jobId + "] does not exist"));
             AtomicUpdater<PrioritizedJob> prioritizedJobUpdater = getUpdater(PrioritizedJob.class).set("isPaused", isPaused);
 
-            prioritizedJob = prioritizedJobUpdater.whereId(prioritizedJob.getId()).execute();
-
+            int updated = prioritizedJobUpdater.whereId(prioritizedJob.getId()).execute();
+            if (updated == 0) {
+                logger.error("PrioritizedJob {} cannot be updated", prioritizedJob.getId());
+                return;
+            }
+            prioritizedJob = prioritizedJobRepository.findByJobId(jobId).get();
             boolean priorityConditionTrue = isPaused
                     ? prioritizedJob.getPriority() == highestPriorityJob
                     : prioritizedJob.getPriority() > highestPriorityJob;
@@ -958,9 +972,19 @@ public class NewmanResource {
             }
 
             if (toCountStr.equals("count") || updateNumOfTestRetries > 0) {
-                job = jobUpdater.whereId(test.getJobId()).execute();
-                build = buildStatusUpdater.whereId(job.getBuild().getBuildStatus().getId()).execute()
-                        .getBuild();
+                int updated = jobUpdater.whereId(test.getJobId()).execute();
+                if (updated == 0) {
+                    logger.error("Job {} cannot be updated", test.getJobId());
+                    return;
+                }
+                job = jobRepository.findById(test.getJobId()).get();
+
+                updated = buildStatusUpdater.whereId(job.getBuild().getBuildStatus().getId()).execute();
+                if (updated == 0) {
+                    logger.error("Build {} cannot be updated", job.getBuild().getId());
+                    return;
+                }
+                build = buildRepository.findById(job.getBuild().getId()).get();
 
                 broadcastMessage(MODIFIED_BUILD, build);
                 broadcastMessage(MODIFIED_JOB, job);
@@ -1131,7 +1155,11 @@ public class NewmanResource {
                         testJob.getRunningTests());
             }
             // save updated TEST
-            Test savedTest = testUpdater.whereId(existingTest.getId()).execute();
+            int updated = testUpdater.whereId(existingTest.getId()).execute();
+            if (updated == 0) {
+                throw new BadRequestException("can't update test with Id: " + existingTest.getId());
+            }
+            Test savedTest = testRepository.findById(existingTest.getId()).get();
 
             // Now, update TEST related things
             AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
@@ -1161,7 +1189,11 @@ public class NewmanResource {
                 }
             }
 
-            Job savedJob = jobUpdater.whereId(existingTest.getJobId()).execute();     // SAVE Job
+            updated = jobUpdater.whereId(existingTest.getJobId()).execute();     // SAVE Job
+            if (updated == 0) {
+                throw new BadRequestException("can't update job with Id: " + existingTest.getJobId());
+            }
+            Job savedJob = jobRepository.findById(existingTest.getJobId()).get();
             if (savedJob.getRunningTests() < 0) {
                 logger.warn("Job: " + savedJob.getId() + " has an illegal number of running tests: " + savedJob.getRunningTests() +
                         " after running test: " + test.getArguments() + " with agent: " + test.getAssignedAgent());
@@ -1173,9 +1205,13 @@ public class NewmanResource {
                         savedJob.getRunningTests());
             }
 
-            BuildStatus savedBuildStatus = buildStatusUpdater.whereId(savedJob.getBuild().getBuildStatus().getId()).execute();   // SAVE Build
+            updated = buildStatusUpdater.whereId(savedJob.getBuild().getBuildStatus().getId()).execute();   // SAVE Build
+            if (updated == 0) {
+                throw new BadRequestException("can't update build with Id: " + savedJob.getBuild());
+            }
+            Build savedBuild = buildRepository.findById(savedJob.getBuild().getId()).get();
 
-            broadcastMessage(MODIFIED_BUILD, savedBuildStatus.getBuild());
+            broadcastMessage(MODIFIED_BUILD, savedBuild);
             broadcastMessage(MODIFIED_TEST, savedTest);
             broadcastMessage(MODIFIED_JOB, savedJob);
 
@@ -1971,12 +2007,18 @@ public class NewmanResource {
             Optional<Test> opTestPending = testRepository.findFirstByJobIdAndStatus(jobId, Test.Status.PENDING);  // find job waiting to run
             if (opTestPending.isPresent()) {
                 // TEST
-                test = getUpdater(Test.class)
+                int updated = getUpdater(Test.class)
                         .set("status", Test.Status.RUNNING)
                         .set("assignedAgent", agentName)
                         .set("agentGroup", agent.getGroupName())
                         .set("startTime", new Date())
                         .whereId(opTestPending.get().getId()).execute();
+
+                if (updated == 0) {
+                    logger.error("Test {} cannot be updated", opTestPending.get().getId());
+                    return null;
+                }
+                test = testRepository.findById(opTestPending.get().getId()).get();
             }
         }
 
@@ -2002,8 +2044,19 @@ public class NewmanResource {
                 }
 
 
-                job = jobUpdater.whereId(job.getId()).execute();  // UPDATE job
-                BuildStatus buildStatus = buildStatusUpdater.whereId(job.getBuild().getBuildStatus().getId()).execute();  // UPDATE build
+                int updated = jobUpdater.whereId(job.getId()).execute();  // UPDATE job
+                if (updated == 0) {
+                    logger.error("Job {} cannot be updated", job.getId());
+                    return null;
+                }
+                job = jobRepository.findById(job.getId()).get();
+
+                updated = buildStatusUpdater.whereId(job.getBuild().getBuildStatus().getId()).execute();  // UPDATE build
+                if (updated == 0) {
+                    logger.error("build {} cannot be updated", job.getBuild().getId());
+                    return null;
+                }
+                Build build = buildRepository.findById(job.getBuild().getId()).get();
 
                 if (logger.isDebugEnabled()) {
                     logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]",
@@ -2019,16 +2072,23 @@ public class NewmanResource {
 
                 broadcastMessage(MODIFIED_TEST, test);
                 broadcastMessage(MODIFIED_JOB, job);
-                broadcastMessage(MODIFIED_BUILD, buildStatus.getBuild());
+                broadcastMessage(MODIFIED_BUILD, build);
                 broadcastMessage(MODIFIED_AGENT, agent);
 
                 return test;
             } else {
                 // TEST - set back to PENDING if job is PAUSED
-                test = getUpdater(Test.class)
+                int updated = getUpdater(Test.class)
                         .set("status", Test.Status.PENDING)
                         .set("assignedAgent", null)
                         .set("startTime", null).whereId(test.getId()).execute();
+
+                if (updated == 0) {
+                    logger.error("Test {} cannot be updated", test.getId());
+                    return null;
+                }
+                test = testRepository.findById(test.getId()).get();
+
 
                 // AGENT
                 if (agent.getCurrentTests().contains(test.getId())) {
@@ -2667,16 +2727,22 @@ public class NewmanResource {
                 }
             }
 
-            BuildStatus buildStatus = buildStatusUpdater.whereId(build.getBuildStatus().getId()).execute();
+            int updated = buildStatusUpdater.whereId(build.getBuildStatus().getId()).execute();
+            if (updated == 0) {
+                logger.error("Build {} cannot be updated", build.getId());
+                return;
+            }
+
+            build = buildRepository.findById(build.getId()).get();
 
             Suite suite = deletedJob.getSuite();
             if (suite != null) {
-                buildStatus.getSuites()
+                build.getBuildStatus().getSuites()
                         .remove(new BuildStatusSuite(suite.getId(), suite.getName()));
             }
 
-            buildRepository.saveAndFlush(buildStatus.getBuild());
-            broadcastMessage(MODIFIED_BUILD, buildStatus.getBuild());
+            build = buildRepository.saveAndFlush(build);
+            broadcastMessage(MODIFIED_BUILD, build);
         }
     }
 
@@ -3340,9 +3406,14 @@ public class NewmanResource {
                 opJob = jobRepository.findById(agent.getJobId());
                 logger.info("returnTests for agent [{}], jobId [{}], amount of running tests by the agent [{}]", agent.getName(), agent.getJobId(), currentTestsOfAgent);
                 if (opJob.isPresent()) {
-                    job = getUpdater(Job.class)
+                    int updated = getUpdater(Job.class)
                             .dec("runningTests", currentTestsOfAgent.size())
-                            .whereId(opJob.get().getId()).execute();
+                            .whereId(agent.getJobId()).execute();
+                    if (updated == 0) {
+                        logger.error("Job {} cannot be updated", agent.getJobId());
+                        return;
+                    }
+                    job = jobRepository.findById(agent.getJobId()).get();
                 }
             }
         }
@@ -3352,7 +3423,7 @@ public class NewmanResource {
         existingAgent.setCurrentTests(new HashSet<>());
         existingAgent.setState(Agent.State.IDLING);
 
-        existingAgent = agentRepository.save(existingAgent);
+        existingAgent = agentRepository.saveAndFlush(existingAgent);
 
         if (existingAgent.getState().equals(Agent.State.IDLING)) {
             logger.warn("agent [{}] is idling while returning tests to pool", existingAgent.getName());
