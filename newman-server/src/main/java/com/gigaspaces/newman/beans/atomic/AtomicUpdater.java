@@ -100,7 +100,7 @@ public class AtomicUpdater<T> {
     private void convertType(String name, Object value, Query query) {
         if (value == null) {
             if (name.toLowerCase().contains("time")) {
-                query.setParameter(name, (java.util.Date) null, TemporalType.TIMESTAMP); // null timestamp
+                query.setParameter(name, (java.sql.Timestamp) null); // null timestamp
             } else {
                 query.setParameter(name, null);
             }
@@ -164,7 +164,7 @@ public class AtomicUpdater<T> {
                 selectQuery.setParameter("p0", params.get("p0"));
                 selectQuery.getSingleResult(); // Execute to lock the row
 
-                Query query = entityManager.createNativeQuery(sql.toString(), entityClass);
+                Query query = entityManager.createNativeQuery(sql.toString());
                 params.forEach((name, value) -> convertType(name, value, query));
 
                 int rowsUpdated = query.executeUpdate(); // no entity mapping, just affected rows return
