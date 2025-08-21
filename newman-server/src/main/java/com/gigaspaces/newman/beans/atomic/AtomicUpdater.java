@@ -162,7 +162,6 @@ public class AtomicUpdater<T> {
                 Query selectQuery = entityManager.createNativeQuery(
                         "SELECT id FROM " + getTableName(entityClass) + " WHERE " + whereClause + " FOR UPDATE",
                         entityClass);
-                selectQuery.setLockMode(LockModeType.PESSIMISTIC_WRITE); // Explicitly set lock mode
                 selectQuery.setParameter("p0", params.get("p0"));
                 selectQuery.getSingleResult(); // Execute to lock the row
 
