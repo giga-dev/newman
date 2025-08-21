@@ -42,8 +42,6 @@ public interface TestRepository extends CrudRepository<Test, String>, JpaSpecifi
 
     Optional<Test> findByIdAndStatusNot(String id, Test.Status status);
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @Lock(LockModeType.PESSIMISTIC_READ)
     Optional<Test> findFirstByJobIdAndStatus(String jobId, Test.Status status);
 
     @Query("SELECT t FROM Test t WHERE t.assignedAgent = :assignedAgent")

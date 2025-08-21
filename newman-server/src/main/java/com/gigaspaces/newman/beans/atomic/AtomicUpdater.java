@@ -14,7 +14,7 @@ import java.util.*;
 @Transactional
 public class AtomicUpdater<T> {
     private static final Logger logger = LoggerFactory.getLogger(AtomicUpdater.class);
-    private final Class<T> entityClass;
+    private Class<T> entityClass;
 
     private final Map<String, Object> sets = new LinkedHashMap<>();
     private final Map<String, Number> incs = new LinkedHashMap<>();
@@ -113,6 +113,29 @@ public class AtomicUpdater<T> {
         }
     }
 
+    public int execute(String strQuery) {
+        if (entityManager != null) {
+            logger.info(strQuery);
+
+            EntityTransaction tx = entityManager.getTransaction();
+            try {
+                tx.begin();
+
+                Query query = entityManager.createNativeQuery(strQuery);
+                int rowsUpdated = query.executeUpdate(); // no entity mapping, just affected rows return
+                tx.commit();
+                return rowsUpdated; // return number of rows updated instead of entity
+            } catch (Exception e) {
+                if (tx.isActive()) tx.rollback();
+                logger.warn("Failed to execute update", e);
+                throw e;
+            } finally {
+                entityManager.close();
+            }
+        }
+        return -1;
+    }
+
     // ---------- EXECUTE ----------
     public int execute() {
         if (sets.isEmpty() && incs.isEmpty() && decs.isEmpty()) {
@@ -158,19 +181,11 @@ public class AtomicUpdater<T> {
             try {
                 tx.begin();
 
-                // Acquire pessimistic lock on the row to update
-                Query selectQuery = entityManager.createNativeQuery(
-                        "SELECT id FROM " + getTableName(entityClass) + " WHERE " + whereClause + " FOR UPDATE");
-                selectQuery.setParameter("p0", params.get("p0"));
-                selectQuery.getSingleResult(); // Execute to lock the row
-
                 Query query = entityManager.createNativeQuery(sql.toString());
                 params.forEach((name, value) -> convertType(name, value, query));
 
                 int rowsUpdated = query.executeUpdate(); // no entity mapping, just affected rows return
                 tx.commit();
-
-                logger.info("Rows updated {} for class {}", rowsUpdated, entityClass.getName());
                 return rowsUpdated; // return number of rows updated instead of entity
             } catch (Exception e) {
                 if (tx.isActive()) tx.rollback();

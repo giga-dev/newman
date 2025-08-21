@@ -1968,6 +1968,33 @@ public class NewmanResource {
     }
 
     @POST
+    @Path("testing")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void runTestQuery(final Map<String,String> body) {
+        String query = body.get("query");
+        int threads = Integer.parseInt(body.get("threads"));
+
+
+        for (int i = 0; i < threads; i++) {
+            new Thread(() -> {
+                Job job = new Job();
+                job.setId("ec643731-d1f6-4f22-a414-95cb4cab983a");
+
+                AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
+                jobUpdater.inc("runningTests");
+
+                int updated = jobUpdater.whereId(job.getId()).execute();  // UPDATE job
+                if (updated == 0) {
+                    logger.error("Job {} cannot be updated", job.getId());
+                    return;
+                }
+                job = jobRepository.findById(job.getId()).get();
+
+            }).start();
+        }
+    }
+
+    @POST
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Test getTest(@PathParam("name") final String agentName, @PathParam("jobId") final String jobId) {
