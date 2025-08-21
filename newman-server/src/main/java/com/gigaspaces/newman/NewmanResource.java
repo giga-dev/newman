@@ -1968,33 +1968,6 @@ public class NewmanResource {
     }
 
     @POST
-    @Path("testing")
-    @Produces(MediaType.APPLICATION_JSON)
-    public void runTestQuery(final Map<String,String> body) {
-        String query = body.get("query");
-        int threads = Integer.parseInt(body.get("threads"));
-
-
-        for (int i = 0; i < threads; i++) {
-            new Thread(() -> {
-                Job job = new Job();
-                job.setId("ec643731-d1f6-4f22-a414-95cb4cab983a");
-
-                AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
-                jobUpdater.inc("runningTests");
-
-                int updated = jobUpdater.whereId(job.getId()).execute();  // UPDATE job
-                if (updated == 0) {
-                    logger.error("Job {} cannot be updated", job.getId());
-                    return;
-                }
-                job = jobRepository.findById(job.getId()).get();
-
-            }).start();
-        }
-    }
-
-    @POST
     @Path("agent/{name}/{jobId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Test getTest(@PathParam("name") final String agentName, @PathParam("jobId") final String jobId) {
@@ -2019,11 +1992,11 @@ public class NewmanResource {
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (agentLock) {
             if (agent.getState() == Agent.State.PREPARING) {
-                Optional<Job> opJob = jobRepository.findById(jobId);
-                if (opJob.isPresent()) {
-                    opJob.get().getPreparingAgents().remove(agent.getName());
-
-                    pj = jobRepository.saveAndFlush(opJob.get());
+                AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
+                int updated = jobUpdater.remove("preparing_agents", agent.getName())
+                        .whereId(jobId).execute();
+                if (updated != 0) {
+                    pj = jobRepository.findById(jobId).get();
                 }
             }
         }
@@ -3417,31 +3390,18 @@ public class NewmanResource {
                 currentTestsOfAgent.add(existingTest);
             }
         }
-        Job job = null;
-        // reset job
-        if (agent.getJobId() != null) {
-            Optional<Job> opJob;
-            if (agent.getState() == Agent.State.PREPARING) {
-                opJob = jobRepository.findById(agent.getJobId());
-                if (opJob.isPresent()) {
-                    job = opJob.get();
-                    job.getPreparingAgents().remove(agent.getName());
 
-                    job = jobRepository.saveAndFlush(job);
-                }
+        // reset job
+        int jobUpdated = 0;
+        if (agent.getJobId() != null) {
+            AtomicUpdater<Job> jobUpdater = getUpdater(Job.class).whereId(agent.getJobId());
+            if (agent.getState() == Agent.State.PREPARING) {
+                jobUpdated = jobUpdater
+                        .remove("preparing_agents", agent.getName()).execute();
             } else if (agent.getState() == Agent.State.RUNNING && !currentTestsOfAgent.isEmpty()) {
-                opJob = jobRepository.findById(agent.getJobId());
                 logger.info("returnTests for agent [{}], jobId [{}], amount of running tests by the agent [{}]", agent.getName(), agent.getJobId(), currentTestsOfAgent);
-                if (opJob.isPresent()) {
-                    int updated = getUpdater(Job.class)
-                            .dec("runningTests", currentTestsOfAgent.size())
-                            .whereId(agent.getJobId()).execute();
-                    if (updated == 0) {
-                        logger.error("Job {} cannot be updated", agent.getJobId());
-                        return;
-                    }
-                    job = jobRepository.findById(agent.getJobId()).get();
-                }
+                jobUpdated = jobUpdater
+                        .dec("runningTests", currentTestsOfAgent.size()).execute();
             }
         }
         Optional<Agent> opAgent = agentRepository.findById(agent.getId());
@@ -3458,7 +3418,9 @@ public class NewmanResource {
         for (Test test : currentTestsOfAgent) {
             broadcastMessage(MODIFIED_TEST, test);
         }
-        if (job != null) {
+        Job job = null;
+        if (jobUpdated != 0) {
+            job = jobRepository.findById(agent.getJobId()).get();
             broadcastMessage(MODIFIED_JOB, job);
         }
 

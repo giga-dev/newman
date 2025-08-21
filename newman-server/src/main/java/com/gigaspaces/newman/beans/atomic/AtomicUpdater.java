@@ -19,6 +19,8 @@ public class AtomicUpdater<T> {
     private final Map<String, Object> sets = new LinkedHashMap<>();
     private final Map<String, Number> incs = new LinkedHashMap<>();
     private final Map<String, Number> decs = new LinkedHashMap<>();
+    private final Map<String, Object> removes = new HashMap<>();
+    private final Map<String, Object> adds = new HashMap<>();
 
     private String whereClause;
     private final Map<String, Object> params = new LinkedHashMap<>();
@@ -31,7 +33,16 @@ public class AtomicUpdater<T> {
         this.entityManager = entityManager;
     }
 
-    // ---------- SET / INC / DEC ----------
+    public AtomicUpdater<T> add(String field, Object value) {
+        adds.put(field, value);
+        return this;
+    }
+
+    public AtomicUpdater<T> remove(String field, Object value) {
+        removes.put(field, value);
+        return this;
+    }
+
     public AtomicUpdater<T> set(String field, Object value) {
         sets.put(field, value);
         return this;
@@ -84,7 +95,7 @@ public class AtomicUpdater<T> {
     }
 
     private void printSQL(StringBuilder sql) {
-        if (logger.isDebugEnabled()) {
+//        if (logger.isDebugEnabled()) {
             String result = sql.toString();
             for (Map.Entry<String, Object> e : params.entrySet()) {
                 result = result.replace(":" + e.getKey(), String.valueOf(e.getValue()));
@@ -94,7 +105,7 @@ public class AtomicUpdater<T> {
             } else {
                 System.out.println("Executing update: " + result);
             }
-        }
+//        }
     }
 
     private void convertType(String name, Object value, Query query) {
@@ -111,29 +122,6 @@ public class AtomicUpdater<T> {
         } else {
             query.setParameter(name, value);
         }
-    }
-
-    public int execute(String strQuery) {
-        if (entityManager != null) {
-            logger.info(strQuery);
-
-            EntityTransaction tx = entityManager.getTransaction();
-            try {
-                tx.begin();
-
-                Query query = entityManager.createNativeQuery(strQuery);
-                int rowsUpdated = query.executeUpdate(); // no entity mapping, just affected rows return
-                tx.commit();
-                return rowsUpdated; // return number of rows updated instead of entity
-            } catch (Exception e) {
-                if (tx.isActive()) tx.rollback();
-                logger.warn("Failed to execute update", e);
-                throw e;
-            } finally {
-                entityManager.close();
-            }
-        }
-        return -1;
     }
 
     // ---------- EXECUTE ----------
@@ -164,6 +152,18 @@ public class AtomicUpdater<T> {
         decs.forEach((f, v) -> {
             String p = "p" + (paramCounter++);
             updates.add(toColumnName(f) + " = " + toColumnName(f) + " - :" + p);
+            params.put(p, v);
+        });
+
+        removes.forEach((f, v) -> {
+            String p = "p" + (paramCounter++);
+            updates.add(toColumnName(f) + " = array_remove(" + toColumnName(f) + ", :" + p + ")");
+            params.put(p, v);
+        });
+
+        adds.forEach((f, v) -> {
+            String p = "p" + (paramCounter++);
+            updates.add(toColumnName(f) + " = array_append(" + toColumnName(f) + ", :" + p + ")");
             params.put(p, v);
         });
 
