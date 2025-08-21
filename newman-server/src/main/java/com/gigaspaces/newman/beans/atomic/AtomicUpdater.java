@@ -103,7 +103,7 @@ public class AtomicUpdater<T> {
             throw new IllegalStateException("Nothing to update");
         }
 
-        // 1️⃣ Build native SQL
+        // Build native SQL
         StringBuilder sql = new StringBuilder("UPDATE " + getTableName(entityClass) + " SET ");
         List<String> updates = new ArrayList<>();
 
@@ -143,6 +143,8 @@ public class AtomicUpdater<T> {
             params.forEach((name, value) -> {
                 if (value instanceof java.util.Date && !(value instanceof java.sql.Timestamp)) {
                     query.setParameter(name, new java.sql.Timestamp(((java.util.Date) value).getTime()));
+                }else if (value instanceof Enum) {
+                    query.setParameter(name, ((Enum<?>) value).name());
                 } else {
                     query.setParameter(name, value);
                 }
