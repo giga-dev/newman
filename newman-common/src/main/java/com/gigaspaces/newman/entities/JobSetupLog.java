@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-@Table(name = "job_setup_logs")
+@Table(name = "job_setup_log")
 public class JobSetupLog {
 
     @Id
