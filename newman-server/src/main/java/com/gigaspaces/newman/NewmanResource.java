@@ -2026,9 +2026,20 @@ public class NewmanResource {
         }
 
         if (test != null) {
+            AtomicUpdater<Test> testResetUpdater = getUpdater(Test.class)
+                    .set("status", Test.Status.PENDING)
+                    .set("assignedAgent", null)
+                    .set("startTime", null).whereId(test.getId());
+
             Optional<Job> opJobNotPaused = jobRepository.findByIdAndStateNot(jobId, State.PAUSED);  // find NOT PAUSED job
             if (opJobNotPaused.isPresent()) {
                 Job job = opJobNotPaused.get();
+
+                if (!job.getAgentGroups().contains(agent.getGroupName())) {
+                    // dismiss Agent if it doesn't belong to the job's agent group
+                    testResetUpdater.execute();
+                    return null;
+                }
 
                 // JOB
                 AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
@@ -2081,11 +2092,7 @@ public class NewmanResource {
                 return test;
             } else {
                 // TEST - set back to PENDING if job is PAUSED
-                int updated = getUpdater(Test.class)
-                        .set("status", Test.Status.PENDING)
-                        .set("assignedAgent", null)
-                        .set("startTime", null).whereId(test.getId()).execute();
-
+                int updated = testResetUpdater.execute();
                 if (updated == 0) {
                     logger.error("Test {} cannot be updated", test.getId());
                     return null;
@@ -2095,7 +2102,6 @@ public class NewmanResource {
 
                 // AGENT
                 if (agent.getCurrentTests().contains(test.getId())) {
-
                     agent.getCurrentTests().remove(test.getId());       // take the test assigment away from the agent
                     if (agent.getCurrentTests().isEmpty()) {
                         agent.setState(Agent.State.IDLING);

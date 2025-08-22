@@ -123,13 +123,7 @@ public class AtomicUpdater<T> {
     }
 
     private void convertType(String name, Object value, Query query) {
-        if (value == null) {
-            if (name.toLowerCase().contains("time")) {
-                query.setParameter(name, (java.sql.Timestamp) null); // null timestamp
-            } else {
-                query.setParameter(name, null);
-            }
-        } else if (value instanceof java.util.Date && !(value instanceof java.sql.Timestamp)) {
+        if (value instanceof java.util.Date && !(value instanceof java.sql.Timestamp)) {
             query.setParameter(name, new java.sql.Timestamp(((java.util.Date) value).getTime()));
         } else if (value instanceof Enum) {
             query.setParameter(name, ((Enum<?>) value).name());
@@ -150,9 +144,13 @@ public class AtomicUpdater<T> {
 
         // Simple assignments
         sets.forEach((f, v) -> {
-            String p = "p" + (paramCounter++);
-            updates.add(toColumnName(f) + " = :" + p);
-            params.put(p, v);
+            if (v == null) {
+                updates.add(toColumnName(f) + " = NULL");
+            } else {
+                String p = "p" + (paramCounter++);
+                updates.add(toColumnName(f) + " = :" + p);
+                params.put(p, v);
+            }
         });
 
         // Increments
