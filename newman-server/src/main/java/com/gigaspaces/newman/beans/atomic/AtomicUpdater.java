@@ -28,7 +28,7 @@ public class AtomicUpdater<T> {
     private final EntityManager entityManager;
     private int paramCounter = 0;
     private String id;
-    private Map<String,Object[]> updatesKeyValue;
+    private final Map<String,Object[]> updatesKeyValue = new HashMap<>();
 
     public AtomicUpdater(Class<T> entityClass, EntityManager entityManager) {
         this.entityClass = entityClass;
@@ -140,7 +140,7 @@ public class AtomicUpdater<T> {
 
     // ---------- EXECUTE ----------
     public int execute() {
-        if (sets.isEmpty() && incs.isEmpty() && decs.isEmpty() && removes.isEmpty() && adds.isEmpty()) {
+        if (sets.isEmpty() && incs.isEmpty() && decs.isEmpty() && removes.isEmpty() && adds.isEmpty() && updatesKeyValue.isEmpty()) {
             throw new IllegalStateException("Nothing to update");
         }
 
