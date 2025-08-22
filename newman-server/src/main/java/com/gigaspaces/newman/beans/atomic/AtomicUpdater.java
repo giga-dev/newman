@@ -72,15 +72,15 @@ public class AtomicUpdater<T> {
 
     // key = JSON object key, value = JSON object value
     public AtomicUpdater<T> putKeyValue(String fieldName, String key, Object value) {
-        String pKey = "p" + (paramCounter++);
-        String pVal = "p" + (paramCounter++);
+        String pKeyIndex = "p" + (paramCounter++);
+        String pValIndex = "p" + (paramCounter++);
         String sqlExpr = String.format(
                 "%s = COALESCE(%s, '{}') || jsonb_build_object(:%s, :%s)",
                 toColumnName(fieldName),         // column name
                 toColumnName(fieldName),         // column name
-                pKey, pVal
+                pKeyIndex, pValIndex
         );
-        updatesKeyValue.put(sqlExpr, new Object[]{key, value});
+        updatesKeyValue.put(sqlExpr, new Object[]{pKeyIndex, pValIndex, key, value});
         return this;
     }
 
@@ -183,8 +183,13 @@ public class AtomicUpdater<T> {
 
         updatesKeyValue.forEach((expr, kv) -> {
             updates.add(expr);
-            params.put("p" + (paramCounter - 2), kv[0]); // key
-            params.put("p" + (paramCounter - 1), kv[1]); // value
+            String pKeyIndex = (String) kv[0];
+            String pValIndex = (String) kv[1];
+            Object key = kv[2];
+            Object val = kv[3];
+
+            params.put(pKeyIndex, key);
+            params.put(pValIndex, val);
         });
 
         sql.append(String.join(", ", updates));
