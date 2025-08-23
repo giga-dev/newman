@@ -27116,6 +27116,11 @@ textarea.v-field__input::placeholder {
 }
 
 
+.nightly-label {
+  font-size: 0.75rem;
+  background-color: hsl(0, 100%, 77%);
+  transition: background-color 0.2s ease;
+}
 .historyTable > .v-table__wrapper > table > thead > tr > th > .v-data-table-header__content{
   font-weight: bold;
   text-align: center;
@@ -57276,20 +57281,25 @@ textarea.v-field__input::placeholder {
   color: white !important;
 }
 
-[data-v-62444490] .chip-button {
+[data-v-c9e7c17c] .chip-button {
   color: white !important;
   width: 38px;
   height: 30px !important;
 }
-.select-list-item[data-v-62444490]:hover {
+.nightly-label[data-v-c9e7c17c] {
+  font-size: 0.75rem;
+  background-color: hsl(0, 100%, 77%);
+  transition: background-color 0.2s ease;
+}
+.select-list-item[data-v-c9e7c17c]:hover {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.select-list-item[data-v-62444490]:selected {
+.select-list-item[data-v-c9e7c17c]:selected {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.list-header[data-v-62444490] {
+.list-header[data-v-c9e7c17c] {
   cursor: default;
   text-align: center;
   font-weight: bolder;
