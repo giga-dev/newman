@@ -1,6 +1,7 @@
 package com.gigaspaces.newman.beans.atomic;
 
-import com.gigaspaces.newman.entities.BuildsCache;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
+import org.hibernate.query.NativeQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -127,6 +128,13 @@ public class AtomicUpdater<T> {
             query.setParameter(name, new java.sql.Timestamp(((java.util.Date) value).getTime()));
         } else if (value instanceof Enum) {
             query.setParameter(name, ((Enum<?>) value).name());
+        } else if (value instanceof Collection<?>) {
+            Collection<?> collect = (Collection<?>) value;
+            String[] array = collect.stream()
+                    .map(Object::toString)
+                    .toArray(String[]::new);
+            query.unwrap(NativeQuery.class)
+                    .setParameter(name, array, StringArrayType.INSTANCE);
         } else {
             query.setParameter(name, value);
         }
