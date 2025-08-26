@@ -2345,7 +2345,7 @@ public class NewmanResource {
             AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
             jobUpdater
                     .set("priority", jobRequest.getPriority())
-                    .set("agentGroups", jobRequest.getAgentGroups())
+                    .set("agent_groups", jobRequest.getAgentGroups())
                     .whereId(jobId)
                     .execute();
 
