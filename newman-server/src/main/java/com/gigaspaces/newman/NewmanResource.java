@@ -223,8 +223,9 @@ public class NewmanResource {
     public boolean handleZombie(Job potentialJob) {
         if (potentialJob.getLastTimeZombie() == null) {
             if (isZombie(potentialJob)) { // job not running and zombie
-                potentialJob.setLastTimeZombie(new Date()); // Set the timestamp for when it became a zombie
-                jobRepository.save(potentialJob); // Persist the updated job entity
+                getUpdater(Job.class)
+                        .set("lasttimezombie", new Date())
+                        .whereId(potentialJob.getId()).execute();
                 return true;
             }
         } else { // already seen as zombie
@@ -744,10 +745,10 @@ public class NewmanResource {
                         break;
                 }
                 if (state == State.PAUSED) {
-                    State old = job.getState(); // TODO consider if that is needed
-                    job.setState(state);
-                        // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
-                    job.setStartPrepareTime(null);
+                    AtomicUpdater<Job> jobUpdater = getUpdater(Job.class)
+                            .set("state", State.PAUSED)
+                            .set("startPrepareTime", null);  // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
+
                     if (job.getPriority() > 0) {
                         Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findByJobId(job.getId());
                         PrioritizedJob prioritizedJob = opPrioritizedJob.orElseThrow(() -> new RuntimeException("PrioritizedJob [" + id + "] does not exist"));;
@@ -758,8 +759,10 @@ public class NewmanResource {
                             highestPriorityJob = getNotPausedHighestPriorityJob();
                         }
                     }
-                    job = jobRepository.saveAndFlush(job); //jobRepository.getDatastore().findAndModify(jobRepository.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
+                    jobUpdater.whereId(job.getId()).execute();
+                    job = jobRepository.findById(job.getId()).get();
                     result.add(job);
+
                     broadcastMessage(MODIFIED_JOB, job);
                 }
             }
@@ -2156,11 +2159,11 @@ public class NewmanResource {
             if (foundAgent.getState() == Agent.State.PREPARING) {
                 // clear job data if exists.
                 if (foundAgent.getJobId() != null && !foundAgent.getJobId().isEmpty()) {
-                    final String jobId = foundAgent.getJobId();
-                    Optional<Job> opJob = jobRepository.findById(foundAgent.getJobId());
-                    Job oldJob = opJob.orElseThrow(() -> new RuntimeException("Job [" + jobId + "] does not exist"));;
-                    oldJob.getPreparingAgents().remove(foundAgent.getName());
-                    oldJob = jobRepository.saveAndFlush(oldJob); // update old job if agent is not in charge of running it
+                    AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
+                    jobUpdater
+                            .remove("preparing_agents", foundAgent.getName())
+                            .whereId(foundAgent.getJobId()).execute();
+                    Job oldJob = jobRepository.findById(foundAgent.getJobId()).get();
 
                     broadcastMessage(MODIFIED_JOB, oldJob);
                 }
@@ -2191,19 +2194,19 @@ public class NewmanResource {
                 newAgent.setJobId(job.getId());
                 newAgent.setState(Agent.State.PREPARING);
 
-                if (job.getPreparingAgents() == null) {
-                    job.setPreparingAgents(new HashSet<>());
-                }
-                job.getPreparingAgents().add(agent.getName());
+                AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
+                jobUpdater.add("preparing_agents", agent.getName());
+
                 if (job.getStartPrepareTime() == null) {
                     logger.info("agent [host:[{}], name:[{}]] start prepare on job [id:[{}], name:[{}]].", newAgent.getHost(), newAgent.getName(), job.getId(), job.getSuite().getName());
-                    job.setStartPrepareTime(new Date());
+                    jobUpdater.set("startpreparetime", new Date());
                 }
                 // job can be run = not a zombie
                 if (job.getLastTimeZombie() != null) {
-                    job.setLastTimeZombie(null);
+                    jobUpdater.set("lasttimezombie", null);
                 }
-                job = jobRepository.saveAndFlush(job);
+                jobUpdater.whereId(job.getId()).execute();
+                job = jobRepository.findById(job.getId()).get();
                 broadcastMessage(MODIFIED_JOB, job);
             }
 
@@ -2339,10 +2342,14 @@ public class NewmanResource {
                 return job;
             }
 
-            job.setPriority(jobRequest.getPriority());
-            job.setAgentGroups(jobRequest.getAgentGroups());
+            AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
+            jobUpdater
+                    .set("priority", jobRequest.getPriority())
+                    .set("agentGroups", jobRequest.getAgentGroups())
+                    .whereId(jobId)
+                    .execute();
 
-            job = jobRepository.saveAndFlush(job);
+            job = jobRepository.findById(job.getId()).get();
             if (currPriority != jobRequest.getPriority()) {
                 if (currPriority == 0) {
                     createPrioritizedJob(job);
@@ -3360,9 +3367,10 @@ public class NewmanResource {
         if (StringUtils.notEmpty(agentToDelete.getJobId())) {
             Optional<Job> opJob = jobRepository.findById(agentToDelete.getJobId());
             if (opJob.isPresent()) {
-                Job job = opJob.get();
-                job.getPreparingAgents().remove(agentToDelete.getName());
-                jobRepository.save(job);
+                getUpdater(Job.class)
+                        .remove("preparing_agents", agentToDelete.getName())
+                        .whereId(agentToDelete.getJobId())
+                        .execute();
             }
         }
     }
