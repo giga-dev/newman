@@ -13,12 +13,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
 import static com.gigaspaces.newman.utils.FileUtils.*;
+import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
 
 public class JobExecutor {
     private static final Logger logger = LoggerFactory.getLogger(JobExecutor.class);
@@ -27,7 +27,7 @@ public class JobExecutor {
     private final Job job;
     private final Path jobFolder;
     private final Path newmanLogFolder;
-    private final String proxy = System.getenv().getOrDefault("RESOURCES_PROXY_URL", null);
+    private final String proxy = getNonEmptySystemProperty("resources.proxy.url", null);
 
     public JobExecutor(Job job, String basePath) {
         this.job = job;
