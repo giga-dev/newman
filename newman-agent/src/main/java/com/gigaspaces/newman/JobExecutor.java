@@ -94,13 +94,15 @@ public class JobExecutor {
 
     private URI wrapWithProxy(URI origPath) {
         if (proxy == null) {
+            logger.info("No proxy has been found");
             return origPath;
         }
+
+        logger.info("Using proxy - {}", proxy);
         String origPathStr = proxy.split(":")[0];
         String proxyPathStr = proxy.split(":")[1];
 
         try {
-            logger.info("Proxy applied {} -> {}", origPathStr, proxyPathStr);
             return new URI(origPath.getPath().replace(origPathStr, proxyPathStr));
         } catch (URISyntaxException e) {
             logger.error("Failed to wrap proxy URI {} with {}: {}", origPathStr, proxyPathStr, e);
