@@ -103,7 +103,7 @@ public class JobExecutor {
         String proxyPathStr = proxy.split(":")[1];
 
         try {
-            return new URI(origPath.getPath().replace(origPathStr, proxyPathStr));
+            return new URI(origPath.toString().replace(origPathStr, proxyPathStr));
         } catch (URISyntaxException e) {
             logger.error("Failed to wrap proxy URI {} with {}: {}", origPathStr, proxyPathStr, e);
             return origPath;
