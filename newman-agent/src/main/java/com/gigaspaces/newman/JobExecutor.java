@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -25,6 +27,7 @@ public class JobExecutor {
     private final Job job;
     private final Path jobFolder;
     private final Path newmanLogFolder;
+    private final String proxy = System.getenv().getOrDefault("RESOURCES_PROXY_URL", null);
 
     public JobExecutor(Job job, String basePath) {
         this.job = job;
@@ -50,8 +53,9 @@ public class JobExecutor {
             logger.info("Downloading {} resources into {}...", job.getBuild().getResources().size(), resourcesFolder);
             validateUris(job.getBuild().getResources());
             for (URI resource : job.getBuild().getResources()) {
-                logger.info("Downloading {}...", resource);
-                download(resource.toURL(), resourcesFolder);
+                URI proxiedResource = wrapWithProxy(resource);
+                logger.info("Downloading {}...", proxiedResource);
+                download(proxiedResource.toURL(), resourcesFolder);
             }
 
             logger.info("Extracting Newman Artifacts...");
@@ -85,6 +89,22 @@ public class JobExecutor {
             logger.error("Setup for job {} was interrupted", job.getId());
             e.printStackTrace();
             return false;
+        }
+    }
+
+    private URI wrapWithProxy(URI origPath) {
+        if (proxy == null) {
+            return origPath;
+        }
+        String origPathStr = proxy.split(":")[0];
+        String proxyPathStr = proxy.split(":")[1];
+
+        try {
+            logger.info("Proxy applied {} -> {}", origPathStr, proxyPathStr);
+            return new URI(origPath.getPath().replace(origPathStr, proxyPathStr));
+        } catch (URISyntaxException e) {
+            logger.error("Failed to wrap proxy URI {} with {}: {}", origPathStr, proxyPathStr, e);
+            return origPath;
         }
     }
 
