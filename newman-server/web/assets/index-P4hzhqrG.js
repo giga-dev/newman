@@ -38365,10 +38365,12 @@ function parseJobTestEntry(item) {
     scheduledAt: toLocaleFormatted(item.scheduledAt),
     status: item.status,
     testScore: item.testScore,
-    statsBranch: splitIndex ? item.historyStats.slice(0, splitIndex).trim() : null,
-    // show prior symbol '_' or full length
-    statsMaster: splitIndex && showMasterBranch ? item.historyStats.slice(splitIndex + 1).trim() : null,
-    // show after '_' if exists
+    historyStats: {
+      statsBranch: splitIndex ? item.historyStats.slice(0, splitIndex).trim() : null,
+      // show prior symbol '_' or full length
+      statsMaster: splitIndex && showMasterBranch ? item.historyStats.slice(splitIndex + 1).trim() : null
+      // show after '_' if exists
+    },
     duration: calculateDurationMinsSecs(item.startTime, item.endTime)
   };
 }
@@ -39089,6 +39091,17 @@ const __default__$6 = {
 const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
   __name: "TestsGrid",
   setup(__props) {
+    const customSort = {
+      historyStats: (a, b) => {
+        const left = a.statsBranch;
+        const right = b.statsBranch;
+        const dotsLeft = left.split(".").length - 1;
+        const dotsRight = right.split(".").length - 1;
+        const pipesLeft = left.split("|").length - 1;
+        const pipesRight = right.split("|").length - 1;
+        return dotsRight - dotsLeft || pipesRight - pipesLeft;
+      }
+    };
     return (_ctx, _cache) => {
       const _component_v_text_field = resolveComponent("v-text-field");
       const _component_v_col = resolveComponent("v-col");
@@ -39186,6 +39199,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
           hover: "",
           loading: _ctx.loading,
           "custom-filter": _ctx.customFilter,
+          "custom-key-sort": customSort,
           "items-per-page": _ctx.itemsPerPage,
           "items-per-page-options": [15, 20, 25, 50]
         }, {
@@ -39228,11 +39242,11 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
             ])
           ]),
           "item.historyStats": withCtx(({ item }) => [
-            item.statsBranch ? (openBlock(), createElementBlock("div", _hoisted_8$4, [
-              createBaseVNode("div", _hoisted_9$3, toDisplayString(unref(coloredHistoryStats)(item.statsBranch, false)), 1)
+            item.historyStats.statsBranch ? (openBlock(), createElementBlock("div", _hoisted_8$4, [
+              createBaseVNode("div", _hoisted_9$3, toDisplayString(unref(coloredHistoryStats)(item.historyStats.statsBranch, false)), 1)
             ])) : createCommentVNode("", true),
             item.statsMaster != null ? (openBlock(), createElementBlock("div", _hoisted_10$3, [
-              createBaseVNode("div", _hoisted_11$2, toDisplayString(unref(coloredHistoryStats)(item.statsMaster, true)), 1)
+              createBaseVNode("div", _hoisted_11$2, toDisplayString(unref(coloredHistoryStats)(item.historyStats.statsMaster, true)), 1)
             ])) : createCommentVNode("", true)
           ]),
           "item.history": withCtx(({ item }) => [
@@ -45023,6 +45037,7 @@ const eventBus = reactive({
 });
 const _sfc_main$1 = {
   setup() {
+    const webSocketState = inject$1("webSocketState");
     const snackbar = ref(false);
     const snackMessage = ref();
     const job = ref();
@@ -45039,8 +45054,7 @@ const _sfc_main$1 = {
         ws = new WebSocket(wssHost);
         console.log("Attempting to subscribe to: " + wssHost);
         ws.onopen = () => {
-          snackMessage.value = "Connection established";
-          snackbar.value = true;
+          webSocketState.isActive = true;
           clearInterval(connectionInterval);
         };
         ws.onmessage = (event) => {
@@ -45076,10 +45090,7 @@ const _sfc_main$1 = {
           }
         };
         ws.onerror = (t) => {
-          if (snackMessage.value == null) {
-            snackMessage.value = "Automatic updates are not available";
-            snackbar.value = true;
-          }
+          webSocketState.isActive = false;
           ws.close();
         };
       } catch (error) {
@@ -45217,6 +45228,8 @@ const __default__ = /* @__PURE__ */ defineComponent$1({
 const _sfc_main = /* @__PURE__ */ Object.assign(__default__, {
   __name: "App",
   setup(__props) {
+    const webSocketState = reactive({ isActive: false });
+    provide("webSocketState", webSocketState);
     const theme = useTheme();
     let isDarkTheme;
     function toggleTheme() {
@@ -45240,6 +45253,7 @@ const _sfc_main = /* @__PURE__ */ Object.assign(__default__, {
       const _component_v_icon = resolveComponent("v-icon");
       const _component_v_col = resolveComponent("v-col");
       const _component_v_spacer = resolveComponent("v-spacer");
+      const _component_v_tooltip = resolveComponent("v-tooltip");
       const _component_v_switch = resolveComponent("v-switch");
       const _component_v_row = resolveComponent("v-row");
       const _component_v_divider = resolveComponent("v-divider");
@@ -45310,6 +45324,17 @@ const _sfc_main = /* @__PURE__ */ Object.assign(__default__, {
                       justify: "end"
                     }, {
                       default: withCtx(() => [
+                        createVNode(_component_v_tooltip, {
+                          location: "left",
+                          text: `WebSocket is ${webSocketState.isActive ? "ACTIVE" : "INACTIVE"}`
+                        }, {
+                          activator: withCtx(({ props }) => [
+                            createBaseVNode("span", mergeProps({ class: "mr-6" }, props, {
+                              class: { flashing: webSocketState.isActive }
+                            }), toDisplayString(webSocketState.isActive ? "🟢" : "🔴"), 17)
+                          ]),
+                          _: 1
+                        }, 8, ["text"]),
                         createVNode(_component_v_switch, {
                           class: "mr-4",
                           modelValue: unref(isDarkTheme),
@@ -45347,7 +45372,7 @@ const _sfc_main = /* @__PURE__ */ Object.assign(__default__, {
     };
   }
 });
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-d05a4540"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-3c2012a1"]]);
 const vuetify = createVuetify({
   components,
   directives,
@@ -45373,4 +45398,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-D3jvQLgF.js.map
+//# sourceMappingURL=index-P4hzhqrG.js.map

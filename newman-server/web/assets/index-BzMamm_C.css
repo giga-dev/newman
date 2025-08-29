@@ -57321,6 +57321,16 @@ textarea.v-field__input::placeholder {
   background-color: #7d92f5; /* Replace with desired color */
 }
 
-.font-small[data-v-d05a4540] {
+.font-small[data-v-3c2012a1] {
   font-size: 0.8em;
+}
+.flashing[data-v-3c2012a1] {
+  display: inline-block;
+  animation: blink-3c2012a1 1.5s infinite;
+}
+@keyframes blink-3c2012a1 {
+0%, 100% { opacity: 0.3;
+}
+50% { opacity: 1;
+}
 }
