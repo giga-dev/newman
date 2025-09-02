@@ -100,7 +100,7 @@ public class NewmanResource {
     private final JobConfigRepository jobConfigRepository;
     private final FutureJobRepository futureJobRepository;
     private final BuildsCacheRepository buildsCacheRepository;
-    private static final String SERVER_TESTS_UPLOAD_LOCATION_FOLDER = "tests-logs";
+    private static final String SERVER_TESTS_UPLOAD_LOCATION_FOLDER = System.getProperty("newman.tests-logs-path", "tests-logs");
     private static final String SERVER_JOBS_UPLOAD_LOCATION_FOLDER = "job-setup-logs";
     private static final String SERVER_CACHE_BUILDS_FOLDER = "builds";
 
