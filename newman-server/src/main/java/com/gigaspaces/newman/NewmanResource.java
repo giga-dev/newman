@@ -122,6 +122,7 @@ public class NewmanResource {
 
     private static final Object subscribeToJobLock = new Object();
     private static final Object takenTestLock = new Object();
+    private static final Object takenTestLogLock = new Object();
     private static final Object changeJobPriorityLock = new Object();
     private final AtomicLong latestLogSize = new AtomicLong(0);
     private final AtomicLong lastLogSizeCheckTime = new AtomicLong(0);
@@ -1387,13 +1388,20 @@ public class NewmanResource {
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
         String fileName = contentDispositionHeader.getFileName();
 
-        if (fileName.toLowerCase().endsWith(".zip")) {
-            handleTestLogBundle(id, jobId, uriInfo, fileInputStream, fileName);
-        } else {
-            handleTestLogFile(id, jobId, uriInfo, fileInputStream, fileName);
-        }
+        new Thread(() -> {
+            synchronized (takenTestLogLock) {
+                if (fileName.toLowerCase().endsWith(".zip")) {
+                    handleTestLogBundle(id, jobId, uriInfo, fileInputStream, fileName);
+                } else {
+                    handleTestLogFile(id, jobId, uriInfo, fileInputStream, fileName);
+                }
+            }
+        }).start();
 
-        return null;
+        Test test = new Test();
+        test.setId(id);     // agent needs this to print in its logs
+
+        return test;
     }
 
     @POST
