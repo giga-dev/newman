@@ -51,6 +51,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -132,6 +134,7 @@ public class NewmanResource {
     private ServerStatus serverStatus = new ServerStatus(ServerStatus.Status.RUNNING);
     private Thread serverSuspendThread;
 
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
     private final ApplicationContext context;
 
     public NewmanResource(@Context ServletContext servletContext) {
@@ -1388,7 +1391,7 @@ public class NewmanResource {
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
         String fileName = contentDispositionHeader.getFileName();
 
-        new Thread(() -> {
+        executor.execute(() -> {
             synchronized (takenTestLogLock) {
                 if (fileName.toLowerCase().endsWith(".zip")) {
                     handleTestLogBundle(id, jobId, uriInfo, fileInputStream, fileName);
@@ -1396,7 +1399,7 @@ public class NewmanResource {
                     handleTestLogFile(id, jobId, uriInfo, fileInputStream, fileName);
                 }
             }
-        }).start();
+        });
 
         Test test = new Test();
         test.setId(id);     // agent needs this to print in its logs
