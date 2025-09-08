@@ -1392,11 +1392,9 @@ public class NewmanResource {
         String fileName = contentDispositionHeader.getFileName();
 
         // TODO take care of this part if don't use s3, otherwise 2 files will be created everytime wasting time and space
-        final java.nio.file.Path tempFile;
-        try (InputStream in = filePart.getValueAs(InputStream.class)) {
-            tempFile = Files.createTempFile("upload-", "-" + fileName);
-            Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
-        }
+        final java.nio.file.Path tempFile = Files.createTempFile("upload-", "-" + fileName);
+        Files.copy(fileInputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+        logger.info("> temp file to copy: " + tempFile);
 
         executor.execute(() -> {
             synchronized (takenTestLogLock) {
@@ -1407,7 +1405,7 @@ public class NewmanResource {
                         handleTestLogFile(id, jobId, uriInfo, fileInputStream, tempFile, fileName);
                     }
                 } catch (Exception e) {
-                        logger.error("Failed to process " + fileName, e);
+                    logger.error("Failed to process " + fileName, e);
                 } finally {
                     try {
                         Files.deleteIfExists(tempFile);
@@ -3202,6 +3200,8 @@ public class NewmanResource {
 
     private void copyTmpToFile(java.nio.file.Path tmp, String location) throws IOException {
         java.nio.file.Path target = Paths.get(location);
+        logger.info("> create dir to copy: " + tmp.getParent());
+        logger.info("> target file path: " + location);
         Files.createDirectories(tmp.getParent());
         Files.copy(tmp, target, StandardCopyOption.REPLACE_EXISTING);
     }
