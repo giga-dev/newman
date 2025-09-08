@@ -1380,7 +1380,7 @@ public class NewmanResource {
     public Test uploadTestLog(FormDataMultiPart form,
                               @PathParam("jobId") String jobId,
                               @PathParam("id") String id,
-                              @Context UriInfo uriInfo) {
+                              @Context UriInfo uriInfo) throws IOException {
         if (getJob(jobId) == null) {
             logger.warn("uploadTestLog - the job of the test is not on database. testId:[{}], jobId:[{}].", id, jobId);
             return null;
@@ -1391,12 +1391,29 @@ public class NewmanResource {
         InputStream fileInputStream = filePart.getValueAs(InputStream.class);
         String fileName = contentDispositionHeader.getFileName();
 
+        // TODO take care of this part if don't use s3, otherwise 2 files will be created everytime wasting time and space
+        final java.nio.file.Path tempFile;
+        try (InputStream in = filePart.getValueAs(InputStream.class)) {
+            tempFile = Files.createTempFile("upload-", "-" + fileName);
+            Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+        }
+
         executor.execute(() -> {
             synchronized (takenTestLogLock) {
-                if (fileName.toLowerCase().endsWith(".zip")) {
-                    handleTestLogBundle(id, jobId, uriInfo, fileInputStream, fileName);
-                } else {
-                    handleTestLogFile(id, jobId, uriInfo, fileInputStream, fileName);
+                try {
+                    if (fileName.toLowerCase().endsWith(".zip")) {
+                        handleTestLogBundle(id, jobId, uriInfo, fileInputStream, tempFile, fileName);
+                    } else {
+                        handleTestLogFile(id, jobId, uriInfo, fileInputStream, tempFile, fileName);
+                    }
+                } catch (Exception e) {
+                        logger.error("Failed to process " + fileName, e);
+                } finally {
+                    try {
+                        Files.deleteIfExists(tempFile);
+                    } catch (IOException ex) {
+                        logger.warn("Could not delete temp file: " + tempFile, ex);
+                    }
                 }
             }
         });
@@ -1455,13 +1472,17 @@ public class NewmanResource {
         }
     }
 
-    private void handleTestLogFile(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
+    private void handleTestLogFile(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, java.nio.file.Path tmpPath, String fileName) {
         String filePath = calculateTestLogFilePath(jobId, testId) + fileName;
         logger.info("Test log file path calculated: " + filePath);
         try {
             Optional<Test> opTest = testRepository.findById(testId);
             if (opTest.isPresent()) {
-                saveFile(fileInputStream, filePath);
+                if (tmpPath != null) {
+                    copyTmpToFile(tmpPath, filePath);
+                } else {
+                    saveFile(fileInputStream, filePath);
+                }
                 logger.info("Log file saved on path: " + filePath);
                 URI uri = uriInfo.getAbsolutePathBuilder().path(fileName).build();
 
@@ -1487,11 +1508,15 @@ public class NewmanResource {
         return SERVER_JOBS_UPLOAD_LOCATION_FOLDER + "/" + jobId + "/" + agentName + "/";
     }
 
-    private void handleTestLogBundle(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, String fileName) {
+    private void handleTestLogBundle(String testId, String jobId, UriInfo uriInfo, InputStream fileInputStream, java.nio.file.Path tmpPath, String fileName) {
 
         String filePath = calculateTestLogFilePath(jobId, testId) + fileName;
         try {
-            saveFile(fileInputStream, filePath);
+            if (tmpPath != null) {
+                copyTmpToFile(tmpPath, filePath);
+            } else {
+                saveFile(fileInputStream, filePath);
+            }
             Set<String> entries = extractZipEntries(filePath);
             String uri = uriInfo.getAbsolutePathBuilder().path(fileName).build().getPath();
 
@@ -3173,6 +3198,12 @@ public class NewmanResource {
         serverSuspendThread.start();
 
         return Response.ok().build();
+    }
+
+    private void copyTmpToFile(java.nio.file.Path tmp, String location) throws IOException {
+        java.nio.file.Path target = Paths.get(location);
+        Files.createDirectories(tmp.getParent());
+        Files.copy(tmp, target, StandardCopyOption.REPLACE_EXISTING);
     }
 
     private java.nio.file.Path saveFile(InputStream is, String location) throws IOException {
