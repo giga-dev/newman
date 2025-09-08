@@ -117,7 +117,9 @@ public class AtomicUpdater<T> {
             result = result.replace(":" + e.getKey(), String.valueOf(e.getValue()));
         }
         if (entityManager != null) {
-            logger.info("Executing update: {}", result);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Executing update: {}", result);
+            }
         } else {
             System.out.println("Executing update: " + result);
         }
