@@ -1393,8 +1393,14 @@ public class NewmanResource {
 
         // TODO take care of this part if don't use s3, otherwise 2 files will be created everytime wasting time and space
         final java.nio.file.Path tempFile = Files.createTempFile("upload-", "-" + fileName);
-        Files.copy(fileInputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
-        logger.info("> temp file to copy: " + tempFile);
+        try {
+            Files.copy(fileInputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            if (!FileUtils.exists(tempFile)) {
+                logger.error("uploadTestLog - the temp file does not exist: {}", tempFile);
+            }
+        } finally {
+            fileInputStream.close();
+        }
 
         executor.execute(() -> {
             synchronized (takenTestLogLock) {
