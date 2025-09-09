@@ -3205,7 +3205,9 @@ public class NewmanResource {
     }
 
     private void copyTmpToFile(java.nio.file.Path tmp, String location) throws IOException {
-        Files.copy(tmp, Paths.get(location), StandardCopyOption.REPLACE_EXISTING);
+        java.nio.file.Path target = Paths.get(location);
+        Files.createDirectories(target.getParent());
+        Files.copy(tmp, target, StandardCopyOption.REPLACE_EXISTING);
     }
 
     private java.nio.file.Path saveFile(InputStream is, String location) throws IOException {
