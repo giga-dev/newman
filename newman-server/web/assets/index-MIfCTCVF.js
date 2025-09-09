@@ -38365,6 +38365,7 @@ function parseJobTestEntry(item) {
     scheduledAt: toLocaleFormatted(item.scheduledAt),
     status: item.status,
     testScore: item.testScore,
+    hasLogs: item.hasLogs,
     historyStats: {
       statsBranch: splitIndex ? item.historyStats.slice(0, splitIndex).trim() : null,
       // show prior symbol '_' or full length
@@ -38927,22 +38928,27 @@ const _hoisted_3$9 = {
   style: { "position": "relative" }
 };
 const _hoisted_4$6 = { class: "d-block" };
-const _hoisted_5$5 = ["innerHTML"];
+const _hoisted_5$5 = {
+  key: 0,
+  style: { "position": "absolute", "top": "0", "left": "0", "width": "0", "height": "0", "border-top": "8px solid orange", "border-right": "8px solid transparent", "pointer-events": "none" }
+};
 const _hoisted_6$5 = ["innerHTML"];
-const _hoisted_7$5 = { align: "center" };
-const _hoisted_8$4 = {
+const _hoisted_7$5 = ["innerHTML"];
+const _hoisted_8$4 = { align: "center" };
+const _hoisted_9$3 = {
   key: 0,
   align: "center"
 };
-const _hoisted_9$3 = { class: "d-block" };
-const _hoisted_10$3 = {
+const _hoisted_10$3 = { class: "d-block" };
+const _hoisted_11$2 = {
   key: 1,
   align: "center",
   style: { "height": "1px" }
 };
-const _hoisted_11$2 = { class: "d-block" };
-const _hoisted_12$2 = { align: "center" };
-const _hoisted_13$2 = { class: "text-h6" };
+const _hoisted_12$2 = { class: "d-block" };
+const _hoisted_13$2 = { align: "center" };
+const _hoisted_14$1 = { style: { "white-space": "pre-wrap" } };
+const _hoisted_15 = { class: "text-h6" };
 const __default__$6 = {
   components: {
     JobStatus,
@@ -39091,6 +39097,8 @@ const __default__$6 = {
 const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
   __name: "TestsGrid",
   setup(__props) {
+    const TOOLTIP_SHOWUP_DELAY = 500;
+    const TOOLTIP_MAX_LENGTH = 1e3;
     const customSort = {
       historyStats: (a, b) => {
         const left = a.statsBranch;
@@ -39206,9 +39214,10 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
           "item.name": withCtx(({ item }) => [
             createVNode(_component_v_tooltip, {
               location: "bottom",
-              "open-delay": 1e3
+              "open-delay": TOOLTIP_SHOWUP_DELAY
             }, {
               activator: withCtx(({ props }) => [
+                item.hasLogs ? (openBlock(), createElementBlock("span", _hoisted_5$5)) : createCommentVNode("", true),
                 createVNode(_component_router_link, mergeProps(props, {
                   class: "font-bold",
                   to: { name: "TestDetails", params: { id: item.id } }
@@ -39216,7 +39225,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
                   default: withCtx(() => [
                     createBaseVNode("span", {
                       innerHTML: _ctx.shortenTaskName(item)
-                    }, null, 8, _hoisted_5$5)
+                    }, null, 8, _hoisted_6$5)
                   ]),
                   _: 2
                 }, 1040, ["to"])
@@ -39224,13 +39233,13 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
               default: withCtx(() => [
                 createBaseVNode("span", {
                   innerHTML: _ctx.fullTaskName(item)
-                }, null, 8, _hoisted_6$5)
+                }, null, 8, _hoisted_7$5)
               ]),
               _: 2
             }, 1024)
           ]),
           "item.status": withCtx(({ item }) => [
-            createBaseVNode("div", _hoisted_7$5, [
+            createBaseVNode("div", _hoisted_8$4, [
               createVNode(_component_v_chip, {
                 variant: "elevated",
                 class: "text-uppercase font-weight-bold text-body-2 text-mono",
@@ -39242,15 +39251,15 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
             ])
           ]),
           "item.historyStats": withCtx(({ item }) => [
-            item.historyStats.statsBranch ? (openBlock(), createElementBlock("div", _hoisted_8$4, [
-              createBaseVNode("div", _hoisted_9$3, toDisplayString(unref(coloredHistoryStats)(item.historyStats.statsBranch, false)), 1)
+            item.historyStats.statsBranch ? (openBlock(), createElementBlock("div", _hoisted_9$3, [
+              createBaseVNode("div", _hoisted_10$3, toDisplayString(unref(coloredHistoryStats)(item.historyStats.statsBranch, false)), 1)
             ])) : createCommentVNode("", true),
-            item.statsMaster != null ? (openBlock(), createElementBlock("div", _hoisted_10$3, [
-              createBaseVNode("div", _hoisted_11$2, toDisplayString(unref(coloredHistoryStats)(item.historyStats.statsMaster, true)), 1)
+            item.statsMaster != null ? (openBlock(), createElementBlock("div", _hoisted_11$2, [
+              createBaseVNode("div", _hoisted_12$2, toDisplayString(unref(coloredHistoryStats)(item.historyStats.statsMaster, true)), 1)
             ])) : createCommentVNode("", true)
           ]),
           "item.history": withCtx(({ item }) => [
-            createBaseVNode("div", _hoisted_12$2, [
+            createBaseVNode("div", _hoisted_13$2, [
               createVNode(_component_v_btn, {
                 value: "history",
                 rounded: "",
@@ -39263,6 +39272,21 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
                 to: { name: "History", params: { id: item.id } }
               }, null, 8, ["to"])
             ])
+          ]),
+          "item.errorMessage": withCtx(({ item }) => [
+            item.errorMessage ? (openBlock(), createBlock(_component_v_tooltip, {
+              key: 0,
+              text: "Error details",
+              "open-delay": TOOLTIP_SHOWUP_DELAY
+            }, {
+              activator: withCtx(({ props }) => [
+                createBaseVNode("span", normalizeProps(guardReactiveProps(props)), toDisplayString(item.errorMessage), 17)
+              ]),
+              default: withCtx(() => [
+                createBaseVNode("div", _hoisted_14$1, toDisplayString(item.errorMessage.length > TOOLTIP_MAX_LENGTH ? item.errorMessage.slice(0, TOOLTIP_MAX_LENGTH) + "…" : item.errorMessage), 1)
+              ]),
+              _: 2
+            }, 1024)) : createCommentVNode("", true)
           ]),
           _: 1
         }, 8, ["search", "headers", "items", "loading", "custom-filter", "items-per-page"]),
@@ -39289,7 +39313,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
             })
           ]),
           default: withCtx(() => [
-            createBaseVNode("div", _hoisted_13$2, [
+            createBaseVNode("div", _hoisted_15, [
               _cache[5] || (_cache[5] = createTextVNode("Suite created: ")),
               createBaseVNode("strong", null, toDisplayString(_ctx.createSuiteName), 1)
             ])
@@ -39341,6 +39365,7 @@ const __default__$5 = {
       jobUpdate: null,
       jobDetails: null,
       info: [
+        { key: "jobId", title: "Job Id" },
         { key: "build", title: "Build" },
         { key: "state", title: "State" },
         { key: "suite", title: "Suite" },
@@ -39591,7 +39616,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
     };
   }
 });
-const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-d185f520"]]);
+const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-bd9bb26d"]]);
 const _sfc_main$e = {
   props: {
     id: String
@@ -39639,10 +39664,7 @@ const _hoisted_4$4 = {
   class: "d-block text-right mr-16"
 };
 const _hoisted_5$3 = { key: 1 };
-const _hoisted_6$3 = {
-  key: 0,
-  class: "my-2"
-};
+const _hoisted_6$3 = { key: 0 };
 const _hoisted_7$3 = {
   key: 1,
   class: "my-2"
@@ -39818,7 +39840,7 @@ const __default__$4 = {
       info: [
         { key: "status", title: "Status" },
         { key: "runNumber", title: "Run #" },
-        { key: "id", title: "Id" },
+        { key: "id", title: "Test Id" },
         { key: "jobId", title: "Job Id" },
         { key: "arguments", title: "Arguments" },
         { key: "testType", title: "Test Type" },
@@ -39953,7 +39975,7 @@ const _sfc_main$d = /* @__PURE__ */ Object.assign(__default__$4, {
     };
   }
 });
-const TestDetails = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["__scopeId", "data-v-ccaaed4a"]]);
+const TestDetails = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["__scopeId", "data-v-88a6a502"]]);
 const _sfc_main$c = {
   components: {
     PromptDialog
@@ -45398,4 +45420,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-P4hzhqrG.js.map
+//# sourceMappingURL=index-MIfCTCVF.js.map

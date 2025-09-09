@@ -1,5 +1,7 @@
 package com.gigaspaces.newman.beans;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.gigaspaces.newman.entities.Test;
 import com.gigaspaces.newman.projections.PTest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -11,6 +13,8 @@ import java.util.List;
  * @author evgenyf
  * 13.12.2015
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TestView {
 
     private String id;
@@ -27,6 +31,7 @@ public class TestView {
     private Date endTime;
     private int progressPercent;
     private int runNumber;
+    private boolean hasLogs;
 
     public TestView( Test test ) {
 
@@ -45,6 +50,7 @@ public class TestView {
         progressPercent = test.getProgressPercent();
         runNumber = test.getRunNumber();
         computeProgressPercent(test.getStatus());
+        hasLogs = test.getLogs().getTestLogs().size() > 0;
     }
 
     public TestView( PTest test ) {
@@ -64,6 +70,7 @@ public class TestView {
         progressPercent = test.getProgressPercent();
         runNumber = test.getRunNumber();
         computeProgressPercent(status);
+        hasLogs = test.getLogs().getTestLogs().size() > 0;
     }
 
     public String getId() {
@@ -193,6 +200,14 @@ public class TestView {
         this.runNumber = runNumber;
     }
 
+    public boolean isHasLogs() {
+        return hasLogs;
+    }
+
+    public void setHasLogs(boolean hasLogs) {
+        this.hasLogs = hasLogs;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this)
@@ -206,6 +221,7 @@ public class TestView {
                 .append("agentGroup", agentGroup)
                 .append("startTime", startTime)
                 .append("endTime", endTime)
+                .append("hasLogs", hasLogs)
                 .toString();
     }
 }

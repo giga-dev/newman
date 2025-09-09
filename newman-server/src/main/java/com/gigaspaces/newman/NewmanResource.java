@@ -124,7 +124,6 @@ public class NewmanResource {
 
     private static final Object subscribeToJobLock = new Object();
     private static final Object takenTestLock = new Object();
-    private static final Object takenTestLogLock = new Object();
     private static final Object changeJobPriorityLock = new Object();
     private final AtomicLong latestLogSize = new AtomicLong(0);
     private final AtomicLong lastLogSizeCheckTime = new AtomicLong(0);
@@ -1403,21 +1402,19 @@ public class NewmanResource {
         }
 
         executor.execute(() -> {
-            synchronized (takenTestLogLock) {
+            try {
+                if (fileName.toLowerCase().endsWith(".zip")) {
+                    handleTestLogBundle(id, jobId, uriInfo, fileInputStream, tempFile, fileName);
+                } else {
+                    handleTestLogFile(id, jobId, uriInfo, fileInputStream, tempFile, fileName);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to process " + fileName, e);
+            } finally {
                 try {
-                    if (fileName.toLowerCase().endsWith(".zip")) {
-                        handleTestLogBundle(id, jobId, uriInfo, fileInputStream, tempFile, fileName);
-                    } else {
-                        handleTestLogFile(id, jobId, uriInfo, fileInputStream, tempFile, fileName);
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to process " + fileName, e);
-                } finally {
-                    try {
-                        Files.deleteIfExists(tempFile);
-                    } catch (IOException ex) {
-                        logger.warn("Could not delete temp file: " + tempFile, ex);
-                    }
+                    Files.deleteIfExists(tempFile);
+                } catch (IOException ex) {
+                    logger.warn("Could not delete temp file: " + tempFile, ex);
                 }
             }
         });

@@ -1,5 +1,7 @@
 package com.gigaspaces.newman.projections;
 
+import com.gigaspaces.newman.entities.TestLog;
+
 import java.util.Date;
 import java.util.List;
 
@@ -19,4 +21,5 @@ public interface PTest {
     Date getEndTime();
     Integer getProgressPercent();
     Integer getRunNumber();
+    TestLog getLogs();
 }
