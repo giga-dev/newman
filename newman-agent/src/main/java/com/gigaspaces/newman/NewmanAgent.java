@@ -427,6 +427,7 @@ public class NewmanAgent {
         agent.setHostAddress(config.getHostAddress());
         agent.setPid(ProcessUtils.getProcessId("unknownPID"));
         agent.setGroupName(config.getGroupName());
+        agent.setWorkersCount(config.getNumOfWorkers());
         String capabilities = config.getCapabilities();
         // TODO note - if set is empty, mongodb will NOT write that filed to DB
         agent.setCapabilities(CapabilitiesAndRequirements.parse(capabilities));

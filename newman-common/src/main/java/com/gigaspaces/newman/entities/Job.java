@@ -298,6 +298,11 @@ public class Job {
 
     public void setAgents(Set<String> agents) { this.agents = agents; }
 
+    public int getWorkersAllowed() {
+        return Integer.parseInt(
+                Suite.parseCustomVariables(getSuite().getCustomVariables()).get(Suite.THREADS_LIMIT));
+    }
+
     @PrePersist
     public void prePersist() {
         if (this.id == null) {

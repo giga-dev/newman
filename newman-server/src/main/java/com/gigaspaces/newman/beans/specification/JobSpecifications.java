@@ -111,10 +111,10 @@ public class JobSpecifications {
                     root.get("passedTests"),
                     cb.sum(root.get("failedTests"), root.get("runningTests"))
             );
-            Expression<Integer> requiredAgents = cb.diff(totalPlannedTests, alreadyProcessedTests);
+            Expression<Integer> remainingTests = cb.diff(totalPlannedTests, alreadyProcessedTests);
 
-            // Predicate: preparingAgents.size < requiredAgents
-            return cb.lessThan(getArraySize(cb, root.get("preparingAgents")), requiredAgents);
+            // Predicate: preparingAgents.size < remainingTests
+            return cb.lessThan(getArraySize(cb, root.get("preparingAgents")), remainingTests);
         };
     }
 

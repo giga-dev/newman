@@ -2221,13 +2221,14 @@ public class NewmanResource {
         newAgent.setName(agent.getName());
         newAgent.setCurrentTests(new HashSet<>());
         newAgent.setGroupName(agent.getGroupName());
+        newAgent.setWorkersCount(agent.getWorkersCount());
         newAgent.setState(Agent.State.IDLING);
 
         Agent subscribedAgent;
         Job job;
         synchronized (subscribeToJobLock) { // prevent multiple agents pick up the same job because this awakens multiple agents for just 1 test
             job = findJob(agent.getCapabilities(), JobSpecifications.preparingAgentsCondition(), agent.getGroupName());
-            if (job != null) {
+            if (job != null && moreWorkersNeeded(job, agent)) {
                 newAgent.setJobId(job.getId());
                 newAgent.setState(Agent.State.PREPARING);
 
@@ -2267,6 +2268,28 @@ public class NewmanResource {
         //logger.info(">>> Modified Agent " +agent.getHost()+ " subscribe");
         broadcastMessage(MODIFIED_AGENT, subscribedAgent);
         return Response.ok(job).build();
+    }
+
+    private boolean moreWorkersNeeded(Job job, Agent agent) {
+        // total tests including retries
+        int totalPlannedTests = job.getTotalTests() + job.getNumOfTestRetries();
+
+        int alreadyProcessedTests = job.getPassedTests()
+                + job.getFailedTests()
+                + job.getRunningTests();
+
+        int remainingTests = totalPlannedTests - alreadyProcessedTests;
+
+        // if no more tests remaining, no more agents needed
+        if (remainingTests <= 0) {
+            return false;
+        }
+
+        // calculate total workers already preparing; job.getWorkersAllowed() == THREADS_LIMIT from Suite
+        int totalPreparingWorkers = job.getPreparingAgents().size() * Math.min(agent.getWorkersCount(), job.getWorkersAllowed());
+
+        // check if more workers are needed
+        return totalPreparingWorkers < remainingTests;
     }
 
     private Job findJob(Set<String> capabilities, Specification<Job> additionalSpec, String agentGroup) {

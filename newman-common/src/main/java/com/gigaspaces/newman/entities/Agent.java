@@ -23,6 +23,7 @@ public class Agent {
     private String pid;
     private int setupRetries = 0;
     private String groupName;
+    private int workersCount;
 
     @Transient
     private Job job;
@@ -123,6 +124,14 @@ public class Agent {
         this.groupName = groupName;
     }
 
+    public int getWorkersCount() {
+        return workersCount;
+    }
+
+    public void setWorkersCount(int workersCount) {
+        this.workersCount = workersCount;
+    }
+
     @PrePersist
     public void generateId() {
         if (this.id == null) {
@@ -146,6 +155,7 @@ public class Agent {
                 .append("job", job)
                 .append("setupRetries", setupRetries)
                 .append("groupName", groupName)
+                .append("workersCount", workersCount)
                 .toString();
     }
 
