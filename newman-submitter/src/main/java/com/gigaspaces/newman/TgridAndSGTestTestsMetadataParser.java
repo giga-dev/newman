@@ -1,6 +1,6 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.entities.Test;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 

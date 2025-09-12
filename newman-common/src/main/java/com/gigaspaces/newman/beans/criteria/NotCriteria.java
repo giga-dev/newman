@@ -1,6 +1,6 @@
 package com.gigaspaces.newman.beans.criteria;
 
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * A negation of a criteria
@@ -26,7 +26,7 @@ public class NotCriteria implements Criteria {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("criteria", criteria)
                 .toString();
     }

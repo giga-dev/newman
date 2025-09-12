@@ -1,7 +1,7 @@
 package com.gigaspaces.newman.jobexecutor;
 
 import com.gigaspaces.newman.JobExecutor;
-import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.entities.Job;
 import com.gigaspaces.newman.utils.MockUtils;
 import org.junit.After;
 import org.junit.Assert;

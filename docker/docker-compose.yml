@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  newman-server:
+    image: newman-server:1.0
+    container_name: newman-server
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - /home/newman/server:/newman
+    entrypoint: ["/newman/bin/newman-server.sh"]
+    networks:
+      - newman-network
+
+  newman-postgres:
+    image: postgres
+    container_name: newman-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: newman-db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    volumes:
+      - /home/newman/postgres_data:/var/lib/postgresql/data
+    networks:
+      - newman-network
+
+networks:
+  newman-network:
+    driver: bridge

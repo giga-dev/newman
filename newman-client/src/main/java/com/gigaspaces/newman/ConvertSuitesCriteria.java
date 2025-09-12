@@ -1,12 +1,11 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.Batch;
-import com.gigaspaces.newman.beans.Suite;
+import com.gigaspaces.newman.entities.Suite;
 import com.gigaspaces.newman.beans.criteria.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 

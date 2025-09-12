@@ -1,6 +1,6 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Build;
+import com.gigaspaces.newman.entities.Build;
 import com.gigaspaces.newman.utils.EnvUtils;
 import com.gigaspaces.newman.utils.FileUtils;
 import org.slf4j.Logger;

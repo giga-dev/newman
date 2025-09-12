@@ -1,8 +1,8 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Job;
-import com.gigaspaces.newman.beans.Suite;
-import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.entities.Job;
+import com.gigaspaces.newman.entities.Suite;
+import com.gigaspaces.newman.entities.Test;
 import com.gigaspaces.newman.utils.FileUtils;
 import com.gigaspaces.newman.utils.ProcessResult;
 import com.gigaspaces.newman.utils.ProcessUtils;
@@ -12,11 +12,13 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
 import static com.gigaspaces.newman.utils.FileUtils.*;
+import static com.gigaspaces.newman.utils.StringUtils.getNonEmptySystemProperty;
 
 public class JobExecutor {
     private static final Logger logger = LoggerFactory.getLogger(JobExecutor.class);
@@ -25,6 +27,7 @@ public class JobExecutor {
     private final Job job;
     private final Path jobFolder;
     private final Path newmanLogFolder;
+    private final String proxy = getNonEmptySystemProperty("resources.proxy.url", null);
 
     public JobExecutor(Job job, String basePath) {
         this.job = job;
@@ -50,8 +53,9 @@ public class JobExecutor {
             logger.info("Downloading {} resources into {}...", job.getBuild().getResources().size(), resourcesFolder);
             validateUris(job.getBuild().getResources());
             for (URI resource : job.getBuild().getResources()) {
-                logger.info("Downloading {}...", resource);
-                download(resource.toURL(), resourcesFolder);
+                URI proxiedResource = wrapWithProxy(resource);
+                logger.info("Downloading {}...", proxiedResource);
+                download(proxiedResource.toURL(), resourcesFolder);
             }
 
             logger.info("Extracting Newman Artifacts...");
@@ -85,6 +89,24 @@ public class JobExecutor {
             logger.error("Setup for job {} was interrupted", job.getId());
             e.printStackTrace();
             return false;
+        }
+    }
+
+    private URI wrapWithProxy(URI origPath) {
+        if (proxy == null) {
+            logger.info("No proxy has been found");
+            return origPath;
+        }
+
+        logger.info("Using proxy - {}", proxy);
+        String origPathStr = proxy.split(":")[0];
+        String proxyPathStr = proxy.split(":")[1];
+
+        try {
+            return new URI(origPath.toString().replace(origPathStr, proxyPathStr));
+        } catch (URISyntaxException e) {
+            logger.error("Failed to wrap proxy URI {} with {}: {}", origPathStr, proxyPathStr, e);
+            return origPath;
         }
     }
 
@@ -178,9 +200,16 @@ public class JobExecutor {
     }
 
     private void teardownTest(Test test) {
+        logger.info("Tearing down test {}", test.getName());
+
         Path testFolder = append(jobFolder, "test-" + test.getId());
         Path outputFile = append(append(testFolder, "output"), "end-" + test.getTestType() + ".log");
         Path teardownScript = append(jobFolder, "end-" + test.getTestType() + SCRIPT_SUFFIX);
+
+        logger.info("testFolder path: {}", testFolder);
+        logger.info("outputFile path: {}", outputFile);
+        logger.info("teardownScript path: {}", teardownScript);
+
         if (exists(teardownScript)) {
             logger.info("Executing teardown for test {}", test);
             try {

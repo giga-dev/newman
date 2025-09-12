@@ -1,6 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.entities.*;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.client.rx.RxClient;

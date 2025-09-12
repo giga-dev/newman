@@ -49,29 +49,36 @@ _EOF
 # System environment variables
 # Mongo host address to connect to from newman server
 # remote mongo db - xap-builder.gspaces.com:27017
-export NEWMAN_MONGO_DB_HOST=${NEWMAN_MONGO_DB_HOST="mongo-server"}
+export DB_HOST=${DB_HOST="localhost:5432"}
 
 # Mongo db name to access in database
-export NEWMAN_MONGO_DB_NAME=${NEWMAN_MONGO_DB_NAME="newman-db"}
+export DB_NAME=${DB_NAME="newman-db"}
+
+export DB_USERNAME=${DB_USERNAME="admin"}
+export DB_PASSWORD=${DB_PASSWORD="password"}
 
 export NEWMAN_SERVER_SPOTINST_TOKEN=${NEWMAN_SERVER_SPOTINST_TOKEN=""}
 export NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID=""}
 # run newman server
 # to debug, add java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 \
 
+# --add-opens not needed unless it's java 9 or higher is used
 # java --add-opens java.base/java.lang=ALL-UNNAMED \
 #    --add-opens java.base/java.net=ALL-UNNAMED \
 #    --add-opens java.base/java.nio=ALL-UNNAMED \
 #    --add-opens java.base/java.util=ALL-UNNAMED \
 #    --add-opens java.base/java.util.concurrent=ALL-UNNAMED \
 #    --add-opens java.base/java.time=ALL-UNNAMED \
+
 java -Dproduction=true \
     -Dnewman.server.spotinst.token="${NEWMAN_SERVER_SPOTINST_TOKEN}" \
     -Dnewman.server.spotinst.accountId="${NEWMAN_SERVER_SPOTINST_ACCOUNT_ID}" \
-    -Dnewman.mongo.db.host=${NEWMAN_MONGO_DB_HOST} \
-    -Dnewman.mongo.db.name=${NEWMAN_MONGO_DB_NAME} \
+    -Dnewman.postgres.db.host=${DB_HOST} \
+    -Dnewman.postgres.db.name=${DB_NAME} \
+    -Dnewman.postgres.username=${DB_USERNAME} \
+    -Dnewman.postgres.password=${DB_PASSWORD} \
     -Dnewman.server.realm-config-path=../config/realm.properties \
     -Dnewman.keys-folder-path=../keys/server.keystore \
     -Dnewman.certificate=../certs/keystore.p12 \
-    -Dnewman.server.web-folder-path=../web/vue -jar \
+    -Dnewman.server.web-folder-path=../web -jar \
     ../target/newman-server-1.0.jar 2>&1 > /tmp/newman.log

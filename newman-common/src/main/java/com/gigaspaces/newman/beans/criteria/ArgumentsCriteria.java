@@ -1,7 +1,8 @@
 package com.gigaspaces.newman.beans.criteria;
 
-import com.gigaspaces.newman.beans.Test;
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,8 @@ import java.util.List;
  *        will find a match!
  * for equality use {@link TestCriteria#createCriteriaByTestArgs(String...)}
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ArgumentsCriteria implements Criteria {
     private String arg;
 
@@ -61,7 +64,7 @@ public class ArgumentsCriteria implements Criteria {
 
     @Override
     public  String toString(){
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("arg", arg)
                 .toString();
     }

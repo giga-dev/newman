@@ -1,12 +1,16 @@
 package com.gigaspaces.newman.beans.criteria;
 
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.regex.Pattern;
 
 /**
  * Regular expression matching criteria
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PatternCriteria implements Criteria {
     private String regex;
 
@@ -51,7 +55,7 @@ public class PatternCriteria implements Criteria {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("regex", regex)
                 .toString();
     }

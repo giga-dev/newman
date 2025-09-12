@@ -2,10 +2,10 @@ package com.gigaspaces.newman;
 
 
 import com.gigaspaces.newman.beans.*;
+import com.gigaspaces.newman.entities.*;
 import com.gigaspaces.newman.utils.EnvUtils;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

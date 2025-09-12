@@ -16,12 +16,13 @@ public class FrontendRoutingFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String path = httpRequest.getRequestURI();
 
-        // Skip API calls and other file paths (e.g., images, CSS, JS)
-        if (!path.startsWith("/api") && !path.contains(".")) {
+        if (!path.startsWith("/api")    // Send API calls to the backend
+                && !path.startsWith("/events")   // Send WebSocket calls to the backend
+                    && !path.contains(".")) {    // Not sure what this is for (likely file names delimiter)
             // Forward all other requests to index.html for Vue.js to handle
             request.getRequestDispatcher("/index.html").forward(request, response);
         } else {
-            // Proceed with static file requests or API requests
+            // Proceed with static file requests, API requests and WebSocket requests
             chain.doFilter(request, response);
         }
     }

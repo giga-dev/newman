@@ -4,6 +4,7 @@ package com.gigaspaces.newman;
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.beans.criteria.Criteria;
 import com.gigaspaces.newman.beans.criteria.CriteriaEvaluator;
+import com.gigaspaces.newman.entities.*;
 import com.gigaspaces.newman.utils.EnvUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;

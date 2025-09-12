@@ -1,6 +1,6 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.FutureJob;
+import com.gigaspaces.newman.entities.FutureJob;
 import com.gigaspaces.newman.beans.FutureJobsRequest;
 import com.gigaspaces.newman.utils.EnvUtils;
 import org.slf4j.Logger;

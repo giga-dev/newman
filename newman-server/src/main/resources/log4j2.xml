@@ -12,11 +12,24 @@
             </Policies>
             <DefaultRolloverStrategy max="5"/>
         </RollingFile>
+<!--        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+        </Console>-->
     </appenders>
     <Loggers>
         <Logger name="com.gigaspaces.newman" level="INFO"/>
         <Root level="ERROR">
             <AppenderRef ref="RollingFile" />
         </Root>
+        <!-- Log Hibernate SQL -->
+        <!--<Logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>-->
+
+        <!-- Log Hibernate parameters (bind values) -->
+        <!--<Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>-->
     </Loggers>
 </configuration>

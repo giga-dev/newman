@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.gigaspaces.newman.beans.Batch;
-import com.gigaspaces.newman.beans.Job;
+import com.gigaspaces.newman.entities.Job;
 import com.gigaspaces.newman.beans.JobRequest;
 import org.glassfish.jersey.SslConfigurator;
 import org.glassfish.jersey.client.JerseyClientBuilder;

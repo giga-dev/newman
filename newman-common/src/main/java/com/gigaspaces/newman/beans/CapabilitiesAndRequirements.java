@@ -1,5 +1,7 @@
 package com.gigaspaces.newman.beans;
 
+import com.gigaspaces.newman.entities.Job;
+
 import java.util.*;
 import java.util.stream.Collectors;
 

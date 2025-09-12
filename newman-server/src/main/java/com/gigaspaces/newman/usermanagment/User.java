@@ -1,19 +1,22 @@
 package com.gigaspaces.newman.usermanagment;
 
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Indexed;
+import javax.persistence.*;
 
 import java.util.Base64;
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
+@Table(name = "users")
 public class User {
 
     @Id
     private String id;
-    @Indexed(unique=true)
+
+    @Column(unique = true, nullable = false)
     private String username;
+
+    @Column(nullable = false)
     private String password;
     private String role;
 
@@ -23,9 +26,7 @@ public class User {
     public User(String username, String password, String role) {
         this.username = username;
         this.role = role;
-
-        Base64.Encoder encoder = Base64.getEncoder();
-        this.password = encoder.encodeToString(password.getBytes());
+        this.password = Base64.getEncoder().encodeToString(password.getBytes());
     }
 
     public String getUsername() {
@@ -49,7 +50,7 @@ public class User {
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        this.password = Base64.getEncoder().encodeToString(password.getBytes());
     }
 
     public String getId() {
@@ -58,6 +59,13 @@ public class User {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    @PrePersist
+    public void generateId() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID().toString();
+        }
     }
 
     public String getDecodedPassword() {

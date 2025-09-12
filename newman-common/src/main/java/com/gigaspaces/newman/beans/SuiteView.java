@@ -1,6 +1,8 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import com.gigaspaces.newman.entities.Suite;
+import com.gigaspaces.newman.projections.PSuiteThin;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * @author evgenyf
@@ -11,6 +13,12 @@ public class SuiteView {
     private String id;
     private String name;
     private String customVariables;
+
+    public SuiteView( PSuiteThin suite ) {
+        id = suite.getId();
+        name = suite.getName();
+        customVariables = suite.getCustomVariables();
+    }
 
     public SuiteView( Suite suite ) {
         id = suite.getId();
@@ -44,7 +52,7 @@ public class SuiteView {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("id", id)
                 .append("name", name)
                 .append("custom environment variables", customVariables)

@@ -1,7 +1,7 @@
 package com.gigaspaces.newman.beans;
 
-import com.gigaspaces.newman.utils.ToStringBuilder;
-import org.mongodb.morphia.annotations.Transient;
+import javax.persistence.*;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -109,7 +109,7 @@ public class Batch<T> {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("values", values)
                 .append("offset", offset)
                 .append("limit", limit)

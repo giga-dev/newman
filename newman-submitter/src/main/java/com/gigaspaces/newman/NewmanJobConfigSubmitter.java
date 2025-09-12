@@ -1,7 +1,7 @@
 package com.gigaspaces.newman;
 
 import com.gigaspaces.newman.beans.JavaVersion;
-import com.gigaspaces.newman.beans.JobConfig;
+import com.gigaspaces.newman.entities.JobConfig;
 import com.gigaspaces.newman.utils.EnvUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

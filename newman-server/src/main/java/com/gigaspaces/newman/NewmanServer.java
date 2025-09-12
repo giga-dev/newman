@@ -1,11 +1,14 @@
 package com.gigaspaces.newman;
 
 
-import com.gigaspaces.newman.config.Config;
+import com.gigaspaces.newman.config.JpaConfig;
 import com.gigaspaces.newman.filters.FrontendRoutingFilter;
 import com.gigaspaces.newman.filters.RootBasicLoginFilter;
 import com.gigaspaces.newman.usermanagment.UserService;
-import org.eclipse.jetty.security.*;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.PropertyUserStore;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -13,18 +16,18 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.*;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.mongodb.morphia.logging.MorphiaLoggerFactory;
-import org.mongodb.morphia.logging.slf4j.SLF4JLoggerImplFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
-
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -43,10 +46,6 @@ public class NewmanServer {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
 
-        MorphiaLoggerFactory.registerLogger(SLF4JLoggerImplFactory.class);
-
-        Config config = Config.fromArgs(args);
-
         Server server = new Server(8080);
         /* security */
 
@@ -58,7 +57,9 @@ public class NewmanServer {
         loginService.setUserStore(userStore);
         server.addBean(loginService);
 
-        final UserService userService = new UserService(userStore, config);
+        AnnotationConfigApplicationContext springContext = new AnnotationConfigApplicationContext(JpaConfig.class);
+        final UserService userService = springContext.getBean(UserService.class);
+        userService.updateUsers(userStore);
 
         // === USERS roles
         ConstraintSecurityHandler security = new ConstraintSecurityHandler();
@@ -68,9 +69,7 @@ public class NewmanServer {
         ConstraintMapping allowResourcesMapping = createConstraintMapping("auth2", false, "/api/newman/resource/*");
         ConstraintMapping allowMetadataMapping = createConstraintMapping("auth3", false, "/api/newman/metadata/*");
 
-        security.setConstraintMappings(Arrays.asList(new ConstraintMapping[]{
-                mapping, allowMetadataMapping, allowResourcesMapping
-        }));
+        security.setConstraintMappings(Arrays.asList(mapping, allowMetadataMapping, allowResourcesMapping));
 
         security.setAuthenticator(new BasicAuthenticator());
         security.setLoginService(loginService);
@@ -78,7 +77,6 @@ public class NewmanServer {
 
         // === Main page(root) Newman access configuration
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setInitParameter("config", config.asJSON());
         context.setContextPath("/");
         // security
         context.setSecurityHandler(security);
@@ -86,16 +84,21 @@ public class NewmanServer {
         DefaultServlet defaultServlet = new DefaultServlet();
         ServletHolder holderPwd = new ServletHolder("default", defaultServlet);
         // locate where web files are stored - vue.js project
-        String webPath = getNonEmptySystemProperty(WEB_FOLDER_PATH, DEFAULT_WEB_FOLDER_PATH);
-        File webDir = new File(webPath);
-        if (!webDir.exists()) {
-            logger.info("File {} not found", webDir.getAbsolutePath());
-            String webDirInJar = NewmanServer.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
-            if (webDirInJar.toLowerCase().endsWith(".jar")) {
-                webPath = "jar:" + webDirInJar + "!/web";
+        String webPath = locateExternalWebFolder();
+        if (webPath == null) {
+            webPath = getNonEmptySystemProperty(WEB_FOLDER_PATH, DEFAULT_WEB_FOLDER_PATH);
+            File webDir = new File(webPath);
+            if (!webDir.exists()) {
+                logger.info("File {} not found", webDir.getAbsolutePath());
+                String webDirInJar = NewmanServer.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+                if (webDirInJar.toLowerCase().endsWith(".jar")) {
+                    webPath = "jar:" + webDirInJar + "!/web";
+                } else {
+                    logger.error("can't find webdir, either set web dir using system property {} or run newman with java -jar newman-server-1.0.jar", WEB_FOLDER_PATH);
+                    System.exit(1);
+                }
             } else {
-                logger.error("can't find webdir, either set web dir using system property {} or run newman with java -jar newman-server-1.0.jar", WEB_FOLDER_PATH);
-                System.exit(1);
+                logger.info("Web directory has been found: {}", webDir.getAbsolutePath());
             }
         }
         logger.info("Using {} to serve static content", webPath);
@@ -148,6 +151,35 @@ public class NewmanServer {
         } finally {
             server.destroy();
         }
+    }
+
+    private static String locateExternalWebFolder() {
+        String jarLocation = NewmanServer.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+        // Check if the JAR is indeed a .jar file
+        if (jarLocation.toLowerCase().endsWith(".jar")) {
+            try {
+                // Convert the JAR file URL to a File object and get the parent directory
+                File jarFile = new File(new URI(jarLocation));
+                File jarDir = jarFile.getParentFile();  // This is the directory containing the JAR
+
+                // Now construct the path to the 'web' folder next to the JAR
+                File webDir = new File(jarDir, "web");
+
+                // Check if the 'web' folder exists now
+                if (!webDir.exists()) {
+                    logger.info("The web directory could not be found next to the JAR.");
+                    return null;
+                } else {
+                    logger.info("Found external web directory: {}", webDir.getAbsolutePath());
+                    return webDir.getAbsolutePath();
+                }
+            } catch (URISyntaxException e) {
+                logger.error("Error parsing JAR file location", e);
+                System.exit(1);
+            }
+        }
+
+        return null;
     }
 
     private static ConstraintMapping createConstraintMapping(String name, boolean authenticate, String pathSpec, String... roles) {

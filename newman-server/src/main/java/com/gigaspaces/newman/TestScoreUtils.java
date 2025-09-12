@@ -1,7 +1,7 @@
 package com.gigaspaces.newman;
 
-import com.gigaspaces.newman.beans.Build;
-import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.entities.Build;
+import com.gigaspaces.newman.entities.Test;
 import com.gigaspaces.newman.beans.TestHistoryItem;
 
 import org.slf4j.Logger;

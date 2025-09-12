@@ -1,14 +1,10 @@
 package com.gigaspaces.newman.usermanagment;
 
-import com.gigaspaces.newman.config.Config;
-import com.mongodb.MongoClient;
 import org.eclipse.jetty.security.PropertyUserStore;
 import org.eclipse.jetty.util.security.Password;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.util.LinkedList;
@@ -16,31 +12,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Service
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    private final PropertyUserStore propertyUserStore;
-    private final UserDAO userDAO;
+    private final UserRepository userRepository;
+    private PropertyUserStore propertyUserStore;
 
-    public UserService(PropertyUserStore userStore, Config config) throws Exception {
-        logger.info("> mongoHost: " + config.getMongo().getHost());
-        logger.info("> mongoDb: " + config.getMongo().getDb());
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
-        MongoClient mongoClient = new MongoClient(config.getMongo().getHost());
+    public void updateUsers(PropertyUserStore userStore) throws Exception {
         this.propertyUserStore = userStore;
-
-        Morphia morphia = new Morphia();
-        morphia.map(User.class);
-
-        Datastore datastore = morphia.createDatastore(mongoClient, config.getMongo().getDb());
-        datastore.ensureIndexes();
-        datastore.ensureCaps();
-
-        this.userDAO = new UserDAO(morphia, mongoClient, config.getMongo().getDb());
 
         if (!containsUsersInDatastore()) {
             this.propertyUserStore.start();
-            saveUsersToMongo(this.propertyUserStore);
+            saveUsersToDB(this.propertyUserStore);
             logger.info("> users are now saved to MongoDB datastore");
         } else {
             propertyUserStore.setConfig(null);
@@ -53,24 +41,26 @@ public class UserService {
         }
     }
 
-    public void addUser(User user) {
+    public boolean addUser(User user) {
         logger.info("> adding user: " + user.getUsername());
-        userDAO.save(user);
+        if (userRepository.existsByUsername(user.getUsername())) {
+            logger.info("> user with name '" + user.getUsername() + "' already exists");
+            return false;
+        }
+        userRepository.save(user);
         propertyUserStore.addUser(user.getUsername(), new Password(user.getDecodedPassword()),new String[]{user.getRole()});
+        return true;
     }
 
     public Optional<User> getUserByUsername(String username) {
-        User user = userDAO.find(userDAO.createIdQuery(username)).get();
+        User user = userRepository.findByUsername(username);
         return Optional.ofNullable(user);
     }
 
     public List<User> getAllUsers(boolean includeRoot) {
         try {
             logger.info("> requesting all users");
-            Query<User> query = userDAO.createQuery();
-            return userDAO.find(query).asList().stream()
-                    .filter(u -> includeRoot || !"root".equals(u.getUsername()))   // 'root' is a system account. Don't show it up
-                    .collect(Collectors.toList());
+            return includeRoot ? (List<User>)userRepository.findAll() : userRepository.findByUsernameNot("root");
         } catch (Throwable t) {
             logger.info(t.getMessage());
         }
@@ -90,23 +80,18 @@ public class UserService {
             logger.info("> not allowed to delete '" + username + "'");
             return false;
         }
-        Query<User> query = userDAO.createQuery().field("username").equal(username);
-        User user = userDAO.findOne(query);
-        if (user != null) {
-            Datastore datastore = userDAO.getDatastore();
-            datastore.findAndDelete(query);
-            logger.info("> user has been deleted");
-            return true;
-        } else {
-            return false;
-        }
+
+        userRepository.deleteByUsername(username);
+        logger.info("> user has been deleted");
+
+        return true;
     }
 
     private boolean containsUsersInDatastore() {
         return getAllUsers(true).size()-1 > 0;  // exclude 'root'
     }
 
-    private void saveUsersToMongo(PropertyUserStore inputStore) {
+    private void saveUsersToDB(PropertyUserStore inputStore) {
         inputStore.getKnownUserIdentities().forEach((username, userIdentity) -> {
             // Get roles for the user
             String role = userIdentity.getSubject().getPrincipals()
@@ -119,7 +104,7 @@ public class UserService {
             User user = new User(username, userData[0].trim(), userData[1].trim());
             logger.info("user: " + user);
             // Save User to MongoDB
-            userDAO.save(user);
+            userRepository.save(user);
         });
     }
 }

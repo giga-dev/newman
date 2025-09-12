@@ -1,0 +1,6 @@
+{
+    "WEB_PROTOCOL": "https",
+    "WEB_PORT": "8443",
+    "WEBSOCKET_PROTOCOL": "wss",
+    "WEBSOCKET_PORT": "8443"
+}

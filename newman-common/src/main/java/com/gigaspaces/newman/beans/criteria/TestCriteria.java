@@ -1,7 +1,9 @@
 package com.gigaspaces.newman.beans.criteria;
 
-import com.gigaspaces.newman.beans.Test;
-import com.gigaspaces.newman.utils.ToStringBuilder;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.gigaspaces.newman.entities.Test;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +11,8 @@ import java.util.List;
 /**
  * A test criteria for matching (test name, arguments, type). Only non-null field are matched.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TestCriteria implements Criteria {
 
     private Test test;
@@ -71,7 +75,7 @@ public class TestCriteria implements Criteria {
 
     @Override
     public String toString() {
-        return ToStringBuilder.newBuilder(this.getClass().getSimpleName())
+        return new ToStringBuilder(this)
                 .append("test", test)
                 .toString();
     }

@@ -1,6 +1,6 @@
 package com.gigaspaces.newman.beans.criteria.compiled;
 
-import com.gigaspaces.newman.beans.Test;
+import com.gigaspaces.newman.entities.Test;
 
 /**
  * Created by moran

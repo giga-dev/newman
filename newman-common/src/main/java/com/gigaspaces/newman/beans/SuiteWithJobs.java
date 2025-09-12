@@ -1,9 +1,9 @@
 package com.gigaspaces.newman.beans;
 
-import org.mongodb.morphia.annotations.Id;
+import com.gigaspaces.newman.entities.Job;
+import com.gigaspaces.newman.projections.PSuiteThin;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -12,7 +12,6 @@ import java.util.List;
  */
 public class SuiteWithJobs {
 
-    @Id
     private String id;
 
     private SuiteView suite;
@@ -24,18 +23,18 @@ public class SuiteWithJobs {
     public SuiteWithJobs() {
     }
 
-    public SuiteWithJobs( Suite suite ) {
-        this(suite, Collections.emptyList());
+    public SuiteWithJobs(PSuiteThin suite, List<Job> jobsList) {
+        prepareJobViews(jobsList);
+        setId(suite.getId());
+        setName( suite.getName() );
+        this.suite = new SuiteView( suite );
     }
 
-    public SuiteWithJobs(Suite suite, List<Job> jobsList) {
+    private void prepareJobViews(List<Job> jobsList) {
         this.jobs = new ArrayList<>( jobsList.size() );
         for( Job job : jobsList ){
             jobs.add( new JobView( job ) );
         }
-        setId(suite.getId());
-        setName( suite.getName() );
-        this.suite = new SuiteView( suite );
     }
 
     public String getId() {
