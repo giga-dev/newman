@@ -28,6 +28,8 @@ public class Suite {
     @Column(length = 1024)
     private String customVariables; //INDEX; key=value separated by comma, e.g SUITE_TYPE=tgrid,SUPPORT_SGTEST=sgtest
 
+    private Integer workersAllowed = 1;
+
 //    @Convert(converter = StringSetConverter.class)
     @Type(type = "com.gigaspaces.newman.types.SetStringArrayType")
     @Column(name = "requirements", columnDefinition = "TEXT[]")
@@ -77,6 +79,10 @@ public class Suite {
         this.customVariables = customVariables;
     }
 
+    public Integer getWorkersAllowed() {
+        return workersAllowed;
+    }
+
     public static Map<String,String> parseCustomVariables(String customVariables){
         Map<String,String> res = new HashMap<>();
         if (customVariables != null) {
@@ -92,6 +98,18 @@ public class Suite {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
         }
+
+        if (this.customVariables != null) {
+            Map<String, String> vars = Suite.parseCustomVariables(this.customVariables);
+            String threadsLimit = vars.get(Suite.THREADS_LIMIT);    // save threads as a separate field to use it later
+            if (threadsLimit != null) {
+                try {
+                    this.workersAllowed = Integer.parseInt(threadsLimit);
+                } catch (NumberFormatException e) {
+                    this.workersAllowed = 1; // fallback
+                }
+            }
+        }
     }
 
     @Override
@@ -101,6 +119,7 @@ public class Suite {
                 .append("name", name)
                 .append("custom environment variables", customVariables)
                 .append("criteria", criteria)
+                .append("workers allowed", workersAllowed)
                 .toString();
     }
 

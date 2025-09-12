@@ -104,7 +104,7 @@ public class JobSpecifications {
     }
 
     // Specification to check if preparingAgents exists and its size is less than the required number
-    private static Specification<Job> preparingAgentsLessThanRequired() {
+    private static Specification<Job> preparingAgentsLessThanRequired(int agentWorkersCount) {
         return (root, query, cb) -> {
             Expression<Integer> totalPlannedTests = cb.sum(root.get("totalTests"), root.get("numOfTestRetries"));
             Expression<Integer> alreadyProcessedTests = cb.sum(
@@ -113,8 +113,24 @@ public class JobSpecifications {
             );
             Expression<Integer> remainingTests = cb.diff(totalPlannedTests, alreadyProcessedTests);
 
-            // Predicate: preparingAgents.size < remainingTests
-            return cb.lessThan(getArraySize(cb, root.get("preparingAgents")), remainingTests);
+            // join Suite to get workersAllowed
+            Join<Job, Suite> suiteJoin = root.join("suite");
+            Expression<Integer> suiteWorkersAllowed = suiteJoin.get("workersAllowed");
+
+            // determine effective workers per agent: min(agentWorkersCount, suiteWorkersAllowed)
+            Expression<Integer> effectiveWorkers = cb.<Integer>selectCase() // if-else goes below
+                    .when(cb.lessThan(cb.literal(agentWorkersCount), suiteWorkersAllowed), cb.literal(agentWorkersCount))
+                    .otherwise(suiteWorkersAllowed);
+
+            // ceil division: (remaining + effectiveWorkers - 1) / effectiveWorkers
+            Expression<Integer> numerator = cb.sum(remainingTests, cb.diff(effectiveWorkers, cb.literal(1)));
+            Expression<Integer> requiredAgents = cb.quot(numerator, effectiveWorkers).as(Integer.class);
+
+            // get current preparing agents count
+            Expression<Integer> preparingAgentsCount = getArraySize(cb, root.get("preparingAgents"));
+
+            // final predicate: preparingAgents.size < requiredAgents
+            return cb.lessThan(preparingAgentsCount, requiredAgents);
         };
     }
 
@@ -127,8 +143,8 @@ public class JobSpecifications {
     }
 
     // Combined Specification for preparingAgents (either exists and size is less or doesn't exist)
-    public static Specification<Job> preparingAgentsCondition() {
-        return Specification.where(preparingAgentsLessThanRequired()).or(preparingAgentsDoesNotExist());
+    public static Specification<Job> preparingAgentsCondition(int agentWorkersCount) {
+        return Specification.where(preparingAgentsLessThanRequired(agentWorkersCount)).or(preparingAgentsDoesNotExist());
     }
 
     private static Expression<Integer> getArraySize(CriteriaBuilder cb, Path<?> arrayField) {
