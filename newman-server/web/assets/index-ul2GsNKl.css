@@ -27052,12 +27052,12 @@ textarea.v-field__input::placeholder {
   padding-bottom: 8px;
 }
 
-.left-col-info[data-v-bd9bb26d] {
+.left-col-info[data-v-4a46fb3a] {
   font-weight: normal;
   font-size: 1.2em;
   text-align: right;
 }
-.right-col-info[data-v-bd9bb26d] {
+.right-col-info[data-v-4a46fb3a] {
   font-weight: normal;
   font-size: 1.2em;
   margin-left: 40px;
@@ -57281,25 +57281,25 @@ textarea.v-field__input::placeholder {
   color: white !important;
 }
 
-[data-v-c9e7c17c] .chip-button {
+[data-v-e9b58a40] .chip-button {
   color: white !important;
   width: 38px;
   height: 30px !important;
 }
-.nightly-label[data-v-c9e7c17c] {
+.nightly-label[data-v-e9b58a40] {
   font-size: 0.75rem;
   background-color: hsl(0, 100%, 77%);
   transition: background-color 0.2s ease;
 }
-.select-list-item[data-v-c9e7c17c]:hover {
+.select-list-item[data-v-e9b58a40]:hover {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.select-list-item[data-v-c9e7c17c]:selected {
+.select-list-item[data-v-e9b58a40]:selected {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.list-header[data-v-c9e7c17c] {
+.list-header[data-v-e9b58a40] {
   cursor: default;
   text-align: center;
   font-weight: bolder;

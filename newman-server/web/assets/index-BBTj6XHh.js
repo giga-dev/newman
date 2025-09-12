@@ -37549,7 +37549,7 @@ const _hoisted_5$6 = { key: 0 };
 const _hoisted_6$6 = { key: 1 };
 const _hoisted_7$6 = { key: 0 };
 const _hoisted_8$5 = { key: 1 };
-const _hoisted_9$4 = { class: "font-weight-bold font-medium" };
+const _hoisted_9$5 = { class: "font-weight-bold font-medium" };
 function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_router_link = resolveComponent("router-link");
@@ -37743,7 +37743,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                   class: "d-flex justify-start ps-5"
                 }, {
                   default: withCtx(() => [
-                    createBaseVNode("span", _hoisted_9$4, toDisplayString(item.suiteRight), 1)
+                    createBaseVNode("span", _hoisted_9$5, toDisplayString(item.suiteRight), 1)
                   ]),
                   _: 2
                 }, 1024)
@@ -38293,7 +38293,10 @@ function parseJobEntry(item) {
     build: item.buildName || item.build.name,
     buildConsolidated: consolidateBuildName(item),
     // Build string concatenation
-    suite: item.suiteName || item.suite.name,
+    suite: {
+      id: item.suiteId || item.suite.id,
+      name: item.suiteName || item.suite.name
+    },
     // Assign value or null if missing
     jdk: item.jobConfigName || item.jobConfig.name,
     // Assign value or null if missing
@@ -38935,7 +38938,7 @@ const _hoisted_5$5 = {
 const _hoisted_6$5 = ["innerHTML"];
 const _hoisted_7$5 = ["innerHTML"];
 const _hoisted_8$4 = { align: "center" };
-const _hoisted_9$3 = {
+const _hoisted_9$4 = {
   key: 0,
   align: "center"
 };
@@ -39251,7 +39254,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
             ])
           ]),
           "item.historyStats": withCtx(({ item }) => [
-            item.historyStats.statsBranch ? (openBlock(), createElementBlock("div", _hoisted_9$3, [
+            item.historyStats.statsBranch ? (openBlock(), createElementBlock("div", _hoisted_9$4, [
               createBaseVNode("div", _hoisted_10$3, toDisplayString(unref(coloredHistoryStats)(item.historyStats.statsBranch, false)), 1)
             ])) : createCommentVNode("", true),
             item.statsMaster != null ? (openBlock(), createElementBlock("div", _hoisted_11$2, [
@@ -39333,8 +39336,9 @@ const _hoisted_3$8 = { class: "ml-6" };
 const _hoisted_4$5 = { key: 0 };
 const _hoisted_5$4 = { key: 1 };
 const _hoisted_6$4 = { key: 2 };
-const _hoisted_7$4 = { class: "d-flex align-center" };
-const _hoisted_8$3 = { class: "ml-3" };
+const _hoisted_7$4 = { key: 3 };
+const _hoisted_8$3 = { class: "d-flex align-center" };
+const _hoisted_9$3 = { class: "ml-3" };
 const __default__$5 = {
   components: {
     TestsGrid: _sfc_main$g
@@ -39434,7 +39438,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
                               var _a2;
                               return [
                                 createBaseVNode("div", _hoisted_1$d, "Job: " + toDisplayString(__props.id), 1),
-                                _ctx.jobDetails ? (openBlock(), createElementBlock("div", _hoisted_2$8, "( " + toDisplayString((_a2 = _ctx.jobDetails) == null ? void 0 : _a2.suite) + " )", 1)) : createCommentVNode("", true)
+                                _ctx.jobDetails ? (openBlock(), createElementBlock("div", _hoisted_2$8, "( " + toDisplayString((_a2 = _ctx.jobDetails) == null ? void 0 : _a2.suite.name) + " )", 1)) : createCommentVNode("", true)
                               ];
                             }),
                             _: 1
@@ -39477,7 +39481,16 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
                                                   ]),
                                                   _: 2
                                                 }, 1032, ["to"])
-                                              ])) : item.key == "state" ? (openBlock(), createElementBlock("div", _hoisted_5$4, [
+                                              ])) : item.key == "suite" ? (openBlock(), createElementBlock("div", _hoisted_5$4, [
+                                                createVNode(_component_router_link, {
+                                                  to: { name: "SuiteDetails", params: { id: _ctx.jobDetails.suite.id } }
+                                                }, {
+                                                  default: withCtx(() => [
+                                                    createTextVNode(toDisplayString(_ctx.jobDetails[item.key].name), 1)
+                                                  ]),
+                                                  _: 2
+                                                }, 1032, ["to"])
+                                              ])) : item.key == "state" ? (openBlock(), createElementBlock("div", _hoisted_6$4, [
                                                 createVNode(_component_v_chip, {
                                                   variant: "elevated",
                                                   class: "text-uppercase font-weight-bold text-body-2 text-mono",
@@ -39486,7 +39499,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
                                                   size: "small",
                                                   label: ""
                                                 }, null, 8, ["color", "text"])
-                                              ])) : (openBlock(), createElementBlock("div", _hoisted_6$4, toDisplayString(_ctx.jobDetails[item.key] || "N/A"), 1))
+                                              ])) : (openBlock(), createElementBlock("div", _hoisted_7$4, toDisplayString(_ctx.jobDetails[item.key] || "N/A"), 1))
                                             ]),
                                             _: 2
                                           }, 1024)) : createCommentVNode("", true)
@@ -39586,7 +39599,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
                 default: withCtx(() => {
                   var _a2, _b, _c;
                   return [
-                    createBaseVNode("div", _hoisted_7$4, [
+                    createBaseVNode("div", _hoisted_8$3, [
                       _ctx.jobDetails ? (openBlock(), createBlock(_component_v_progress_linear, {
                         key: 0,
                         color: "#5bc0de",
@@ -39601,7 +39614,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
                         ]),
                         _: 1
                       }, 8, ["model-value", "striped"])) : createCommentVNode("", true),
-                      createBaseVNode("span", _hoisted_8$3, toDisplayString((_c = _ctx.jobDetails) == null ? void 0 : _c.state), 1)
+                      createBaseVNode("span", _hoisted_9$3, toDisplayString((_c = _ctx.jobDetails) == null ? void 0 : _c.state), 1)
                     ])
                   ];
                 }),
@@ -39616,7 +39629,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
     };
   }
 });
-const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-bd9bb26d"]]);
+const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-4a46fb3a"]]);
 const _sfc_main$e = {
   props: {
     id: String
@@ -41698,7 +41711,7 @@ const __default__$1 = {
         return `Would you like to delete <strong>${this.deleteItem.length} jobs</strong> ?`;
       } else {
         return `Would you like to delete job
-<strong>${this.deleteItem.suite} [${this.deleteItem.jobId}]</strong> ?`;
+<strong>${this.deleteItem.suite.name} [${this.deleteItem.jobId}]</strong> ?`;
       }
     },
     selectedDeleteVisible() {
@@ -42347,9 +42360,9 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
           "item.suite": withCtx(({ item }) => [
             withDirectives((openBlock(), createElementBlock("span", _hoisted_3, [
               item.submittedBy == "root" ? (openBlock(), createElementBlock("span", _hoisted_4, " N ")) : createCommentVNode("", true),
-              createTextVNode(" " + toDisplayString(item.suite), 1)
+              createTextVNode(" " + toDisplayString(item.suite.name), 1)
             ])), [
-              [_directive_tooltip, _ctx.getTooltipConfig(item.suite)]
+              [_directive_tooltip, _ctx.getTooltipConfig(item.suite.name)]
             ])
           ]),
           "item.jdk": withCtx(({ item }) => [
@@ -42470,7 +42483,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
         createVNode(PromptDialog, {
           ref: "jobConfigDialog",
           "prepend-icon": "mdi-pencil-box",
-          title: _ctx.configItem && `Edit: <strong>${_ctx.configItem.suite} [${_ctx.configItem.jobId}]</strong>`,
+          title: _ctx.configItem && `Edit: <strong>${_ctx.configItem.suite.name} [${_ctx.configItem.jobId}]</strong>`,
           "onPromptDialog:onConfirm": _ctx.confirmConfigureJob,
           "onPromptDialog:onCancel": _ctx.cancelConfigureJob,
           disabled: _ctx.dialogDisabled,
@@ -42485,7 +42498,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-c9e7c17c"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-e9b58a40"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -45420,4 +45433,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-MIfCTCVF.js.map
+//# sourceMappingURL=index-BBTj6XHh.js.map
