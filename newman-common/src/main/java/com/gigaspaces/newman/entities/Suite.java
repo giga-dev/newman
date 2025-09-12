@@ -93,12 +93,19 @@ public class Suite {
         return res;
     }
 
-    @PrePersist
-    public void generateId() {
-        if (this.id == null) {
-            this.id = UUID.randomUUID().toString();
-        }
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("name", name)
+                .append("custom environment variables", customVariables)
+                .append("criteria", criteria)
+                .append("workers allowed", workersAllowed)
+                .toString();
+    }
 
+    @PreUpdate
+    public void update() {
         if (this.customVariables != null) {
             Map<String, String> vars = Suite.parseCustomVariables(this.customVariables);
             String threadsLimit = vars.get(Suite.THREADS_LIMIT);    // save threads as a separate field to use it later
@@ -112,15 +119,12 @@ public class Suite {
         }
     }
 
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("id", id)
-                .append("name", name)
-                .append("custom environment variables", customVariables)
-                .append("criteria", criteria)
-                .append("workers allowed", workersAllowed)
-                .toString();
+    @PrePersist
+    public void generateId() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID().toString();
+        }
+        update();
     }
 
     public String getDisplayedCriteria() {
