@@ -1,6 +1,10 @@
 package com.gigaspaces.newman;
 
 
+import com.cronutils.model.Cron;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.model.time.ExecutionTime;
+import com.cronutils.parser.CronParser;
 import com.gigaspaces.newman.beans.*;
 import com.gigaspaces.newman.entities.*;
 import com.gigaspaces.newman.utils.EnvUtils;
@@ -12,9 +16,13 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
+
+import static com.cronutils.model.CronType.QUARTZ;
 
 /**
  * @author Boris
@@ -43,6 +51,7 @@ public class NewmanSubmitter {
     private String password;
     private ThreadPoolExecutor workers;
     private int intervalOnSuspendMinutes;
+    private CronParser cronParser;
 
     private NewmanSubmitter(String host, String port, String username, String password) {
 
@@ -55,6 +64,7 @@ public class NewmanSubmitter {
                 new LinkedBlockingQueue<>());
 
         intervalOnSuspendMinutes = Integer.valueOf(System.getenv().getOrDefault(RETRY_MINS_INTERVAL_ON_SUSPENDED, String.valueOf(DEFAULT_RETRY_MINS_INTERVAL_ON_SUSPENDED)));
+        cronParser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(QUARTZ));
 
         logger.info("connecting to {}:{} with username: {} and password: {}", host, port, username, password);
         try {
@@ -175,7 +185,7 @@ public class NewmanSubmitter {
         logger.info("build to run - name:[{}], id:[{}], branch:[{}], tags:[{}], mode:[{}].", buildToRun.getName(), buildToRun.getId(), buildToRun.getBranch(), buildToRun.getTags(), mode);
         // Submit jobs for suites
         try {
-            for (String suiteId : filterSuites(suitesId, buildToRun.getId())) {
+            for (String suiteId : filterSuites(suitesId, buildToRun.getId(), mode)) {
                 submitted.add(submitJobsByThreads(suiteId, buildToRun.getId(), jobConfig.getId(), username, agentGroups, priority));
             }
         } catch (Exception ignored) {
@@ -192,7 +202,7 @@ public class NewmanSubmitter {
         }
     }
 
-    private List<String> filterSuites(List<String> suitesId, String buildId) throws ExecutionException, InterruptedException, TimeoutException {
+    private List<String> filterSuites(List<String> suitesId, String buildId, String mode) throws ExecutionException, InterruptedException, TimeoutException {
         try {
             List<Suite> staticMiniSuites = newmanClient.getAllSuites().toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS).getValues();
             Build build = newmanClient.getBuild(buildId).toCompletableFuture().get(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -202,12 +212,25 @@ public class NewmanSubmitter {
                 if (suitesId.contains(staticSuite.getId())) {
                     Map<String, String> CustomVariablesMap = Suite.parseCustomVariables(staticSuite.getCustomVariables());
                     String requireBuildStr = CustomVariablesMap.get("REQUIRE_BUILD_TAG");
+                    String scheduleCron = CustomVariablesMap.get("SCHEDULE");
                     Set<String> requireTags = new HashSet<>();
                     if (requireBuildStr != null) {
                         requireTags = new HashSet<>(Arrays.asList(requireBuildStr.split(",")));
                     }
+
                     if (build.getTags().containsAll(requireTags)) {
-                        filteredSuites.add(staticSuite.getId());
+                        if ("NIGHTLY".equals(mode) && scheduleCron != null) {
+                            Cron cron = cronParser.parse(scheduleCron);
+                            ExecutionTime executionTime = ExecutionTime.forCron(cron);
+                            ZonedDateTime now = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);   // truncate to not take HH:mm:ss into account
+                            if (executionTime.isMatch(now)) {
+                                filteredSuites.add(staticSuite.getId());
+                            } else {
+                                logger.warn("Skip suite {} because scheduled time [{}] doesn't match the current system time", staticSuite.getName(), now);
+                            }
+                        } else {
+                            filteredSuites.add(staticSuite.getId());
+                        }
                     }
                 }
             }

@@ -49,10 +49,9 @@ public interface JobRepository extends CrudRepository<Job, String>, JpaSpecifica
         "WHERE j.id = :jobId AND j.state = 'RUNNING' AND j.runningTests <= 0 ")
     int updateJobToReadyIfNoTestsRunning(@Param("jobId") String jobId);
 
-    @Query("SELECT j FROM Job j WHERE j.submittedBy = :submittedBy AND j.submitTime >= :startOfDay AND j.submitTime < :startOfNextDay")
+    @Query("SELECT j FROM Job j WHERE j.submittedBy = :submittedBy AND FUNCTION('DATE',j.submitTime) = :requestedDate")
     List<Job> findBySubmittedByAndSubmitTime(@Param("submittedBy") String submittedBy,
-                                             @Param("startOfDay") Date startOfDay,
-                                             @Param("startOfNextDay") Date startOfNextDay);
+                                             @Param("requestedDate") Date requestedDate);
 
     List<Job> findBySubmitTimeBeforeAndStateNot(Date deleteUntilDate, State state);
 

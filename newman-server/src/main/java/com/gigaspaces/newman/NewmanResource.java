@@ -865,17 +865,14 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public BuildsComparisonDTO getJobRunsComparison(@PathParam("build1Date") String build1DateStr, @PathParam("build2Date") String build2DateStr ) throws ParseException {
 
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date startDateLeft = formatter.parse(build1DateStr + " 17:00:00");
-        Date endDateLeft = new Date(startDateLeft.getTime() + TimeUnit.MINUTES.toMillis(2));
-
-        Date startDateRight = formatter.parse(build2DateStr + " 17:00:00");
-        Date endDateRight = new Date(startDateRight.getTime() + TimeUnit.MINUTES.toMillis(2));
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        Date dateLeft = formatter.parse(build1DateStr);
+        Date dateRight = formatter.parse(build2DateStr);
 
         BuildsComparisonDTO buildsComparisonDTO = new BuildsComparisonDTO();
 
-        List<Job> jobsLeft = jobRepository.findBySubmittedByAndSubmitTime("root", startDateLeft, endDateLeft);
-        List<Job> jobsRight = jobRepository.findBySubmittedByAndSubmitTime("root", startDateRight, endDateRight);
+        List<Job> jobsLeft = jobRepository.findBySubmittedByAndSubmitTime("root", dateLeft);
+        List<Job> jobsRight = jobRepository.findBySubmittedByAndSubmitTime("root", dateRight);
 
         if (!jobsLeft.isEmpty()) {
             Build buildLeft = jobsLeft.get(0).getBuild();
