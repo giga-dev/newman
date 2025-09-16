@@ -37483,6 +37483,10 @@ const _sfc_main$m = {
       test: null,
       headers: {},
       items: [],
+      leftMenu: false,
+      rightMenu: false,
+      leftDate: "",
+      rightDate: "",
       colors: {
         "success": "92, 184, 92",
         "fail": "217, 83, 79",
@@ -37492,27 +37496,28 @@ const _sfc_main$m = {
     };
   },
   beforeMount() {
+    const todaysBuildDate = /* @__PURE__ */ new Date();
+    todaysBuildDate.setDate(todaysBuildDate.getDate());
+    this.leftDate = todaysBuildDate;
+    const previousBuildDate = new Date(todaysBuildDate);
+    previousBuildDate.setDate(previousBuildDate.getDate() - 1);
+    this.rightDate = previousBuildDate;
     this.initTable();
   },
   methods: {
     initTable() {
-      const todaysBuildDate = /* @__PURE__ */ new Date();
-      todaysBuildDate.setDate(todaysBuildDate.getDate() - 1);
-      const previousBuildDate = new Date(todaysBuildDate);
-      previousBuildDate.setDate(previousBuildDate.getDate() - 1);
-      const formatDate = (date2) => date2.toISOString().split("T")[0];
-      const build1Date = formatDate(todaysBuildDate);
-      const build2Date = formatDate(previousBuildDate);
-      this.$axios.get(`/api/newman/build/${build1Date}/compare/${build2Date}`, {}).then((response) => {
+      const lDate = this.formatDate(this.leftDate);
+      const rDate = this.formatDate(this.rightDate);
+      this.$axios.get(`/api/newman/build/${lDate}/compare/${rDate}`, {}).then((response) => {
         this.loading = false;
         const values = response.data;
         const headerLeft = {
           id: values.buildLeftDetails && values.buildLeftDetails[0] || null,
-          name: (values.buildLeftDetails && values.buildLeftDetails[1] || "No build found") + " (" + build1Date + ")"
+          name: (values.buildLeftDetails && values.buildLeftDetails[1] || "No build found") + " (" + lDate + ")"
         };
         const headerRight = {
           id: values.buildRightDetails && values.buildRightDetails[0] || null,
-          name: (values.buildRightDetails && values.buildRightDetails[1] || "No build found") + " (" + build2Date + ")"
+          name: (values.buildRightDetails && values.buildRightDetails[1] || "No build found") + " (" + rDate + ")"
         };
         this.headers = {
           left: headerLeft,
@@ -37535,6 +37540,14 @@ const _sfc_main$m = {
         this.loading = false;
       });
     },
+    formatDate(date2) {
+      if (!date2) return null;
+      const d = new Date(date2);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    },
     getButtonClass(buttonName) {
       const inactiveClassName = `inactive-button-${buttonName}`;
       return {
@@ -37554,18 +37567,23 @@ const _sfc_main$m = {
   }
 };
 const _hoisted_1$j = { style: { "width": "95%" } };
-const _hoisted_2$b = { class: "elevation-2 text-center col-header" };
+const _hoisted_2$b = { class: "d-flex align-center justify-space-between" };
 const _hoisted_3$b = { class: "elevation-2 text-center col-header" };
-const _hoisted_4$9 = { key: 0 };
-const _hoisted_5$6 = { key: 1 };
+const _hoisted_4$9 = { class: "d-flex align-center justify-space-between" };
+const _hoisted_5$6 = { class: "elevation-2 text-center col-header" };
 const _hoisted_6$6 = { key: 0 };
 const _hoisted_7$6 = { key: 1 };
+const _hoisted_8$5 = { key: 0 };
+const _hoisted_9$5 = { key: 1 };
 function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_router_link = resolveComponent("router-link");
+  const _component_v_icon = resolveComponent("v-icon");
+  const _component_v_btn = resolveComponent("v-btn");
+  const _component_v_date_picker = resolveComponent("v-date-picker");
+  const _component_v_menu = resolveComponent("v-menu");
   const _component_v_col = resolveComponent("v-col");
   const _component_v_row = resolveComponent("v-row");
-  const _component_v_btn = resolveComponent("v-btn");
   const _component_v_data_table = resolveComponent("v-data-table");
   const _component_v_card = resolveComponent("v-card");
   return openBlock(), createBlock(_component_v_card, { align: "center" }, {
@@ -37575,13 +37593,13 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
           align: "start",
           class: "text-wrap"
         }, {
-          default: withCtx(() => _cache[0] || (_cache[0] = [
+          default: withCtx(() => _cache[6] || (_cache[6] = [
             createBaseVNode("div", null, [
               createBaseVNode("h3", null, " Compare: ")
             ], -1)
           ])),
           _: 1,
-          __: [0]
+          __: [6]
         }),
         createVNode(_component_v_data_table, {
           hover: "",
@@ -37606,16 +37624,54 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2;
                     return [
-                      $data.headers.left ? (openBlock(), createBlock(_component_router_link, {
-                        key: 0,
-                        class: "font-bold",
-                        to: ((_a2 = $data.headers.left) == null ? void 0 : _a2.id) ? { name: "BuildDetails", params: { id: $data.headers.left.id } } : null
-                      }, {
-                        default: withCtx(() => [
-                          createBaseVNode("h3", _hoisted_2$b, toDisplayString($data.headers.left.name), 1)
-                        ]),
-                        _: 1
-                      }, 8, ["to"])) : createCommentVNode("", true)
+                      createBaseVNode("div", _hoisted_2$b, [
+                        $data.headers.left ? (openBlock(), createBlock(_component_router_link, {
+                          key: 0,
+                          class: "font-bold flex-grow-1",
+                          to: ((_a2 = $data.headers.left) == null ? void 0 : _a2.id) ? { name: "BuildDetails", params: { id: $data.headers.left.id } } : null
+                        }, {
+                          default: withCtx(() => [
+                            createBaseVNode("h3", _hoisted_3$b, toDisplayString($data.headers.left.name), 1)
+                          ]),
+                          _: 1
+                        }, 8, ["to"])) : createCommentVNode("", true),
+                        createVNode(_component_v_menu, {
+                          modelValue: $data.leftMenu,
+                          "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $data.leftMenu = $event),
+                          "close-on-content-click": false,
+                          transition: "scale-transition",
+                          location: "start",
+                          "min-width": "auto"
+                        }, {
+                          activator: withCtx(({ props }) => [
+                            createVNode(_component_v_btn, mergeProps({ color: "primary" }, props), {
+                              default: withCtx(() => [
+                                createVNode(_component_v_icon, null, {
+                                  default: withCtx(() => _cache[7] || (_cache[7] = [
+                                    createTextVNode("mdi-calendar")
+                                  ])),
+                                  _: 1,
+                                  __: [7]
+                                })
+                              ]),
+                              _: 2
+                            }, 1040)
+                          ]),
+                          default: withCtx(() => [
+                            createVNode(_component_v_date_picker, {
+                              modelValue: $data.leftDate,
+                              "onUpdate:modelValue": [
+                                _cache[0] || (_cache[0] = ($event) => $data.leftDate = $event),
+                                _cache[1] || (_cache[1] = (date2) => {
+                                  $options.initTable();
+                                  $data.leftMenu = false;
+                                })
+                              ]
+                            }, null, 8, ["modelValue"])
+                          ]),
+                          _: 1
+                        }, 8, ["modelValue"])
+                      ])
                     ];
                   }),
                   _: 1
@@ -37627,16 +37683,54 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2;
                     return [
-                      $data.headers.right ? (openBlock(), createBlock(_component_router_link, {
-                        key: 0,
-                        class: "font-bold",
-                        to: ((_a2 = $data.headers.right) == null ? void 0 : _a2.id) ? { name: "BuildDetails", params: { id: $data.headers.right.id || null } } : null
-                      }, {
-                        default: withCtx(() => [
-                          createBaseVNode("h3", _hoisted_3$b, toDisplayString($data.headers.right.name), 1)
-                        ]),
-                        _: 1
-                      }, 8, ["to"])) : createCommentVNode("", true)
+                      createBaseVNode("div", _hoisted_4$9, [
+                        createVNode(_component_v_menu, {
+                          modelValue: $data.rightMenu,
+                          "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $data.rightMenu = $event),
+                          "close-on-content-click": false,
+                          transition: "scale-transition",
+                          location: "end",
+                          "min-width": "auto"
+                        }, {
+                          activator: withCtx(({ props }) => [
+                            createVNode(_component_v_btn, mergeProps({ color: "primary" }, props), {
+                              default: withCtx(() => [
+                                createVNode(_component_v_icon, null, {
+                                  default: withCtx(() => _cache[8] || (_cache[8] = [
+                                    createTextVNode("mdi-calendar")
+                                  ])),
+                                  _: 1,
+                                  __: [8]
+                                })
+                              ]),
+                              _: 2
+                            }, 1040)
+                          ]),
+                          default: withCtx(() => [
+                            createVNode(_component_v_date_picker, {
+                              modelValue: $data.rightDate,
+                              "onUpdate:modelValue": [
+                                _cache[3] || (_cache[3] = ($event) => $data.rightDate = $event),
+                                _cache[4] || (_cache[4] = (date2) => {
+                                  $options.initTable();
+                                  $data.rightMenu = false;
+                                })
+                              ]
+                            }, null, 8, ["modelValue"])
+                          ]),
+                          _: 1
+                        }, 8, ["modelValue"]),
+                        $data.headers.right ? (openBlock(), createBlock(_component_router_link, {
+                          key: 0,
+                          class: "font-bold flex-grow-1",
+                          to: ((_a2 = $data.headers.right) == null ? void 0 : _a2.id) ? { name: "BuildDetails", params: { id: $data.headers.right.id || null } } : null
+                        }, {
+                          default: withCtx(() => [
+                            createBaseVNode("h3", _hoisted_5$6, toDisplayString($data.headers.right.name), 1)
+                          ]),
+                          _: 1
+                        }, 8, ["to"])) : createCommentVNode("", true)
+                      ])
                     ];
                   }),
                   _: 1
@@ -37683,7 +37777,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2, _b, _c, _d, _e, _f, _g, _h;
                     return [
-                      item.colLeft != null ? (openBlock(), createElementBlock("div", _hoisted_4$9, [
+                      item.colLeft != null ? (openBlock(), createElementBlock("div", _hoisted_6$6, [
                         createVNode(_component_v_btn, {
                           variant: "elevated",
                           value: "TOTAL",
@@ -37716,7 +37810,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                           class: normalizeClass($options.getButtonClass("fail3")),
                           size: "small"
                         }, null, 8, ["color", "text", "class"])
-                      ])) : (openBlock(), createElementBlock("div", _hoisted_5$6, _cache[1] || (_cache[1] = [
+                      ])) : (openBlock(), createElementBlock("div", _hoisted_7$6, _cache[9] || (_cache[9] = [
                         createBaseVNode("span", null, "--", -1)
                       ])))
                     ];
@@ -37731,7 +37825,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2, _b, _c, _d, _e, _f, _g, _h;
                     return [
-                      item.colRight != null ? (openBlock(), createElementBlock("div", _hoisted_6$6, [
+                      item.colRight != null ? (openBlock(), createElementBlock("div", _hoisted_8$5, [
                         createVNode(_component_v_btn, {
                           variant: "elevated",
                           value: "FAILED3TIMES",
@@ -37764,7 +37858,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                           class: normalizeClass($options.getButtonClass("total")),
                           size: "small"
                         }, null, 8, ["color", "text", "class"])
-                      ])) : (openBlock(), createElementBlock("div", _hoisted_7$6, _cache[2] || (_cache[2] = [
+                      ])) : (openBlock(), createElementBlock("div", _hoisted_9$5, _cache[10] || (_cache[10] = [
                         createBaseVNode("span", null, "--", -1)
                       ])))
                     ];
@@ -37806,7 +37900,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$e], ["__scopeId", "data-v-071e4eb3"]]);
+const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$e], ["__scopeId", "data-v-3b7df00f"]]);
 const _sfc_main$l = {
   beforeMount() {
     this.initBuildsAndSuites();
@@ -45491,4 +45585,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-C7D4DLVm.js.map
+//# sourceMappingURL=index-CnglzY9V.js.map
