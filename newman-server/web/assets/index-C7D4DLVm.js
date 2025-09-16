@@ -41855,7 +41855,7 @@ const __default__$1 = {
             result = true;
             break;
           }
-          const value = String(entry[key]);
+          let value = this.extractValueFromField(key, entry);
           if (value.toLowerCase().includes(search.toLowerCase())) {
             result = true;
             break;
@@ -41864,6 +41864,13 @@ const __default__$1 = {
         if (result) break;
       }
       return result;
+    },
+    extractValueFromField(fieldName, entry) {
+      let value = entry[fieldName];
+      if (fieldName === "suite") {
+        value = entry[fieldName].name;
+      }
+      return String(value);
     },
     setRowClass(item) {
       let statuses = item.item.status;
@@ -42549,7 +42556,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-e9b58a40"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-98dc9638"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -45484,4 +45491,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-D8EFpGpp.js.map
+//# sourceMappingURL=index-C7D4DLVm.js.map
