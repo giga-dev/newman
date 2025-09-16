@@ -37482,7 +37482,13 @@ const _sfc_main$m = {
       search: null,
       test: null,
       headers: {},
-      items: []
+      items: [],
+      colors: {
+        "success": "92, 184, 92",
+        "fail": "217, 83, 79",
+        "fail3": "139, 0, 0",
+        "total": "128,128,128"
+      }
     };
   },
   beforeMount() {
@@ -37518,10 +37524,10 @@ const _sfc_main$m = {
           const left = suiteData.left;
           const right = suiteData.right;
           return {
-            suiteLeft: key,
+            suiteLeft: { name: key, jobId: (left == null ? void 0 : left.jobId) || null },
             colLeft: left && [left.totalTests, left.passedTests, left.failedTests, left.failed3TimesTests] || null,
-            suiteRight: key,
-            colRight: right && [right.failed3TimesTests, right.failedTests, right.passedTests, right.totalTests] || null
+            suiteRight: { name: key, jobId: (right == null ? void 0 : right.jobId) || null },
+            colRight: right && [right.totalTests, right.passedTests, right.failedTests, right.failed3TimesTests] || null
           };
         });
       }).catch((error) => {
@@ -37529,8 +37535,8 @@ const _sfc_main$m = {
         this.loading = false;
       });
     },
-    getButtonClass(button) {
-      const inactiveClassName = `inactive-button-${button}`;
+    getButtonClass(buttonName) {
+      const inactiveClassName = `inactive-button-${buttonName}`;
       return {
         "text-uppercase": true,
         "chip-button": true,
@@ -37538,18 +37544,22 @@ const _sfc_main$m = {
         [inactiveClassName]: true
         // Apply 'selected' class if button is active
       };
+    },
+    getColor(buttonName, predicate) {
+      const baseColor = this.colors[buttonName];
+      const defaultAlpha = 0.1;
+      const highlightAlpha = 1;
+      return `rgba(${baseColor}, ${predicate ? highlightAlpha : defaultAlpha})`;
     }
   }
 };
-const _hoisted_1$j = { style: { "width": "80%" } };
+const _hoisted_1$j = { style: { "width": "95%" } };
 const _hoisted_2$b = { class: "elevation-2 text-center col-header" };
 const _hoisted_3$b = { class: "elevation-2 text-center col-header" };
-const _hoisted_4$9 = { class: "font-weight-bold font-medium" };
-const _hoisted_5$6 = { key: 0 };
-const _hoisted_6$6 = { key: 1 };
-const _hoisted_7$6 = { key: 0 };
-const _hoisted_8$5 = { key: 1 };
-const _hoisted_9$5 = { class: "font-weight-bold font-medium" };
+const _hoisted_4$9 = { key: 0 };
+const _hoisted_5$6 = { key: 1 };
+const _hoisted_6$6 = { key: 0 };
+const _hoisted_7$6 = { key: 1 };
 function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_router_link = resolveComponent("router-link");
@@ -37638,113 +37648,151 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
           item: withCtx(({ item }) => [
             createVNode(_component_v_row, {
               "no-gutters": "",
-              class: "mb-2"
+              class: "mb-2 justify-center flex-nowrap"
             }, {
               default: withCtx(() => [
                 createVNode(_component_v_col, {
                   cols: "3",
-                  class: "d-flex justify-end pe-2"
+                  class: "d-flex justify-end pr-2"
                 }, {
-                  default: withCtx(() => [
-                    createBaseVNode("span", _hoisted_4$9, toDisplayString(item == null ? void 0 : item.suiteLeft), 1)
-                  ]),
+                  default: withCtx(() => {
+                    var _a2, _b;
+                    return [
+                      ((_a2 = item.suiteLeft) == null ? void 0 : _a2.jobId) ? (openBlock(), createBlock(_component_router_link, {
+                        key: 0,
+                        class: "font-weight-bold font-medium",
+                        to: { name: "JobDetails", params: { id: (_b = item.suiteLeft) == null ? void 0 : _b.jobId, status: "ALL" } }
+                      }, {
+                        default: withCtx(() => {
+                          var _a3;
+                          return [
+                            createTextVNode(toDisplayString((_a3 = item.suiteLeft) == null ? void 0 : _a3.name), 1)
+                          ];
+                        }),
+                        _: 2
+                      }, 1032, ["to"])) : createCommentVNode("", true)
+                    ];
+                  }),
+                  _: 2
+                }, 1024),
+                createVNode(_component_v_col, {
+                  cols: "auto",
+                  class: "d-flex justify-end pr-3",
+                  style: { "width": "230px" }
+                }, {
+                  default: withCtx(() => {
+                    var _a2, _b, _c, _d, _e, _f, _g, _h;
+                    return [
+                      item.colLeft != null ? (openBlock(), createElementBlock("div", _hoisted_4$9, [
+                        createVNode(_component_v_btn, {
+                          variant: "elevated",
+                          value: "TOTAL",
+                          color: $options.getColor("total", ((_a2 = item.colLeft) == null ? void 0 : _a2[0]) > ((_b = item.colRight) == null ? void 0 : _b[0]) || false),
+                          text: item.colLeft[0].toString(),
+                          class: normalizeClass($options.getButtonClass("total")),
+                          size: "small"
+                        }, null, 8, ["color", "text", "class"]),
+                        createVNode(_component_v_btn, {
+                          variant: "elevated",
+                          value: "SUCCESS",
+                          color: $options.getColor("success", ((_c = item.colLeft) == null ? void 0 : _c[1]) > ((_d = item.colRight) == null ? void 0 : _d[1]) || false),
+                          text: item.colLeft[1].toString(),
+                          class: normalizeClass($options.getButtonClass("success")),
+                          size: "small"
+                        }, null, 8, ["color", "text", "class"]),
+                        createVNode(_component_v_btn, {
+                          variant: "elevated",
+                          value: "FAIL",
+                          color: $options.getColor("fail", ((_e = item.colLeft) == null ? void 0 : _e[2]) > ((_f = item.colRight) == null ? void 0 : _f[2]) || false),
+                          text: item.colLeft[2].toString(),
+                          class: normalizeClass($options.getButtonClass("fail")),
+                          size: "small"
+                        }, null, 8, ["color", "text", "class"]),
+                        createVNode(_component_v_btn, {
+                          variant: "elevated",
+                          value: "FAILED3TIMES",
+                          color: $options.getColor("fail3", ((_g = item.colLeft) == null ? void 0 : _g[3]) > ((_h = item.colRight) == null ? void 0 : _h[3]) || false),
+                          text: item.colLeft[3].toString(),
+                          class: normalizeClass($options.getButtonClass("fail3")),
+                          size: "small"
+                        }, null, 8, ["color", "text", "class"])
+                      ])) : (openBlock(), createElementBlock("div", _hoisted_5$6, _cache[1] || (_cache[1] = [
+                        createBaseVNode("span", null, "--", -1)
+                      ])))
+                    ];
+                  }),
+                  _: 2
+                }, 1024),
+                createVNode(_component_v_col, {
+                  cols: "auto",
+                  class: "d-flex justify-start pl-3",
+                  style: { "width": "230px" }
+                }, {
+                  default: withCtx(() => {
+                    var _a2, _b, _c, _d, _e, _f, _g, _h;
+                    return [
+                      item.colRight != null ? (openBlock(), createElementBlock("div", _hoisted_6$6, [
+                        createVNode(_component_v_btn, {
+                          variant: "elevated",
+                          value: "FAILED3TIMES",
+                          color: $options.getColor("fail3", ((_a2 = item.colLeft) == null ? void 0 : _a2[3]) < ((_b = item.colRight) == null ? void 0 : _b[3]) || false),
+                          text: item.colRight[3].toString(),
+                          class: normalizeClass($options.getButtonClass("fail3")),
+                          size: "small"
+                        }, null, 8, ["color", "text", "class"]),
+                        createVNode(_component_v_btn, {
+                          variant: "elevated",
+                          value: "FAIL",
+                          color: $options.getColor("fail", ((_c = item.colLeft) == null ? void 0 : _c[2]) < ((_d = item.colRight) == null ? void 0 : _d[2]) || false),
+                          text: item.colRight[2].toString(),
+                          class: normalizeClass($options.getButtonClass("fail")),
+                          size: "small"
+                        }, null, 8, ["color", "text", "class"]),
+                        createVNode(_component_v_btn, {
+                          variant: "elevated",
+                          value: "SUCCESS",
+                          color: $options.getColor("success", ((_e = item.colLeft) == null ? void 0 : _e[1]) < ((_f = item.colRight) == null ? void 0 : _f[1]) || false),
+                          text: item.colRight[1].toString(),
+                          class: normalizeClass($options.getButtonClass("success")),
+                          size: "small"
+                        }, null, 8, ["color", "text", "class"]),
+                        createVNode(_component_v_btn, {
+                          variant: "elevated",
+                          value: "TOTAL",
+                          color: $options.getColor("total", ((_g = item.colLeft) == null ? void 0 : _g[0]) < ((_h = item.colRight) == null ? void 0 : _h[0]) || false),
+                          text: item.colRight[0].toString(),
+                          class: normalizeClass($options.getButtonClass("total")),
+                          size: "small"
+                        }, null, 8, ["color", "text", "class"])
+                      ])) : (openBlock(), createElementBlock("div", _hoisted_7$6, _cache[2] || (_cache[2] = [
+                        createBaseVNode("span", null, "--", -1)
+                      ])))
+                    ];
+                  }),
                   _: 2
                 }, 1024),
                 createVNode(_component_v_col, {
                   cols: "3",
-                  class: "d-flex justify-end pe-5"
+                  class: "d-flex justify-start pl-2"
                 }, {
-                  default: withCtx(() => [
-                    item.colLeft != null ? (openBlock(), createElementBlock("div", _hoisted_5$6, [
-                      createVNode(_component_v_btn, {
-                        variant: "elevated",
-                        value: "TOTAL",
-                        color: "rgb(128,128,128)",
-                        text: item.colLeft[0].toString(),
-                        class: normalizeClass($options.getButtonClass("total")),
-                        size: "small"
-                      }, null, 8, ["text", "class"]),
-                      createVNode(_component_v_btn, {
-                        variant: "elevated",
-                        value: "SUCCESS",
-                        color: "rgba(92, 184, 92, 1)",
-                        text: item.colLeft[1].toString(),
-                        class: normalizeClass($options.getButtonClass("success")),
-                        size: "small"
-                      }, null, 8, ["text", "class"]),
-                      createVNode(_component_v_btn, {
-                        variant: "elevated",
-                        value: "FAIL",
-                        color: "rgba(217, 83, 79, 1)",
-                        text: item.colLeft[2].toString(),
-                        class: normalizeClass($options.getButtonClass("fail")),
-                        size: "small"
-                      }, null, 8, ["text", "class"]),
-                      createVNode(_component_v_btn, {
-                        variant: "elevated",
-                        value: "FAILED3TIMES",
-                        color: "rgba(139, 0, 0, 1)",
-                        text: item.colLeft[3].toString(),
-                        class: normalizeClass($options.getButtonClass("fail3")),
-                        size: "small"
-                      }, null, 8, ["text", "class"])
-                    ])) : (openBlock(), createElementBlock("div", _hoisted_6$6, _cache[1] || (_cache[1] = [
-                      createBaseVNode("span", null, "--", -1)
-                    ])))
-                  ]),
-                  _: 2
-                }, 1024),
-                createVNode(_component_v_col, {
-                  cols: "3",
-                  class: "d-flex justify-start ps-2"
-                }, {
-                  default: withCtx(() => [
-                    item.colRight != null ? (openBlock(), createElementBlock("div", _hoisted_7$6, [
-                      createVNode(_component_v_btn, {
-                        variant: "elevated",
-                        value: "FAILED3TIMES",
-                        color: "rgba(139, 0, 0, 1)",
-                        text: item.colRight[0].toString(),
-                        class: normalizeClass($options.getButtonClass("fail3")),
-                        size: "small"
-                      }, null, 8, ["text", "class"]),
-                      createVNode(_component_v_btn, {
-                        variant: "elevated",
-                        value: "FAIL",
-                        color: "rgba(217, 83, 79, 1)",
-                        text: item.colRight[1].toString(),
-                        class: normalizeClass($options.getButtonClass("fail")),
-                        size: "small"
-                      }, null, 8, ["text", "class"]),
-                      createVNode(_component_v_btn, {
-                        variant: "elevated",
-                        value: "SUCCESS",
-                        color: "rgba(92, 184, 92, 1)",
-                        text: item.colRight[2].toString(),
-                        class: normalizeClass($options.getButtonClass("success")),
-                        size: "small"
-                      }, null, 8, ["text", "class"]),
-                      createVNode(_component_v_btn, {
-                        variant: "elevated",
-                        value: "TOTAL",
-                        color: "rgb(128,128,128)",
-                        text: item.colRight[3].toString(),
-                        class: normalizeClass($options.getButtonClass("total")),
-                        size: "small"
-                      }, null, 8, ["text", "class"])
-                    ])) : (openBlock(), createElementBlock("div", _hoisted_8$5, _cache[2] || (_cache[2] = [
-                      createBaseVNode("span", null, "--", -1)
-                    ])))
-                  ]),
-                  _: 2
-                }, 1024),
-                createVNode(_component_v_col, {
-                  cols: "3",
-                  class: "d-flex justify-start ps-5"
-                }, {
-                  default: withCtx(() => [
-                    createBaseVNode("span", _hoisted_9$5, toDisplayString(item.suiteRight), 1)
-                  ]),
+                  default: withCtx(() => {
+                    var _a2, _b;
+                    return [
+                      ((_a2 = item.suiteRight) == null ? void 0 : _a2.jobId) ? (openBlock(), createBlock(_component_router_link, {
+                        key: 0,
+                        class: "font-weight-bold font-medium",
+                        to: { name: "JobDetails", params: { id: (_b = item.suiteRight) == null ? void 0 : _b.jobId, status: "ALL" } }
+                      }, {
+                        default: withCtx(() => {
+                          var _a3;
+                          return [
+                            createTextVNode(toDisplayString((_a3 = item.suiteRight) == null ? void 0 : _a3.name), 1)
+                          ];
+                        }),
+                        _: 2
+                      }, 1032, ["to"])) : createCommentVNode("", true)
+                    ];
+                  }),
                   _: 2
                 }, 1024)
               ]),
@@ -37758,7 +37806,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$e], ["__scopeId", "data-v-0f4acf43"]]);
+const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$e], ["__scopeId", "data-v-071e4eb3"]]);
 const _sfc_main$l = {
   beforeMount() {
     this.initBuildsAndSuites();
@@ -45436,4 +45484,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-Bj0tqEYV.js.map
+//# sourceMappingURL=index-D8EFpGpp.js.map

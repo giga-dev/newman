@@ -26911,17 +26911,17 @@ textarea.v-field__input::placeholder {
 .v-tooltip:not(.v-tooltip--interactive) > .v-overlay__content {
   pointer-events: none;
 }
-.col-header[data-v-0f4acf43] {
+.col-header[data-v-071e4eb3] {
   background-color: #f5f5f5;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.font-medium[data-v-0f4acf43] {
+.font-medium[data-v-071e4eb3] {
   font-size: 1.2em;
 }
-.chip-button[data-v-0f4acf43] {
+.chip-button[data-v-071e4eb3] {
   font-size: 1.2em;
   font-weight: bolder !important;
   height: 35px !important;
@@ -26931,19 +26931,19 @@ textarea.v-field__input::placeholder {
   margin-left: 1px;
   margin-right: 1px;
 }
-.inactive-button-success[data-v-0f4acf43] {
+.inactive-button-success[data-v-071e4eb3] {
   border: 2px solid #5cb85c;
   color: #5cb85c;
 }
-.inactive-button-fail[data-v-0f4acf43] {
+.inactive-button-fail[data-v-071e4eb3] {
   border: 2px solid #d9534f;
   color: #d9534f;
 }
-.inactive-button-fail3[data-v-0f4acf43] {
+.inactive-button-fail3[data-v-071e4eb3] {
   border: 2px solid #8b0000;
   color: #8b0000;
 }
-.inactive-button-total[data-v-0f4acf43] {
+.inactive-button-total[data-v-071e4eb3] {
   border: 2px solid grey;
   color: grey;
 }
