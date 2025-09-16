@@ -14,7 +14,7 @@ while true; do
                 # current hour
                 HOURS=$(date +%H)
 
-                if [ $HOURS -ge 23 -o $HOURS -le 1 ]; then
+                if [ $HOURS -ge 20 -a $HOURS -le 23 ]; then
                         echo "running in nightly mode, will trigger new jobs even if no changes where made, date is `date`"
                         export NEWMAN_MODE="NIGHTLY"
                         export NEWMAN_BUILD_TAGS="XAP,DOTNET"
