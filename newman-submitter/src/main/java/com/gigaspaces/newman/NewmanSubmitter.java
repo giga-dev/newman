@@ -114,9 +114,11 @@ public class NewmanSubmitter {
             }
 
             if (mode.equals("NIGHTLY") && isNightlyRequired()) {
-                submitJobs(getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(),getConfigToSubmit(), mode, agentGroups, nightlyPriority);
-                properties.get("main").put("LAST_NIGHTLY_RUN", DateTimeFormatter.ofPattern("yyy/MM/dd").format(LocalDate.now()));
-                properties.store();
+                int submitted = submitJobs(getBuildToRun(branch, tags, mode), getNightlySuitesToSubmit(),getConfigToSubmit(), mode, agentGroups, nightlyPriority);
+                if (submitted != 0) {
+                    properties.get("main").put("LAST_NIGHTLY_RUN", DateTimeFormatter.ofPattern("yyy/MM/dd").format(LocalDate.now()));
+                    properties.store();
+                }
                 return 0;
             }
 
@@ -180,7 +182,7 @@ public class NewmanSubmitter {
         }
     }
 
-    private void submitJobs(Build buildToRun, List<String> suitesId, JobConfig jobConfig, String mode, Set<String> agentGroups, int priority)  {
+    private int submitJobs(Build buildToRun, List<String> suitesId, JobConfig jobConfig, String mode, Set<String> agentGroups, int priority)  {
         List<Future<String>> submitted = new ArrayList<>();
         logger.info("build to run - name:[{}], id:[{}], branch:[{}], tags:[{}], mode:[{}].", buildToRun.getName(), buildToRun.getId(), buildToRun.getBranch(), buildToRun.getTags(), mode);
         // Submit jobs for suites
@@ -188,8 +190,10 @@ public class NewmanSubmitter {
             for (String suiteId : filterSuites(suitesId, buildToRun.getId(), mode)) {
                 submitted.add(submitJobsByThreads(suiteId, buildToRun.getId(), jobConfig.getId(), username, agentGroups, priority));
             }
+            return 1;
         } catch (Exception ignored) {
             logger.error("could not submit job. build id- [" + buildToRun + "] on branch :[" + buildToRun.getBranch() + "]", ignored);
+            return 0;
         } finally {
             for (Future<String> job : submitted) {
                 try {
