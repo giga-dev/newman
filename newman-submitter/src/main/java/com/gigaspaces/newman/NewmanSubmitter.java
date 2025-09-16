@@ -220,7 +220,7 @@ public class NewmanSubmitter {
 
                     if (build.getTags().containsAll(requireTags)) {
                         if ("NIGHTLY".equals(mode) && scheduleCron != null) {
-                            Cron cron = cronParser.parse(scheduleCron);
+                            Cron cron = cronParser.parse(scheduleCron.replace("\"", ""));   // remove quotes if provided
                             ExecutionTime executionTime = ExecutionTime.forCron(cron);
                             ZonedDateTime now = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);   // truncate to not take HH:mm:ss into account
                             if (executionTime.isMatch(now)) {
