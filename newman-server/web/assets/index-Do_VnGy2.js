@@ -37497,7 +37497,7 @@ const _sfc_main$m = {
   },
   beforeMount() {
     const todaysBuildDate = /* @__PURE__ */ new Date();
-    todaysBuildDate.setDate(todaysBuildDate.getDate());
+    todaysBuildDate.setDate(todaysBuildDate.getDate() - 1);
     this.leftDate = todaysBuildDate;
     const previousBuildDate = new Date(todaysBuildDate);
     previousBuildDate.setDate(previousBuildDate.getDate() - 1);
@@ -37625,10 +37625,10 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                     var _a2;
                     return [
                       createBaseVNode("div", _hoisted_2$b, [
-                        $data.headers.left ? (openBlock(), createBlock(_component_router_link, {
+                        ((_a2 = $data.headers.left) == null ? void 0 : _a2.name) ? (openBlock(), createBlock(_component_router_link, {
                           key: 0,
                           class: "font-bold flex-grow-1",
-                          to: ((_a2 = $data.headers.left) == null ? void 0 : _a2.id) ? { name: "BuildDetails", params: { id: $data.headers.left.id } } : null
+                          to: $data.headers.left.id ? { name: "BuildDetails", params: { id: $data.headers.left.id } } : ""
                         }, {
                           default: withCtx(() => [
                             createBaseVNode("h3", _hoisted_3$b, toDisplayString($data.headers.left.name), 1)
@@ -37720,10 +37720,10 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                           ]),
                           _: 1
                         }, 8, ["modelValue"]),
-                        $data.headers.right ? (openBlock(), createBlock(_component_router_link, {
+                        ((_a2 = $data.headers.right) == null ? void 0 : _a2.name) ? (openBlock(), createBlock(_component_router_link, {
                           key: 0,
                           class: "font-bold flex-grow-1",
-                          to: ((_a2 = $data.headers.right) == null ? void 0 : _a2.id) ? { name: "BuildDetails", params: { id: $data.headers.right.id || null } } : null
+                          to: $data.headers.right.id ? { name: "BuildDetails", params: { id: $data.headers.right.id || null } } : ""
                         }, {
                           default: withCtx(() => [
                             createBaseVNode("h3", _hoisted_5$6, toDisplayString($data.headers.right.name), 1)
@@ -37900,7 +37900,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$e], ["__scopeId", "data-v-3b7df00f"]]);
+const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$e], ["__scopeId", "data-v-e65060be"]]);
 const _sfc_main$l = {
   beforeMount() {
     this.initBuildsAndSuites();
@@ -39328,7 +39328,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
                             disabled: _ctx.loading,
                             onClick: _cache[2] || (_cache[2] = ($event) => {
                               var _a2;
-                              return _ctx.$refs.createSuiteDialog.open((_a2 = __props.jobDetails) == null ? void 0 : _a2.suite);
+                              return _ctx.$refs.createSuiteDialog.open((_a2 = __props.jobDetails) == null ? void 0 : _a2.suite.name);
                             })
                           }, null, 8, ["disabled"])
                         ])
@@ -45585,4 +45585,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-CnglzY9V.js.map
+//# sourceMappingURL=index-Do_VnGy2.js.map
