@@ -107,7 +107,7 @@ public class JobSpecifications {
     private static Specification<Job> preparingAgentsLessThanRequired(int agentWorkersCount) {
         return (root, query, cb) -> {
             // compute remaining tests safely:  rawRemaining = totalTests - (passedTests + failed3Tests) - runningTests
-            Expression<Integer> finishedTests = cb.sum(root.get("passedTests"), root.get("failed3Tests"));
+            Expression<Integer> finishedTests = cb.sum(root.get("passedTests"), root.get("failed3TimesTests"));
             Expression<Integer> rawRemaining = cb.diff(cb.diff(root.get("totalTests"), finishedTests), root.get("runningTests"));
             Expression<Integer> remainingTests = cb.<Integer>selectCase()
                     .when(cb.lessThan(rawRemaining, cb.literal(0)), cb.literal(0))
