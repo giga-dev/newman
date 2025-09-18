@@ -106,12 +106,12 @@ public class JobSpecifications {
     // Specification to check if preparingAgents exists and its size is less than the required number
     private static Specification<Job> preparingAgentsLessThanRequired(int agentWorkersCount) {
         return (root, query, cb) -> {
-            Expression<Integer> totalPlannedTests = cb.sum(root.get("totalTests"), root.get("numOfTestRetries"));
-            Expression<Integer> alreadyProcessedTests = cb.sum(
-                    root.get("passedTests"),
-                    cb.sum(root.get("failedTests"), root.get("runningTests"))
-            );
-            Expression<Integer> remainingTests = cb.diff(totalPlannedTests, alreadyProcessedTests);
+            // compute remaining tests safely:  rawRemaining = totalTests - (passedTests + failed3Tests) - runningTests
+            Expression<Integer> finishedTests = cb.sum(root.get("passedTests"), root.get("failed3Tests"));
+            Expression<Integer> rawRemaining = cb.diff(cb.diff(root.get("totalTests"), finishedTests), root.get("runningTests"));
+            Expression<Integer> remainingTests = cb.<Integer>selectCase()
+                    .when(cb.lessThan(rawRemaining, cb.literal(0)), cb.literal(0))
+                    .otherwise(rawRemaining);
 
             // join Suite to get workersAllowed
             Join<Job, Suite> suiteJoin = root.join("suite");
