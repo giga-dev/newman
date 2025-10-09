@@ -130,7 +130,7 @@ public class NewmanResource {
 
 
     private final Object serverStatusLock = new Object();
-    private ServerStatus serverStatus = new ServerStatus(ServerStatus.Status.RUNNING);
+    private final ServerStatus serverStatus = new ServerStatus(ServerStatus.Status.RUNNING);
     private Thread serverSuspendThread;
 
     private static final ExecutorService executor = Executors.newCachedThreadPool();
@@ -157,7 +157,7 @@ public class NewmanResource {
                 @Override
                 public void run() {
                     logger.info("Checking for not seen agents");
-                    getAgentsNotSeenInLastMillis(1000 * 60 * 30).forEach(NewmanResource.this::handleUnseenAgent);
+                    getAgentsNotSeenInLastMillis(1000 * 60 * 5).forEach(NewmanResource.this::handleUnseenAgent);
                 }
             }, 1000 * 30, 1000 * 30);
 
@@ -1108,10 +1108,9 @@ public class NewmanResource {
     public Test finishTest(final Test test) {
         // LOCK job when manipulating with its counters and statuses
         try {
-            if (logger.isDebugEnabled()) {
-                logger.debug("trying to finish test - id:[{}], name:[{}]", test.getId(),
-                        test.getName());
-            }
+//            if (logger.isDebugEnabled()) {
+                logger.info("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
+//            }
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
@@ -1144,9 +1143,15 @@ public class NewmanResource {
                     .set("status", status);
 
             int historyLength = 25;
-            List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
-            String historyStatsString = TestScoreUtils.decodeShortHistoryString(test, testHistory, test.getStatus(), testJob.getBuild()); // added current fail to history;
-            double reliabilityTestScore = TestScoreUtils.score(historyStatsString);
+            String historyStatsString;
+            double reliabilityTestScore;
+            try {
+                List<TestHistoryItem> testHistory = getTests(test.getId(), 0, historyLength, null).getValues();
+                historyStatsString = TestScoreUtils.decodeShortHistoryString(test, testHistory, test.getStatus(), testJob.getBuild()); // added current fail to history;
+                reliabilityTestScore = TestScoreUtils.score(historyStatsString);
+            } catch (Throwable e) {
+                throw new BadRequestException("Failed to update test history for test: " + test.getId(), e);
+            }
 
             testUpdater
                     .set("testScore", reliabilityTestScore)
@@ -1229,6 +1234,7 @@ public class NewmanResource {
             if (test.getAssignedAgent() != null) {
                 Optional<Agent> opAgent = agentRepository.findByName(test.getAssignedAgent());
                 if (opAgent.isPresent()) {
+                    logger.info("releasing agent {} from the finished test {}", opAgent.get().getName(), test.getId());
                     Agent currAssignedAgent = opAgent.get();
                     currAssignedAgent.setLastTouchTime(new Date());
                     currAssignedAgent.getCurrentTests().remove(test.getId());   // remove assigned tests one by one when they complete
@@ -1241,7 +1247,7 @@ public class NewmanResource {
                     broadcastMessage(MODIFIED_AGENT, currAssignedAgent);
 
                     if (currAssignedAgent.getState() == Agent.State.IDLING) {
-                        logger.debug("agent [{}] become idling because it finish all his tests", currAssignedAgent.getName());
+                        logger.info("agent [{}] become idling because it finish all his tests", currAssignedAgent.getName());
                     }
                 }
             }
@@ -3386,6 +3392,7 @@ public class NewmanResource {
 
     private List<Agent> getAgentsNotSeenInLastMillis(long delay) {
         Date timeThreshold = new Date(System.currentTimeMillis() - delay);
+        logger.info("Check for non-idle agents that have not reported until: " + timeThreshold);
         return agentRepository.findAgentsNotSeenInLastMillis(Agent.State.IDLING, timeThreshold);
     }
 
