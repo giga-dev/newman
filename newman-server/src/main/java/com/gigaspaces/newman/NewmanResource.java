@@ -2735,9 +2735,15 @@ public class NewmanResource {
     }
 
     private void deletePrioritizedJob(Job job) {
-        prioritizedJobRepository.deleteByJobId(job.getId());
-        if (job.getPriority() == highestPriorityJob) {
-            highestPriorityJob = getNotPausedHighestPriorityJob();
+        Long deletedCount = prioritizedJobRepository.deleteByJobId(job.getId());
+
+        if (deletedCount > 0) {
+            if (job.getPriority() == highestPriorityJob) {
+                highestPriorityJob = getNotPausedHighestPriorityJob();
+            }
+        } else {
+            // Already deleted by another thread - let people know. This is fine to avoid handling concurrent call
+            logger.info("PrioritizedJob for job {} was already deleted. This is OK.", job.getId());
         }
     }
 

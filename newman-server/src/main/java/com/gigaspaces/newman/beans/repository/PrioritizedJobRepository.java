@@ -19,7 +19,7 @@ public interface PrioritizedJobRepository extends CrudRepository<PrioritizedJob,
 
     @Transactional
     @Modifying
-    void deleteByJobId(String jobId);
+    Long deleteByJobId(String jobId);
 
     Optional<PrioritizedJob> findByJobId(String jobId);
 }
