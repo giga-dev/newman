@@ -156,23 +156,35 @@ public class NewmanResource {
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    logger.info("Checking for not seen agents");
-                    getAgentsNotSeenInLastMillis(1000 * 60 * 5).forEach(NewmanResource.this::handleUnseenAgent);
+                    try {
+                        logger.info("[Automated Task] Checking for not seen agents");
+                        getAgentsNotSeenInLastMillis(1000 * 60 * 5).forEach(NewmanResource.this::handleUnseenAgent);
+                    } catch (Exception e) {
+                        logger.error("[Automated Task] Error checking for unseen agents", e);
+                    }
                 }
             }, 1000 * 30, 1000 * 30);
 
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    logger.info("Checking for zombie agents");
-                    getZombieAgents(1000 * 60 * 20).forEach(NewmanResource.this::handleZombieAgent);
+                    try {
+                        logger.info("[Automated Task] Checking for zombie agents");
+                        getZombieAgents(1000 * 60 * 20).forEach(NewmanResource.this::handleZombieAgent);
+                    } catch (Exception e) {
+                        logger.error("[Automated Task] Error checking for zombie agents", e);
+                    }
                 }
             }, 1000 * 30, 1000 * 30);
 
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    handleHangingJob();
+                    try {
+                        handleHangingJob();
+                    } catch (Exception e) {
+                        logger.error("[Automated Task] Error handling hanging jobs", e);
+                    }
                 }
             }, 1000 * 10, 1000 * 10);
         }
@@ -3398,7 +3410,7 @@ public class NewmanResource {
 
     private List<Agent> getAgentsNotSeenInLastMillis(long delay) {
         Date timeThreshold = new Date(System.currentTimeMillis() - delay);
-        logger.info("Check for non-idle agents that have not reported until: " + timeThreshold);
+        logger.info("[Automated Task] Check for non-idle agents that have not reported until: " + timeThreshold);
         return agentRepository.findAgentsNotSeenInLastMillis(Agent.State.IDLING, timeThreshold);
     }
 
