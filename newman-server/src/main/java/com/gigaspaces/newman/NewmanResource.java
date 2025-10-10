@@ -3442,34 +3442,45 @@ public class NewmanResource {
      */
     private void returnTests(Agent agent) {
         Set<Test> currentTestsOfAgent = new HashSet<>();
-        // reset tests
-        for (String testId : agent.getCurrentTests()) {
-            Optional<Test> opTest = testRepository.findByIdAndStatusAndAssignedAgent(testId, Test.Status.RUNNING, agent.getName());
-            // reset all tests were previously run by the current agent to their initial state
-            if (opTest.isPresent()) {
-                Test existingTest = opTest.get();
-                existingTest.setAssignedAgent(null);
-                existingTest.setAgentGroup(null);
-                existingTest.setStartTime(null);
-                existingTest.setStatus(Test.Status.PENDING);
+        int testsActuallyReset = 0;
 
-                existingTest = testRepository.saveAndFlush(existingTest);
-                logger.warn("test {} was released since agent {} not seen for a long time", existingTest.getId(), agent.getName());
-                currentTestsOfAgent.add(existingTest);
+        // reset tests - use AtomicUpdater to ensure test is still RUNNING when we reset it
+        for (String testId : agent.getCurrentTests()) {
+            // Use AtomicUpdater to atomically check status and update
+            // This prevents race with finishTest() which might be processing the same test
+            int updated = getUpdater(Test.class)
+                    .set("status", Test.Status.PENDING)
+                    .set("assignedAgent", null)
+                    .set("agentGroup", null)
+                    .set("startTime", null)
+                    .where("id = ? AND status = ? AND assignedAgent = ?", testId, Test.Status.RUNNING, agent.getName())
+                    .execute();
+
+            if (updated > 0) {
+                // Test was successfully reset (it was still RUNNING)
+                testsActuallyReset++;
+                Optional<Test> opTest = testRepository.findById(testId);
+                if (opTest.isPresent()) {
+                    logger.warn("test {} was released since agent {} not seen for a long time", testId, agent.getName());
+                    currentTestsOfAgent.add(opTest.get());
+                }
+            } else {
+                // Test was NOT reset - it was already finished by finishTest() or not found
+                logger.debug("test {} was not reset (already finished or not RUNNING)", testId);
             }
         }
 
-        // reset job
+        // reset job - only decrement counter by the number of tests we ACTUALLY reset
         int jobUpdated = 0;
         if (agent.getJobId() != null) {
             AtomicUpdater<Job> jobUpdater = getUpdater(Job.class).whereId(agent.getJobId());
             if (agent.getState() == Agent.State.PREPARING) {
                 jobUpdated = jobUpdater
                         .remove("preparing_agents", agent.getName()).execute();
-            } else if (agent.getState() == Agent.State.RUNNING && !currentTestsOfAgent.isEmpty()) {
-                logger.info("returnTests for agent [{}], jobId [{}], amount of running tests by the agent [{}]", agent.getName(), agent.getJobId(), currentTestsOfAgent);
+            } else if (agent.getState() == Agent.State.RUNNING && testsActuallyReset > 0) {
+                logger.info("returnTests for agent [{}], jobId [{}], amount of tests actually reset [{}]", agent.getName(), agent.getJobId(), testsActuallyReset);
                 jobUpdated = jobUpdater
-                        .dec("runningTests", currentTestsOfAgent.size()).execute();
+                        .dec("runningTests", testsActuallyReset).execute();
             }
         }
         Optional<Agent> opAgent = agentRepository.findById(agent.getId());

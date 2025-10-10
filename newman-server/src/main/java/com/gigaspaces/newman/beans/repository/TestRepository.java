@@ -38,10 +38,6 @@ public interface TestRepository extends CrudRepository<Test, String>, JpaSpecifi
                                             @Param("currentStatus") Test.Status currentStatus,
                                             @Param("newStatus") Test.Status newStatus);
 
-    Optional<Test> findByIdAndStatusAndAssignedAgent(String id, Test.Status status, String assignedAgentName);
-
-    Optional<Test> findByIdAndStatusNot(String id, Test.Status status);
-
     Optional<Test> findFirstByJobIdAndStatus(String jobId, Test.Status status);
 
     @Query("SELECT t FROM Test t WHERE t.assignedAgent = :assignedAgent")
