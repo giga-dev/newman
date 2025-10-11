@@ -26948,11 +26948,19 @@ textarea.v-field__input::placeholder {
   color: grey;
 }
 
-.v-menu > .v-overlay__content > .v-list > .v-list-item[data-v-bb69a108] {
+.v-menu > .v-overlay__content > .v-list > .v-list-item[data-v-452d240c] {
   display: flex;
   flex-direction: row;
   min-height: 30px;
   max-height: 30px;
+}
+.nightly-build[data-v-452d240c] {
+  font-weight: 500;
+  color: rgb(33, 150, 243) !important;
+}
+.nightly-build[data-v-452d240c] .v-list-item-title {
+  font-weight: 500;
+  color: rgb(33, 150, 243) !important;
 }
 
 .v-btn-group--density-default.v-btn-group[data-v-6a0c4c4e] {

@@ -37931,7 +37931,8 @@ const _sfc_main$l = {
     formattedBuilds() {
       return this.builds.map((item) => ({
         id: item.id,
-        label: `${item.name} (${item.branch}) - (${item.tags})`
+        label: `${item.name} (${item.branch}) - (${item.tags})`,
+        nightly: item.tags && Array.isArray(item.tags) && item.tags.includes("NIGHTLY")
       }));
     }
   },
@@ -38052,6 +38053,7 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_col = resolveComponent("v-col");
   const _component_v_row = resolveComponent("v-row");
   const _component_v_radio = resolveComponent("v-radio");
+  const _component_v_list_item = resolveComponent("v-list-item");
   const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_radio_group = resolveComponent("v-radio-group");
   const _component_v_select = resolveComponent("v-select");
@@ -38173,7 +38175,14 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
                         "item-value": "id",
                         required: "",
                         ref: "buildBySelect"
-                      }, null, 8, ["modelValue", "items", "rules", "disabled"])
+                      }, {
+                        item: withCtx(({ props, item }) => [
+                          createVNode(_component_v_list_item, mergeProps(props, {
+                            class: { "nightly-build": item.raw.nightly }
+                          }), null, 16, ["class"])
+                        ]),
+                        _: 1
+                      }, 8, ["modelValue", "items", "rules", "disabled"])
                     ]),
                     _: 1
                   })
@@ -38360,7 +38369,7 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-bb69a108"]]);
+const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-452d240c"]]);
 function countAgentsNum(item) {
   if (item.preparingAgents && item.preparingAgents.length > 0) {
     return item.preparingAgents.length;
@@ -45585,4 +45594,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-Do_VnGy2.js.map
+//# sourceMappingURL=index-DA2BDK0B.js.map
