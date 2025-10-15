@@ -26999,30 +26999,28 @@ textarea.v-field__input::placeholder {
   background: red;
 }
 
-[data-v-fdaec1d5] .chip-button {
+[data-v-709917b4] .chip-button {
   color: white !important;
   width: 50px;
   height: 30px !important;
 }
-.builds-wrapper[data-v-fdaec1d5] {
+.builds-wrapper[data-v-709917b4] {
   width: 80%;
 }
 
 /* Mobile responsiveness */
 @media (max-width: 1000px) {
-.builds-wrapper[data-v-fdaec1d5] {
+.builds-wrapper[data-v-709917b4] {
     width: 100% !important;
     padding: 0 8px;
 }
 }
 
-/* NIGHTLY build styling */
-.nightly-build[data-v-fdaec1d5] {
-  color: #ff9800 !important;
-  //font-weight: bold !important;
-}
-.nightly-build[data-v-fdaec1d5]:hover {
-  color: #f57c00 !important;
+/* NIGHTLY label styling */
+.nightly-label[data-v-709917b4] {
+  font-size: 0.75rem;
+  background-color: hsl(0, 100%, 77%);
+  transition: background-color 0.2s ease;
 }
 
 .buildsTable > .v-table__wrapper > table > thead > tr > th > .v-data-table-header__content{
