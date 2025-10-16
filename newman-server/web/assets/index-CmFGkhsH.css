@@ -26999,25 +26999,25 @@ textarea.v-field__input::placeholder {
   background: red;
 }
 
-[data-v-709917b4] .chip-button {
+[data-v-8e609145] .chip-button {
   color: white !important;
   width: 50px;
   height: 30px !important;
 }
-.builds-wrapper[data-v-709917b4] {
+.builds-wrapper[data-v-8e609145] {
   width: 80%;
 }
 
 /* Mobile responsiveness */
 @media (max-width: 1000px) {
-.builds-wrapper[data-v-709917b4] {
+.builds-wrapper[data-v-8e609145] {
     width: 100% !important;
     padding: 0 8px;
 }
 }
 
 /* NIGHTLY label styling */
-.nightly-label[data-v-709917b4] {
+.nightly-label[data-v-8e609145] {
   font-size: 0.75rem;
   background-color: hsl(0, 100%, 77%);
   transition: background-color 0.2s ease;

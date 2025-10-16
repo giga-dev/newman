@@ -37569,7 +37569,7 @@ const _sfc_main$m = {
 const _hoisted_1$j = { style: { "width": "95%" } };
 const _hoisted_2$c = { class: "d-flex align-center justify-space-between" };
 const _hoisted_3$c = { class: "elevation-2 text-center col-header" };
-const _hoisted_4$9 = { class: "d-flex align-center justify-space-between" };
+const _hoisted_4$a = { class: "d-flex align-center justify-space-between" };
 const _hoisted_5$6 = { class: "elevation-2 text-center col-header" };
 const _hoisted_6$6 = { key: 0 };
 const _hoisted_7$6 = { key: 1 };
@@ -37683,7 +37683,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2;
                     return [
-                      createBaseVNode("div", _hoisted_4$9, [
+                      createBaseVNode("div", _hoisted_4$a, [
                         createVNode(_component_v_menu, {
                           modelValue: $data.rightMenu,
                           "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $data.rightMenu = $event),
@@ -38675,7 +38675,7 @@ const _sfc_main$k = /* @__PURE__ */ defineComponent$1({
 const _hoisted_1$h = { key: 1 };
 const _hoisted_2$b = { key: 2 };
 const _hoisted_3$b = { key: 3 };
-const _hoisted_4$8 = { key: 4 };
+const _hoisted_4$9 = { key: 4 };
 function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_btn = resolveComponent("v-btn");
   return openBlock(), createElementBlock("div", null, [
@@ -38727,7 +38727,7 @@ function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
             to: _ctx.noLinks ? null : _ctx.setRoute("FAILED3TIMES"),
             onClick: _cache[3] || (_cache[3] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("FAILED3TIMES"))
           }, null, 8, ["text", "class", "to"]),
-          !(_ctx.toggle || _ctx.hideTotal) ? (openBlock(), createElementBlock("span", _hoisted_4$8, "/ ")) : createCommentVNode("", true),
+          !(_ctx.toggle || _ctx.hideTotal) ? (openBlock(), createElementBlock("span", _hoisted_4$9, "/ ")) : createCommentVNode("", true),
           !_ctx.hideTotal ? (openBlock(), createBlock(_component_v_btn, {
             key: 5,
             variant: "elevated",
@@ -38788,6 +38788,7 @@ const _sfc_main$j = {
       return item.tags && item.tags.includes("NIGHTLY");
     },
     initTable() {
+      this.loading = true;
       this.$axios.get("/api/newman/build", {
         params: {
           limit: this.pullBuildsCount,
@@ -38804,14 +38805,20 @@ const _sfc_main$j = {
   }
 };
 const _hoisted_1$g = { class: "builds-wrapper" };
-const _hoisted_2$a = { class: "font-bold flex items-center gap-2" };
-const _hoisted_3$a = {
+const _hoisted_2$a = {
+  class: "d-flex align-center justify-end",
+  style: { "gap": "8px" }
+};
+const _hoisted_3$a = { class: "font-bold flex items-center gap-2" };
+const _hoisted_4$8 = {
   key: 0,
   class: "pl-1 mr-1 font-weight-bold border rounded nightly-label"
 };
 function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_col = resolveComponent("v-col");
+  const _component_v_spacer = resolveComponent("v-spacer");
+  const _component_v_btn = resolveComponent("v-btn");
   const _component_v_row = resolveComponent("v-row");
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_router_link = resolveComponent("router-link");
@@ -38848,6 +38855,44 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
                     }, null, 8, ["modelValue"])
                   ]),
                   _: 1
+                }),
+                createVNode(_component_v_spacer),
+                createVNode(_component_v_col, {
+                  cols: "12",
+                  sm: "6",
+                  md: "4",
+                  class: "ml-auto"
+                }, {
+                  default: withCtx(() => [
+                    createBaseVNode("div", _hoisted_2$a, [
+                      _cache[5] || (_cache[5] = createBaseVNode("div", null, "Builds count:", -1)),
+                      createVNode(_component_v_text_field, {
+                        counter: "",
+                        color: "primary",
+                        type: "number",
+                        modelValue: $data.pullBuildsCount,
+                        "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $data.pullBuildsCount = $event),
+                        density: "compact",
+                        variant: "outlined",
+                        "hide-details": "",
+                        "single-line": "",
+                        minWidth: "85px",
+                        onKeyup: _cache[2] || (_cache[2] = withKeys(($event) => $options.initTable(), ["enter"]))
+                      }, null, 8, ["modelValue"]),
+                      createVNode(_component_v_btn, {
+                        color: "primary",
+                        class: "font-bold",
+                        onClick: _cache[3] || (_cache[3] = ($event) => $options.initTable())
+                      }, {
+                        default: withCtx(() => _cache[4] || (_cache[4] = [
+                          createTextVNode("Apply")
+                        ])),
+                        _: 1,
+                        __: [4]
+                      })
+                    ])
+                  ]),
+                  _: 1
                 })
               ]),
               _: 1
@@ -38867,14 +38912,14 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
           "items-per-page-options": [15, 20, 25, 50]
         }, {
           "item.name": withCtx(({ item }) => [
-            createBaseVNode("span", _hoisted_2$a, [
-              $options.hasNightlyTag(item) ? (openBlock(), createElementBlock("span", _hoisted_3$a, " N ")) : createCommentVNode("", true),
+            createBaseVNode("span", _hoisted_3$a, [
+              $options.hasNightlyTag(item) ? (openBlock(), createElementBlock("span", _hoisted_4$8, " N ")) : createCommentVNode("", true),
               createVNode(_component_router_link, {
                 class: "font-bold",
                 to: { name: "BuildDetails", params: { id: item.id } }
               }, {
                 default: withCtx(() => [
-                  createTextVNode(toDisplayString(item.name), 1)
+                  createTextVNode(toDisplayString(item.name) + " (" + toDisplayString(item.branch) + ") ", 1)
                 ]),
                 _: 2
               }, 1032, ["to"])
@@ -38896,7 +38941,7 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Builds = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$b], ["__scopeId", "data-v-709917b4"]]);
+const Builds = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$b], ["__scopeId", "data-v-8e609145"]]);
 const _sfc_main$i = {
   name: "PromptDialog",
   props: {
@@ -45623,4 +45668,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-CHgQtKtr.js.map
+//# sourceMappingURL=index-Dne0zBxn.js.map

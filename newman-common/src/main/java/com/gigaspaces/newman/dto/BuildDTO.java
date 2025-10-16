@@ -31,6 +31,7 @@ public class BuildDTO {
     public BuildDTO(PBuildForView projection) {
         this.id = projection.getId();
         this.name = projection.getName();
+        this.branch = projection.getBranch();
         this.buildTime = projection.getBuildTime();
         this.tags = projection.getTags();
         this.buildStatus = new BuildStatusDTO(
