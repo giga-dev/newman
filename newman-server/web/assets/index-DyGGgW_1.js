@@ -37939,6 +37939,8 @@ const _sfc_main$l = {
   data() {
     return {
       snackbar: false,
+      snackbarMessage: "",
+      snackbarColor: "success",
       configValue: "",
       configs: [],
       agentsValues: [],
@@ -37977,18 +37979,27 @@ const _sfc_main$l = {
       this.jobSubmissionInProgress = true;
       this.$axios.post("/api/newman/futureJob", requestBody).then((response) => {
         this.jobSubmissionInProgress = false;
+        this.snackbarMessage = `Job(s) submitted successfully! ${this.suitesValues.length} job(s) created.`;
+        this.snackbarColor = "success";
         this.snackbar = true;
       }).catch((error) => {
         this.jobSubmissionInProgress = false;
+        this.snackbarMessage = "Error submitting job(s). Check console for more details.";
+        this.snackbarColor = "error";
+        this.snackbar = true;
         console.error("Error:", error);
       });
     },
     selectNightly() {
       this.$axios.get("/api/newman/latest-builds?limit=1&tags=NIGHTLY&with-all-jobs-completed=true").then((response) => {
-        this.suitesValues = response.data.values[0].buildStatus.suitesIds.filter((id) => {
-          let item = this.suites.find((suite) => suite.id == id);
-          return !(item.name.startsWith("dev-") || item.name.startsWith("custom-"));
-        });
+        this.suitesValues = Array.from(
+          new Set(
+            response.data.values[0].buildStatus.suites.map((suite) => suite.suiteId).filter((suiteId) => {
+              let item = this.suites.find((suite) => suite.id == suiteId);
+              return !(item.name.startsWith("dev-") || item.name.startsWith("custom-"));
+            })
+          )
+        );
       }).catch((error) => {
         console.error("Error fetching data:", error);
       });
@@ -38339,29 +38350,27 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
           createVNode(_component_v_snackbar, {
             modelValue: $data.snackbar,
             "onUpdate:modelValue": _cache[10] || (_cache[10] = ($event) => $data.snackbar = $event),
+            color: $data.snackbarColor,
             timeout: "5000"
           }, {
             actions: withCtx(() => [
               createVNode(_component_v_btn, {
-                color: "primary",
+                color: "white",
                 variant: "text",
                 onClick: _cache[9] || (_cache[9] = ($event) => $data.snackbar = false)
               }, {
-                default: withCtx(() => _cache[14] || (_cache[14] = [
+                default: withCtx(() => _cache[13] || (_cache[13] = [
                   createTextVNode(" Close ")
                 ])),
                 _: 1,
-                __: [14]
+                __: [13]
               })
             ]),
             default: withCtx(() => [
-              createBaseVNode("div", _hoisted_1$i, [
-                _cache[13] || (_cache[13] = createBaseVNode("strong", null, "Submitted: ", -1)),
-                createTextVNode(toDisplayString($data.suitesValues.length) + " job(s)", 1)
-              ])
+              createBaseVNode("div", _hoisted_1$i, toDisplayString($data.snackbarMessage), 1)
             ]),
             _: 1
-          }, 8, ["modelValue"])
+          }, 8, ["modelValue", "color"])
         ]),
         _: 1
       })
@@ -38369,7 +38378,7 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-452d240c"]]);
+const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-76acb790"]]);
 function countAgentsNum(item) {
   if (item.preparingAgents && item.preparingAgents.length > 0) {
     return item.preparingAgents.length;
@@ -45668,4 +45677,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-Dne0zBxn.js.map
+//# sourceMappingURL=index-DyGGgW_1.js.map
