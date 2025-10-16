@@ -1120,9 +1120,9 @@ public class NewmanResource {
     public Test finishTest(final Test test) {
         // LOCK job when manipulating with its counters and statuses
         try {
-//            if (logger.isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 logger.info("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
-//            }
+            }
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
@@ -1175,10 +1175,17 @@ public class NewmanResource {
                         historyStatsString, test.getId(), test.getName(), test.getJobId(),
                         testJob.getRunningTests());
             }
-            // save updated TEST
-            int updated = testUpdater.whereId(existingTest.getId()).execute();
+            // save updated TEST - use atomic WHERE clause to prevent race with returnTests()
+            // This ensures test is still RUNNING before updating to SUCCESS/FAIL
+            int updated = testUpdater
+                    .whereId(existingTest.getId())
+                    .where("status = ?", Test.Status.RUNNING)
+                    .execute();
             if (updated == 0) {
-                throw new BadRequestException("can't update test with Id: " + existingTest.getId());
+                // Test was not RUNNING - likely returnTests() already changed it to PENDING and decremented counter
+                logger.warn("Test {} was not in RUNNING state during finishTest (current status: {}), likely already processed by returnTests(). Skipping counter decrement to avoid negative values.",
+                            existingTest.getId(), existingTest.getStatus());
+                return null;
             }
             Test savedTest = testRepository.findById(existingTest.getId()).get();
 
