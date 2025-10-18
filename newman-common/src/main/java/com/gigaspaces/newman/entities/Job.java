@@ -30,7 +30,12 @@ public class Job {
     @JoinColumn(name = "build_id")
     private Build build;
 
-    // Denormalized Suite fields - keeping Suite id and name even if Suite is deleted
+    // Suite relationship - optional to allow deletion (for agent matching queries)
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "suite_id", insertable = false, updatable = false)
+    private Suite suite;
+
+    // Denormalized Suite fields - keeping Suite id and name even if Suite is deleted (for display)
     @JsonIgnore
     @Column(name = "suite_id")
     private String suiteId;
@@ -267,20 +272,27 @@ public class Job {
         this.suiteName = suiteName;
     }
 
-    // Backward compatibility - returns a transient Suite object with id and name
+    // Returns Suite - either from relationship (if exists) or creates transient object from denormalized fields
     // JsonProperty ensures this is serialized as "suite" in JSON for UI compatibility
     @JsonProperty("suite")
     public Suite getSuite() {
+        // If relationship exists (Suite not deleted), return it
+        if (suite != null) {
+            return suite;
+        }
+
+        // Otherwise, create transient Suite from denormalized fields (for deleted Suites)
         if (suiteId == null) {
             return null;
         }
-        Suite suite = new Suite();
-        suite.setId(suiteId);
-        suite.setName(suiteName);
-        return suite;
+        Suite transientSuite = new Suite();
+        transientSuite.setId(suiteId);
+        transientSuite.setName(suiteName);
+        return transientSuite;
     }
 
     public void setSuite(Suite suite) {
+        this.suite = suite;
         if (suite != null) {
             this.suiteId = suite.getId();
             this.suiteName = suite.getName();
