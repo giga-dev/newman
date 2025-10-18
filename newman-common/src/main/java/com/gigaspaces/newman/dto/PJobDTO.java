@@ -118,7 +118,7 @@ public class PJobDTO implements PJob {
         return new PJobDTO()
                 .setId(job.getId())
                 .setBuild(job.getBuild().getId(), job.getBuild().getName(), job.getBuild().getBranch())
-                .setSuite(job.getSuite().getId(), job.getSuite().getName())
+                .setSuite(job.getSuiteId(), job.getSuiteName())
                 .setJobConfig(job.getJobConfig().getId(), job.getJobConfig().getName())
                 .setSubmitTime(job.getSubmitTime())
                 .setStartTime(job.getStartTime())

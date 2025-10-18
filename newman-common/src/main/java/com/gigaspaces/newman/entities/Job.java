@@ -1,6 +1,8 @@
 package com.gigaspaces.newman.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gigaspaces.newman.beans.State;
 import com.gigaspaces.newman.converters.UriToStringConverter;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -28,9 +30,13 @@ public class Job {
     @JoinColumn(name = "build_id")
     private Build build;
 
-    @ManyToOne
-    @JoinColumn(name = "suite_id")
-    private Suite suite;
+    // Denormalized Suite fields - keeping Suite id and name even if Suite is deleted
+    @JsonIgnore
+    @Column(name = "suite_id")
+    private String suiteId;
+
+    @JsonIgnore
+    private String suiteName;
 
 //    @Convert(converter = StringSetConverter.class)
     @Type(type = "com.gigaspaces.newman.types.SetStringArrayType")
@@ -74,9 +80,8 @@ public class Job {
 
     public Job(String id, String suiteId, String suiteName, String buildId, String buildName, String buildBranch) {
         this.id = id;
-        this.suite = new Suite();
-        this.suite.setId(suiteId);
-        this.suite.setName(suiteName);
+        this.suiteId = suiteId;
+        this.suiteName = suiteName;
 
         this.build = new Build();
         this.build.setId(buildId);
@@ -246,12 +251,43 @@ public class Job {
         this.numOfTestRetries = numOfTestRetries;
     }
 
+    public String getSuiteId() {
+        return suiteId;
+    }
+
+    public void setSuiteId(String suiteId) {
+        this.suiteId = suiteId;
+    }
+
+    public String getSuiteName() {
+        return suiteName;
+    }
+
+    public void setSuiteName(String suiteName) {
+        this.suiteName = suiteName;
+    }
+
+    // Backward compatibility - returns a transient Suite object with id and name
+    // JsonProperty ensures this is serialized as "suite" in JSON for UI compatibility
+    @JsonProperty("suite")
     public Suite getSuite() {
+        if (suiteId == null) {
+            return null;
+        }
+        Suite suite = new Suite();
+        suite.setId(suiteId);
+        suite.setName(suiteName);
         return suite;
     }
 
     public void setSuite(Suite suite) {
-        this.suite = suite;
+        if (suite != null) {
+            this.suiteId = suite.getId();
+            this.suiteName = suite.getName();
+        } else {
+            this.suiteId = null;
+            this.suiteName = null;
+        }
     }
 
     public Set<String> getPreparingAgents() {
@@ -314,7 +350,8 @@ public class Job {
         return new ToStringBuilder(this)
                 .append("id", id)
                 .append("build", build)
-                .append("suite", suite)
+                .append("suiteId", suiteId)
+                .append("suiteName", suiteName)
                 .append("agentGroups", agentGroups)
                 .append("priority", priority)
                 .append("submitTime", submitTime)
