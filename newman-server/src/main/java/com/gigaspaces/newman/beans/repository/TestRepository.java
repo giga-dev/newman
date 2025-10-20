@@ -54,10 +54,9 @@ public interface TestRepository extends CrudRepository<Test, String>, JpaSpecifi
                 "b.branch AS branch, " +
                 "j.id as jobId, " +
                 "b.id AS buildId, " +
-                "s.id AS suiteId " +
+                "j.suite_id AS suiteId " +
             "FROM test t " +
             "LEFT JOIN job j ON j.id = t.jobid " +
-            "JOIN suite s ON s.id = j.suite_id " +
             "JOIN build b ON b.id = j.build_id " +
             "WHERE t.id = :id", nativeQuery = true)
     Optional<PTestForHistory> findTestForHistoryById(@Param("id") String id);

@@ -63,35 +63,54 @@ public class JobSpecifications {
 
     public static Specification<Job> hasAnyOfCapabilitiesInRequirements(Set<String> capabilities) {
         return (root, query, cb) -> {
-            // Join with suite
-            Join<Job, Suite> suiteJoin = root.join("suite");
+            // Create manual join: FROM job, suite WHERE job.suite_id = suite.id
+            Root<Suite> suiteRoot = query.from(Suite.class);
 
-            // Now, let's use cb.function("any", ...) for the "any" Postgres operator.
-            // This checks if the `requirements` array contains any of the `capabilities`
+            List<Predicate> predicates = new ArrayList<>();
 
-            List<Expression<Boolean>> predicates = new ArrayList<>();
+            // Join condition: suite.id = job.suiteId
+            predicates.add(cb.equal(suiteRoot.get("id"), root.get("suiteId")));
 
+            // Capability conditions
+            List<Predicate> capabilityPredicates = new ArrayList<>();
             for (String capability : capabilities) {
-                // This is the Postgres expression using `any` function
-                Expression<Boolean> condition = cb.equal(
+                capabilityPredicates.add(
+                    cb.equal(
                         cb.literal(capability),
-                        cb.function("ANY", String.class, suiteJoin.get("requirements"))
+                        cb.function("ANY", String.class, suiteRoot.get("requirements"))
+                    )
                 );
-
-                predicates.add(condition);
             }
+            predicates.add(cb.or(capabilityPredicates.toArray(new Predicate[0])));
 
-            // Combine all predicates with OR (you want to match if ANY of the capabilities is present)
-            return cb.or(predicates.toArray(new Predicate[0]));
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
     public static Specification<Job> hasNoRequirements() {
         return (root, query, cb) -> {
-            Join<Job, Suite> suiteJoin = root.join("suite");
+            // Use subquery to check if Suite exists and has no requirements
+            // OR if Suite doesn't exist at all (deleted)
+
+            Subquery<String> subquery = query.subquery(String.class);
+            Root<Suite> suiteSubRoot = subquery.from(Suite.class);
+
+            // Find suites with no requirements
+            subquery.select(suiteSubRoot.get("id"))
+                    .where(cb.or(
+                        cb.isNull(suiteSubRoot.get("requirements")),
+                        cb.equal(getArraySize(cb, suiteSubRoot.get("requirements")), 0)
+                    ));
+
+            // Job matches if: suiteId is in subquery (suite exists with no requirements)
+            // OR suiteId is NOT in (select id from suite) - meaning suite was deleted
+            Subquery<String> allSuitesSubquery = query.subquery(String.class);
+            Root<Suite> allSuitesRoot = allSuitesSubquery.from(Suite.class);
+            allSuitesSubquery.select(allSuitesRoot.get("id"));
+
             return cb.or(
-                    cb.isNull(suiteJoin.get("requirements")), // array is null
-                    cb.equal(getArraySize(cb, suiteJoin.get("requirements")), 0) // array is empty (length is 0)
+                root.get("suiteId").in(subquery),  // Suite exists and has no requirements
+                cb.not(root.get("suiteId").in(allSuitesSubquery))  // Suite doesn't exist (deleted)
             );
         };
     }
@@ -113,12 +132,18 @@ public class JobSpecifications {
             );
             Expression<Integer> remainingTests = cb.diff(totalPlannedTests, alreadyProcessedTests);
 
-            // join Suite to get workersAllowed
-            Join<Job, Suite> suiteJoin = root.join("suite");
-            Expression<Integer> suiteWorkersAllowed = suiteJoin.get("workersAllowed");
+            // Create manual join: FROM job, suite WHERE job.suite_id = suite.id
+            // This will only match jobs where Suite still exists
+            Root<Suite> suiteRoot = query.from(Suite.class);
+
+            // Join condition: suite.id = job.suiteId
+            Predicate joinCondition = cb.equal(suiteRoot.get("id"), root.get("suiteId"));
+
+            // Get workersAllowed from Suite
+            Expression<Integer> suiteWorkersAllowed = suiteRoot.get("workersAllowed");
 
             // determine effective workers per agent: min(agentWorkersCount, suiteWorkersAllowed)
-            Expression<Integer> effectiveWorkers = cb.<Integer>selectCase() // if-else goes below
+            Expression<Integer> effectiveWorkers = cb.<Integer>selectCase()
                     .when(cb.lessThan(cb.literal(agentWorkersCount), suiteWorkersAllowed), cb.literal(agentWorkersCount))
                     .otherwise(suiteWorkersAllowed);
 
@@ -129,8 +154,11 @@ public class JobSpecifications {
             // get current preparing agents count
             Expression<Integer> preparingAgentsCount = getArraySize(cb, root.get("preparingAgents"));
 
-            // final predicate: preparingAgents.size < requiredAgents
-            return cb.lessThan(preparingAgentsCount, requiredAgents);
+            // final predicate: join condition AND preparingAgents.size < requiredAgents
+            return cb.and(
+                    joinCondition,
+                    cb.lessThan(preparingAgentsCount, requiredAgents)
+            );
         };
     }
 
@@ -158,4 +186,3 @@ public class JobSpecifications {
     }
 
 }
-

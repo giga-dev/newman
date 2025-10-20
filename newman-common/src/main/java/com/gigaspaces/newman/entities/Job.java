@@ -28,11 +28,12 @@ public class Job {
     @JoinColumn(name = "build_id")
     private Build build;
 
-    @ManyToOne
-    @JoinColumn(name = "suite_id")
-    private Suite suite;
+    @Column(name = "suite_id")
+    private String suiteId;
 
-//    @Convert(converter = StringSetConverter.class)
+    @Column(name = "suite_name")
+    private String suiteName;
+
     @Type(type = "com.gigaspaces.newman.types.SetStringArrayType")
     @Column(name = "agent_groups", columnDefinition = "TEXT[]")
     private Set<String> agentGroups;
@@ -74,9 +75,8 @@ public class Job {
 
     public Job(String id, String suiteId, String suiteName, String buildId, String buildName, String buildBranch) {
         this.id = id;
-        this.suite = new Suite();
-        this.suite.setId(suiteId);
-        this.suite.setName(suiteName);
+        this.suiteId = suiteId;
+        this.suiteName = suiteName;
 
         this.build = new Build();
         this.build.setId(buildId);
@@ -246,12 +246,34 @@ public class Job {
         this.numOfTestRetries = numOfTestRetries;
     }
 
+    public String getSuiteId() {
+        return suiteId;
+    }
+
+    public void setSuiteId(String suiteId) {
+        this.suiteId = suiteId;
+    }
+
+    public String getSuiteName() {
+        return suiteName;
+    }
+
+    public void setSuiteName(String suiteName) {
+        this.suiteName = suiteName;
+    }
+
     public Suite getSuite() {
-        return suite;
+        return new Suite(this.suiteId, this.suiteName);
     }
 
     public void setSuite(Suite suite) {
-        this.suite = suite;
+        if (suite != null) {
+            this.suiteId = suite.getId();
+            this.suiteName = suite.getName();
+        } else {
+            this.suiteId = null;
+            this.suiteName = null;
+        }
     }
 
     public Set<String> getPreparingAgents() {
@@ -314,7 +336,8 @@ public class Job {
         return new ToStringBuilder(this)
                 .append("id", id)
                 .append("build", build)
-                .append("suite", suite)
+                .append("suiteId", suiteId)
+                .append("suiteName", suiteName)
                 .append("agentGroups", agentGroups)
                 .append("priority", priority)
                 .append("submitTime", submitTime)

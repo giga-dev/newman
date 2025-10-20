@@ -300,17 +300,18 @@ public class NewmanResource {
     }
 
     private boolean isZombie(Job job) {
-        Iterable<Agent> agents = agentRepository.findAll(); // Retrieve all agents from DB
-        // check if there is an agent in the system that can execute this job
+        Iterable<Agent> agents = agentRepository.findAll();
+        Set<String> suiteCapabilities = null;
+        if (job.getSuiteId() != null) {
+            suiteCapabilities = suiteRepository.findById(job.getSuiteId()).map(Suite::getRequirements).orElse(null);
+        }
         for (Agent agent : agents) {
-            boolean hasMatchingCapabilities = (job.getSuite().getRequirements() == null
-                                               || job.getSuite().getRequirements().isEmpty()
-                                               || agent.getCapabilities().containsAll(job.getSuite().getRequirements()));
-
+            boolean hasMatchingCapabilities = (suiteCapabilities == null
+                                                || suiteCapabilities.isEmpty()
+                                                || agent.getCapabilities().containsAll(suiteCapabilities));
             boolean hasMatchingAgentGroup = (job.getAgentGroups() == null
-                                             || job.getAgentGroups().isEmpty()
-                                             || job.getAgentGroups().contains(agent.getGroupName()));
-
+                                                || job.getAgentGroups().isEmpty()
+                                                || job.getAgentGroups().contains(agent.getGroupName()));
             if (hasMatchingCapabilities && hasMatchingAgentGroup) {
                 return false; // Found matching agent, so not a zombie
             }
@@ -2813,12 +2814,8 @@ public class NewmanResource {
             }
 
             build = buildRepository.findById(build.getId()).get();
-
-            Suite suite = deletedJob.getSuite();
-            if (suite != null) {
-                build.getBuildStatus().getSuites()
-                        .remove(new BuildStatusSuite(suite.getId(), suite.getName()));
-            }
+            build.getBuildStatus().getSuites()
+                    .remove(new BuildStatusSuite(deletedJob.getSuiteId(), deletedJob.getSuiteName()));
 
             build = buildRepository.saveAndFlush(build);
             broadcastMessage(MODIFIED_BUILD, build);
@@ -3290,7 +3287,10 @@ public class NewmanResource {
             throw new Exception("Job [" + jobId + "] has no failed tests");
         }
 
-        Suite suite = existingJob.getSuite();
+        // Fetch the full Suite from repository (not the lightweight one from Job)
+        Suite suite = suiteRepository.findById(existingJob.getSuiteId())
+                .orElseThrow(() -> new RuntimeException("Suite [" + existingJob.getSuiteId() + "] does not exist"));
+
         String testType = getTestType(suite.getCriteria());
 
         if (testType == null) {
