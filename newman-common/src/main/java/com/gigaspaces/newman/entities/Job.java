@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.gigaspaces.newman.beans.State;
 import com.gigaspaces.newman.converters.UriToStringConverter;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -27,6 +29,12 @@ public class Job {
     @ManyToOne
     @JoinColumn(name = "build_id")
     private Build build;
+
+    @ManyToOne
+    @JoinColumn(name = "suite_id", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @NotFound(action = NotFoundAction.IGNORE)
+    private Suite suite;
 
     @Column(name = "suite_id")
     private String suiteId;
@@ -263,16 +271,20 @@ public class Job {
     }
 
     public Suite getSuite() {
+        if (suite != null) {
+            return suite;
+        }
+        if (suiteId == null && suiteName == null) {
+            return null;
+        }
         return new Suite(this.suiteId, this.suiteName);
     }
 
     public void setSuite(Suite suite) {
+        this.suite = suite;
         if (suite != null) {
             this.suiteId = suite.getId();
             this.suiteName = suite.getName();
-        } else {
-            this.suiteId = null;
-            this.suiteName = null;
         }
     }
 
