@@ -1969,7 +1969,7 @@ public class NewmanResource {
                 if (logger.isDebugEnabled()) {
                     logger.debug("within for on agents, jobID=" + jobId + ", job=" + jobThin.string());
                 }
-                agent.setJob(new Job(jobThin.getId(), jobThin.getSuiteId(), jobThin.getSuiteId(),
+                agent.setJob(new Job(jobThin.getId(), jobThin.getSuiteId(), jobThin.getSuiteName(),
                         jobThin.getBuildId(), jobThin.getBuildName(), jobThin.getBuildBranch()));
             }
         }
