@@ -300,18 +300,17 @@ public class NewmanResource {
     }
 
     private boolean isZombie(Job job) {
-        Iterable<Agent> agents = agentRepository.findAll();
-        Set<String> suiteCapabilities = null;
-        if (job.getSuiteId() != null) {
-            suiteCapabilities = suiteRepository.findById(job.getSuiteId()).map(Suite::getRequirements).orElse(null);
-        }
+        Iterable<Agent> agents = agentRepository.findAll(); // Retrieve all agents from DB
+        // check if there is an agent in the system that can execute this job
         for (Agent agent : agents) {
-            boolean hasMatchingCapabilities = (suiteCapabilities == null
-                                                || suiteCapabilities.isEmpty()
-                                                || agent.getCapabilities().containsAll(suiteCapabilities));
+            boolean hasMatchingCapabilities = (job.getSuite().getRequirements() == null
+                                               || job.getSuite().getRequirements().isEmpty()
+                                               || agent.getCapabilities().containsAll(job.getSuite().getRequirements()));
+
             boolean hasMatchingAgentGroup = (job.getAgentGroups() == null
-                                                || job.getAgentGroups().isEmpty()
-                                                || job.getAgentGroups().contains(agent.getGroupName()));
+                                             || job.getAgentGroups().isEmpty()
+                                             || job.getAgentGroups().contains(agent.getGroupName()));
+
             if (hasMatchingCapabilities && hasMatchingAgentGroup) {
                 return false; // Found matching agent, so not a zombie
             }
@@ -1970,7 +1969,7 @@ public class NewmanResource {
                 if (logger.isDebugEnabled()) {
                     logger.debug("within for on agents, jobID=" + jobId + ", job=" + jobThin.string());
                 }
-                agent.setJob(new Job(jobThin.getId(), jobThin.getSuiteId(), jobThin.getSuiteName(),
+                agent.setJob(new Job(jobThin.getId(), jobThin.getSuiteId(), jobThin.getSuiteId(),
                         jobThin.getBuildId(), jobThin.getBuildName(), jobThin.getBuildBranch()));
             }
         }
@@ -2814,8 +2813,12 @@ public class NewmanResource {
             }
 
             build = buildRepository.findById(build.getId()).get();
-            build.getBuildStatus().getSuites()
-                    .remove(new BuildStatusSuite(deletedJob.getSuiteId(), deletedJob.getSuiteName()));
+
+            Suite suite = deletedJob.getSuite();
+            if (suite != null) {
+                build.getBuildStatus().getSuites()
+                        .remove(new BuildStatusSuite(suite.getId(), suite.getName()));
+            }
 
             build = buildRepository.saveAndFlush(build);
             broadcastMessage(MODIFIED_BUILD, build);
@@ -3287,10 +3290,7 @@ public class NewmanResource {
             throw new Exception("Job [" + jobId + "] has no failed tests");
         }
 
-        // Fetch the full Suite from repository (not the lightweight one from Job)
-        Suite suite = suiteRepository.findById(existingJob.getSuiteId())
-                .orElseThrow(() -> new RuntimeException("Suite [" + existingJob.getSuiteId() + "] does not exist"));
-
+        Suite suite = existingJob.getSuite();
         String testType = getTestType(suite.getCriteria());
 
         if (testType == null) {

@@ -43,11 +43,6 @@ public class Suite {
     @Transient
     private String displayedCriteria;
 
-    public Suite(String id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
     public Suite() {
         requirements = new TreeSet<>();
     }

@@ -23,7 +23,7 @@ import java.util.Optional;
 @Repository
 public interface JobRepository extends CrudRepository<Job, String>, JpaSpecificationExecutor<Job>, PagingAndSortingRepository<Job, String>, JpaRepository<Job, String> {
 
-    @Query("SELECT j.id AS id, j.suiteId AS suiteId, j.suiteName AS suiteName, " +
+    @Query("SELECT j.id AS id, j.suite.id AS suiteId, j.suite.name AS suiteName, " +
             "j.build.id AS buildId, j.build.name AS buildName, j.build.branch AS buildBranch " +
             "FROM Job j WHERE j.id = :jobId")
     PJobThin findOneThinJobById(@Param("jobId") String jobId);
@@ -34,10 +34,10 @@ public interface JobRepository extends CrudRepository<Job, String>, JpaSpecifica
     Long countReadyAndRunningJobs();
 
     @Query("SELECT j FROM Job j " +
-        "WHERE j.suiteId = :suiteId AND j.state = 'DONE'")
+        "WHERE j.suite.id = :suiteId AND j.state = 'DONE'")
     List<Job> findTopJobsForSuiteDoneState(@Param("suiteId") String suiteId, Pageable pageable);
 
-    @Query("SELECT j.id AS id FROM Job j WHERE j.suiteId = :suiteId")
+    @Query("SELECT j.id AS id FROM Job j WHERE j.suite.id = :suiteId")
     List<String> findJobIdsBySuiteId(@Param("suiteId") String suiteId);
 
     List<Job> findByState(State paused);
