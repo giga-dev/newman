@@ -1133,8 +1133,6 @@ public class NewmanResource {
             if (testJob == null) {
                 throw new BadRequestException("finishTest - the job of the test is not on database. Test: [" + test + "].");
             }
-            logger.info("[runningTests TRACKING] finishTest ENTRY - testId:[{}], testName:[{}], jobId:[{}], testStatus:[{}], job.runningTests BEFORE:[{}]",
-                test.getId(), test.getName(), test.getJobId(), test.getStatus(), testJob.getRunningTests());
             Test.Status status = test.getStatus();
             if (status != Test.Status.FAIL && status != Test.Status.SUCCESS) {
                 throw new BadRequestException("can't finish test without state set to success or fail state" + test);
@@ -1146,8 +1144,6 @@ public class NewmanResource {
             // changing status to the same one means - one of the threads has missed its turn
             // if the job is DONE - also reject all late requests + PENDING test cannot be finished
             if (existingTest.getStatus() == status || existingTest.getStatus() == Test.Status.PENDING) {
-                logger.info("[runningTests TRACKING] finishTest SKIPPED - testId:[{}], existingTest.status:[{}], requested status:[{}] - NOT decrementing runningTests",
-                    test.getId(), existingTest.getStatus(), status);
                 return null;
             }
 
@@ -1203,8 +1199,6 @@ public class NewmanResource {
                 buildStatusUpdater.inc("failed3TimesTests");
             }
 
-            logger.info("[runningTests TRACKING] finishTest BEFORE DECREMENT - testId:[{}], jobId:[{}], job.runningTests BEFORE:[{}], about to decrement by 1",
-                test.getId(), testJob.getId(), testJob.getRunningTests());
             jobUpdater.dec("runningTests");
             buildStatusUpdater.dec("runningTests");
 
@@ -1222,10 +1216,8 @@ public class NewmanResource {
                 throw new BadRequestException("can't update job with Id: " + existingTest.getJobId());
             }
             Job savedJob = jobRepository.findById(existingTest.getJobId()).get();
-            logger.info("[runningTests TRACKING] finishTest AFTER DECREMENT - testId:[{}], jobId:[{}], job.runningTests AFTER:[{}], testEntryExists:[{}]",
-                test.getId(), savedJob.getId(), savedJob.getRunningTests(), testEntryExists);
             if (savedJob.getRunningTests() < 0) {
-                logger.warn("[runningTests TRACKING] *** NEGATIVE VALUE DETECTED *** Job: " + savedJob.getId() + " has an illegal number of running tests: " + savedJob.getRunningTests() +
+                logger.warn("Job: " + savedJob.getId() + " has an illegal number of running tests: " + savedJob.getRunningTests() +
                         " after running test: " + test.getArguments() + " with agent: " + test.getAssignedAgent());
             }
 
@@ -1245,12 +1237,11 @@ public class NewmanResource {
             broadcastMessage(MODIFIED_TEST, savedTest);
             broadcastMessage(MODIFIED_JOB, savedJob);
 
-            logger.info("[runningTests TRACKING] finishTest SUCCESS - testId:[{}], name:[{}], final job.runningTests:[{}]",
-                savedTest.getId(), savedTest.getName(), savedJob.getRunningTests());
+            logger.info("succeed finish test- id:[{}], name:[{}]", savedTest.getId(), savedTest.getName());
             return savedTest;
 
         } catch (Exception e) {
-            logger.error("[runningTests TRACKING] finishTest EXCEPTION - testId:[{}], jobId:[{}], error: ", test.getId(), test.getJobId(), e);
+            logger.error("failed to finish test because: ", e);
             throw e;
         } finally {
             if (test.getAssignedAgent() != null) {
@@ -2055,9 +2046,6 @@ public class NewmanResource {
             return null;
         }
 
-        logger.info("[runningTests TRACKING] getTest ENTRY - agentName:[{}], jobId:[{}], agent.state:[{}]",
-            agentName, jobId, agent.getState());
-
         Job pj = null;
         final Object agentLock = getAgentLock(agent);
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
@@ -2076,8 +2064,6 @@ public class NewmanResource {
         Test test = null;
         synchronized (takenTestLock) {      // this is the place where Tests assigned to Agents or removed if job PAUSED
             Optional<Test> opTestPending = testRepository.findFirstByJobIdAndStatus(jobId, Test.Status.PENDING);  // find job waiting to run
-            logger.info("[runningTests TRACKING] getTest - agentName:[{}], jobId:[{}], pendingTestFound:[{}]",
-                agentName, jobId, opTestPending.isPresent());
             if (opTestPending.isPresent()) {
                 // TEST
                 int updated = getUpdater(Test.class)
@@ -2107,14 +2093,9 @@ public class NewmanResource {
 
                 if (!job.getAgentGroups().contains(agent.getGroupName())) {
                     // dismiss Agent if it doesn't belong to the job's agent group
-                    logger.info("[runningTests TRACKING] getTest - agentName:[{}], jobId:[{}], testId:[{}], agent group mismatch - NOT incrementing runningTests",
-                        agentName, jobId, test.getId());
                     testResetUpdater.execute();
                     return null;
                 }
-
-                logger.info("[runningTests TRACKING] getTest BEFORE INCREMENT - agentName:[{}], jobId:[{}], testId:[{}], job.runningTests BEFORE:[{}], about to increment by 1",
-                    agentName, jobId, test.getId(), job.getRunningTests());
 
                 // JOB
                 AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
@@ -2147,8 +2128,10 @@ public class NewmanResource {
                 }
                 Build build = buildRepository.findById(job.getBuild().getId()).get();
 
-                logger.info("[runningTests TRACKING] getTest AFTER INCREMENT - agentName:[{}], jobId:[{}], testId:[{}], job.runningTests AFTER:[{}], job.startTime was null:[{}]",
-                    agentName, jobId, test.getId(), job.getRunningTests(), job.getStartTime() != null);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("After incrementing runningTests for jobId [{}] runningTests [{}]",
+                            jobId, job.getRunningTests());
+                }
 
                 logger.info("agent [{}] got test id: [{}], test-state:[{}]", agent.getName(), test.getId(), test.getStatus());
 
@@ -2165,8 +2148,6 @@ public class NewmanResource {
                 return test;
             } else {
                 // TEST - set back to PENDING if job is PAUSED
-                logger.info("[runningTests TRACKING] getTest - agentName:[{}], jobId:[{}], testId:[{}], job is PAUSED - NOT incrementing runningTests, resetting test to PENDING",
-                    agentName, jobId, test.getId());
                 int updated = testResetUpdater.execute();
                 if (updated == 0) {
                     logger.error("Test {} cannot be updated", test.getId());
@@ -2199,8 +2180,7 @@ public class NewmanResource {
                 return null;    // to stop agent going over and over the PAUSED test - return null
             }
         } else {
-            logger.info("[runningTests TRACKING] getTest - agentName:[{}], jobId:[{}], NO pending test found - NOT incrementing runningTests",
-                agentName, jobId);
+            logger.info("agent [{}] didn't find ready test for job: [{}]", agent.getName(), jobId);
         }
 
         agent = agentRepository.saveAndFlush(agent);
@@ -3473,9 +3453,6 @@ public class NewmanResource {
      * @param agent the agent in hand.
      */
     private void returnTests(Agent agent) {
-        logger.info("[runningTests TRACKING] returnTests ENTRY - agentName:[{}], jobId:[{}], agent.state:[{}], agent.currentTests.size:[{}], tests:[{}]",
-            agent.getName(), agent.getJobId(), agent.getState(), agent.getCurrentTests().size(), agent.getCurrentTests());
-
         Set<Test> currentTestsOfAgent = new HashSet<>();
         int testsActuallyReset = 0;
 
@@ -3496,37 +3473,26 @@ public class NewmanResource {
                 testsActuallyReset++;
                 Optional<Test> opTest = testRepository.findById(testId);
                 if (opTest.isPresent()) {
-                    logger.warn("[runningTests TRACKING] returnTests - testId:[{}], agentName:[{}] - test SUCCESSFULLY reset from RUNNING to PENDING (will decrement runningTests)",
-                        testId, agent.getName());
+                    logger.warn("test {} was released since agent {} not seen for a long time", testId, agent.getName());
                     currentTestsOfAgent.add(opTest.get());
                 }
             } else {
                 // Test was NOT reset - it was already finished by finishTest() or not found
-                logger.info("[runningTests TRACKING] returnTests - testId:[{}], agentName:[{}] - test NOT reset (already finished or not RUNNING, will NOT decrement runningTests)",
-                    testId, agent.getName());
+                logger.debug("test {} was not reset (already finished or not RUNNING)", testId);
             }
         }
 
         // reset job - only decrement counter by the number of tests we ACTUALLY reset
         int jobUpdated = 0;
         if (agent.getJobId() != null) {
-            Job jobBeforeUpdate = jobRepository.findById(agent.getJobId()).orElse(null);
-            Integer runningTestsBefore = jobBeforeUpdate != null ? jobBeforeUpdate.getRunningTests() : null;
-
             AtomicUpdater<Job> jobUpdater = getUpdater(Job.class).whereId(agent.getJobId());
             if (agent.getState() == Agent.State.PREPARING) {
-                logger.info("[runningTests TRACKING] returnTests - agentName:[{}], jobId:[{}], agent is PREPARING - removing from preparing_agents, NOT decrementing runningTests",
-                    agent.getName(), agent.getJobId());
                 jobUpdated = jobUpdater
                         .remove("preparing_agents", agent.getName()).execute();
             } else if (agent.getState() == Agent.State.RUNNING && testsActuallyReset > 0) {
-                logger.info("[runningTests TRACKING] returnTests BEFORE DECREMENT - agentName:[{}], jobId:[{}], job.runningTests BEFORE:[{}], testsActuallyReset:[{}], about to decrement by [{}]",
-                    agent.getName(), agent.getJobId(), runningTestsBefore, testsActuallyReset, testsActuallyReset);
+                logger.info("returnTests for agent [{}], jobId [{}], amount of tests actually reset [{}]", agent.getName(), agent.getJobId(), testsActuallyReset);
                 jobUpdated = jobUpdater
                         .dec("runningTests", testsActuallyReset).execute();
-            } else if (agent.getState() == Agent.State.RUNNING && testsActuallyReset == 0) {
-                logger.info("[runningTests TRACKING] returnTests - agentName:[{}], jobId:[{}], agent is RUNNING but testsActuallyReset is 0 - NOT decrementing runningTests",
-                    agent.getName(), agent.getJobId());
             }
         }
         Optional<Agent> opAgent = agentRepository.findById(agent.getId());
@@ -3546,16 +3512,7 @@ public class NewmanResource {
         Job job = null;
         if (jobUpdated != 0) {
             job = jobRepository.findById(agent.getJobId()).get();
-            logger.info("[runningTests TRACKING] returnTests AFTER DECREMENT - agentName:[{}], jobId:[{}], job.runningTests AFTER:[{}], testsActuallyReset:[{}]",
-                agent.getName(), agent.getJobId(), job.getRunningTests(), testsActuallyReset);
-            if (job.getRunningTests() < 0) {
-                logger.warn("[runningTests TRACKING] *** NEGATIVE VALUE DETECTED in returnTests *** Job:[{}] has runningTests:[{}] after returning [{}] tests from agent:[{}]",
-                    job.getId(), job.getRunningTests(), testsActuallyReset, agent.getName());
-            }
             broadcastMessage(MODIFIED_JOB, job);
-        } else {
-            logger.info("[runningTests TRACKING] returnTests - agentName:[{}], jobId:[{}], job was NOT updated (jobUpdated=0)",
-                agent.getName(), agent.getJobId());
         }
 
         existingAgent.setJob(job);  // add job for the broadcasting
