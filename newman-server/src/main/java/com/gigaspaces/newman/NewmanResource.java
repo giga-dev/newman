@@ -1120,8 +1120,9 @@ public class NewmanResource {
     public Test finishTest(final Test test) {
         // LOCK job when manipulating with its counters and statuses
         try {
-            logger.info("[COUNTER_TRACE] Attempting to finish test [{}], name:[{}], status:[{}], agent:[{}]",
-                    test.getId(), test.getName(), test.getStatus(), test.getAssignedAgent());
+            if (logger.isDebugEnabled()) {
+                logger.info("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
+            }
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
@@ -1176,21 +1177,17 @@ public class NewmanResource {
             }
             // save updated TEST - use atomic WHERE clause to prevent race with returnTests()
             // This ensures test is still RUNNING before updating to SUCCESS/FAIL
-            logger.info("[COUNTER_TRACE] Attempting to update test [{}] status from RUNNING to [{}] for job [{}]",
-                    existingTest.getId(), status, existingTest.getJobId());
-
             int updated = testUpdater
                     .whereId(existingTest.getId())
                     .where("status = ?", Test.Status.RUNNING)
                     .execute();
             if (updated == 0) {
                 // Test was not RUNNING - likely returnTests() already changed it to PENDING and decremented counter
-                logger.warn("[COUNTER_TRACE] RACE CONDITION DETECTED: Test [{}] was NOT in RUNNING state during finishTest (current status: {}), likely already processed by returnTests(). Skipping counter decrement to avoid negative values. Job [{}], Agent [{}]",
-                            existingTest.getId(), existingTest.getStatus(), existingTest.getJobId(), test.getAssignedAgent());
+                logger.warn("Test {} was not in RUNNING state during finishTest (current status: {}), likely already processed by returnTests(). Skipping counter decrement to avoid negative values.",
+                            existingTest.getId(), existingTest.getStatus());
                 return null;
             }
             Test savedTest = testRepository.findById(existingTest.getId()).get();
-            logger.info("[COUNTER_TRACE] Test [{}] status successfully changed from RUNNING to [{}]", savedTest.getId(), savedTest.getStatus());
 
             // Now, update TEST related things
             AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
@@ -1208,16 +1205,11 @@ public class NewmanResource {
                 buildStatusUpdater.inc("failed3TimesTests");
             }
 
-            int currentRunningTests = testJob.getRunningTests();
-            logger.info("[COUNTER_TRACE] BEFORE decrement: Job [{}] runningTests=[{}], finishing test [{}], agent [{}]",
-                    testJob.getId(), currentRunningTests, savedTest.getId(), test.getAssignedAgent());
-
             jobUpdater.dec("runningTests");
             buildStatusUpdater.dec("runningTests");
 
             boolean testEntryExists = testRepository.existsByJobIdAndStatusIn(existingTest.getJobId(), Arrays.asList(Test.Status.PENDING, Test.Status.RUNNING));
             if (!testEntryExists) {
-                logger.info("[COUNTER_TRACE] No more PENDING or RUNNING tests for job [{}], marking as DONE", testJob.getId());
                 jobUpdater.set("state", State.DONE).set("endTime", new Date());
                 buildStatusUpdater.inc("doneJobs").dec("runningJobs");
                 if (testJob.getPriority() > 0) {
@@ -1227,17 +1219,12 @@ public class NewmanResource {
 
             updated = jobUpdater.whereId(existingTest.getJobId()).execute();     // SAVE Job
             if (updated == 0) {
-                logger.error("[COUNTER_TRACE] CRITICAL: Job [{}] counter decrement FAILED! Test [{}] status changed to [{}] but counter not decremented. This will cause NEGATIVE counter! Current runningTests=[{}]",
-                        existingTest.getJobId(), savedTest.getId(), savedTest.getStatus(), currentRunningTests);
                 throw new BadRequestException("can't update job with Id: " + existingTest.getJobId());
             }
             Job savedJob = jobRepository.findById(existingTest.getJobId()).get();
-            logger.info("[COUNTER_TRACE] AFTER decrement: Job [{}] runningTests=[{}], test [{}] finished with status [{}]",
-                    savedJob.getId(), savedJob.getRunningTests(), savedTest.getId(), savedTest.getStatus());
-
             if (savedJob.getRunningTests() < 0) {
-                logger.error("[COUNTER_TRACE] NEGATIVE COUNTER DETECTED! Job [{}] has illegal runningTests=[{}] after finishing test [{}] with agent [{}]. Test arguments: [{}]",
-                        savedJob.getId(), savedJob.getRunningTests(), savedTest.getId(), test.getAssignedAgent(), test.getArguments());
+                logger.warn("Job: " + savedJob.getId() + " has an illegal number of running tests: " + savedJob.getRunningTests() +
+                        " after running test: " + test.getArguments() + " with agent: " + test.getAssignedAgent());
             }
 
             if (logger.isDebugEnabled()) {
@@ -2085,22 +2072,18 @@ public class NewmanResource {
             Optional<Test> opTestPending = testRepository.findFirstByJobIdAndStatus(jobId, Test.Status.PENDING);  // find job waiting to run
             if (opTestPending.isPresent()) {
                 // TEST
-                String testId = opTestPending.get().getId();
-                logger.info("[COUNTER_TRACE] Setting test [{}] to RUNNING for job [{}], agent [{}]", testId, jobId, agentName);
-
                 int updated = getUpdater(Test.class)
                         .set("status", Test.Status.RUNNING)
                         .set("assignedAgent", agentName)
                         .set("agentGroup", agent.getGroupName())
                         .set("startTime", new Date())
-                        .whereId(testId).execute();
+                        .whereId(opTestPending.get().getId()).execute();
 
                 if (updated == 0) {
-                    logger.error("[COUNTER_TRACE] CRITICAL: Test [{}] status update FAILED - test may already be assigned. Job [{}], Agent [{}]", testId, jobId, agentName);
+                    logger.error("Test {} cannot be updated", opTestPending.get().getId());
                     return null;
                 }
-                test = testRepository.findById(testId).get();
-                logger.info("[COUNTER_TRACE] Test [{}] successfully set to RUNNING. Current status: [{}]", testId, test.getStatus());
+                test = testRepository.findById(opTestPending.get().getId()).get();
             }
         }
 
@@ -2121,10 +2104,6 @@ public class NewmanResource {
                 }
 
                 // JOB
-                int currentRunningTests = job.getRunningTests();
-                logger.info("[COUNTER_TRACE] BEFORE increment: Job [{}] runningTests=[{}], about to assign test [{}] to agent [{}]",
-                        job.getId(), currentRunningTests, test.getId(), agentName);
-
                 AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
                 jobUpdater
                         .inc("runningTests")
@@ -2143,16 +2122,10 @@ public class NewmanResource {
 
                 int updated = jobUpdater.whereId(job.getId()).execute();  // UPDATE job
                 if (updated == 0) {
-                    logger.error("[COUNTER_TRACE] CRITICAL: Job [{}] counter increment FAILED but test [{}] is already RUNNING! This will cause counter to be stuck. Agent [{}], current runningTests=[{}]",
-                            job.getId(), test.getId(), agentName, currentRunningTests);
-                    // Test is RUNNING but counter not incremented - this is a BUG!
-                    testResetUpdater.execute(); // Try to reset test back to PENDING
-                    logger.error("[COUNTER_TRACE] Attempted to reset test [{}] back to PENDING to prevent orphaned RUNNING test", test.getId());
+                    logger.error("Job {} cannot be updated", job.getId());
                     return null;
                 }
                 job = jobRepository.findById(job.getId()).get();
-                logger.info("[COUNTER_TRACE] AFTER increment: Job [{}] runningTests=[{}], test [{}] assigned to agent [{}]",
-                        job.getId(), job.getRunningTests(), test.getId(), agentName);
 
                 updated = buildStatusUpdater.whereId(job.getBuild().getBuildStatus().getId()).execute();  // UPDATE build
                 if (updated == 0) {
@@ -3491,7 +3464,6 @@ public class NewmanResource {
         int testsActuallyReset = 0;
 
         // reset tests - use AtomicUpdater to ensure test is still RUNNING when we reset it
-        logger.info("[COUNTER_TRACE] returnTests called for agent [{}] with [{}] current tests", agent.getName(), agent.getCurrentTests().size());
         for (String testId : agent.getCurrentTests()) {
             // Use AtomicUpdater to atomically check status and update
             // This prevents race with finishTest() which might be processing the same test
@@ -3508,15 +3480,12 @@ public class NewmanResource {
                 testsActuallyReset++;
                 Optional<Test> opTest = testRepository.findById(testId);
                 if (opTest.isPresent()) {
-                    logger.warn("[COUNTER_TRACE] Test [{}] was released and returned to PENDING since agent [{}] not seen for a long time", testId, agent.getName());
+                    logger.warn("test {} was released since agent {} not seen for a long time", testId, agent.getName());
                     currentTestsOfAgent.add(opTest.get());
                 }
             } else {
                 // Test was NOT reset - it was already finished by finishTest() or not found
-                Optional<Test> opTest = testRepository.findById(testId);
-                String currentStatus = opTest.isPresent() ? opTest.get().getStatus().toString() : "NOT_FOUND";
-                logger.info("[COUNTER_TRACE] Test [{}] was NOT reset in returnTests (current status: [{}]) - likely race with finishTest() which already changed status. Agent [{}]",
-                        testId, currentStatus, agent.getName());
+                logger.debug("test {} was not reset (already finished or not RUNNING)", testId);
             }
         }
 
@@ -3528,28 +3497,9 @@ public class NewmanResource {
                 jobUpdated = jobUpdater
                         .remove("preparing_agents", agent.getName()).execute();
             } else if (agent.getState() == Agent.State.RUNNING && testsActuallyReset > 0) {
-                Optional<Job> opJob = jobRepository.findById(agent.getJobId());
-                if (opJob.isPresent()) {
-                    int currentRunningTests = opJob.get().getRunningTests();
-                    logger.info("[COUNTER_TRACE] BEFORE decrement in returnTests: Job [{}] runningTests=[{}], agent [{}] timed out, resetting [{}] tests back to PENDING",
-                            agent.getJobId(), currentRunningTests, agent.getName(), testsActuallyReset);
-
-                    jobUpdated = jobUpdater
-                            .dec("runningTests", testsActuallyReset).execute();
-
-                    if (jobUpdated == 0) {
-                        logger.error("[COUNTER_TRACE] CRITICAL: Job [{}] counter decrement FAILED in returnTests! Agent [{}] had [{}] tests reset but counter not decremented. Current runningTests=[{}]",
-                                agent.getJobId(), agent.getName(), testsActuallyReset, currentRunningTests);
-                    } else {
-                        Job updatedJob = jobRepository.findById(agent.getJobId()).get();
-                        logger.info("[COUNTER_TRACE] AFTER decrement in returnTests: Job [{}] runningTests=[{}], agent [{}], [{}] tests returned to pool",
-                                agent.getJobId(), updatedJob.getRunningTests(), agent.getName(), testsActuallyReset);
-                    }
-                } else {
-                    logger.info("returnTests for agent [{}], jobId [{}], amount of tests actually reset [{}]", agent.getName(), agent.getJobId(), testsActuallyReset);
-                    jobUpdated = jobUpdater
-                            .dec("runningTests", testsActuallyReset).execute();
-                }
+                logger.info("returnTests for agent [{}], jobId [{}], amount of tests actually reset [{}]", agent.getName(), agent.getJobId(), testsActuallyReset);
+                jobUpdated = jobUpdater
+                        .dec("runningTests", testsActuallyReset).execute();
             }
         }
         Optional<Agent> opAgent = agentRepository.findById(agent.getId());
