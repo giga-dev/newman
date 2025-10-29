@@ -1118,12 +1118,11 @@ public class NewmanResource {
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Test finishTest(final Test test) {
-        // LOCK job when manipulating with its counters and statuses
+    public synchronized Test finishTest(final Test test) {
         try {
-//            if (logger.isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 logger.info("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
-//            }
+            }
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
