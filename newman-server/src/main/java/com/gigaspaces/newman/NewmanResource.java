@@ -1180,7 +1180,7 @@ public class NewmanResource {
                     existingTest.getId(), existingTest.getName(), existingTest.getStatus(), status, existingTest.getAssignedAgent());
 
             // save updated TEST - only if status is still RUNNING
-            int updated = testUpdater.whereId(existingTest.getId()).where("status = ?", Test.Status.RUNNING).execute();
+            int updated = testUpdater.where("id = ? AND status = ?", existingTest.getId(), Test.Status.RUNNING).execute();
 
             logger.info("finishTest AFTER UPDATE ATTEMPT: testId={}, updated={}, targetStatus={}",
                     existingTest.getId(), updated, status);
