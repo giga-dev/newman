@@ -1118,7 +1118,7 @@ public class NewmanResource {
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public synchronized Test finishTest(final Test test) {
+    public Test finishTest(final Test test) {
         try {
             if (logger.isDebugEnabled()) {
                 logger.info("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
@@ -1175,10 +1175,27 @@ public class NewmanResource {
                         historyStatsString, test.getId(), test.getName(), test.getJobId(),
                         testJob.getRunningTests());
             }
-            // save updated TEST
-            int updated = testUpdater.whereId(existingTest.getId()).execute();
+            // Log test status before update attempt
+            logger.info("finishTest BEFORE UPDATE: testId={}, testName={}, currentStatus={}, targetStatus={}, assignedAgent={}",
+                    existingTest.getId(), existingTest.getName(), existingTest.getStatus(), status, existingTest.getAssignedAgent());
+
+            // save updated TEST - only if status is still RUNNING
+            int updated = testUpdater.whereId(existingTest.getId()).where("status = ?", Test.Status.RUNNING).execute();
+
+            logger.info("finishTest AFTER UPDATE ATTEMPT: testId={}, updated={}, targetStatus={}",
+                    existingTest.getId(), updated, status);
+
             if (updated == 0) {
-                throw new BadRequestException("can't update test with Id: " + existingTest.getId());
+                // Test was already returned to PENDING by returnTests() or finished by another thread
+                // Skip processing to prevent double decrement
+                Test currentTest = testRepository.findById(existingTest.getId()).orElse(null);
+                if (currentTest != null) {
+                    logger.warn("finishTest SKIPPED: testId={}, currentStatus={}, targetStatus={}, assignedAgent={} - Test status is not RUNNING, likely changed by returnTests(). Skipping to prevent double decrement.",
+                            currentTest.getId(), currentTest.getStatus(), status, currentTest.getAssignedAgent());
+                } else {
+                    logger.warn("finishTest SKIPPED: testId={} - Test not found or status is not RUNNING anymore", existingTest.getId());
+                }
+                return null;
             }
             Test savedTest = testRepository.findById(existingTest.getId()).get();
 
@@ -1211,6 +1228,8 @@ public class NewmanResource {
             }
 
             updated = jobUpdater.whereId(existingTest.getJobId()).execute();     // SAVE Job
+            logger.info("[DECREMENT] finishTest: testId={}, testName={}, jobId={}", existingTest.getId(), existingTest.getName(), existingTest.getJobId());
+
             if (updated == 0) {
                 throw new BadRequestException("can't update job with Id: " + existingTest.getJobId());
             }
@@ -3472,8 +3491,11 @@ public class NewmanResource {
                 testsActuallyReset++;
                 Optional<Test> opTest = testRepository.findById(testId);
                 if (opTest.isPresent()) {
+                    Test test = opTest.get();
                     logger.warn("test {} was released since agent {} not seen for a long time", testId, agent.getName());
-                    currentTestsOfAgent.add(opTest.get());
+                    logger.info("[DECREMENT] returnTests: testId={}, testName={}, jobId={}, agent={}",
+                            test.getId(), test.getName(), test.getJobId(), agent.getName());
+                    currentTestsOfAgent.add(test);
                 }
             } else {
                 // Test was NOT reset - it was already finished by finishTest() or not found
@@ -3489,7 +3511,7 @@ public class NewmanResource {
                 jobUpdated = jobUpdater
                         .remove("preparing_agents", agent.getName()).execute();
             } else if (agent.getState() == Agent.State.RUNNING && testsActuallyReset > 0) {
-                logger.info("returnTests for agent [{}], jobId [{}], amount of tests actually reset [{}]", agent.getName(), agent.getJobId(), testsActuallyReset);
+                logger.info("[DECREMENT] returnTests for agent [{}], jobId [{}], amount of tests actually reset [{}]", agent.getName(), agent.getJobId(), testsActuallyReset);
                 jobUpdated = jobUpdater
                         .dec("runningTests", testsActuallyReset).execute();
             }
