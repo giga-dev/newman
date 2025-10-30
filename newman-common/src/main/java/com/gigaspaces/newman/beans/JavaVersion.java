@@ -6,7 +6,8 @@ public enum JavaVersion {
     ORACLE_9_0_4("oracle_9_0_4"),
     OPENJDK_8("openjdk_8"),
     OPENJDK_11_0_1("openjdk_11_0_1"),
-    OPENJDK_17_0_1("openjdk_17_0_1");
+    OPENJDK_17_0_1("openjdk_17_0_1"),
+    OPENJDK_21_0_1("openjdk_21_0_1");
 
     private String name;
 
