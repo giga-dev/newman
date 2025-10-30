@@ -27193,6 +27193,30 @@ textarea.v-field__input::placeholder {
   margin-bottom: 10px;
   border-bottom: 1px solid #1976d2;
 }
+
+.v-row[data-v-1c840940] {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.jdkConfigTable > .v-table__wrapper > table > thead > tr > th > .v-data-table-header__content{
+  font-weight: bold;
+  text-align: center;
+  display: block;
+}
+.jdkConfigTable > .v-table__wrapper > table > tbody > .v-data-table__tr {
+  font-size: 1rem;
+  font-weight: 500;
+}
+.jdkConfigTable > .v-table__wrapper > table > tbody > tr > td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.jdkConfigTable tbody tr:nth-child(even) {
+  background: hsla(230, 86%, 73%, 0.075);
+}
 /* MaterialDesignIcons.com */
 @font-face {
   font-family: "Material Design Icons";
@@ -57332,14 +57356,14 @@ textarea.v-field__input::placeholder {
   margin: auto;
 }
 
-[data-v-e98f8523] .v-list-item-title {
+[data-v-083e5d05] .v-list-item-title {
   font-weight: bold;
   font-size: 95%;
 }
-.user-mngmnt[data-v-e98f8523] {
+.user-mngmnt[data-v-083e5d05] {
   color: orange;
 }
-.v-navigation-drawer.v-theme--light[data-v-e98f8523] {
+.v-navigation-drawer.v-theme--light[data-v-083e5d05] {
   background-color: #2196F3;
 }
 

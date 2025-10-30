@@ -37460,11 +37460,11 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const _sfc_main$n = {
+const _sfc_main$p = {
   setup() {
   }
 };
-function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_JobsGrid = resolveComponent("JobsGrid");
   const _component_v_card = resolveComponent("v-card");
   return openBlock(), createBlock(_component_v_card, null, {
@@ -37474,8 +37474,8 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobsTable = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f]]);
-const _sfc_main$m = {
+const JobsTable = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$h]]);
+const _sfc_main$o = {
   data() {
     return {
       loading: true,
@@ -37566,16 +37566,16 @@ const _sfc_main$m = {
     }
   }
 };
-const _hoisted_1$j = { style: { "width": "95%" } };
-const _hoisted_2$c = { class: "d-flex align-center justify-space-between" };
-const _hoisted_3$c = { class: "elevation-2 text-center col-header" };
-const _hoisted_4$a = { class: "d-flex align-center justify-space-between" };
+const _hoisted_1$k = { style: { "width": "95%" } };
+const _hoisted_2$d = { class: "d-flex align-center justify-space-between" };
+const _hoisted_3$d = { class: "elevation-2 text-center col-header" };
+const _hoisted_4$b = { class: "d-flex align-center justify-space-between" };
 const _hoisted_5$6 = { class: "elevation-2 text-center col-header" };
 const _hoisted_6$6 = { key: 0 };
 const _hoisted_7$6 = { key: 1 };
 const _hoisted_8$5 = { key: 0 };
 const _hoisted_9$5 = { key: 1 };
-function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_router_link = resolveComponent("router-link");
   const _component_v_icon = resolveComponent("v-icon");
@@ -37588,7 +37588,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card = resolveComponent("v-card");
   return openBlock(), createBlock(_component_v_card, { align: "center" }, {
     default: withCtx(() => [
-      createBaseVNode("div", _hoisted_1$j, [
+      createBaseVNode("div", _hoisted_1$k, [
         createVNode(_component_v_card_title, {
           align: "start",
           class: "text-wrap"
@@ -37624,14 +37624,14 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2;
                     return [
-                      createBaseVNode("div", _hoisted_2$c, [
+                      createBaseVNode("div", _hoisted_2$d, [
                         ((_a2 = $data.headers.left) == null ? void 0 : _a2.name) ? (openBlock(), createBlock(_component_router_link, {
                           key: 0,
                           class: "font-bold flex-grow-1",
                           to: $data.headers.left.id ? { name: "BuildDetails", params: { id: $data.headers.left.id } } : ""
                         }, {
                           default: withCtx(() => [
-                            createBaseVNode("h3", _hoisted_3$c, toDisplayString($data.headers.left.name), 1)
+                            createBaseVNode("h3", _hoisted_3$d, toDisplayString($data.headers.left.name), 1)
                           ]),
                           _: 1
                         }, 8, ["to"])) : createCommentVNode("", true),
@@ -37683,7 +37683,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2;
                     return [
-                      createBaseVNode("div", _hoisted_4$a, [
+                      createBaseVNode("div", _hoisted_4$b, [
                         createVNode(_component_v_menu, {
                           modelValue: $data.rightMenu,
                           "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $data.rightMenu = $event),
@@ -37900,8 +37900,8 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$e], ["__scopeId", "data-v-e65060be"]]);
-const _sfc_main$l = {
+const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$g], ["__scopeId", "data-v-e65060be"]]);
+const _sfc_main$n = {
   beforeMount() {
     this.initBuildsAndSuites();
     this.initJobConfigs();
@@ -38057,8 +38057,8 @@ const _sfc_main$l = {
     }
   }
 };
-const _hoisted_1$i = { class: "text-h6" };
-function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
+const _hoisted_1$j = { class: "text-h6" };
+function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_chip = resolveComponent("v-chip");
   const _component_v_autocomplete = resolveComponent("v-autocomplete");
   const _component_v_col = resolveComponent("v-col");
@@ -38367,7 +38367,7 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
               })
             ]),
             default: withCtx(() => [
-              createBaseVNode("div", _hoisted_1$i, toDisplayString($data.snackbarMessage), 1)
+              createBaseVNode("div", _hoisted_1$j, toDisplayString($data.snackbarMessage), 1)
             ]),
             _: 1
           }, 8, ["modelValue", "color"])
@@ -38378,7 +38378,7 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-76acb790"]]);
+const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-76acb790"]]);
 function countAgentsNum(item) {
   if (item.preparingAgents && item.preparingAgents.length > 0) {
     return item.preparingAgents.length;
@@ -38638,7 +38638,7 @@ function coloredHistoryStats(stats, isSquare) {
   let circlesCount = result.length / 2;
   return result.padEnd(circlesCount + 10, isSquare ? "⬜" : "⚪");
 }
-const _sfc_main$k = /* @__PURE__ */ defineComponent$1({
+const _sfc_main$m = /* @__PURE__ */ defineComponent$1({
   props: {
     item: { type: Object, required: true, default: () => ({ status: [0, 0, 0, 0, 0], jobId: null }) },
     toggle: { type: Boolean, default: () => {
@@ -38681,11 +38681,11 @@ const _sfc_main$k = /* @__PURE__ */ defineComponent$1({
     }
   }
 });
-const _hoisted_1$h = { key: 1 };
-const _hoisted_2$b = { key: 2 };
-const _hoisted_3$b = { key: 3 };
-const _hoisted_4$9 = { key: 4 };
-function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
+const _hoisted_1$i = { key: 1 };
+const _hoisted_2$c = { key: 2 };
+const _hoisted_3$c = { key: 3 };
+const _hoisted_4$a = { key: 4 };
+function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_btn = resolveComponent("v-btn");
   return openBlock(), createElementBlock("div", null, [
     (openBlock(), createBlock(resolveDynamicComponent(_ctx.toggle ? "v-btn-toggle" : "div"), normalizeProps(guardReactiveProps(_ctx.toggle ? { vModel: _ctx.selectedButton, group: true, variant: "outlined", divided: true } : {})), {
@@ -38703,7 +38703,7 @@ function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
             to: _ctx.noLinks ? null : _ctx.setRoute("RUNNING"),
             onClick: _cache[0] || (_cache[0] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("RUNNING"))
           }, null, 8, ["text", "class", "to"])) : createCommentVNode("", true),
-          !(_ctx.toggle || _ctx.hideRunning) ? (openBlock(), createElementBlock("span", _hoisted_1$h, "/ ")) : createCommentVNode("", true),
+          !(_ctx.toggle || _ctx.hideRunning) ? (openBlock(), createElementBlock("span", _hoisted_1$i, "/ ")) : createCommentVNode("", true),
           createVNode(_component_v_btn, {
             variant: "elevated",
             value: "SUCCESS",
@@ -38714,7 +38714,7 @@ function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
             to: _ctx.noLinks ? null : _ctx.setRoute("SUCCESS"),
             onClick: _cache[1] || (_cache[1] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("SUCCESS"))
           }, null, 8, ["text", "class", "to"]),
-          !_ctx.toggle ? (openBlock(), createElementBlock("span", _hoisted_2$b, "/ ")) : createCommentVNode("", true),
+          !_ctx.toggle ? (openBlock(), createElementBlock("span", _hoisted_2$c, "/ ")) : createCommentVNode("", true),
           createVNode(_component_v_btn, {
             variant: "elevated",
             value: "FAIL",
@@ -38725,7 +38725,7 @@ function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
             to: _ctx.noLinks ? null : _ctx.setRoute("FAIL"),
             onClick: _cache[2] || (_cache[2] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("FAIL"))
           }, null, 8, ["text", "class", "to"]),
-          !_ctx.toggle ? (openBlock(), createElementBlock("span", _hoisted_3$b, "/ ")) : createCommentVNode("", true),
+          !_ctx.toggle ? (openBlock(), createElementBlock("span", _hoisted_3$c, "/ ")) : createCommentVNode("", true),
           createVNode(_component_v_btn, {
             variant: "elevated",
             value: "FAILED3TIMES",
@@ -38736,7 +38736,7 @@ function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
             to: _ctx.noLinks ? null : _ctx.setRoute("FAILED3TIMES"),
             onClick: _cache[3] || (_cache[3] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("FAILED3TIMES"))
           }, null, 8, ["text", "class", "to"]),
-          !(_ctx.toggle || _ctx.hideTotal) ? (openBlock(), createElementBlock("span", _hoisted_4$9, "/ ")) : createCommentVNode("", true),
+          !(_ctx.toggle || _ctx.hideTotal) ? (openBlock(), createElementBlock("span", _hoisted_4$a, "/ ")) : createCommentVNode("", true),
           !_ctx.hideTotal ? (openBlock(), createBlock(_component_v_btn, {
             key: 5,
             variant: "elevated",
@@ -38754,8 +38754,8 @@ function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
     }, 16))
   ]);
 }
-const JobStatus = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$c], ["__scopeId", "data-v-6a0c4c4e"]]);
-const _sfc_main$j = {
+const JobStatus = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$e], ["__scopeId", "data-v-6a0c4c4e"]]);
+const _sfc_main$l = {
   components: {
     JobStatus
   },
@@ -38813,17 +38813,17 @@ const _sfc_main$j = {
     }
   }
 };
-const _hoisted_1$g = { class: "builds-wrapper" };
-const _hoisted_2$a = {
+const _hoisted_1$h = { class: "builds-wrapper" };
+const _hoisted_2$b = {
   class: "d-flex align-center justify-end",
   style: { "gap": "8px" }
 };
-const _hoisted_3$a = { class: "font-bold flex items-center gap-2" };
-const _hoisted_4$8 = {
+const _hoisted_3$b = { class: "font-bold flex items-center gap-2" };
+const _hoisted_4$9 = {
   key: 0,
   class: "pl-1 mr-1 font-weight-bold border rounded nightly-label"
 };
-function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_col = resolveComponent("v-col");
   const _component_v_spacer = resolveComponent("v-spacer");
@@ -38836,7 +38836,7 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card = resolveComponent("v-card");
   return openBlock(), createBlock(_component_v_card, { align: "center" }, {
     default: withCtx(() => [
-      createBaseVNode("div", _hoisted_1$g, [
+      createBaseVNode("div", _hoisted_1$h, [
         createVNode(_component_v_card_title, null, {
           default: withCtx(() => [
             createVNode(_component_v_row, {
@@ -38873,7 +38873,7 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
                   class: "ml-auto"
                 }, {
                   default: withCtx(() => [
-                    createBaseVNode("div", _hoisted_2$a, [
+                    createBaseVNode("div", _hoisted_2$b, [
                       _cache[5] || (_cache[5] = createBaseVNode("div", null, "Builds count:", -1)),
                       createVNode(_component_v_text_field, {
                         counter: "",
@@ -38921,8 +38921,8 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
           "items-per-page-options": [15, 20, 25, 50]
         }, {
           "item.name": withCtx(({ item }) => [
-            createBaseVNode("span", _hoisted_3$a, [
-              $options.hasNightlyTag(item) ? (openBlock(), createElementBlock("span", _hoisted_4$8, " N ")) : createCommentVNode("", true),
+            createBaseVNode("span", _hoisted_3$b, [
+              $options.hasNightlyTag(item) ? (openBlock(), createElementBlock("span", _hoisted_4$9, " N ")) : createCommentVNode("", true),
               createVNode(_component_router_link, {
                 class: "font-bold",
                 to: { name: "BuildDetails", params: { id: item.id } }
@@ -38950,8 +38950,8 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Builds = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$b], ["__scopeId", "data-v-8e609145"]]);
-const _sfc_main$i = {
+const Builds = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-8e609145"]]);
+const _sfc_main$k = {
   name: "PromptDialog",
   props: {
     modelValue: { type: Boolean },
@@ -38997,8 +38997,8 @@ const _sfc_main$i = {
     }
   }
 };
-const _hoisted_1$f = ["innerHTML"];
-function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
+const _hoisted_1$g = ["innerHTML"];
+function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_icon = resolveComponent("v-icon");
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_v_divider = resolveComponent("v-divider");
@@ -39033,7 +39033,7 @@ function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
               createBaseVNode("span", {
                 innerHTML: $props.title,
                 class: "ml-2"
-              }, null, 8, _hoisted_1$f)
+              }, null, 8, _hoisted_1$g)
             ]),
             _: 1
           }),
@@ -39069,8 +39069,8 @@ function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
     _: 3
   }, 8, ["modelValue"]);
 }
-const PromptDialog = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["render", _sfc_render$a], ["__scopeId", "data-v-4d26336b"]]);
-const _sfc_main$h = {
+const PromptDialog = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$c], ["__scopeId", "data-v-4d26336b"]]);
+const _sfc_main$j = {
   components: {
     PromptDialog
   },
@@ -39104,7 +39104,7 @@ const _sfc_main$h = {
     }
   }
 };
-function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_row = resolveComponent("v-row");
   const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_container = resolveComponent("v-container");
@@ -39158,14 +39158,14 @@ function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   }, 8, ["modelValue", "onPromptDialog:onConfirm"]);
 }
-const DialogCreateSuite = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$9]]);
-const _hoisted_1$e = { name: "grid" };
-const _hoisted_2$9 = { class: "d-flex" };
-const _hoisted_3$9 = {
+const DialogCreateSuite = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$b]]);
+const _hoisted_1$f = { name: "grid" };
+const _hoisted_2$a = { class: "d-flex" };
+const _hoisted_3$a = {
   class: "d-block",
   style: { "position": "relative" }
 };
-const _hoisted_4$7 = { class: "d-block" };
+const _hoisted_4$8 = { class: "d-block" };
 const _hoisted_5$5 = {
   key: 0,
   style: { "position": "absolute", "top": "0", "left": "0", "width": "0", "height": "0", "border-top": "8px solid orange", "border-right": "8px solid transparent", "pointer-events": "none" }
@@ -39332,7 +39332,7 @@ const __default__$6 = {
     }
   }
 };
-const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
+const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$6, {
   __name: "TestsGrid",
   setup(__props) {
     const TOOLTIP_SHOWUP_DELAY = 500;
@@ -39362,7 +39362,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
       const _component_v_data_table = resolveComponent("v-data-table");
       const _component_v_snackbar = resolveComponent("v-snackbar");
       return openBlock(), createElementBlock(Fragment, null, [
-        createBaseVNode("div", _hoisted_1$e, [
+        createBaseVNode("div", _hoisted_1$f, [
           createVNode(_component_v_card_title, null, {
             default: withCtx(() => [
               createVNode(_component_v_row, {
@@ -39388,8 +39388,8 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
                   }),
                   createVNode(_component_v_col, { cols: "4" }, {
                     default: withCtx(() => [
-                      createBaseVNode("div", _hoisted_2$9, [
-                        createBaseVNode("div", _hoisted_3$9, [
+                      createBaseVNode("div", _hoisted_2$a, [
+                        createBaseVNode("div", _hoisted_3$a, [
                           createVNode(JobStatus, {
                             item: _ctx.computedJobDetails,
                             toggle: ""
@@ -39411,7 +39411,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
                             _: 1
                           }, 8, ["modelValue"])
                         ]),
-                        createBaseVNode("div", _hoisted_4$7, [
+                        createBaseVNode("div", _hoisted_4$8, [
                           createVNode(_component_v_btn, {
                             class: "ml-2 font-weight-bold",
                             style: { "height": "100%" },
@@ -39562,13 +39562,13 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$6, {
     };
   }
 });
-const _hoisted_1$d = { style: { "font-size": "1.3em", "font-weight": "bold" } };
-const _hoisted_2$8 = {
+const _hoisted_1$e = { style: { "font-size": "1.3em", "font-weight": "bold" } };
+const _hoisted_2$9 = {
   key: 0,
   style: { "font-size": "1em", "font-weight": "bold" }
 };
-const _hoisted_3$8 = { class: "ml-6" };
-const _hoisted_4$6 = { key: 0 };
+const _hoisted_3$9 = { class: "ml-6" };
+const _hoisted_4$7 = { key: 0 };
 const _hoisted_5$4 = { key: 1 };
 const _hoisted_6$4 = { key: 2 };
 const _hoisted_7$4 = { key: 3 };
@@ -39576,7 +39576,7 @@ const _hoisted_8$3 = { class: "d-flex align-center" };
 const _hoisted_9$3 = { class: "ml-3" };
 const __default__$5 = {
   components: {
-    TestsGrid: _sfc_main$g
+    TestsGrid: _sfc_main$i
   },
   props: {
     id: String,
@@ -39632,7 +39632,7 @@ const __default__$5 = {
     }
   }
 };
-const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
+const _sfc_main$h = /* @__PURE__ */ Object.assign(__default__$5, {
   __name: "JobDetails",
   setup(__props) {
     return (_ctx, _cache) => {
@@ -39672,8 +39672,8 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
                             default: withCtx(() => {
                               var _a2;
                               return [
-                                createBaseVNode("div", _hoisted_1$d, "Job: " + toDisplayString(__props.id), 1),
-                                _ctx.jobDetails ? (openBlock(), createElementBlock("div", _hoisted_2$8, "( " + toDisplayString((_a2 = _ctx.jobDetails) == null ? void 0 : _a2.suite.name) + " )", 1)) : createCommentVNode("", true)
+                                createBaseVNode("div", _hoisted_1$e, "Job: " + toDisplayString(__props.id), 1),
+                                _ctx.jobDetails ? (openBlock(), createElementBlock("div", _hoisted_2$9, "( " + toDisplayString((_a2 = _ctx.jobDetails) == null ? void 0 : _a2.suite.name) + " )", 1)) : createCommentVNode("", true)
                               ];
                             }),
                             _: 1
@@ -39682,7 +39682,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
                             default: withCtx(() => [
                               createVNode(_component_v_container, { style: { "width": "100%" } }, {
                                 default: withCtx(() => [
-                                  createBaseVNode("div", _hoisted_3$8, [
+                                  createBaseVNode("div", _hoisted_3$9, [
                                     (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.info.slice(0, 12), (item, index) => {
                                       return openBlock(), createBlock(_component_v_row, {
                                         class: "my-0 mr-0",
@@ -39707,7 +39707,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
                                             class: "ml-6"
                                           }, {
                                             default: withCtx(() => [
-                                              item.key == "build" ? (openBlock(), createElementBlock("div", _hoisted_4$6, [
+                                              item.key == "build" ? (openBlock(), createElementBlock("div", _hoisted_4$7, [
                                                 createVNode(_component_router_link, {
                                                   to: { name: "BuildDetails", params: { id: _ctx.jobDetails.buildId } }
                                                 }, {
@@ -39820,7 +39820,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
             ]),
             _: 1
           }),
-          createVNode(_sfc_main$g, {
+          createVNode(_sfc_main$i, {
             id: __props.id,
             status: __props.status,
             jobDetails: _ctx.jobDetails
@@ -39864,8 +39864,8 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$5, {
     };
   }
 });
-const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-4a46fb3a"]]);
-const _sfc_main$e = {
+const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["__scopeId", "data-v-4a46fb3a"]]);
+const _sfc_main$g = {
   props: {
     id: String
   },
@@ -39901,13 +39901,13 @@ const _sfc_main$e = {
     }
   }
 };
-const _hoisted_1$c = { style: { "font-size": "1.3em", "font-weight": "bold" } };
-const _hoisted_2$7 = {
+const _hoisted_1$d = { style: { "font-size": "1.3em", "font-weight": "bold" } };
+const _hoisted_2$8 = {
   key: 0,
   style: { "font-size": "1em", "font-weight": "bold" }
 };
-const _hoisted_3$7 = { class: "ml-3" };
-const _hoisted_4$5 = {
+const _hoisted_3$8 = { class: "ml-3" };
+const _hoisted_4$6 = {
   key: 0,
   class: "d-block text-right mr-16"
 };
@@ -39927,7 +39927,7 @@ const _hoisted_11$1 = ["href"];
 const _hoisted_12$1 = { class: "ml-2" };
 const _hoisted_13$1 = { key: 3 };
 const _hoisted_14 = { key: 4 };
-function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_expansion_panel_title = resolveComponent("v-expansion-panel-title");
   const _component_v_col = resolveComponent("v-col");
   const _component_v_row = resolveComponent("v-row");
@@ -39951,8 +39951,8 @@ function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
                 default: withCtx(() => {
                   var _a2, _b;
                   return [
-                    createBaseVNode("div", _hoisted_1$c, "Build: " + toDisplayString((_a2 = $data.buildDetails) == null ? void 0 : _a2.name), 1),
-                    $data.buildDetails ? (openBlock(), createElementBlock("div", _hoisted_2$7, "( branch: " + toDisplayString((_b = $data.buildDetails) == null ? void 0 : _b.branch) + " )", 1)) : createCommentVNode("", true)
+                    createBaseVNode("div", _hoisted_1$d, "Build: " + toDisplayString((_a2 = $data.buildDetails) == null ? void 0 : _a2.name), 1),
+                    $data.buildDetails ? (openBlock(), createElementBlock("div", _hoisted_2$8, "( branch: " + toDisplayString((_b = $data.buildDetails) == null ? void 0 : _b.branch) + " )", 1)) : createCommentVNode("", true)
                   ];
                 }),
                 _: 1
@@ -39961,7 +39961,7 @@ function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
                 default: withCtx(() => [
                   createVNode(_component_v_container, { style: { "width": "100%", "max-width": "unset" } }, {
                     default: withCtx(() => [
-                      createBaseVNode("div", _hoisted_3$7, [
+                      createBaseVNode("div", _hoisted_3$8, [
                         (openBlock(true), createElementBlock(Fragment, null, renderList($data.info, (item, index) => {
                           return openBlock(), createBlock(_component_v_row, {
                             class: "my-0 mr-0",
@@ -39975,7 +39975,7 @@ function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
                                 class: "font-weight-bold"
                               }, {
                                 default: withCtx(() => [
-                                  item.key == "xap" || item.key == "xappremium" ? (openBlock(), createElementBlock("div", _hoisted_4$5, toDisplayString(item.title), 1)) : (openBlock(), createElementBlock("div", _hoisted_5$3, toDisplayString(item.title) + ": ", 1))
+                                  item.key == "xap" || item.key == "xappremium" ? (openBlock(), createElementBlock("div", _hoisted_4$6, toDisplayString(item.title), 1)) : (openBlock(), createElementBlock("div", _hoisted_5$3, toDisplayString(item.title) + ": ", 1))
                                 ]),
                                 _: 2
                               }, 1024),
@@ -40038,14 +40038,14 @@ function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const BuildDetails = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$8]]);
-const _hoisted_1$b = { class: "ml-10" };
-const _hoisted_2$6 = { key: 0 };
-const _hoisted_3$6 = {
+const BuildDetails = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["render", _sfc_render$a]]);
+const _hoisted_1$c = { class: "ml-10" };
+const _hoisted_2$7 = { key: 0 };
+const _hoisted_3$7 = {
   key: 1,
   class: "my-2"
 };
-const _hoisted_4$4 = ["href"];
+const _hoisted_4$5 = ["href"];
 const _hoisted_5$2 = { class: "ml-2" };
 const _hoisted_6$2 = {
   key: 2,
@@ -40118,7 +40118,7 @@ const __default__$4 = {
     }
   }
 };
-const _sfc_main$d = /* @__PURE__ */ Object.assign(__default__$4, {
+const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$4, {
   __name: "TestDetails",
   setup(__props) {
     return (_ctx, _cache) => {
@@ -40146,7 +40146,7 @@ const _sfc_main$d = /* @__PURE__ */ Object.assign(__default__$4, {
           }),
           createVNode(_component_v_container, { style: { "width": "100%", "max-width": "unset" } }, {
             default: withCtx(() => [
-              createBaseVNode("div", _hoisted_1$b, [
+              createBaseVNode("div", _hoisted_1$c, [
                 (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.info, (item, index) => {
                   return openBlock(), createBlock(_component_v_row, {
                     class: "my-0 mr-0",
@@ -40170,7 +40170,7 @@ const _sfc_main$d = /* @__PURE__ */ Object.assign(__default__$4, {
                         align: "start"
                       }, {
                         default: withCtx(() => [
-                          item.key == "status" ? (openBlock(), createElementBlock("div", _hoisted_2$6, [
+                          item.key == "status" ? (openBlock(), createElementBlock("div", _hoisted_2$7, [
                             createVNode(_component_v_chip, {
                               variant: "elevated",
                               class: "text-uppercase font-weight-bold text-body-2 text-mono",
@@ -40179,7 +40179,7 @@ const _sfc_main$d = /* @__PURE__ */ Object.assign(__default__$4, {
                               size: "small",
                               label: ""
                             }, null, 8, ["color", "text"])
-                          ])) : item.key == "logs" ? (openBlock(), createElementBlock("div", _hoisted_3$6, [
+                          ])) : item.key == "logs" ? (openBlock(), createElementBlock("div", _hoisted_3$7, [
                             (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.sortedLogs(item.key), (path, key) => {
                               return openBlock(), createElementBlock("div", {
                                 key,
@@ -40191,7 +40191,7 @@ const _sfc_main$d = /* @__PURE__ */ Object.assign(__default__$4, {
                                 }, [
                                   _cache[0] || (_cache[0] = createTextVNode(" 🔗 ")),
                                   createBaseVNode("span", _hoisted_5$2, toDisplayString(key), 1)
-                                ], 8, _hoisted_4$4)
+                                ], 8, _hoisted_4$5)
                               ]);
                             }), 128))
                           ])) : item.key == "statsBranch" && _ctx.testDetails[item.key] ? (openBlock(), createElementBlock("div", _hoisted_6$2, toDisplayString(unref(coloredHistoryStats)(_ctx.testDetails[item.key])), 1)) : item.key == "statsMaster" && _ctx.testDetails[item.key] ? (openBlock(), createElementBlock("div", _hoisted_7$2, toDisplayString(unref(coloredHistoryStats)(_ctx.testDetails[item.key], true)), 1)) : item.key == "history" ? (openBlock(), createElementBlock("div", _hoisted_8$1, [
@@ -40223,8 +40223,8 @@ const _sfc_main$d = /* @__PURE__ */ Object.assign(__default__$4, {
     };
   }
 });
-const TestDetails = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["__scopeId", "data-v-88a6a502"]]);
-const _sfc_main$c = {
+const TestDetails = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-88a6a502"]]);
+const _sfc_main$e = {
   components: {
     PromptDialog
   },
@@ -40264,8 +40264,8 @@ const _sfc_main$c = {
     }
   }
 };
-const _hoisted_1$a = ["innerHTML"];
-function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
+const _hoisted_1$b = ["innerHTML"];
+function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_text = resolveComponent("v-card-text");
   const _component_v_row = resolveComponent("v-row");
   const _component_v_text_field = resolveComponent("v-text-field");
@@ -40287,7 +40287,7 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
             class: "mt-5"
           }, {
             default: withCtx(() => [
-              createBaseVNode("div", { innerHTML: $options.formattedText }, null, 8, _hoisted_1$a)
+              createBaseVNode("div", { innerHTML: $options.formattedText }, null, 8, _hoisted_1$b)
             ]),
             _: 1
           })) : createCommentVNode("", true),
@@ -40331,8 +40331,8 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   }, 8, ["modelValue", "onPromptDialog:onConfirm"]);
 }
-const DialogCopySuite = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$7]]);
-const _sfc_main$b = /* @__PURE__ */ defineComponent$1({
+const DialogCopySuite = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$9]]);
+const _sfc_main$d = /* @__PURE__ */ defineComponent$1({
   props: {
     text: { type: String }
   },
@@ -40342,21 +40342,21 @@ const _sfc_main$b = /* @__PURE__ */ defineComponent$1({
     }
   }
 });
-const _hoisted_1$9 = ["innerHTML"];
-function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
+const _hoisted_1$a = ["innerHTML"];
+function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_text = resolveComponent("v-card-text");
   return _ctx.text ? (openBlock(), createBlock(_component_v_card_text, {
     key: 0,
     class: "mt-5"
   }, {
     default: withCtx(() => [
-      createBaseVNode("div", { innerHTML: _ctx.formattedText }, null, 8, _hoisted_1$9)
+      createBaseVNode("div", { innerHTML: _ctx.formattedText }, null, 8, _hoisted_1$a)
     ]),
     _: 1
   })) : createCommentVNode("", true);
 }
-const DialogPromptBody = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$6]]);
-const _sfc_main$a = {
+const DialogPromptBody = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$8]]);
+const _sfc_main$c = {
   components: {
     PromptDialog,
     DialogPromptBody,
@@ -40441,17 +40441,17 @@ const _sfc_main$a = {
     }
   }
 };
-const _hoisted_1$8 = { style: { "width": "80%" } };
-const _hoisted_2$5 = { key: 0 };
-const _hoisted_3$5 = {
+const _hoisted_1$9 = { style: { "width": "80%" } };
+const _hoisted_2$6 = { key: 0 };
+const _hoisted_3$6 = {
   key: 0,
   class: "text-h6"
 };
-const _hoisted_4$3 = {
+const _hoisted_4$4 = {
   key: 1,
   class: "text-h6"
 };
-function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_col = resolveComponent("v-col");
   const _component_v_row = resolveComponent("v-row");
@@ -40467,7 +40467,7 @@ function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock(Fragment, null, [
     createVNode(_component_v_card, { align: "center" }, {
       default: withCtx(() => [
-        createBaseVNode("div", _hoisted_1$8, [
+        createBaseVNode("div", _hoisted_1$9, [
           createVNode(_component_v_card_title, null, {
             default: withCtx(() => [
               createVNode(_component_v_row, {
@@ -40515,7 +40515,7 @@ function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
                 to: { name: "SuiteDetails", params: { id: item.id } }
               }, {
                 default: withCtx(() => [
-                  item.hasSchedule ? (openBlock(), createElementBlock("span", _hoisted_2$5, "🕑")) : createCommentVNode("", true),
+                  item.hasSchedule ? (openBlock(), createElementBlock("span", _hoisted_2$6, "🕑")) : createCommentVNode("", true),
                   createTextVNode(" " + toDisplayString(item.name), 1)
                 ]),
                 _: 2
@@ -40593,10 +40593,10 @@ function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
         })
       ]),
       default: withCtx(() => [
-        $data.copiedSuiteName != null ? (openBlock(), createElementBlock("div", _hoisted_3$5, [
+        $data.copiedSuiteName != null ? (openBlock(), createElementBlock("div", _hoisted_3$6, [
           _cache[3] || (_cache[3] = createTextVNode("Suite copied: ")),
           createBaseVNode("strong", null, toDisplayString($data.copiedSuiteName), 1)
-        ])) : $data.deletedSuiteName != null ? (openBlock(), createElementBlock("div", _hoisted_4$3, [
+        ])) : $data.deletedSuiteName != null ? (openBlock(), createElementBlock("div", _hoisted_4$4, [
           _cache[4] || (_cache[4] = createTextVNode("Suite deleted: ")),
           createBaseVNode("strong", null, toDisplayString($data.deletedSuiteName), 1)
         ])) : createCommentVNode("", true)
@@ -40605,8 +40605,8 @@ function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
     }, 8, ["modelValue", "onClick:close"])
   ], 64);
 }
-const Suites = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$5]]);
-const _sfc_main$9 = {
+const Suites = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$7]]);
+const _sfc_main$b = {
   components: {
     PromptDialog,
     DialogPromptBody
@@ -40663,20 +40663,20 @@ const _sfc_main$9 = {
     }
   }
 };
-const _hoisted_1$7 = {
+const _hoisted_1$8 = {
   class: "ml-10",
   align: "left"
 };
-const _hoisted_2$4 = {
+const _hoisted_2$5 = {
   class: "mb-2",
   align: "start"
 };
-const _hoisted_3$4 = { key: 0 };
-const _hoisted_4$2 = { key: 1 };
+const _hoisted_3$5 = { key: 0 };
+const _hoisted_4$3 = { key: 1 };
 const _hoisted_5$1 = ["onUpdate:modelValue"];
 const _hoisted_6$1 = { key: 2 };
 const _hoisted_7$1 = { class: "text-h6" };
-function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_v_col = resolveComponent("v-col");
   const _component_v_text_field = resolveComponent("v-text-field");
@@ -40706,7 +40706,7 @@ function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
         }),
         createVNode(_component_v_container, { style: { "width": "90%", "max-width": "unset" } }, {
           default: withCtx(() => [
-            createBaseVNode("div", _hoisted_1$7, [
+            createBaseVNode("div", _hoisted_1$8, [
               (openBlock(true), createElementBlock(Fragment, null, renderList($data.info, (item, index) => {
                 return openBlock(), createBlock(_component_v_row, {
                   align: "start",
@@ -40730,8 +40730,8 @@ function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
                       cols: "11"
                     }, {
                       default: withCtx(() => [
-                        createBaseVNode("div", _hoisted_2$4, [
-                          item.key == "name" || item.key == "customVariables" || item.key == "requirements" ? (openBlock(), createElementBlock("div", _hoisted_3$4, [
+                        createBaseVNode("div", _hoisted_2$5, [
+                          item.key == "name" || item.key == "customVariables" || item.key == "requirements" ? (openBlock(), createElementBlock("div", _hoisted_3$5, [
                             createVNode(_component_v_text_field, {
                               color: "primary",
                               modelValue: $data.suiteDetails[item.key],
@@ -40741,7 +40741,7 @@ function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
                               density: "compact",
                               width: "75%"
                             }, null, 8, ["modelValue", "onUpdate:modelValue"])
-                          ])) : item.key == "criteria" ? (openBlock(), createElementBlock("div", _hoisted_4$2, [
+                          ])) : item.key == "criteria" ? (openBlock(), createElementBlock("div", _hoisted_4$3, [
                             withDirectives(createBaseVNode("textarea", {
                               class: "custom-textarea",
                               "onUpdate:modelValue": ($event) => $data.suiteDetails[item.key] = $event,
@@ -40828,10 +40828,10 @@ function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
     }, 8, ["modelValue"])
   ], 64);
 }
-const SuiteDetails = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$4]]);
-const _hoisted_1$6 = { style: { "width": "80%" } };
-const _hoisted_2$3 = { class: "ml-5 font-weight-regular" };
-const _hoisted_3$3 = {
+const SuiteDetails = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$6]]);
+const _hoisted_1$7 = { style: { "width": "80%" } };
+const _hoisted_2$4 = { class: "ml-5 font-weight-regular" };
+const _hoisted_3$4 = {
   key: 0,
   class: "position-absolute pl-1 pr-1 font-weight-bold border rounded nightly-label"
 };
@@ -40881,7 +40881,7 @@ const __default__$3 = {
     }
   }
 };
-const _sfc_main$8 = /* @__PURE__ */ Object.assign(__default__$3, {
+const _sfc_main$a = /* @__PURE__ */ Object.assign(__default__$3, {
   __name: "History",
   setup(__props) {
     return (_ctx, _cache) => {
@@ -40895,7 +40895,7 @@ const _sfc_main$8 = /* @__PURE__ */ Object.assign(__default__$3, {
       const _component_v_card = resolveComponent("v-card");
       return openBlock(), createBlock(_component_v_card, { align: "center" }, {
         default: withCtx(() => [
-          createBaseVNode("div", _hoisted_1$6, [
+          createBaseVNode("div", _hoisted_1$7, [
             createVNode(_component_v_card_title, {
               align: "start",
               class: "text-wrap"
@@ -40903,7 +40903,7 @@ const _sfc_main$8 = /* @__PURE__ */ Object.assign(__default__$3, {
               default: withCtx(() => [
                 createBaseVNode("div", null, [
                   _cache[1] || (_cache[1] = createBaseVNode("h3", null, " History: ", -1)),
-                  createBaseVNode("h3", _hoisted_2$3, toDisplayString(_ctx.test), 1)
+                  createBaseVNode("h3", _hoisted_2$4, toDisplayString(_ctx.test), 1)
                 ]),
                 createVNode(_component_v_row, {
                   dense: "",
@@ -40945,7 +40945,7 @@ const _sfc_main$8 = /* @__PURE__ */ Object.assign(__default__$3, {
               "items-per-page-options": [15, 20, 25, 50]
             }, {
               "item.testId": withCtx(({ item }) => [
-                item.submittedBy == "root" ? (openBlock(), createElementBlock("span", _hoisted_3$3, " N ")) : createCommentVNode("", true),
+                item.submittedBy == "root" ? (openBlock(), createElementBlock("span", _hoisted_3$4, " N ")) : createCommentVNode("", true),
                 createVNode(_component_router_link, {
                   class: "font-bold pl-6",
                   to: { name: "TestDetails", params: { id: item.testId } }
@@ -40999,9 +40999,9 @@ const _sfc_main$8 = /* @__PURE__ */ Object.assign(__default__$3, {
     };
   }
 });
-const _hoisted_1$5 = { style: { "width": "100%" } };
-const _hoisted_2$2 = ["innerHTML"];
-const _hoisted_3$2 = { align: "center" };
+const _hoisted_1$6 = { style: { "width": "100%" } };
+const _hoisted_2$3 = ["innerHTML"];
+const _hoisted_3$3 = { align: "center" };
 const __default__$2 = {
   components: {
     PromptDialog,
@@ -41115,7 +41115,7 @@ const __default__$2 = {
     }
   }
 };
-const _sfc_main$7 = /* @__PURE__ */ Object.assign(__default__$2, {
+const _sfc_main$9 = /* @__PURE__ */ Object.assign(__default__$2, {
   __name: "Agents",
   setup(__props) {
     return (_ctx, _cache) => {
@@ -41135,7 +41135,7 @@ const _sfc_main$7 = /* @__PURE__ */ Object.assign(__default__$2, {
       return openBlock(), createElementBlock(Fragment, null, [
         createVNode(_component_v_card, { align: "center" }, {
           default: withCtx(() => [
-            createBaseVNode("div", _hoisted_1$5, [
+            createBaseVNode("div", _hoisted_1$6, [
               createVNode(_component_v_card_title, null, {
                 default: withCtx(() => [
                   createVNode(_component_v_row, {
@@ -41239,10 +41239,10 @@ const _sfc_main$7 = /* @__PURE__ */ Object.assign(__default__$2, {
                 "item.name": withCtx(({ item }) => [
                   createBaseVNode("span", {
                     innerHTML: _ctx.agentName(item.name)
-                  }, null, 8, _hoisted_2$2)
+                  }, null, 8, _hoisted_2$3)
                 ]),
                 "item.state": withCtx(({ item }) => [
-                  createBaseVNode("div", _hoisted_3$2, [
+                  createBaseVNode("div", _hoisted_3$3, [
                     createVNode(_component_v_chip, {
                       variant: "elevated",
                       class: "text-uppercase font-weight-bold text-body-2 text-mono",
@@ -41288,7 +41288,7 @@ const _sfc_main$7 = /* @__PURE__ */ Object.assign(__default__$2, {
     };
   }
 });
-const _sfc_main$6 = {
+const _sfc_main$8 = {
   components: {
     PromptDialog,
     DialogPromptBody
@@ -41354,11 +41354,11 @@ const _sfc_main$6 = {
     }
   }
 };
-const _hoisted_1$4 = ["innerHTML"];
-const _hoisted_2$1 = ["innerHTML"];
-const _hoisted_3$1 = { class: "d-flex justify-end" };
-const _hoisted_4$1 = { class: "text-h6" };
-function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+const _hoisted_1$5 = ["innerHTML"];
+const _hoisted_2$2 = ["innerHTML"];
+const _hoisted_3$2 = { class: "d-flex justify-end" };
+const _hoisted_4$2 = { class: "text-h6" };
+function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_icon = resolveComponent("v-icon");
   const _component_v_btn = resolveComponent("v-btn");
   const _component_v_list = resolveComponent("v-list");
@@ -41402,12 +41402,12 @@ function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
                       subtitle: withCtx(({ item }) => [
                         createBaseVNode("strong", {
                           innerHTML: item.role
-                        }, null, 8, _hoisted_1$4)
+                        }, null, 8, _hoisted_1$5)
                       ]),
                       title: withCtx(({ item }) => [
                         createBaseVNode("h3", {
                           innerHTML: item.username
-                        }, null, 8, _hoisted_2$1)
+                        }, null, 8, _hoisted_2$2)
                       ]),
                       append: withCtx(({ item }) => [
                         createVNode(_component_v_btn, {
@@ -41473,7 +41473,7 @@ function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
                       disabled: "",
                       color: "primary"
                     }, null, 8, ["modelValue"]),
-                    createBaseVNode("div", _hoisted_3$1, [
+                    createBaseVNode("div", _hoisted_3$2, [
                       createVNode(_component_v_btn, {
                         class: "mt-2",
                         color: "primary",
@@ -41531,7 +41531,7 @@ function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
         })
       ]),
       default: withCtx(() => [
-        createBaseVNode("div", _hoisted_4$1, [
+        createBaseVNode("div", _hoisted_4$2, [
           createTextVNode("User has been " + toDisplayString($data.snackbarInfo.action) + ": ", 1),
           createBaseVNode("strong", null, toDisplayString($data.snackbarInfo.username), 1)
         ])
@@ -41540,7 +41540,330 @@ function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
     }, 8, ["modelValue"])
   ], 64);
 }
-const Users = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$3]]);
+const Users = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$5]]);
+const _sfc_main$7 = {
+  components: {
+    PromptDialog
+  },
+  data() {
+    return {
+      dialogVisible: false,
+      configName: "",
+      selectedJdk: null,
+      jdkOptions: [],
+      loadingJdks: false
+    };
+  },
+  computed: {
+    sortedJdkOptions() {
+      return [...this.jdkOptions].sort((a, b) => {
+        const extractVersion = (name) => {
+          const match = name.match(/(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        };
+        const versionA = extractVersion(a);
+        const versionB = extractVersion(b);
+        if (versionA !== versionB) {
+          return versionA - versionB;
+        }
+        return a.localeCompare(b);
+      });
+    }
+  },
+  methods: {
+    isFormValid() {
+      return this.configName.trim().length > 0 && this.selectedJdk !== null;
+    },
+    open() {
+      this.configName = "";
+      this.selectedJdk = null;
+      this.loadJdks();
+      this.dialogVisible = true;
+    },
+    loadJdks() {
+      this.loadingJdks = true;
+      this.$axios.get("/api/newman/java-versions").then((response) => {
+        this.jdkOptions = response.data;
+        this.loadingJdks = false;
+      }).catch((error) => {
+        console.error("Error fetching JDKs:", error);
+        this.loadingJdks = false;
+      });
+    },
+    confirm() {
+      if (this.isFormValid()) {
+        this.$emit("newJdkConfig:onConfirm", {
+          name: this.configName,
+          javaVersion: this.selectedJdk
+        });
+        this.dialogVisible = false;
+      }
+    }
+  }
+};
+function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_v_text_field = resolveComponent("v-text-field");
+  const _component_v_row = resolveComponent("v-row");
+  const _component_v_select = resolveComponent("v-select");
+  const _component_v_container = resolveComponent("v-container");
+  const _component_PromptDialog = resolveComponent("PromptDialog");
+  return openBlock(), createBlock(_component_PromptDialog, {
+    modelValue: $data.dialogVisible,
+    "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $data.dialogVisible = $event),
+    "onPromptDialog:onConfirm": $options.confirm
+  }, {
+    default: withCtx((modal) => [
+      createVNode(_component_v_container, {
+        style: { "width": "85%" },
+        "justify-center": ""
+      }, {
+        default: withCtx(() => [
+          createVNode(_component_v_row, {
+            "no-gutters": "",
+            class: "mt-5"
+          }, {
+            default: withCtx(() => [
+              createVNode(_component_v_text_field, {
+                modelValue: $data.configName,
+                "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $data.configName = $event),
+                label: "Name",
+                variant: "outlined",
+                "hide-details": "",
+                onInput: ($event) => modal.onValidate($options.isFormValid())
+              }, null, 8, ["modelValue", "onInput"])
+            ]),
+            _: 2
+          }, 1024),
+          createVNode(_component_v_row, {
+            "no-gutters": "",
+            class: "mt-5"
+          }, {
+            default: withCtx(() => [
+              createVNode(_component_v_select, {
+                modelValue: $data.selectedJdk,
+                "onUpdate:modelValue": [
+                  _cache[1] || (_cache[1] = ($event) => $data.selectedJdk = $event),
+                  ($event) => modal.onValidate($options.isFormValid())
+                ],
+                items: $options.sortedJdkOptions,
+                label: "JDK",
+                variant: "outlined",
+                "hide-details": "",
+                loading: $data.loadingJdks
+              }, null, 8, ["modelValue", "items", "loading", "onUpdate:modelValue"])
+            ]),
+            _: 2
+          }, 1024)
+        ]),
+        _: 2
+      }, 1024)
+    ]),
+    _: 1
+  }, 8, ["modelValue", "onPromptDialog:onConfirm"]);
+}
+const DialogNewJdkConfig = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$4], ["__scopeId", "data-v-1c840940"]]);
+const _sfc_main$6 = {
+  components: {
+    DialogNewJdkConfig
+  },
+  beforeMount() {
+    this.initTable();
+  },
+  data() {
+    return {
+      search: null,
+      loading: true,
+      jobConfigs: [],
+      createdConfigName: null,
+      dialogDisabled: false,
+      headers: [
+        { key: "name", title: "Name", width: "40%" },
+        { key: "id", title: "Id", width: "60%" }
+      ],
+      itemsPerPage: 20,
+      snackbar: false
+    };
+  },
+  computed: {
+    sortedJobConfigs() {
+      return [...this.jobConfigs].sort((a, b) => {
+        const extractVersion = (name) => {
+          const match = name.match(/(\d+)$/);
+          return match ? parseInt(match[1], 10) : 0;
+        };
+        const versionA = extractVersion(a.name);
+        const versionB = extractVersion(b.name);
+        if (versionA !== versionB) {
+          return versionA - versionB;
+        }
+        return a.name.localeCompare(b.name);
+      });
+    }
+  },
+  methods: {
+    initTable() {
+      this.loading = true;
+      this.$axios.get("/api/newman/job-config").then((response) => {
+        this.jobConfigs = response.data;
+        this.loading = false;
+      }).catch((error) => {
+        console.error("Error fetching job configs:", error);
+        this.loading = false;
+      });
+    },
+    openNewJdkConfigDialog() {
+      this.snackbar = false;
+      this.dialogDisabled = false;
+      this.$refs.newJdkConfigDialog.open();
+    },
+    confirmCreateJdkConfig(configData) {
+      this.dialogDisabled = true;
+      this.$axios.post("/api/newman/job-config", configData).then(() => {
+        this.createdConfigName = configData.name;
+        this.snackbar = true;
+        this.initTable();
+      }).catch((error) => {
+        console.error("Error creating JDK config:", error);
+        this.dialogDisabled = false;
+      });
+    },
+    onSnackbarClose() {
+      this.createdConfigName = null;
+    }
+  }
+};
+const _hoisted_1$4 = { style: { "width": "80%" } };
+const _hoisted_2$1 = { class: "font-bold" };
+const _hoisted_3$1 = {
+  key: 0,
+  class: "text-grey ml-1"
+};
+const _hoisted_4$1 = {
+  key: 0,
+  class: "text-h6"
+};
+function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_v_text_field = resolveComponent("v-text-field");
+  const _component_v_col = resolveComponent("v-col");
+  const _component_v_btn = resolveComponent("v-btn");
+  const _component_v_row = resolveComponent("v-row");
+  const _component_v_card_title = resolveComponent("v-card-title");
+  const _component_v_data_table = resolveComponent("v-data-table");
+  const _component_v_card = resolveComponent("v-card");
+  const _component_dialog_new_jdk_config = resolveComponent("dialog-new-jdk-config");
+  const _component_v_snackbar = resolveComponent("v-snackbar");
+  return openBlock(), createElementBlock(Fragment, null, [
+    createVNode(_component_v_card, { align: "center" }, {
+      default: withCtx(() => [
+        createBaseVNode("div", _hoisted_1$4, [
+          createVNode(_component_v_card_title, null, {
+            default: withCtx(() => [
+              createVNode(_component_v_row, {
+                dense: "",
+                justify: "start",
+                class: "pa-0 ma-0"
+              }, {
+                default: withCtx(() => [
+                  createVNode(_component_v_col, { cols: "3" }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_text_field, {
+                        modelValue: $data.search,
+                        "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $data.search = $event),
+                        density: "compact",
+                        label: "Search",
+                        "prepend-inner-icon": "mdi-magnify",
+                        variant: "outlined",
+                        "hide-details": "",
+                        "single-line": "",
+                        clearable: ""
+                      }, null, 8, ["modelValue"])
+                    ]),
+                    _: 1
+                  }),
+                  createVNode(_component_v_col, {
+                    cols: "9",
+                    class: "d-flex justify-end align-center"
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_btn, {
+                        color: "primary",
+                        "prepend-icon": "mdi-plus",
+                        onClick: $options.openNewJdkConfigDialog
+                      }, {
+                        default: withCtx(() => _cache[3] || (_cache[3] = [
+                          createTextVNode(" New JDK Configuration ")
+                        ])),
+                        _: 1,
+                        __: [3]
+                      }, 8, ["onClick"])
+                    ]),
+                    _: 1
+                  })
+                ]),
+                _: 1
+              })
+            ]),
+            _: 1
+          }),
+          createVNode(_component_v_data_table, {
+            search: $data.search,
+            density: "compact",
+            headers: $data.headers,
+            items: $options.sortedJobConfigs,
+            class: "jdkConfigTable elevation-1",
+            hover: "",
+            loading: $data.loading,
+            "items-per-page": $data.itemsPerPage,
+            "items-per-page-options": [15, 20, 25, 50]
+          }, {
+            [`item.name`]: withCtx(({ item }) => [
+              createBaseVNode("span", _hoisted_2$1, toDisplayString(item.name), 1),
+              item.javaVersion ? (openBlock(), createElementBlock("span", _hoisted_3$1, "(" + toDisplayString(item.javaVersion) + ")", 1)) : createCommentVNode("", true)
+            ]),
+            _: 2
+          }, 1032, ["search", "headers", "items", "loading", "items-per-page"])
+        ])
+      ]),
+      _: 1
+    }),
+    createVNode(_component_dialog_new_jdk_config, {
+      ref: "newJdkConfigDialog",
+      "prepend-icon": "mdi-plus-circle",
+      "icon-color": "primary",
+      title: "New JDK Configuration",
+      "onNewJdkConfig:onConfirm": $options.confirmCreateJdkConfig,
+      disabled: $data.dialogDisabled
+    }, null, 8, ["onNewJdkConfig:onConfirm", "disabled"]),
+    createVNode(_component_v_snackbar, {
+      modelValue: $data.snackbar,
+      "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $data.snackbar = $event),
+      timeout: "5000",
+      "onClick:close": $options.onSnackbarClose
+    }, {
+      actions: withCtx(() => [
+        createVNode(_component_v_btn, {
+          color: "primary",
+          variant: "text",
+          onClick: _cache[1] || (_cache[1] = ($event) => $data.snackbar = false)
+        }, {
+          default: withCtx(() => _cache[5] || (_cache[5] = [
+            createTextVNode(" Close ")
+          ])),
+          _: 1,
+          __: [5]
+        })
+      ]),
+      default: withCtx(() => [
+        $data.createdConfigName != null ? (openBlock(), createElementBlock("div", _hoisted_4$1, [
+          _cache[4] || (_cache[4] = createTextVNode(" JDK Configuration created: ")),
+          createBaseVNode("strong", null, toDisplayString($data.createdConfigName), 1)
+        ])) : createCommentVNode("", true)
+      ]),
+      _: 1
+    }, 8, ["modelValue", "onClick:close"])
+  ], 64);
+}
+const JdkConfig = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$3]]);
 const routes = [
   { path: "/", redirect: "/jobs", name: "Landing", meta: { title: "Jobs", icon: "" } },
   { path: "/jobs", name: "Jobs", component: JobsTable, meta: { title: "Jobs View", icon: "mdi-video-input-component" } },
@@ -41548,13 +41871,14 @@ const routes = [
   { path: "/submit", name: "Submit", component: JobSubmit, meta: { title: "Submit Job", icon: "mdi-play" } },
   { path: "/builds", name: "Builds", component: Builds, meta: { title: "Builds", icon: "mdi-domain" } },
   { path: "/suites", name: "Suites", component: Suites, meta: { title: "Suites", icon: "mdi-cards" } },
-  { path: "/agents", name: "Agents", component: _sfc_main$7, meta: { title: "Agents", icon: "mdi-face-man" } },
+  { path: "/agents", name: "Agents", component: _sfc_main$9, meta: { title: "Agents", icon: "mdi-face-man" } },
+  { path: "/jdk-config", name: "JdkConfig", component: JdkConfig, meta: { title: "JDK Config", icon: "mdi-cog" } },
   { path: "/users", name: "Users", component: Users, meta: { title: "Users", icon: "mdi-account-multiple" } },
   { path: "/job/:id/:status", name: "JobDetails", component: JobDetails, meta: { title: "Job Details", icon: "mdi-text-box-search-outline" }, props: true },
   { path: "/test/:id", name: "TestDetails", component: TestDetails, meta: { title: "Test Details", icon: "mdi-text-box-search-outline" }, props: true },
   { path: "/build/:id", name: "BuildDetails", component: BuildDetails, meta: { title: "Build Details", icon: "mdi-text-box-search-outline" }, props: true },
   { path: "/suite/:id", name: "SuiteDetails", component: SuiteDetails, meta: { title: "Suite Details", icon: "mdi-text-box-search-outline" }, props: true },
-  { path: "/test-history/:id", name: "History", component: _sfc_main$8, meta: { title: "Test History", icon: "mdi-history" }, props: true },
+  { path: "/test-history/:id", name: "History", component: _sfc_main$a, meta: { title: "Test History", icon: "mdi-history" }, props: true },
   {
     path: "/:pathMatch(.*)*",
     // Catch-all for undefined routes
@@ -45248,6 +45572,19 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
                     ]),
                     _: 1
                   }),
+                  createVNode(_component_router_link, {
+                    class: "nav-link route",
+                    to: "/jdk-config"
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_list_item, {
+                        "prepend-icon": "mdi-cog",
+                        value: "jdk_config",
+                        title: "JDK Config"
+                      })
+                    ]),
+                    _: 1
+                  }),
                   false ? (openBlock(), createBlock(_component_v_list_item, {
                     key: 0,
                     "prepend-icon": "mdi-cogs",
@@ -45291,7 +45628,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const SidePanel = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-e98f8523"]]);
+const SidePanel = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-083e5d05"]]);
 const eventBus = reactive({
   events: {},
   $on(event, callback) {
@@ -45677,4 +46014,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-DyGGgW_1.js.map
+//# sourceMappingURL=index-Dhy-CejD.js.map
