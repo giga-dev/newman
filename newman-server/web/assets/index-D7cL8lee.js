@@ -41834,15 +41834,15 @@ function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
             ]),
             [`item.actions`]: withCtx(({ item }) => [
               createVNode(_component_v_btn, {
-                color: item.isDefault ? "success" : "primary",
-                variant: item.isDefault ? "flat" : "outlined",
+                color: item.default ? "success" : "primary",
+                variant: item.default ? "flat" : "outlined",
                 size: "small",
-                "prepend-icon": item.isDefault ? "mdi-check-circle" : "mdi-star-outline",
+                "prepend-icon": item.default ? "mdi-check-circle" : "mdi-star-outline",
                 onClick: ($event) => $options.setDefaultConfig(item),
-                disabled: item.isDefault
+                disabled: item.default
               }, {
                 default: withCtx(() => [
-                  createTextVNode(toDisplayString(item.isDefault ? "Default" : "Set Default"), 1)
+                  createTextVNode(toDisplayString(item.default ? "Default" : "Set Default"), 1)
                 ]),
                 _: 2
               }, 1032, ["color", "variant", "prepend-icon", "onClick", "disabled"])
@@ -46041,4 +46041,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-pRc5HbMV.js.map
+//# sourceMappingURL=index-D7cL8lee.js.map
