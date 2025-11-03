@@ -1118,11 +1118,10 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Test finishTest(final Test test) {
-        // LOCK job when manipulating with its counters and statuses
         try {
-//            if (logger.isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 logger.info("trying to finish test - id:[{}], name:[{}]", test.getId(), test.getName());
-//            }
+            }
             if (test.getId() == null) {
                 throw new BadRequestException("can't finish test without testId: " + test);
             }
@@ -1176,9 +1175,19 @@ public class NewmanResource {
                         testJob.getRunningTests());
             }
             // save updated TEST
-            int updated = testUpdater.whereId(existingTest.getId()).execute();
+            // save updated TEST - only if status is still RUNNING
+            int updated = testUpdater.where("id = ? AND status = ?", existingTest.getId(), Test.Status.RUNNING).execute();
             if (updated == 0) {
-                throw new BadRequestException("can't update test with Id: " + existingTest.getId());
+                // Test was already returned to PENDING by returnTests() or finished by another thread
+                // Skip processing to prevent double decrement
+                Test currentTest = testRepository.findById(existingTest.getId()).orElse(null);
+                if (currentTest != null) {
+                    logger.warn("finishTest SKIPPED: testId={}, currentStatus={}, targetStatus={}, assignedAgent={} - Test status is not RUNNING, likely changed by returnTests(). Skipping to prevent double decrement.",
+                            currentTest.getId(), currentTest.getStatus(), status, currentTest.getAssignedAgent());
+                } else {
+                    logger.warn("finishTest SKIPPED: testId={} - Test not found", existingTest.getId());
+                }
+                return null;
             }
             Test savedTest = testRepository.findById(existingTest.getId()).get();
 
@@ -1962,7 +1971,7 @@ public class NewmanResource {
                 if (logger.isDebugEnabled()) {
                     logger.debug("within for on agents, jobID=" + jobId + ", job=" + jobThin.string());
                 }
-                agent.setJob(new Job(jobThin.getId(), jobThin.getSuiteId(), jobThin.getSuiteId(),
+                agent.setJob(new Job(jobThin.getId(), jobThin.getSuiteId(), jobThin.getSuiteName(),
                         jobThin.getBuildId(), jobThin.getBuildName(), jobThin.getBuildBranch()));
             }
         }
