@@ -19,6 +19,8 @@ public class JobConfig {
     @Enumerated(value = EnumType.STRING)
     private JavaVersion javaVersion;
 
+    private boolean isDefault;
+
     // the constructor will define
     // default for each configuration
     public JobConfig() {
@@ -50,6 +52,14 @@ public class JobConfig {
         this.javaVersion = javaVersion;
     }
 
+    public boolean isDefault() {
+        return isDefault;
+    }
+
+    public void setDefault(boolean aDefault) {
+        isDefault = aDefault;
+    }
+
     @PrePersist
     public void generateId() {
         if (this.id == null) {
@@ -63,6 +73,7 @@ public class JobConfig {
                 .append("id", id)
                 .append("name", name)
                 .append("javaVersion", javaVersion)
+                .append("isDefault", isDefault)
                 .toString();
     }
 }
