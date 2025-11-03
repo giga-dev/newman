@@ -2998,6 +2998,27 @@ public class NewmanResource {
         return jobConfig;
     }
 
+    @PUT
+    @Path("job-config/{id}/set-default")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response setDefaultJobConfig(@PathParam("id") final String id) {
+        Optional<JobConfig> opJobConfig = jobConfigRepository.findById(id);
+        if (!opJobConfig.isPresent()) {
+            logger.warn("JobConfig with id {} not found", id);
+            return Response.status(Response.Status.NOT_FOUND).entity("JobConfig not found").build();
+        }
+
+        jobConfigRepository.unsetAllDefaults();
+        JobConfig jobConfig = opJobConfig.get();
+        jobConfig.setDefault(true);
+        jobConfigRepository.save(jobConfig);
+
+        logger.info("Set JobConfig {} as default", id);
+        broadcastMessage(CREATED_JOB_CONFIG, jobConfig);
+
+        return Response.ok(jobConfig).build();
+    }
+
     @GET
     @Path("java-versions")
     @Produces(MediaType.APPLICATION_JSON)
