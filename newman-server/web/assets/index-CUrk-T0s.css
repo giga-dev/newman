@@ -26948,17 +26948,17 @@ textarea.v-field__input::placeholder {
   color: grey;
 }
 
-.v-menu > .v-overlay__content > .v-list > .v-list-item[data-v-76acb790] {
+.v-menu > .v-overlay__content > .v-list > .v-list-item[data-v-3f5b7e3f] {
   display: flex;
   flex-direction: row;
   min-height: 30px;
   max-height: 30px;
 }
-.nightly-build[data-v-76acb790] {
+.nightly-build[data-v-3f5b7e3f] {
   font-weight: 500;
   color: rgb(33, 150, 243) !important;
 }
-.nightly-build[data-v-76acb790] .v-list-item-title {
+.nightly-build[data-v-3f5b7e3f] .v-list-item-title {
   font-weight: 500;
   color: rgb(33, 150, 243) !important;
 }

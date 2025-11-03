@@ -38025,10 +38025,12 @@ const _sfc_main$n = {
         this.configs = response.data.map((item) => {
           return {
             id: item.id,
-            name: item.name
+            name: item.name,
+            isDefault: item.isDefault
           };
         });
-        this.configValue = this.configs[this.configs.length - 1];
+        const defaultConfig = this.configs.find((config) => config.isDefault);
+        this.configValue = defaultConfig || this.configs[this.configs.length - 1];
       }).catch((error) => {
         console.error("Error fetching data:", error);
       });
@@ -38378,7 +38380,7 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-76acb790"]]);
+const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-3f5b7e3f"]]);
 function countAgentsNum(item) {
   if (item.preparingAgents && item.preparingAgents.length > 0) {
     return item.preparingAgents.length;
@@ -41677,8 +41679,9 @@ const _sfc_main$6 = {
       createdConfigName: null,
       dialogDisabled: false,
       headers: [
-        { key: "name", title: "Name", width: "40%" },
-        { key: "id", title: "Id", width: "60%" }
+        { key: "name", title: "Name", width: "35%" },
+        { key: "id", title: "Id", width: "50%" },
+        { key: "actions", title: "Actions", width: "15%", sortable: false, align: "center" }
       ],
       itemsPerPage: 20,
       snackbar: false
@@ -41725,6 +41728,15 @@ const _sfc_main$6 = {
       }).catch((error) => {
         console.error("Error creating JDK config:", error);
         this.dialogDisabled = false;
+      });
+    },
+    setDefaultConfig(config) {
+      this.loading = true;
+      this.$axios.put(`/api/newman/job-config/${config.id}/set-default`).then(() => {
+        this.initTable();
+      }).catch((error) => {
+        console.error("Error setting default JDK config:", error);
+        this.loading = false;
       });
     },
     onSnackbarClose() {
@@ -41819,6 +41831,21 @@ function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
             [`item.name`]: withCtx(({ item }) => [
               createBaseVNode("span", _hoisted_2$1, toDisplayString(item.name), 1),
               item.javaVersion ? (openBlock(), createElementBlock("span", _hoisted_3$1, "(" + toDisplayString(item.javaVersion) + ")", 1)) : createCommentVNode("", true)
+            ]),
+            [`item.actions`]: withCtx(({ item }) => [
+              createVNode(_component_v_btn, {
+                color: item.isDefault ? "success" : "primary",
+                variant: item.isDefault ? "flat" : "outlined",
+                size: "small",
+                "prepend-icon": item.isDefault ? "mdi-check-circle" : "mdi-star-outline",
+                onClick: ($event) => $options.setDefaultConfig(item),
+                disabled: item.isDefault
+              }, {
+                default: withCtx(() => [
+                  createTextVNode(toDisplayString(item.isDefault ? "Default" : "Set Default"), 1)
+                ]),
+                _: 2
+              }, 1032, ["color", "variant", "prepend-icon", "onClick", "disabled"])
             ]),
             _: 2
           }, 1032, ["search", "headers", "items", "loading", "items-per-page"])
@@ -46014,4 +46041,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-Dhy-CejD.js.map
+//# sourceMappingURL=index-pRc5HbMV.js.map
