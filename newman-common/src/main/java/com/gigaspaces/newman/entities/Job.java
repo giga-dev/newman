@@ -32,7 +32,10 @@ public class Job {
 
     @ManyToOne
     @JoinColumn(name = "suite_id", insertable = false, updatable = false,
-            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+                foreignKey = @ForeignKey(
+                    name = "fk_job_suite",
+                    foreignKeyDefinition = "FOREIGN KEY (suite_id) REFERENCES suite(id) ON DELETE SET NULL"
+                ))
     @NotFound(action = NotFoundAction.IGNORE)
     private Suite suite;
 
