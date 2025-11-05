@@ -38025,10 +38025,12 @@ const _sfc_main$n = {
         this.configs = response.data.map((item) => {
           return {
             id: item.id,
-            name: item.name
+            name: item.name,
+            isDefault: item.isDefault
           };
         });
-        this.configValue = this.configs[this.configs.length - 1];
+        const defaultConfig = this.configs.find((config) => config.isDefault);
+        this.configValue = defaultConfig || this.configs[this.configs.length - 1];
       }).catch((error) => {
         console.error("Error fetching data:", error);
       });
@@ -38378,7 +38380,7 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-76acb790"]]);
+const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-3f5b7e3f"]]);
 function countAgentsNum(item) {
   if (item.preparingAgents && item.preparingAgents.length > 0) {
     return item.preparingAgents.length;
@@ -40629,6 +40631,7 @@ const _sfc_main$b = {
       jsonCriteria: "JsonGoesHere: 123}",
       updateSuite: null,
       suiteDetails: null,
+      suiteNotFound: false,
       loading: true,
       snackbar: false,
       info: [
@@ -40643,10 +40646,17 @@ const _sfc_main$b = {
   methods: {
     initSuiteDetails() {
       this.$axios.get(`/api/newman/suite/${this.id}`).then((response) => {
+        if (!response.data || response.data === "" || Object.keys(response.data).length === 0) {
+          this.suiteNotFound = true;
+          this.loading = false;
+          return;
+        }
         this.suiteDetails = parseSuiteEntry(response.data);
+        this.suiteNotFound = false;
         this.loading = false;
       }).catch((error) => {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching suite data:", error);
+        this.suiteNotFound = true;
         this.loading = false;
       });
     },
@@ -40655,7 +40665,7 @@ const _sfc_main$b = {
         ...this.suiteDetails,
         criteria: JSON.parse(this.suiteDetails.criteria)
       };
-      this.$axios.post("/api/newman/update-suite", body).then((response) => {
+      this.$axios.post("/api/newman/update-suite", body).then(() => {
         this.snackbar = true;
       }).catch((error) => {
         console.error("Error fetching data:", error);
@@ -40678,11 +40688,12 @@ const _hoisted_6$1 = { key: 2 };
 const _hoisted_7$1 = { class: "text-h6" };
 function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
-  const _component_v_col = resolveComponent("v-col");
-  const _component_v_text_field = resolveComponent("v-text-field");
-  const _component_v_row = resolveComponent("v-row");
+  const _component_v_icon = resolveComponent("v-icon");
   const _component_v_btn = resolveComponent("v-btn");
+  const _component_v_col = resolveComponent("v-col");
+  const _component_v_row = resolveComponent("v-row");
   const _component_v_container = resolveComponent("v-container");
+  const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_card = resolveComponent("v-card");
   const _component_dialog_prompt_body = resolveComponent("dialog-prompt-body");
   const _component_prompt_dialog = resolveComponent("prompt-dialog");
@@ -40698,13 +40709,63 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
           style: { "width": "90%" },
           class: "text-wrap"
         }, {
-          default: withCtx(() => _cache[3] || (_cache[3] = [
+          default: withCtx(() => _cache[4] || (_cache[4] = [
             createBaseVNode("h3", null, " Suite ", -1)
           ])),
           _: 1,
-          __: [3]
+          __: [4]
         }),
-        createVNode(_component_v_container, { style: { "width": "90%", "max-width": "unset" } }, {
+        $data.suiteNotFound ? (openBlock(), createBlock(_component_v_container, {
+          key: 0,
+          style: { "width": "90%", "max-width": "unset" },
+          class: "text-center"
+        }, {
+          default: withCtx(() => [
+            createVNode(_component_v_row, {
+              justify: "center",
+              align: "center",
+              style: { "min-height": "400px" }
+            }, {
+              default: withCtx(() => [
+                createVNode(_component_v_col, { cols: "12" }, {
+                  default: withCtx(() => [
+                    createVNode(_component_v_icon, {
+                      size: "120",
+                      color: "grey-lighten-1"
+                    }, {
+                      default: withCtx(() => _cache[5] || (_cache[5] = [
+                        createTextVNode("mdi-package-variant-closed-remove")
+                      ])),
+                      _: 1,
+                      __: [5]
+                    }),
+                    _cache[7] || (_cache[7] = createBaseVNode("h2", { class: "text-h4 mt-6 text-grey-darken-1" }, "Suite Not Found", -1)),
+                    _cache[8] || (_cache[8] = createBaseVNode("p", { class: "text-h6 mt-4 text-grey" }, " The suite you're looking for doesn't exist or has been removed. ", -1)),
+                    createVNode(_component_v_btn, {
+                      color: "primary",
+                      class: "mt-6",
+                      "prepend-icon": "mdi-arrow-left",
+                      onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$router.push("/suites"))
+                    }, {
+                      default: withCtx(() => _cache[6] || (_cache[6] = [
+                        createTextVNode(" Back to Suites ")
+                      ])),
+                      _: 1,
+                      __: [6]
+                    })
+                  ]),
+                  _: 1,
+                  __: [7, 8]
+                })
+              ]),
+              _: 1
+            })
+          ]),
+          _: 1
+        })) : (openBlock(), createBlock(_component_v_container, {
+          key: 1,
+          style: { "width": "90%", "max-width": "unset" }
+        }, {
           default: withCtx(() => [
             createBaseVNode("div", _hoisted_1$8, [
               (openBlock(true), createElementBlock(Fragment, null, renderList($data.info, (item, index) => {
@@ -40767,13 +40828,13 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
                         color: "primary",
                         disabled: $data.loading,
                         class: "font-bold",
-                        onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$refs.suiteApplyChangeDialog.openDialog())
+                        onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$refs.suiteApplyChangeDialog.openDialog())
                       }, {
-                        default: withCtx(() => _cache[4] || (_cache[4] = [
+                        default: withCtx(() => _cache[9] || (_cache[9] = [
                           createTextVNode("Save")
                         ])),
                         _: 1,
-                        __: [4]
+                        __: [9]
                       }, 8, ["disabled"])
                     ]),
                     _: 1
@@ -40784,7 +40845,7 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
             ])
           ]),
           _: 1
-        })
+        }))
       ]),
       _: 1
     }),
@@ -40802,25 +40863,25 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
     }, 8, ["onPromptDialog:onConfirm"]),
     createVNode(_component_v_snackbar, {
       modelValue: $data.snackbar,
-      "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $data.snackbar = $event),
+      "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $data.snackbar = $event),
       timeout: "5000"
     }, {
       actions: withCtx(() => [
         createVNode(_component_v_btn, {
           color: "primary",
           variant: "text",
-          onClick: _cache[1] || (_cache[1] = ($event) => $data.snackbar = false)
+          onClick: _cache[2] || (_cache[2] = ($event) => $data.snackbar = false)
         }, {
-          default: withCtx(() => _cache[6] || (_cache[6] = [
+          default: withCtx(() => _cache[11] || (_cache[11] = [
             createTextVNode(" Close ")
           ])),
           _: 1,
-          __: [6]
+          __: [11]
         })
       ]),
       default: withCtx(() => [
         createBaseVNode("div", _hoisted_7$1, [
-          _cache[5] || (_cache[5] = createTextVNode("Suite updated: ")),
+          _cache[10] || (_cache[10] = createTextVNode("Suite updated: ")),
           createBaseVNode("strong", null, toDisplayString($data.suiteDetails.name), 1)
         ])
       ]),
@@ -41677,8 +41738,9 @@ const _sfc_main$6 = {
       createdConfigName: null,
       dialogDisabled: false,
       headers: [
-        { key: "name", title: "Name", width: "40%" },
-        { key: "id", title: "Id", width: "60%" }
+        { key: "name", title: "Name", width: "35%" },
+        { key: "id", title: "Id", width: "50%" },
+        { key: "actions", title: "Actions", width: "15%", sortable: false, align: "center" }
       ],
       itemsPerPage: 20,
       snackbar: false
@@ -41725,6 +41787,15 @@ const _sfc_main$6 = {
       }).catch((error) => {
         console.error("Error creating JDK config:", error);
         this.dialogDisabled = false;
+      });
+    },
+    setDefaultConfig(config) {
+      this.loading = true;
+      this.$axios.put(`/api/newman/job-config/${config.id}/set-default`).then(() => {
+        this.initTable();
+      }).catch((error) => {
+        console.error("Error setting default JDK config:", error);
+        this.loading = false;
       });
     },
     onSnackbarClose() {
@@ -41819,6 +41890,21 @@ function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
             [`item.name`]: withCtx(({ item }) => [
               createBaseVNode("span", _hoisted_2$1, toDisplayString(item.name), 1),
               item.javaVersion ? (openBlock(), createElementBlock("span", _hoisted_3$1, "(" + toDisplayString(item.javaVersion) + ")", 1)) : createCommentVNode("", true)
+            ]),
+            [`item.actions`]: withCtx(({ item }) => [
+              createVNode(_component_v_btn, {
+                color: item.default ? "success" : "primary",
+                variant: item.default ? "flat" : "outlined",
+                size: "small",
+                "prepend-icon": item.default ? "mdi-check-circle" : "mdi-star-outline",
+                onClick: ($event) => $options.setDefaultConfig(item),
+                disabled: item.default
+              }, {
+                default: withCtx(() => [
+                  createTextVNode(toDisplayString(item.default ? "Default" : "Set Default"), 1)
+                ]),
+                _: 2
+              }, 1032, ["color", "variant", "prepend-icon", "onClick", "disabled"])
             ]),
             _: 2
           }, 1032, ["search", "headers", "items", "loading", "items-per-page"])
@@ -46014,4 +46100,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-Dhy-CejD.js.map
+//# sourceMappingURL=index-Dqy1dxqL.js.map
