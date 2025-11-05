@@ -1174,7 +1174,6 @@ public class NewmanResource {
                         historyStatsString, test.getId(), test.getName(), test.getJobId(),
                         testJob.getRunningTests());
             }
-            // save updated TEST
             // save updated TEST - only if status is still RUNNING
             int updated = testUpdater.where("id = ? AND status = ?", existingTest.getId(), Test.Status.RUNNING).execute();
             if (updated == 0) {

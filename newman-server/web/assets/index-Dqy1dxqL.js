@@ -40631,6 +40631,7 @@ const _sfc_main$b = {
       jsonCriteria: "JsonGoesHere: 123}",
       updateSuite: null,
       suiteDetails: null,
+      suiteNotFound: false,
       loading: true,
       snackbar: false,
       info: [
@@ -40645,10 +40646,17 @@ const _sfc_main$b = {
   methods: {
     initSuiteDetails() {
       this.$axios.get(`/api/newman/suite/${this.id}`).then((response) => {
+        if (!response.data || response.data === "" || Object.keys(response.data).length === 0) {
+          this.suiteNotFound = true;
+          this.loading = false;
+          return;
+        }
         this.suiteDetails = parseSuiteEntry(response.data);
+        this.suiteNotFound = false;
         this.loading = false;
       }).catch((error) => {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching suite data:", error);
+        this.suiteNotFound = true;
         this.loading = false;
       });
     },
@@ -40657,7 +40665,7 @@ const _sfc_main$b = {
         ...this.suiteDetails,
         criteria: JSON.parse(this.suiteDetails.criteria)
       };
-      this.$axios.post("/api/newman/update-suite", body).then((response) => {
+      this.$axios.post("/api/newman/update-suite", body).then(() => {
         this.snackbar = true;
       }).catch((error) => {
         console.error("Error fetching data:", error);
@@ -40680,11 +40688,12 @@ const _hoisted_6$1 = { key: 2 };
 const _hoisted_7$1 = { class: "text-h6" };
 function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
-  const _component_v_col = resolveComponent("v-col");
-  const _component_v_text_field = resolveComponent("v-text-field");
-  const _component_v_row = resolveComponent("v-row");
+  const _component_v_icon = resolveComponent("v-icon");
   const _component_v_btn = resolveComponent("v-btn");
+  const _component_v_col = resolveComponent("v-col");
+  const _component_v_row = resolveComponent("v-row");
   const _component_v_container = resolveComponent("v-container");
+  const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_card = resolveComponent("v-card");
   const _component_dialog_prompt_body = resolveComponent("dialog-prompt-body");
   const _component_prompt_dialog = resolveComponent("prompt-dialog");
@@ -40700,13 +40709,63 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
           style: { "width": "90%" },
           class: "text-wrap"
         }, {
-          default: withCtx(() => _cache[3] || (_cache[3] = [
+          default: withCtx(() => _cache[4] || (_cache[4] = [
             createBaseVNode("h3", null, " Suite ", -1)
           ])),
           _: 1,
-          __: [3]
+          __: [4]
         }),
-        createVNode(_component_v_container, { style: { "width": "90%", "max-width": "unset" } }, {
+        $data.suiteNotFound ? (openBlock(), createBlock(_component_v_container, {
+          key: 0,
+          style: { "width": "90%", "max-width": "unset" },
+          class: "text-center"
+        }, {
+          default: withCtx(() => [
+            createVNode(_component_v_row, {
+              justify: "center",
+              align: "center",
+              style: { "min-height": "400px" }
+            }, {
+              default: withCtx(() => [
+                createVNode(_component_v_col, { cols: "12" }, {
+                  default: withCtx(() => [
+                    createVNode(_component_v_icon, {
+                      size: "120",
+                      color: "grey-lighten-1"
+                    }, {
+                      default: withCtx(() => _cache[5] || (_cache[5] = [
+                        createTextVNode("mdi-package-variant-closed-remove")
+                      ])),
+                      _: 1,
+                      __: [5]
+                    }),
+                    _cache[7] || (_cache[7] = createBaseVNode("h2", { class: "text-h4 mt-6 text-grey-darken-1" }, "Suite Not Found", -1)),
+                    _cache[8] || (_cache[8] = createBaseVNode("p", { class: "text-h6 mt-4 text-grey" }, " The suite you're looking for doesn't exist or has been removed. ", -1)),
+                    createVNode(_component_v_btn, {
+                      color: "primary",
+                      class: "mt-6",
+                      "prepend-icon": "mdi-arrow-left",
+                      onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$router.push("/suites"))
+                    }, {
+                      default: withCtx(() => _cache[6] || (_cache[6] = [
+                        createTextVNode(" Back to Suites ")
+                      ])),
+                      _: 1,
+                      __: [6]
+                    })
+                  ]),
+                  _: 1,
+                  __: [7, 8]
+                })
+              ]),
+              _: 1
+            })
+          ]),
+          _: 1
+        })) : (openBlock(), createBlock(_component_v_container, {
+          key: 1,
+          style: { "width": "90%", "max-width": "unset" }
+        }, {
           default: withCtx(() => [
             createBaseVNode("div", _hoisted_1$8, [
               (openBlock(true), createElementBlock(Fragment, null, renderList($data.info, (item, index) => {
@@ -40769,13 +40828,13 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
                         color: "primary",
                         disabled: $data.loading,
                         class: "font-bold",
-                        onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$refs.suiteApplyChangeDialog.openDialog())
+                        onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$refs.suiteApplyChangeDialog.openDialog())
                       }, {
-                        default: withCtx(() => _cache[4] || (_cache[4] = [
+                        default: withCtx(() => _cache[9] || (_cache[9] = [
                           createTextVNode("Save")
                         ])),
                         _: 1,
-                        __: [4]
+                        __: [9]
                       }, 8, ["disabled"])
                     ]),
                     _: 1
@@ -40786,7 +40845,7 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
             ])
           ]),
           _: 1
-        })
+        }))
       ]),
       _: 1
     }),
@@ -40804,25 +40863,25 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
     }, 8, ["onPromptDialog:onConfirm"]),
     createVNode(_component_v_snackbar, {
       modelValue: $data.snackbar,
-      "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $data.snackbar = $event),
+      "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $data.snackbar = $event),
       timeout: "5000"
     }, {
       actions: withCtx(() => [
         createVNode(_component_v_btn, {
           color: "primary",
           variant: "text",
-          onClick: _cache[1] || (_cache[1] = ($event) => $data.snackbar = false)
+          onClick: _cache[2] || (_cache[2] = ($event) => $data.snackbar = false)
         }, {
-          default: withCtx(() => _cache[6] || (_cache[6] = [
+          default: withCtx(() => _cache[11] || (_cache[11] = [
             createTextVNode(" Close ")
           ])),
           _: 1,
-          __: [6]
+          __: [11]
         })
       ]),
       default: withCtx(() => [
         createBaseVNode("div", _hoisted_7$1, [
-          _cache[5] || (_cache[5] = createTextVNode("Suite updated: ")),
+          _cache[10] || (_cache[10] = createTextVNode("Suite updated: ")),
           createBaseVNode("strong", null, toDisplayString($data.suiteDetails.name), 1)
         ])
       ]),
@@ -46041,4 +46100,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-D7cL8lee.js.map
+//# sourceMappingURL=index-Dqy1dxqL.js.map

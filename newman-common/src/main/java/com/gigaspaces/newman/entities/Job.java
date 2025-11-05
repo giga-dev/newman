@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.gigaspaces.newman.beans.State;
 import com.gigaspaces.newman.converters.UriToStringConverter;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -29,10 +31,17 @@ public class Job {
     private Build build;
 
     @ManyToOne
-    @JoinColumn(name = "suite_id")
+    @JoinColumn(name = "suite_id", insertable = false, updatable = false,
+                foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @NotFound(action = NotFoundAction.IGNORE)
     private Suite suite;
 
-//    @Convert(converter = StringSetConverter.class)
+    @Column(name = "suite_id")
+    private String suiteId;
+
+    @Column(name = "suite_name")
+    private String suiteName;
+
     @Type(type = "com.gigaspaces.newman.types.SetStringArrayType")
     @Column(name = "agent_groups", columnDefinition = "TEXT[]")
     private Set<String> agentGroups;
@@ -246,12 +255,38 @@ public class Job {
         this.numOfTestRetries = numOfTestRetries;
     }
 
+    public String getSuiteId() {
+        return suiteId;
+    }
+
+    public void setSuiteId(String suiteId) {
+        this.suiteId = suiteId;
+    }
+
+    public String getSuiteName() {
+        return suiteName;
+    }
+
+    public void setSuiteName(String suiteName) {
+        this.suiteName = suiteName;
+    }
+
     public Suite getSuite() {
-        return suite;
+        if (suite != null) {
+            return suite;
+        }
+        if (suiteId == null && suiteName == null) {
+            return null;
+        }
+        return new Suite(this.suiteId, this.suiteName);
     }
 
     public void setSuite(Suite suite) {
         this.suite = suite;
+        if (suite != null) {
+            this.suiteId = suite.getId();
+            this.suiteName = suite.getName();
+        }
     }
 
     public Set<String> getPreparingAgents() {
@@ -315,6 +350,8 @@ public class Job {
                 .append("id", id)
                 .append("build", build)
                 .append("suite", suite)
+                .append("suiteId", suiteId)
+                .append("suiteName", suiteName)
                 .append("agentGroups", agentGroups)
                 .append("priority", priority)
                 .append("submitTime", submitTime)
