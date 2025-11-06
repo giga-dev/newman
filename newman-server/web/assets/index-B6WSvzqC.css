@@ -26948,17 +26948,26 @@ textarea.v-field__input::placeholder {
   color: grey;
 }
 
-.v-menu > .v-overlay__content > .v-list > .v-list-item[data-v-3f5b7e3f] {
+.job-submit-container[data-v-491cf86c] {
+  width: 40%;
+}
+@media (max-width: 1000px) {
+.job-submit-container[data-v-491cf86c] {
+    width: 70% !important;
+    margin: 1rem !important;
+}
+}
+.v-menu > .v-overlay__content > .v-list > .v-list-item[data-v-491cf86c] {
   display: flex;
   flex-direction: row;
   min-height: 30px;
   max-height: 30px;
 }
-.nightly-build[data-v-3f5b7e3f] {
+.nightly-build[data-v-491cf86c] {
   font-weight: 500;
   color: rgb(33, 150, 243) !important;
 }
-.nightly-build[data-v-3f5b7e3f] .v-list-item-title {
+.nightly-build[data-v-491cf86c] .v-list-item-title {
   font-weight: 500;
   color: rgb(33, 150, 243) !important;
 }
@@ -27167,20 +27176,100 @@ textarea.v-field__input::placeholder {
   text-align: center;
   display: block;
 }
+.agentsTable > .v-table__wrapper > table > thead > tr > th,
+.agentsTable > .v-table__wrapper > table > tbody > tr > td {
+  padding-right: 6px;
+  padding-left: 6px;
+}
 .agentsTable > .v-table__wrapper > table > tbody > .v-data-table__tr {
   font-size: 1rem;
   font-weight: 500;
 }
 .agentsTable > .v-table__wrapper > table > tbody > tr > td {
-  /* white-space: nowrap; */
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 0px;
+}
+
+/* Never crop host column - always show full hostname */
+.agentsTable > .v-table__wrapper > table > tbody > tr > td:nth-child(4) {
+  max-width: none !important;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+/* Never crop state column - always show full status chip */
+.agentsTable > .v-table__wrapper > table > tbody > tr > td:nth-child(3) {
+  max-width: none !important;
+  overflow: visible;
+  white-space: nowrap;
 }
 .agentsTable {
   width: 100% !important;
 }
 .agentsTable tbody tr:nth-child(even) {
   background: hsla(230, 86%, 73%, 0.075);
+}
+.capabilities-container {
+  display: flex;
+  gap: 0;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.capability-icon {
+  flex-shrink: 0;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 1000px) {
+.v-card {
+    width: 100% !important;
+    padding: 0;
+    overflow-x: auto;
+}
+.agentsTable {
+    min-width: 1200px;
+}
+.agentsTable > .v-table__wrapper {
+    overflow-x: auto;
+}
+.agentsTable > .v-table__wrapper > table > thead > tr > th,
+  .agentsTable > .v-table__wrapper > table > tbody > tr > td {
+    padding-right: 4px;
+    padding-left: 4px;
+    font-size: 0.875rem;
+}
+
+  /* Keep host column always visible on mobile */
+.agentsTable > .v-table__wrapper > table > tbody > tr > td:nth-child(4) {
+    max-width: none !important;
+}
+
+  /* Keep state column always visible on mobile */
+.agentsTable > .v-table__wrapper > table > tbody > tr > td:nth-child(3) {
+    max-width: none !important;
+}
+.v-card-title {
+    padding: 8px 4px !important;
+}
+.v-text-field {
+    font-size: 0.875rem;
+}
+
+  /* Compact chips for mobile */
+.v-chip {
+    font-size: 0.7rem !important;
+    padding: 0 6px !important;
+    height: 22px !important;
+}
+
+  /* Compact buttons for mobile */
+.v-btn {
+    min-width: 26px !important;
+    height: 26px !important;
+}
 }
 
 .users-list .v-list-subheader {
