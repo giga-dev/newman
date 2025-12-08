@@ -1414,19 +1414,14 @@ public class NewmanResource {
         String fileName = contentDispositionHeader.getFileName();
 
         // TODO take care of this part if don't use s3, otherwise 2 files will be created everytime wasting time and space
-        final java.nio.file.Path tempFile;
-        if (SERVER_TESTS_UPLOAD_LOCATION_FOLDER.equals("tests-logs")) { // "test-logs" set a default path if not specified
-            tempFile = null; // no temp file if default path used
-        } else {
-            tempFile = Files.createTempFile("upload-", "-" + fileName);
-            try {
-                Files.copy(fileInputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
-                if (!FileUtils.exists(tempFile)) {
-                    logger.error("uploadTestLog - the temp file does not exist: {}", tempFile);
-                }
-            } finally {
-                fileInputStream.close();
+        final java.nio.file.Path tempFile = Files.createTempFile("upload-", "-" + fileName);
+        try {
+            Files.copy(fileInputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            if (!FileUtils.exists(tempFile)) {
+                logger.error("uploadTestLog - the temp file does not exist: {}", tempFile);
             }
+        } finally {
+            fileInputStream.close();
         }
 
         executor.execute(() -> {
@@ -1439,12 +1434,10 @@ public class NewmanResource {
             } catch (Exception e) {
                 logger.error("Failed to process " + fileName, e);
             } finally {
-                if (tempFile != null) {
-                    try {
-                        Files.deleteIfExists(tempFile);
-                    } catch (IOException ex) {
-                        logger.warn("Could not delete temp file: " + tempFile, ex);
-                    }
+                try {
+                    Files.deleteIfExists(tempFile);
+                } catch (IOException ex) {
+                    logger.warn("Could not delete temp file: " + tempFile, ex);
                 }
             }
         });
