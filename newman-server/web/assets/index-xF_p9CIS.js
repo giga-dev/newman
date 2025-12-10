@@ -38379,7 +38379,7 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-491cf86c"]]);
+const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-1dec12cd"]]);
 function countAgentsNum(item) {
   if (item.preparingAgents && item.preparingAgents.length > 0) {
     return item.preparingAgents.length;
@@ -38955,7 +38955,7 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Builds = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-8e609145"]]);
+const Builds = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-aae725b9"]]);
 const _sfc_main$k = {
   name: "PromptDialog",
   props: {
@@ -40446,7 +40446,7 @@ const _sfc_main$c = {
     }
   }
 };
-const _hoisted_1$9 = { style: { "width": "80%" } };
+const _hoisted_1$9 = { class: "suites-wrapper" };
 const _hoisted_2$6 = { key: 0 };
 const _hoisted_3$6 = {
   key: 0,
@@ -40610,7 +40610,7 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
     }, 8, ["modelValue", "onClick:close"])
   ], 64);
 }
-const Suites = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$7]]);
+const Suites = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$7], ["__scopeId", "data-v-461752a0"]]);
 const _sfc_main$b = {
   components: {
     PromptDialog,
@@ -42306,7 +42306,7 @@ const StorageHelper = {
 const _hoisted_1$3 = { class: "d-block" };
 const _hoisted_2 = {
   class: "d-flex align-center",
-  style: { "gap": "8px" }
+  style: { "gap": "8px", "flex-wrap": "nowrap" }
 };
 const _hoisted_3 = { class: "font-bold flex items-center gap-2" };
 const _hoisted_4 = {
@@ -42891,23 +42891,26 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                 }),
                 createVNode(_component_v_spacer),
                 createVNode(_component_v_col, {
-                  cols: "3",
-                  class: "ml-auto mb-n1 mt-n1"
+                  cols: "auto",
+                  class: "ml-auto mb-n1 mt-n1",
+                  style: { "min-width": "0" }
                 }, {
                   default: withCtx(() => [
                     createVNode(_component_v_row, {
                       dense: "",
                       align: "center",
-                      justify: "end"
+                      justify: "end",
+                      style: { "flex-wrap": "nowrap" }
                     }, {
                       default: withCtx(() => [
                         !__props.noJobsCount ? (openBlock(), createBlock(_component_v_col, {
                           key: 0,
-                          cols: "10"
+                          cols: "auto",
+                          style: { "min-width": "0" }
                         }, {
                           default: withCtx(() => [
                             createBaseVNode("div", _hoisted_2, [
-                              _cache[15] || (_cache[15] = createBaseVNode("div", null, "Jobs count:", -1)),
+                              _cache[15] || (_cache[15] = createBaseVNode("div", { style: { "white-space": "nowrap" } }, "Jobs count:", -1)),
                               createVNode(_component_v_text_field, {
                                 counter: "",
                                 color: "primary",
@@ -42918,13 +42921,14 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                                 variant: "outlined",
                                 "hide-details": "",
                                 "single-line": "",
-                                minWidth: "85px",
+                                style: { "min-width": "85px", "max-width": "120px" },
                                 onKeyup: _cache[7] || (_cache[7] = withKeys(($event) => _ctx.initTable(false), ["enter"]))
                               }, null, 8, ["modelValue"]),
                               createVNode(_component_v_btn, {
                                 color: "primary",
                                 class: "font-bold",
-                                onClick: _cache[8] || (_cache[8] = ($event) => _ctx.initTable(false))
+                                onClick: _cache[8] || (_cache[8] = ($event) => _ctx.initTable(false)),
+                                style: { "flex-shrink": "0" }
                               }, {
                                 default: withCtx(() => _cache[14] || (_cache[14] = [
                                   createTextVNode("Apply")
@@ -42937,8 +42941,8 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                           _: 1
                         })) : createCommentVNode("", true),
                         createVNode(_component_v_col, {
-                          cols: "1",
-                          align: "right"
+                          cols: "auto",
+                          style: { "flex-shrink": "0" }
                         }, {
                           default: withCtx(() => [
                             createVNode(_component_v_menu, {
@@ -43218,7 +43222,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-98dc9638"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-6b09a87c"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -46166,4 +46170,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-IqDQKncV.js.map
+//# sourceMappingURL=index-xF_p9CIS.js.map
