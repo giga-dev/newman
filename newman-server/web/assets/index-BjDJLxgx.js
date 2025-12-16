@@ -37461,6 +37461,12 @@ const _export_sfc = (sfc, props) => {
   return target;
 };
 const _sfc_main$p = {
+  props: {
+    filter: {
+      type: String,
+      default: ""
+    }
+  },
   setup() {
   }
 };
@@ -37469,7 +37475,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card = resolveComponent("v-card");
   return openBlock(), createBlock(_component_v_card, null, {
     default: withCtx(() => [
-      createVNode(_component_JobsGrid)
+      createVNode(_component_JobsGrid, { initialSearch: $props.filter }, null, 8, ["initialSearch"])
     ]),
     _: 1
   });
@@ -38795,9 +38801,42 @@ const _sfc_main$l = {
     }
   },
   beforeMount() {
+    this.search = this.$route.query.filter || null;
+    if (this.$route.query.count) {
+      const count = parseInt(this.$route.query.count, 10);
+      if (!isNaN(count) && count > 0) {
+        this.pullBuildsCount = count;
+      }
+    }
     this.initTable();
   },
+  watch: {
+    search() {
+      this.updateUrlQueryParams();
+    },
+    pullBuildsCount() {
+      this.updateUrlQueryParams();
+    }
+  },
   methods: {
+    updateUrlQueryParams() {
+      const query = {};
+      if (this.search) {
+        query.filter = this.search;
+      }
+      if (this.pullBuildsCount !== 60) {
+        query.count = this.pullBuildsCount.toString();
+      }
+      const currentQuery = this.$route.query;
+      const hasChanged2 = currentQuery.filter !== (query.filter || void 0) || currentQuery.count !== (query.count || void 0);
+      if (hasChanged2) {
+        this.$router.replace({
+          name: "Builds",
+          query
+        }).catch(() => {
+        });
+      }
+    },
     hasNightlyTag(item) {
       return item.tags && item.tags.includes("NIGHTLY");
     },
@@ -38955,7 +38994,7 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Builds = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-aae725b9"]]);
+const Builds = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-5fe19820"]]);
 const _sfc_main$k = {
   name: "PromptDialog",
   props: {
@@ -39200,9 +39239,11 @@ const __default__$6 = {
   props: {
     id: { type: String, required: true },
     status: { type: String },
-    jobDetails: { type: Object }
+    jobDetails: { type: Object },
+    initialSearch: { type: String, default: "" }
   },
   beforeMount() {
+    this.search = this.initialSearch || "";
     this.initTable();
     this.jobUpdate = inject$1("job-update");
     this.testUpdate = inject$1("test-update");
@@ -39217,6 +39258,19 @@ const __default__$6 = {
           this.testsFilter.runNumber = 3;
         } else {
           this.testsFilter.status = props.status;
+        }
+      }
+    },
+    search(newSearch) {
+      if (this.$route.name === "JobDetails") {
+        const query = newSearch ? { filter: newSearch } : {};
+        if (this.$route.query.filter !== newSearch) {
+          this.$router.replace({
+            name: "JobDetails",
+            params: this.$route.params,
+            query
+          }).catch(() => {
+          });
         }
       }
     },
@@ -39828,7 +39882,8 @@ const _sfc_main$h = /* @__PURE__ */ Object.assign(__default__$5, {
           createVNode(_sfc_main$i, {
             id: __props.id,
             status: __props.status,
-            jobDetails: _ctx.jobDetails
+            jobDetails: _ctx.jobDetails,
+            initialSearch: _ctx.$route.query.filter
           }, {
             "header-tools": withCtx(() => [
               createVNode(_component_v_spacer),
@@ -39862,14 +39917,14 @@ const _sfc_main$h = /* @__PURE__ */ Object.assign(__default__$5, {
               })
             ]),
             _: 1
-          }, 8, ["id", "status", "jobDetails"])
+          }, 8, ["id", "status", "jobDetails", "initialSearch"])
         ]),
         _: 1
       });
     };
   }
 });
-const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["__scopeId", "data-v-4a46fb3a"]]);
+const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["__scopeId", "data-v-09e1654d"]]);
 const _sfc_main$g = {
   props: {
     id: String
@@ -42018,15 +42073,15 @@ function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
 const JdkConfig = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$3]]);
 const routes = [
   { path: "/", redirect: "/jobs", name: "Landing", meta: { title: "Jobs", icon: "" } },
-  { path: "/jobs", name: "Jobs", component: JobsTable, meta: { title: "Jobs View", icon: "mdi-video-input-component" } },
+  { path: "/jobs", name: "Jobs", component: JobsTable, meta: { title: "Jobs View", icon: "mdi-video-input-component" }, props: (route) => ({ filter: route.query.filter }) },
   { path: "/dashboard", name: "Dashboard", component: Dashboard, meta: { title: "Dashboard", icon: "mdi-view-dashboard" } },
   { path: "/submit", name: "Submit", component: JobSubmit, meta: { title: "Submit Job", icon: "mdi-play" } },
-  { path: "/builds", name: "Builds", component: Builds, meta: { title: "Builds", icon: "mdi-domain" } },
+  { path: "/builds", name: "Builds", component: Builds, meta: { title: "Builds", icon: "mdi-domain" }, props: (route) => ({ filter: route.query.filter }) },
   { path: "/suites", name: "Suites", component: Suites, meta: { title: "Suites", icon: "mdi-cards" } },
   { path: "/agents", name: "Agents", component: _sfc_main$9, meta: { title: "Agents", icon: "mdi-face-man" } },
   { path: "/jdk-config", name: "JdkConfig", component: JdkConfig, meta: { title: "JDK Config", icon: "mdi-cog" } },
   { path: "/users", name: "Users", component: Users, meta: { title: "Users", icon: "mdi-account-multiple" } },
-  { path: "/job/:id/:status", name: "JobDetails", component: JobDetails, meta: { title: "Job Details", icon: "mdi-text-box-search-outline" }, props: true },
+  { path: "/job/:id/:status", name: "JobDetails", component: JobDetails, meta: { title: "Job Details", icon: "mdi-text-box-search-outline" }, props: (route) => ({ ...route.params, filter: route.query.filter }) },
   { path: "/test/:id", name: "TestDetails", component: TestDetails, meta: { title: "Test Details", icon: "mdi-text-box-search-outline" }, props: true },
   { path: "/build/:id", name: "BuildDetails", component: BuildDetails, meta: { title: "Build Details", icon: "mdi-text-box-search-outline" }, props: true },
   { path: "/suite/:id", name: "SuiteDetails", component: SuiteDetails, meta: { title: "Suite Details", icon: "mdi-text-box-search-outline" }, props: true },
@@ -42339,7 +42394,8 @@ const __default__$1 = {
     noJobsCount: { type: Boolean, default: false },
     noSelect: { type: Boolean, default: false },
     noColumnsSelect: { type: Boolean, default: false },
-    buildId: String
+    buildId: String,
+    initialSearch: { type: String, default: "" }
   },
   watch: {
     jobUpdate(job) {
@@ -42360,9 +42416,26 @@ const __default__$1 = {
       if (content.length == 0 && this.hiddenMode) {
         this.hiddenMode = false;
       }
+    },
+    search() {
+      if (!this.buildId && this.$route.name === "Jobs") {
+        this.updateUrlQueryParams();
+      }
+    },
+    pullJobsCount() {
+      if (!this.buildId && this.$route.name === "Jobs") {
+        this.updateUrlQueryParams();
+      }
     }
   },
   beforeMount() {
+    this.search = this.initialSearch || "";
+    if (this.$route.query.count) {
+      const count = parseInt(this.$route.query.count, 10);
+      if (!isNaN(count) && count > 0) {
+        this.pullJobsCount = count;
+      }
+    }
     this.initTable(true);
     this.jobUpdate = inject$1("job-update");
   },
@@ -42457,6 +42530,24 @@ const __default__$1 = {
     }
   },
   methods: {
+    updateUrlQueryParams() {
+      const query = {};
+      if (this.search) {
+        query.filter = this.search;
+      }
+      if (this.pullJobsCount !== 60) {
+        query.count = this.pullJobsCount.toString();
+      }
+      const currentQuery = this.$route.query;
+      const hasChanged2 = currentQuery.filter !== (query.filter || void 0) || currentQuery.count !== (query.count || void 0);
+      if (hasChanged2) {
+        this.$router.replace({
+          name: "Jobs",
+          query
+        }).catch(() => {
+        });
+      }
+    },
     initTable(onMount) {
       this.loading = true;
       if (this.buildId) {
@@ -43222,7 +43313,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-6b09a87c"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-49001429"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -46170,4 +46261,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-xF_p9CIS.js.map
+//# sourceMappingURL=index-BjDJLxgx.js.map
