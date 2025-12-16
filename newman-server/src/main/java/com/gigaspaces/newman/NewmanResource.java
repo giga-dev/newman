@@ -670,7 +670,7 @@ public class NewmanResource {
     @POST
     @Path("job/{id}/toggle")
     @Produces(MediaType.APPLICATION_JSON)
-    public Job toggelJobPause(@PathParam("id") final String id) {
+    public Job toggleJobPause(@PathParam("id") final String id) {
         Optional<Job> opJob = jobRepository.findById(id);
         if (opJob.isPresent()) {
             Job job = opJob.get();
@@ -693,9 +693,6 @@ public class NewmanResource {
                 if (state == State.PAUSED) {
                     // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
                     jobUpdater.set("startPrepareTime", null);
-                } else if (state == State.READY) {  //change status of Test(s) from running to pending
-                    int updatedCount = testRepository.updateStatusByJobIdAndCurrentStatus(id, Test.Status.RUNNING, Test.Status.PENDING);
-                    logger.info("---ToggleJobPause, state is READY, affected count:" + updatedCount);
                 }
 
                 managePrioritizedJob(job.getId(), job.getPriority(), state == State.PAUSED);
@@ -755,7 +752,6 @@ public class NewmanResource {
                         state = State.PAUSED;
                         break;
                     case PAUSED:
-                        break;
                     case DONE:
                         break;
                 }
@@ -764,20 +760,15 @@ public class NewmanResource {
                             .set("state", State.PAUSED)
                             .set("startPrepareTime", null);  // remove startPrepareTime after turn job to paused because after pause agents do setup again on job
 
-                    if (job.getPriority() > 0) {
-                        Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findByJobId(job.getId());
-                        PrioritizedJob prioritizedJob = opPrioritizedJob.orElseThrow(() -> new RuntimeException("PrioritizedJob [" + id + "] does not exist"));;
-                        prioritizedJob.setPaused(true);
-
-                        prioritizedJob = prioritizedJobRepository.save(prioritizedJob);
-                        if (prioritizedJob.getPriority() == highestPriorityJob) {
-                            highestPriorityJob = getNotPausedHighestPriorityJob();
-                        }
+                    managePrioritizedJob(job.getId(), job.getPriority(), true);
+                    int updated = jobUpdater.whereId(job.getId()).execute();
+                    if (updated == 0) {
+                        logger.error("Job {} cannot be updated during bulk PAUSE process", id);
+                        continue;
                     }
-                    jobUpdater.whereId(job.getId()).execute();
+
                     job = jobRepository.findById(job.getId()).get();
                     result.add(job);
-
                     broadcastMessage(MODIFIED_JOB, job);
                 }
             }
@@ -804,7 +795,7 @@ public class NewmanResource {
     @Path("jobs/resume")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public synchronized List<Job> toggelMultipleJobResume(final List<String> ids) {
+    public synchronized List<Job> toggleMultipleJobResume(final List<String> ids) {
         List<Job> result = new ArrayList<>(ids.size());
         for (String id : ids) {
             Optional<Job> opJob = jobRepository.findById(id);
@@ -816,32 +807,24 @@ public class NewmanResource {
                         state = State.READY;
                         break;
                     case READY:
-                        break;
                     case RUNNING:
-                        break;
                     case DONE:
                         break;
                 }
                 if (state != null) {
-                    State old = job.getState(); // TODO consider if this is needed
-                    job.setState(state); // .findAndModify(jobDAO.createIdQuery(job.getId()).field("state").equal(old), updateJobStatus);
-                    result.add(job);
-                    if (job.getPriority() > 0) {
-                        Optional<PrioritizedJob> opPrioritizedJob = prioritizedJobRepository.findByJobId(job.getId());
-                        if (!opPrioritizedJob.isPresent()) {
-                            return null;
-                        }
-                        PrioritizedJob prioritizedJob = opPrioritizedJob.get();
-                        prioritizedJob.setPaused(false);
-                        if (prioritizedJob.getPriority() > highestPriorityJob) {
-                            highestPriorityJob = prioritizedJob.getPriority();
-                        }
-                    }
-                    broadcastMessage(MODIFIED_JOB, job);
+                    AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
+                    jobUpdater.set("state", state);
 
-                    //change status of Test(s) from RUNNING to PENDING
-                    int updatedCount = testRepository.updateStatusByJobIdAndCurrentStatus(id, Test.Status.RUNNING, Test.Status.PENDING);
-                    logger.info("---toggelMultipleJobResume, state is READY, affected count:" + updatedCount);
+                    managePrioritizedJob(job.getId(), job.getPriority(), false);
+                    int updated = jobUpdater.whereId(job.getId()).execute();
+                    if (updated == 0) {
+                        logger.error("Job {} cannot be updated during bulk RESUME process", id);
+                        continue;
+                    }
+
+                    job = jobRepository.findById(id).get();
+                    result.add(job);
+                    broadcastMessage(MODIFIED_JOB, job);
                 }
             }
         }
