@@ -376,9 +376,12 @@ public class NewmanResource {
             , @QueryParam("buildId") String buildId
             , @QueryParam("all") boolean all
             , @QueryParam("orderBy") List<String> orderBy
+            , @QueryParam("fromDate") String fromDateStr
             , @Context UriInfo uriInfo) {
 
-        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit); // jobThin=true
+        Date fromDate = parseDate(fromDateStr);
+
+        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit, fromDate);
         List<JobView> jobViews = new ArrayList<>(jobs.size());
 
         for (Job job : jobs) {
@@ -424,7 +427,7 @@ public class NewmanResource {
             , @QueryParam("orderBy") List<String> orderBy
             , @Context UriInfo uriInfo) {
 
-        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit); // jobThin=false
+        List<Job> jobs = retrieveJobs(buildId, orderBy, all, offset, limit, null);
         return new Batch<>(jobs, offset, limit, all, orderBy, uriInfo);
     }
 
@@ -436,16 +439,22 @@ public class NewmanResource {
         return jobCount.toString();
     }
 
-    private List<Job> retrieveJobs(String buildId, List<String> orderBy, boolean all, int offset, int limit) {
+    private List<Job> retrieveJobs(String buildId, List<String> orderBy, boolean all, int offset, int limit, Date fromDate) {
         Sort sort = convertOrderByToSort(orderBy);
         // Pageable for pagination (if not 'all')
         Pageable pageable = all
                 ? Pageable.unpaged() // If 'all' is true, no limit, fetch all
                 : convertOffsetLimitToPage(offset, limit, sort);
 
-        return (buildId != null)
-                ? jobRepository.findByBuildId(buildId, pageable).getContent()
-                : jobRepository.findAll(pageable).getContent();
+        // If no date provided, use classic behavior
+        if (fromDate == null) {
+            return (buildId != null)
+                    ? jobRepository.findByBuildId(buildId, pageable).getContent()
+                    : jobRepository.findAll(pageable).getContent();
+        }
+
+        // If date is provided, use date filtering
+        return jobRepository.findAllFromDate(fromDate, pageable).getContent();
     }
 
     @GET
@@ -1360,6 +1369,19 @@ public class NewmanResource {
                         ? Sort.Order.desc(field.substring(1))
                         : Sort.Order.asc(field))
                 .collect(Collectors.toList()));
+    }
+
+    private Date parseDate(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            return formatter.parse(dateStr);
+        } catch (ParseException e) {
+            logger.warn("Failed to parse date: {}", dateStr, e);
+            return null;
+        }
     }
 
     private Pageable convertOffsetLimitToPage(int offset, int limit, Sort sort) {

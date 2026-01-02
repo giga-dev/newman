@@ -42449,6 +42449,10 @@ const __default__$1 = {
       });
     }
     window.addEventListener("beforeunload", this.handleBeforeUnload);
+    window.addEventListener("click", this.closeColumnMenu);
+  },
+  beforeUnmount() {
+    window.removeEventListener("click", this.closeColumnMenu);
   },
   data() {
     return {
@@ -42481,7 +42485,13 @@ const __default__$1 = {
       hiddenMode: false,
       pullJobsCount: 60,
       itemsPerPage: localStorage.getItem("items_per_page") || 20,
-      columnVisibility: {}
+      columnVisibility: {},
+      datePickerMenu: false,
+      fromDate: null,
+      dateFilterEnabled: false,
+      columnMenuVisible: false,
+      columnMenuX: 0,
+      columnMenuY: 0
     };
   },
   computed: {
@@ -42564,11 +42574,15 @@ const __default__$1 = {
     },
     requestFullJobsView() {
       console.log("request full view");
+      const params = {
+        limit: this.pullJobsCount,
+        orderBy: "-submitTime"
+      };
+      if (this.dateFilterEnabled && this.fromDate) {
+        params.fromDate = this.formatDate(this.fromDate);
+      }
       this.$axios.get("/api/newman/jobs-view", {
-        params: {
-          limit: this.pullJobsCount,
-          orderBy: "-submitTime"
-        }
+        params
       }).then((response) => {
         StorageHelper.saveRawJobs(response.data.values);
         this.items = response.data.values.map(parseJobEntry);
@@ -42781,6 +42795,42 @@ const __default__$1 = {
         console.error("Error fetching data:", error);
         return [];
       });
+    },
+    formatDate(date2) {
+      if (!date2) return null;
+      const d = new Date(date2);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    },
+    onDateSelected(date2) {
+      if (date2) {
+        this.dateFilterEnabled = true;
+        this.initTable(false);
+        this.datePickerMenu = false;
+      }
+    },
+    clearDateFilter() {
+      this.fromDate = null;
+      this.dateFilterEnabled = false;
+      this.datePickerMenu = false;
+      this.initTable(false);
+    },
+    openColumnMenu(e) {
+      const target = e.target;
+      const isHeader = target.closest("thead") !== null;
+      if (isHeader) {
+        this.columnMenuVisible = false;
+        this.columnMenuX = e.clientX;
+        this.columnMenuY = e.clientY;
+        this.$nextTick(() => {
+          this.columnMenuVisible = true;
+        });
+      }
+    },
+    closeColumnMenu() {
+      this.columnMenuVisible = false;
     }
   }
 };
@@ -42798,13 +42848,18 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
       const _component_v_text_field = resolveComponent("v-text-field");
       const _component_v_row = resolveComponent("v-row");
       const _component_v_spacer = resolveComponent("v-spacer");
-      const _component_v_checkbox = resolveComponent("v-checkbox");
-      const _component_v_list_item_action = resolveComponent("v-list-item-action");
+      const _component_v_icon = resolveComponent("v-icon");
+      const _component_v_date_picker = resolveComponent("v-date-picker");
+      const _component_v_card_text = resolveComponent("v-card-text");
+      const _component_v_card_actions = resolveComponent("v-card-actions");
+      const _component_v_card = resolveComponent("v-card");
       const _component_v_card_title = resolveComponent("v-card-title");
       const _component_v_chip = resolveComponent("v-chip");
       const _component_v_progress_linear = resolveComponent("v-progress-linear");
       const _component_router_link = resolveComponent("router-link");
       const _component_v_data_table = resolveComponent("v-data-table");
+      const _component_v_checkbox = resolveComponent("v-checkbox");
+      const _component_v_list_item_action = resolveComponent("v-list-item-action");
       const _directive_tooltip = resolveDirective("tooltip");
       return openBlock(), createElementBlock(Fragment, null, [
         createVNode(_component_v_card_title, null, {
@@ -42928,11 +42983,11 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                                 color: "#D30000",
                                 onClick: _cache[2] || (_cache[2] = ($event) => _ctx.search = "BROKEN")
                               }, {
-                                default: withCtx(() => _cache[10] || (_cache[10] = [
+                                default: withCtx(() => _cache[15] || (_cache[15] = [
                                   createTextVNode("B")
                                 ])),
                                 _: 1,
-                                __: [10]
+                                __: [15]
                               }),
                               createVNode(_component_v_btn, {
                                 class: "mr-1 font-bold",
@@ -42940,11 +42995,11 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                                 color: "blue",
                                 onClick: _cache[3] || (_cache[3] = ($event) => _ctx.search = "RUNNING")
                               }, {
-                                default: withCtx(() => _cache[11] || (_cache[11] = [
+                                default: withCtx(() => _cache[16] || (_cache[16] = [
                                   createTextVNode("R")
                                 ])),
                                 _: 1,
-                                __: [11]
+                                __: [16]
                               }),
                               createVNode(_component_v_btn, {
                                 class: "mr-1 font-bold",
@@ -42952,11 +43007,11 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                                 color: "orange",
                                 onClick: _cache[4] || (_cache[4] = ($event) => _ctx.search = "PAUSED")
                               }, {
-                                default: withCtx(() => _cache[12] || (_cache[12] = [
+                                default: withCtx(() => _cache[17] || (_cache[17] = [
                                   createTextVNode("P")
                                 ])),
                                 _: 1,
-                                __: [12]
+                                __: [17]
                               }),
                               createVNode(_component_v_btn, {
                                 color: "grey",
@@ -42964,11 +43019,11 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                                 variant: "outlined",
                                 onClick: _cache[5] || (_cache[5] = ($event) => _ctx.search = "")
                               }, {
-                                default: withCtx(() => _cache[13] || (_cache[13] = [
+                                default: withCtx(() => _cache[18] || (_cache[18] = [
                                   createTextVNode("ALL")
                                 ])),
                                 _: 1,
-                                __: [13]
+                                __: [18]
                               })
                             ])
                           ]),
@@ -43001,7 +43056,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                         }, {
                           default: withCtx(() => [
                             createBaseVNode("div", _hoisted_2, [
-                              _cache[15] || (_cache[15] = createBaseVNode("div", { style: { "white-space": "nowrap" } }, "Jobs count:", -1)),
+                              _cache[20] || (_cache[20] = createBaseVNode("div", { style: { "white-space": "nowrap" } }, "Jobs count:", -1)),
                               createVNode(_component_v_text_field, {
                                 counter: "",
                                 color: "primary",
@@ -43021,82 +43076,118 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                                 onClick: _cache[8] || (_cache[8] = ($event) => _ctx.initTable(false)),
                                 style: { "flex-shrink": "0" }
                               }, {
-                                default: withCtx(() => _cache[14] || (_cache[14] = [
+                                default: withCtx(() => _cache[19] || (_cache[19] = [
                                   createTextVNode("Apply")
                                 ])),
                                 _: 1,
-                                __: [14]
+                                __: [19]
                               })
                             ])
                           ]),
                           _: 1
                         })) : createCommentVNode("", true),
-                        createVNode(_component_v_col, {
+                        !__props.buildId ? (openBlock(), createBlock(_component_v_col, {
+                          key: 1,
                           cols: "auto",
                           style: { "flex-shrink": "0" }
                         }, {
                           default: withCtx(() => [
                             createVNode(_component_v_menu, {
-                              location: "start",
-                              "close-on-content-click": false
+                              "close-on-content-click": false,
+                              modelValue: _ctx.datePickerMenu,
+                              "onUpdate:modelValue": _cache[11] || (_cache[11] = ($event) => _ctx.datePickerMenu = $event),
+                              transition: "scale-transition",
+                              location: "bottom",
+                              "min-width": "auto"
                             }, {
                               activator: withCtx(({ props }) => [
-                                createVNode(_component_v_btn, mergeProps({ color: "primary" }, props, {
+                                createVNode(_component_v_btn, mergeProps({
+                                  color: _ctx.dateFilterEnabled ? "success" : "primary"
+                                }, props, {
                                   size: "default",
-                                  icon: "mdi-table-headers-eye",
                                   variant: "elevated",
-                                  rounded: "",
                                   minHeight: "35px",
                                   minWidth: "35px",
                                   maxHeight: "35px",
-                                  maxWidth: "35px"
-                                }), null, 16)
-                              ]),
-                              default: withCtx(() => [
-                                createVNode(_component_v_list, { density: "compact" }, {
+                                  maxWidth: "35px",
+                                  style: { "position": "relative" }
+                                }), {
                                   default: withCtx(() => [
-                                    createVNode(_component_v_list_item_title, { class: "list-header" }, {
-                                      default: withCtx(() => _cache[16] || (_cache[16] = [
-                                        createTextVNode("Columns")
+                                    createVNode(_component_v_icon, null, {
+                                      default: withCtx(() => _cache[21] || (_cache[21] = [
+                                        createTextVNode("mdi-calendar")
                                       ])),
                                       _: 1,
-                                      __: [16]
+                                      __: [21]
                                     }),
-                                    createVNode(_component_v_divider),
-                                    (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.headers.length - 2, (i) => {
-                                      return openBlock(), createBlock(_component_v_list_item, {
-                                        class: "d-flex",
-                                        key: i
-                                      }, {
-                                        default: withCtx(() => [
-                                          createVNode(_component_v_list_item_action, null, {
-                                            default: withCtx(() => [
-                                              createVNode(_component_v_checkbox, {
-                                                density: "dense",
-                                                modelValue: _ctx.columnVisibility[_ctx.headers[i].key],
-                                                "onUpdate:modelValue": ($event) => _ctx.columnVisibility[_ctx.headers[i].key] = $event,
-                                                label: _ctx.headers[i].title,
-                                                "hide-details": "",
-                                                class: "ml-auto",
-                                                disabled: _ctx.headers[i].key == "buildConsolidated",
-                                                onChange: _ctx.saveColumnsState
-                                              }, null, 8, ["modelValue", "onUpdate:modelValue", "label", "disabled", "onChange"])
-                                            ]),
-                                            _: 2
-                                          }, 1024)
-                                        ]),
-                                        _: 2
-                                      }, 1024);
-                                    }), 128))
+                                    _ctx.dateFilterEnabled ? (openBlock(), createBlock(_component_v_icon, {
+                                      key: 0,
+                                      size: "x-small",
+                                      style: { "position": "absolute", "top": "2px", "right": "2px" }
+                                    }, {
+                                      default: withCtx(() => _cache[22] || (_cache[22] = [
+                                        createTextVNode("mdi-check-circle")
+                                      ])),
+                                      _: 1,
+                                      __: [22]
+                                    })) : createCommentVNode("", true)
+                                  ]),
+                                  _: 2
+                                }, 1040, ["color"])
+                              ]),
+                              default: withCtx(() => [
+                                createVNode(_component_v_card, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_v_card_text, null, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_v_date_picker, {
+                                          modelValue: _ctx.fromDate,
+                                          "onUpdate:modelValue": [
+                                            _cache[9] || (_cache[9] = ($event) => _ctx.fromDate = $event),
+                                            _ctx.onDateSelected
+                                          ]
+                                        }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                      ]),
+                                      _: 1
+                                    }),
+                                    createVNode(_component_v_card_actions, null, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_v_spacer),
+                                        _ctx.dateFilterEnabled ? (openBlock(), createBlock(_component_v_btn, {
+                                          key: 0,
+                                          color: "error",
+                                          variant: "text",
+                                          onClick: _ctx.clearDateFilter
+                                        }, {
+                                          default: withCtx(() => _cache[23] || (_cache[23] = [
+                                            createTextVNode("Clear")
+                                          ])),
+                                          _: 1,
+                                          __: [23]
+                                        }, 8, ["onClick"])) : createCommentVNode("", true),
+                                        createVNode(_component_v_btn, {
+                                          color: "primary",
+                                          variant: "text",
+                                          onClick: _cache[10] || (_cache[10] = ($event) => _ctx.datePickerMenu = false)
+                                        }, {
+                                          default: withCtx(() => _cache[24] || (_cache[24] = [
+                                            createTextVNode("Close")
+                                          ])),
+                                          _: 1,
+                                          __: [24]
+                                        })
+                                      ]),
+                                      _: 1
+                                    })
                                   ]),
                                   _: 1
                                 })
                               ]),
                               _: 1
-                            })
+                            }, 8, ["modelValue"])
                           ]),
                           _: 1
-                        })
+                        })) : createCommentVNode("", true)
                       ]),
                       _: 1
                     })
@@ -43109,178 +43200,230 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
           ]),
           _: 1
         }),
-        createVNode(_component_v_data_table, {
-          search: _ctx.search,
-          density: "compact",
-          headers: _ctx.visibleHeaders,
-          modelValue: _ctx.selected,
-          "onUpdate:modelValue": _cache[9] || (_cache[9] = ($event) => _ctx.selected = $event),
-          items: _ctx.filteredItems,
-          "item-value": "jobId",
-          class: "jobsTable elevation-1",
-          hover: "",
-          "show-select": !__props.noSelect,
-          "disable-sort": "",
-          "row-props": _ctx.setRowClass,
-          loading: _ctx.loading,
-          "custom-filter": _ctx.customFilter,
-          "items-per-page": _ctx.itemsPerPage,
-          "onUpdate:itemsPerPage": _ctx.updateItemsPerPage,
-          "items-per-page-options": [15, 20, 25, 50]
-        }, {
-          "item.state": withCtx(({ item }) => [
-            createBaseVNode("div", null, [
-              createVNode(_component_v_chip, {
-                variant: "elevated",
-                class: "text-uppercase state-chip",
-                color: unref(getStatusColor)(item.state),
-                text: item.state,
-                size: "small",
-                label: ""
-              }, null, 8, ["color", "text"])
-            ])
-          ]),
-          "item.progress": withCtx(({ item }) => [
-            createVNode(_component_v_progress_linear, {
-              color: "#5bc0de",
-              height: "25",
-              "model-value": item.progress,
-              striped: item.state == "RUNNING",
-              rounded: "lg"
-            }, {
-              default: withCtx(({ value }) => [
-                createBaseVNode("strong", null, toDisplayString(Math.ceil(value)) + "%", 1)
-              ]),
-              _: 2
-            }, 1032, ["model-value", "striped"])
-          ]),
-          "item.jobId": withCtx(({ item }) => [
-            withDirectives((openBlock(), createElementBlock("span", null, [
-              createVNode(_component_router_link, {
-                class: "font-bold",
-                to: {
-                  name: "JobDetails",
-                  params: { id: item.jobId, status: "ALL" }
-                }
-              }, {
-                default: withCtx(() => [
-                  createTextVNode(toDisplayString(item.jobId), 1)
-                ]),
-                _: 2
-              }, 1032, ["to"])
-            ])), [
-              [_directive_tooltip, _ctx.getTooltipConfig(item.jobId)]
-            ])
-          ]),
-          "item.suite": withCtx(({ item }) => [
-            withDirectives((openBlock(), createElementBlock("span", _hoisted_3, [
-              item.submittedBy == "root" ? (openBlock(), createElementBlock("span", _hoisted_4, " N ")) : createCommentVNode("", true),
-              createTextVNode(" " + toDisplayString(item.suite.name), 1)
-            ])), [
-              [_directive_tooltip, _ctx.getTooltipConfig(item.suite.name)]
-            ])
-          ]),
-          "item.jdk": withCtx(({ item }) => [
-            createBaseVNode("div", _hoisted_5, [
-              withDirectives((openBlock(), createElementBlock("span", _hoisted_6, [
+        createBaseVNode("div", {
+          onContextmenu: _cache[13] || (_cache[13] = withModifiers((...args) => _ctx.openColumnMenu && _ctx.openColumnMenu(...args), ["prevent"]))
+        }, [
+          createVNode(_component_v_data_table, {
+            search: _ctx.search,
+            density: "compact",
+            headers: _ctx.visibleHeaders,
+            modelValue: _ctx.selected,
+            "onUpdate:modelValue": _cache[12] || (_cache[12] = ($event) => _ctx.selected = $event),
+            items: _ctx.filteredItems,
+            "item-value": "jobId",
+            class: "jobsTable elevation-1",
+            hover: "",
+            "show-select": !__props.noSelect,
+            "disable-sort": "",
+            "row-props": _ctx.setRowClass,
+            loading: _ctx.loading,
+            "custom-filter": _ctx.customFilter,
+            "items-per-page": _ctx.itemsPerPage,
+            "onUpdate:itemsPerPage": _ctx.updateItemsPerPage,
+            "items-per-page-options": [15, 20, 25, 50]
+          }, {
+            "item.state": withCtx(({ item }) => [
+              createBaseVNode("div", null, [
                 createVNode(_component_v_chip, {
-                  "prepend-icon": "mdi-language-java",
-                  variant: "tonal",
-                  class: "text-uppercase font-weight-bold",
-                  text: item.jdk.replace(/\D/g, ""),
+                  variant: "elevated",
+                  class: "text-uppercase state-chip",
+                  color: unref(getStatusColor)(item.state),
+                  text: item.state,
                   size: "small",
-                  label: "",
-                  outlined: ""
-                }, null, 8, ["text"])
-              ])), [
-                [_directive_tooltip, _ctx.getTooltipConfig(item.jdk), "bottom"]
+                  label: ""
+                }, null, 8, ["color", "text"])
               ])
-            ])
-          ]),
-          "item.duration": withCtx(({ item }) => [
-            createBaseVNode("div", _hoisted_7, toDisplayString(item.duration), 1)
-          ]),
-          "item.submittedBy": withCtx(({ item }) => [
-            createBaseVNode("div", _hoisted_8, toDisplayString(item.submittedBy), 1)
-          ]),
-          "item.agentsNum": withCtx(({ item }) => [
-            createBaseVNode("div", _hoisted_9, toDisplayString(item.agentsNum), 1)
-          ]),
-          "item.submittedAt": withCtx(({ item }) => [
-            withDirectives((openBlock(), createElementBlock("span", _hoisted_10, [
-              createTextVNode(toDisplayString(item.submittedAt.ago), 1)
-            ])), [
-              [_directive_tooltip, _ctx.getTooltipConfig(item.submittedAt.dateTime)]
-            ])
-          ]),
-          "item.buildConsolidated": withCtx(({ item }) => [
-            withDirectives((openBlock(), createElementBlock("span", null, [
-              createVNode(_component_router_link, {
-                class: "font-bold",
-                to: { name: "BuildDetails", params: { id: item.buildId } }
+            ]),
+            "item.progress": withCtx(({ item }) => [
+              createVNode(_component_v_progress_linear, {
+                color: "#5bc0de",
+                height: "25",
+                "model-value": item.progress,
+                striped: item.state == "RUNNING",
+                rounded: "lg"
               }, {
-                default: withCtx(() => [
-                  createTextVNode(toDisplayString(item.buildConsolidated), 1)
+                default: withCtx(({ value }) => [
+                  createBaseVNode("strong", null, toDisplayString(Math.ceil(value)) + "%", 1)
                 ]),
                 _: 2
-              }, 1032, ["to"])
-            ])), [
-              [_directive_tooltip, _ctx.getTooltipConfig(item.buildConsolidated)]
-            ])
-          ]),
-          "item.agentGroups": withCtx(({ item }) => [
-            withDirectives((openBlock(), createElementBlock("span", _hoisted_11, [
-              createTextVNode(toDisplayString(_ctx.agentGroupsFormatted(item.agentGroups)), 1)
-            ])), [
-              [_directive_tooltip, _ctx.getTooltipConfig(_ctx.agentGroupsFormatted(item.agentGroups))]
-            ])
-          ]),
-          "item.priority": withCtx(({ item }) => [
-            createBaseVNode("div", _hoisted_12, toDisplayString(item.priority), 1)
-          ]),
-          "item.status": withCtx(({ item }) => [
-            createVNode(JobStatus, {
-              item,
-              align: "center"
-            }, null, 8, ["item"])
-          ]),
-          "item.config": withCtx(({ item }) => [
-            createBaseVNode("div", _hoisted_13, [
-              createVNode(_component_v_btn, {
-                tile: "",
-                class: "mr-1 text-white",
-                height: "26px",
-                width: "26px",
-                rounded: "",
-                icon: _ctx.getPlayBtnIcon(item.state),
-                color: _ctx.getPlayBtnColor(item.state),
-                disabled: item.toggleRequested || _ctx.pauseBtnDisabledStates.includes(item.state),
-                onClick: ($event) => (item.toggleRequested = true, _ctx.startPauseToggle(item.jobId))
-              }, null, 8, ["icon", "color", "disabled", "onClick"]),
-              createVNode(_component_v_btn, {
-                tile: "",
-                icon: "mdi-delete",
-                height: "26px",
-                width: "26px",
-                rounded: "",
-                color: "#D30000",
-                class: "mr-1",
-                disabled: !(_ctx.pauseBtnDisabledStates.includes(item.state) || item.state == "PAUSED") || item.runningTests > 0 || item.toggleRequested,
-                onClick: ($event) => _ctx.deleteJobPrompt(item)
-              }, null, 8, ["disabled", "onClick"]),
-              createVNode(_component_v_btn, {
-                tile: "",
-                icon: "mdi-cog",
-                height: "26px",
-                width: "26px",
-                rounded: "",
-                disabled: ["DONE", "BROKEN"].includes(item.state),
-                onClick: ($event) => _ctx.configureJobPrompt(item)
-              }, null, 8, ["disabled", "onClick"])
-            ])
+              }, 1032, ["model-value", "striped"])
+            ]),
+            "item.jobId": withCtx(({ item }) => [
+              withDirectives((openBlock(), createElementBlock("span", null, [
+                createVNode(_component_router_link, {
+                  class: "font-bold",
+                  to: {
+                    name: "JobDetails",
+                    params: { id: item.jobId, status: "ALL" }
+                  }
+                }, {
+                  default: withCtx(() => [
+                    createTextVNode(toDisplayString(item.jobId), 1)
+                  ]),
+                  _: 2
+                }, 1032, ["to"])
+              ])), [
+                [_directive_tooltip, _ctx.getTooltipConfig(item.jobId)]
+              ])
+            ]),
+            "item.suite": withCtx(({ item }) => [
+              withDirectives((openBlock(), createElementBlock("span", _hoisted_3, [
+                item.submittedBy == "root" ? (openBlock(), createElementBlock("span", _hoisted_4, " N ")) : createCommentVNode("", true),
+                createTextVNode(" " + toDisplayString(item.suite.name), 1)
+              ])), [
+                [_directive_tooltip, _ctx.getTooltipConfig(item.suite.name)]
+              ])
+            ]),
+            "item.jdk": withCtx(({ item }) => [
+              createBaseVNode("div", _hoisted_5, [
+                withDirectives((openBlock(), createElementBlock("span", _hoisted_6, [
+                  createVNode(_component_v_chip, {
+                    "prepend-icon": "mdi-language-java",
+                    variant: "tonal",
+                    class: "text-uppercase font-weight-bold",
+                    text: item.jdk.replace(/\D/g, ""),
+                    size: "small",
+                    label: "",
+                    outlined: ""
+                  }, null, 8, ["text"])
+                ])), [
+                  [_directive_tooltip, _ctx.getTooltipConfig(item.jdk), "bottom"]
+                ])
+              ])
+            ]),
+            "item.duration": withCtx(({ item }) => [
+              createBaseVNode("div", _hoisted_7, toDisplayString(item.duration), 1)
+            ]),
+            "item.submittedBy": withCtx(({ item }) => [
+              createBaseVNode("div", _hoisted_8, toDisplayString(item.submittedBy), 1)
+            ]),
+            "item.agentsNum": withCtx(({ item }) => [
+              createBaseVNode("div", _hoisted_9, toDisplayString(item.agentsNum), 1)
+            ]),
+            "item.submittedAt": withCtx(({ item }) => [
+              withDirectives((openBlock(), createElementBlock("span", _hoisted_10, [
+                createTextVNode(toDisplayString(item.submittedAt.ago), 1)
+              ])), [
+                [_directive_tooltip, _ctx.getTooltipConfig(item.submittedAt.dateTime)]
+              ])
+            ]),
+            "item.buildConsolidated": withCtx(({ item }) => [
+              withDirectives((openBlock(), createElementBlock("span", null, [
+                createVNode(_component_router_link, {
+                  class: "font-bold",
+                  to: { name: "BuildDetails", params: { id: item.buildId } }
+                }, {
+                  default: withCtx(() => [
+                    createTextVNode(toDisplayString(item.buildConsolidated), 1)
+                  ]),
+                  _: 2
+                }, 1032, ["to"])
+              ])), [
+                [_directive_tooltip, _ctx.getTooltipConfig(item.buildConsolidated)]
+              ])
+            ]),
+            "item.agentGroups": withCtx(({ item }) => [
+              withDirectives((openBlock(), createElementBlock("span", _hoisted_11, [
+                createTextVNode(toDisplayString(_ctx.agentGroupsFormatted(item.agentGroups)), 1)
+              ])), [
+                [_directive_tooltip, _ctx.getTooltipConfig(_ctx.agentGroupsFormatted(item.agentGroups))]
+              ])
+            ]),
+            "item.priority": withCtx(({ item }) => [
+              createBaseVNode("div", _hoisted_12, toDisplayString(item.priority), 1)
+            ]),
+            "item.status": withCtx(({ item }) => [
+              createVNode(JobStatus, {
+                item,
+                align: "center"
+              }, null, 8, ["item"])
+            ]),
+            "item.config": withCtx(({ item }) => [
+              createBaseVNode("div", _hoisted_13, [
+                createVNode(_component_v_btn, {
+                  tile: "",
+                  class: "mr-1 text-white",
+                  height: "26px",
+                  width: "26px",
+                  rounded: "",
+                  icon: _ctx.getPlayBtnIcon(item.state),
+                  color: _ctx.getPlayBtnColor(item.state),
+                  disabled: item.toggleRequested || _ctx.pauseBtnDisabledStates.includes(item.state),
+                  onClick: ($event) => (item.toggleRequested = true, _ctx.startPauseToggle(item.jobId))
+                }, null, 8, ["icon", "color", "disabled", "onClick"]),
+                createVNode(_component_v_btn, {
+                  tile: "",
+                  icon: "mdi-delete",
+                  height: "26px",
+                  width: "26px",
+                  rounded: "",
+                  color: "#D30000",
+                  class: "mr-1",
+                  disabled: !(_ctx.pauseBtnDisabledStates.includes(item.state) || item.state == "PAUSED") || item.runningTests > 0 || item.toggleRequested,
+                  onClick: ($event) => _ctx.deleteJobPrompt(item)
+                }, null, 8, ["disabled", "onClick"]),
+                createVNode(_component_v_btn, {
+                  tile: "",
+                  icon: "mdi-cog",
+                  height: "26px",
+                  width: "26px",
+                  rounded: "",
+                  disabled: ["DONE", "BROKEN"].includes(item.state),
+                  onClick: ($event) => _ctx.configureJobPrompt(item)
+                }, null, 8, ["disabled", "onClick"])
+              ])
+            ]),
+            _: 1
+          }, 8, ["search", "headers", "modelValue", "items", "show-select", "row-props", "loading", "custom-filter", "items-per-page", "onUpdate:itemsPerPage"])
+        ], 32),
+        _ctx.columnMenuVisible ? (openBlock(), createBlock(_component_v_card, {
+          key: 0,
+          style: normalizeStyle(`position: fixed; left: ${_ctx.columnMenuX}px; top: ${_ctx.columnMenuY}px; z-index: 9999;`),
+          onClick: _cache[14] || (_cache[14] = withModifiers(() => {
+          }, ["stop"]))
+        }, {
+          default: withCtx(() => [
+            createVNode(_component_v_list, { density: "compact" }, {
+              default: withCtx(() => [
+                createVNode(_component_v_list_item_title, { class: "list-header" }, {
+                  default: withCtx(() => _cache[25] || (_cache[25] = [
+                    createTextVNode("Columns")
+                  ])),
+                  _: 1,
+                  __: [25]
+                }),
+                createVNode(_component_v_divider),
+                (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.headers.length - 2, (i) => {
+                  return openBlock(), createBlock(_component_v_list_item, {
+                    class: "d-flex",
+                    key: i
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_list_item_action, null, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_checkbox, {
+                            density: "dense",
+                            modelValue: _ctx.columnVisibility[_ctx.headers[i].key],
+                            "onUpdate:modelValue": ($event) => _ctx.columnVisibility[_ctx.headers[i].key] = $event,
+                            label: _ctx.headers[i].title,
+                            "hide-details": "",
+                            class: "ml-auto",
+                            disabled: _ctx.headers[i].key == "buildConsolidated",
+                            onChange: _ctx.saveColumnsState
+                          }, null, 8, ["modelValue", "onUpdate:modelValue", "label", "disabled", "onChange"])
+                        ]),
+                        _: 2
+                      }, 1024)
+                    ]),
+                    _: 2
+                  }, 1024);
+                }), 128))
+              ]),
+              _: 1
+            })
           ]),
           _: 1
-        }, 8, ["search", "headers", "modelValue", "items", "show-select", "row-props", "loading", "custom-filter", "items-per-page", "onUpdate:itemsPerPage"]),
+        }, 8, ["style"])) : createCommentVNode("", true),
         createVNode(PromptDialog, {
           ref: "jobDeleteDialog",
           "prepend-icon": "mdi-alert",
@@ -43313,7 +43456,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-49001429"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-9112bb9a"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -46261,4 +46404,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-BjDJLxgx.js.map
+//# sourceMappingURL=index-CxQ_AEUj.js.map

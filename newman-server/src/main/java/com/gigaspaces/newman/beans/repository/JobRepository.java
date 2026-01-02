@@ -30,6 +30,9 @@ public interface JobRepository extends CrudRepository<Job, String>, JpaSpecifica
 
     Page<Job> findByBuildId(String buildId, Pageable pageable);
 
+    @Query("SELECT j FROM Job j WHERE FUNCTION('DATE',j.submitTime) <= :fromDate")
+    Page<Job> findAllFromDate(@Param("fromDate") Date fromDate, Pageable pageable);
+
     @Query("SELECT COUNT(j) FROM Job j WHERE (j.state = 'READY' OR j.state = 'RUNNING') AND j.totalTests > 0")
     Long countReadyAndRunningJobs();
 
