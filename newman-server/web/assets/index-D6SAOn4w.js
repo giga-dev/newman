@@ -39229,7 +39229,7 @@ const _hoisted_11$2 = {
 };
 const _hoisted_12$2 = { class: "d-block" };
 const _hoisted_13$2 = { align: "center" };
-const _hoisted_14$1 = { style: { "white-space": "pre-wrap" } };
+const _hoisted_14$2 = { style: { "white-space": "pre-wrap" } };
 const _hoisted_15 = { class: "text-h6" };
 const __default__$6 = {
   components: {
@@ -39580,7 +39580,7 @@ const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$6, {
                 createBaseVNode("span", normalizeProps(guardReactiveProps(props)), toDisplayString(item.errorMessage), 17)
               ]),
               default: withCtx(() => [
-                createBaseVNode("div", _hoisted_14$1, toDisplayString(item.errorMessage.length > TOOLTIP_MAX_LENGTH ? item.errorMessage.slice(0, TOOLTIP_MAX_LENGTH) + "…" : item.errorMessage), 1)
+                createBaseVNode("div", _hoisted_14$2, toDisplayString(item.errorMessage.length > TOOLTIP_MAX_LENGTH ? item.errorMessage.slice(0, TOOLTIP_MAX_LENGTH) + "…" : item.errorMessage), 1)
               ]),
               _: 2
             }, 1024)) : createCommentVNode("", true)
@@ -39986,7 +39986,7 @@ const _hoisted_10$2 = {
 const _hoisted_11$1 = ["href"];
 const _hoisted_12$1 = { class: "ml-2" };
 const _hoisted_13$1 = { key: 3 };
-const _hoisted_14 = { key: 4 };
+const _hoisted_14$1 = { key: 4 };
 function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_expansion_panel_title = resolveComponent("v-expansion-panel-title");
   const _component_v_col = resolveComponent("v-col");
@@ -40069,7 +40069,7 @@ function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
                                       _cache[1] || (_cache[1] = createTextVNode(" 🔗 ")),
                                       createBaseVNode("span", _hoisted_12$1, toDisplayString($data.buildDetails[item.key]), 1)
                                     ], 8, _hoisted_11$1)
-                                  ])) : item.key == "commits" ? (openBlock(), createElementBlock("div", _hoisted_13$1)) : (openBlock(), createElementBlock("div", _hoisted_14, toDisplayString($data.buildDetails && $data.buildDetails[item.key] || "N/A"), 1))
+                                  ])) : item.key == "commits" ? (openBlock(), createElementBlock("div", _hoisted_13$1)) : (openBlock(), createElementBlock("div", _hoisted_14$1, toDisplayString($data.buildDetails && $data.buildDetails[item.key] || "N/A"), 1))
                                 ]),
                                 _: 2
                               }, 1024)) : createCommentVNode("", true)
@@ -42363,23 +42363,27 @@ const _hoisted_2 = {
   class: "d-flex align-center",
   style: { "gap": "8px", "flex-wrap": "nowrap" }
 };
-const _hoisted_3 = { class: "font-bold flex items-center gap-2" };
-const _hoisted_4 = {
+const _hoisted_3 = {
+  class: "d-flex align-center",
+  style: { "gap": "4px" }
+};
+const _hoisted_4 = { class: "font-bold flex items-center gap-2" };
+const _hoisted_5 = {
   key: 0,
   class: "pl-1 mr-1 font-weight-bold border rounded nightly-label"
 };
-const _hoisted_5 = { align: "center" };
-const _hoisted_6 = { class: "font-bold" };
+const _hoisted_6 = { align: "center" };
 const _hoisted_7 = { class: "font-bold" };
 const _hoisted_8 = { class: "font-bold" };
 const _hoisted_9 = { class: "font-bold" };
-const _hoisted_10 = {
+const _hoisted_10 = { class: "font-bold" };
+const _hoisted_11 = {
   class: "font-bold",
   style: { "margin-left": "10px" }
 };
-const _hoisted_11 = { class: "font-bold" };
 const _hoisted_12 = { class: "font-bold" };
-const _hoisted_13 = {
+const _hoisted_13 = { class: "font-bold" };
+const _hoisted_14 = {
   class: "ml-3",
   align: "center"
 };
@@ -42417,15 +42421,10 @@ const __default__$1 = {
         this.hiddenMode = false;
       }
     },
-    search() {
-      if (!this.buildId && this.$route.name === "Jobs") {
-        this.updateUrlQueryParams();
-      }
-    },
-    pullJobsCount() {
-      if (!this.buildId && this.$route.name === "Jobs") {
-        this.updateUrlQueryParams();
-      }
+    // Watch combined filter state and update URL when anything changes
+    filterState: {
+      handler: "applyFilterToUrl",
+      deep: true
     }
   },
   beforeMount() {
@@ -42434,6 +42433,14 @@ const __default__$1 = {
       const count = parseInt(this.$route.query.count, 10);
       if (!isNaN(count) && count > 0) {
         this.pullJobsCount = count;
+      }
+    }
+    if (this.$route.query.fromDate) {
+      const dateStr = this.$route.query.fromDate;
+      const parsedDate = new Date(dateStr);
+      if (!isNaN(parsedDate.getTime())) {
+        this.fromDate = parsedDate;
+        this.dateFilterEnabled = true;
       }
     }
     this.initTable(true);
@@ -42537,6 +42544,23 @@ const __default__$1 = {
     },
     visibleHeaders() {
       return this.headers.filter((header) => this.columnVisibility[header.key]);
+    },
+    filterState() {
+      return {
+        search: this.search,
+        count: this.pullJobsCount,
+        dateEnabled: this.dateFilterEnabled,
+        date: this.fromDate ? this.fromDate.getTime() : null
+      };
+    },
+    canGoBackward() {
+      if (!this.dateFilterEnabled) {
+        return true;
+      }
+      return !this.isAtCurrentDate();
+    },
+    canGoForward() {
+      return this.dateFilterEnabled && !this.isAtCurrentDate();
     }
   },
   methods: {
@@ -42548,14 +42572,22 @@ const __default__$1 = {
       if (this.pullJobsCount !== 60) {
         query.count = this.pullJobsCount.toString();
       }
+      if (this.dateFilterEnabled && this.fromDate) {
+        query.fromDate = this.formatDate(this.fromDate);
+      }
       const currentQuery = this.$route.query;
-      const hasChanged2 = currentQuery.filter !== (query.filter || void 0) || currentQuery.count !== (query.count || void 0);
+      const hasChanged2 = currentQuery.filter !== (query.filter || void 0) || currentQuery.count !== (query.count || void 0) || currentQuery.fromDate !== (query.fromDate || void 0);
       if (hasChanged2) {
         this.$router.replace({
           name: "Jobs",
           query
         }).catch(() => {
         });
+      }
+    },
+    applyFilterToUrl() {
+      if (!this.buildId && this.$route.name === "Jobs") {
+        this.updateUrlQueryParams();
       }
     },
     initTable(onMount) {
@@ -42831,6 +42863,42 @@ const __default__$1 = {
     },
     closeColumnMenu() {
       this.columnMenuVisible = false;
+    },
+    isAtCurrentDate() {
+      if (!this.fromDate) return true;
+      const today = /* @__PURE__ */ new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(this.fromDate);
+      selectedDate.setHours(0, 0, 0, 0);
+      return selectedDate.getTime() === today.getTime();
+    },
+    previousDay() {
+      if (!this.dateFilterEnabled) return;
+      const currentDate = new Date(this.fromDate);
+      currentDate.setDate(currentDate.getDate() + 1);
+      const today = /* @__PURE__ */ new Date();
+      today.setHours(0, 0, 0, 0);
+      currentDate.setHours(0, 0, 0, 0);
+      if (currentDate.getTime() >= today.getTime()) {
+        this.clearDateFilter();
+      } else {
+        this.fromDate = currentDate;
+        this.initTable(false);
+      }
+    },
+    nextDay() {
+      if (!this.dateFilterEnabled) {
+        const yesterday = /* @__PURE__ */ new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        this.fromDate = yesterday;
+        this.dateFilterEnabled = true;
+        this.initTable(false);
+      } else {
+        const currentDate = new Date(this.fromDate);
+        currentDate.setDate(currentDate.getDate() - 1);
+        this.fromDate = currentDate;
+        this.initTable(false);
+      }
     }
   }
 };
@@ -43092,99 +43160,145 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                           style: { "flex-shrink": "0" }
                         }, {
                           default: withCtx(() => [
-                            createVNode(_component_v_menu, {
-                              "close-on-content-click": false,
-                              modelValue: _ctx.datePickerMenu,
-                              "onUpdate:modelValue": _cache[11] || (_cache[11] = ($event) => _ctx.datePickerMenu = $event),
-                              transition: "scale-transition",
-                              location: "bottom",
-                              "min-width": "auto"
-                            }, {
-                              activator: withCtx(({ props }) => [
-                                createVNode(_component_v_btn, mergeProps({
-                                  color: _ctx.dateFilterEnabled ? "success" : "primary"
-                                }, props, {
-                                  size: "default",
-                                  variant: "elevated",
-                                  minHeight: "35px",
-                                  minWidth: "35px",
-                                  maxHeight: "35px",
-                                  maxWidth: "35px",
-                                  style: { "position": "relative" }
-                                }), {
-                                  default: withCtx(() => [
-                                    createVNode(_component_v_icon, null, {
-                                      default: withCtx(() => _cache[21] || (_cache[21] = [
-                                        createTextVNode("mdi-calendar")
-                                      ])),
-                                      _: 1,
-                                      __: [21]
-                                    }),
-                                    _ctx.dateFilterEnabled ? (openBlock(), createBlock(_component_v_icon, {
-                                      key: 0,
-                                      size: "x-small",
-                                      style: { "position": "absolute", "top": "2px", "right": "2px" }
-                                    }, {
-                                      default: withCtx(() => _cache[22] || (_cache[22] = [
-                                        createTextVNode("mdi-check-circle")
-                                      ])),
-                                      _: 1,
-                                      __: [22]
-                                    })) : createCommentVNode("", true)
-                                  ]),
-                                  _: 2
-                                }, 1040, ["color"])
-                              ]),
-                              default: withCtx(() => [
-                                createVNode(_component_v_card, null, {
-                                  default: withCtx(() => [
-                                    createVNode(_component_v_card_text, null, {
-                                      default: withCtx(() => [
-                                        createVNode(_component_v_date_picker, {
-                                          modelValue: _ctx.fromDate,
-                                          "onUpdate:modelValue": [
-                                            _cache[9] || (_cache[9] = ($event) => _ctx.fromDate = $event),
-                                            _ctx.onDateSelected
-                                          ]
-                                        }, null, 8, ["modelValue", "onUpdate:modelValue"])
-                                      ]),
-                                      _: 1
-                                    }),
-                                    createVNode(_component_v_card_actions, null, {
-                                      default: withCtx(() => [
-                                        createVNode(_component_v_spacer),
-                                        _ctx.dateFilterEnabled ? (openBlock(), createBlock(_component_v_btn, {
-                                          key: 0,
-                                          color: "error",
-                                          variant: "text",
-                                          onClick: _ctx.clearDateFilter
-                                        }, {
-                                          default: withCtx(() => _cache[23] || (_cache[23] = [
-                                            createTextVNode("Clear")
-                                          ])),
-                                          _: 1,
-                                          __: [23]
-                                        }, 8, ["onClick"])) : createCommentVNode("", true),
-                                        createVNode(_component_v_btn, {
-                                          color: "primary",
-                                          variant: "text",
-                                          onClick: _cache[10] || (_cache[10] = ($event) => _ctx.datePickerMenu = false)
-                                        }, {
-                                          default: withCtx(() => _cache[24] || (_cache[24] = [
-                                            createTextVNode("Close")
-                                          ])),
-                                          _: 1,
-                                          __: [24]
-                                        })
-                                      ]),
-                                      _: 1
-                                    })
-                                  ]),
-                                  _: 1
-                                })
-                              ]),
-                              _: 1
-                            }, 8, ["modelValue"])
+                            createBaseVNode("div", _hoisted_3, [
+                              createVNode(_component_v_btn, {
+                                disabled: !_ctx.canGoForward,
+                                color: "primary",
+                                size: "default",
+                                variant: "elevated",
+                                minHeight: "35px",
+                                minWidth: "35px",
+                                maxHeight: "35px",
+                                maxWidth: "35px",
+                                onClick: _ctx.previousDay
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_v_icon, null, {
+                                    default: withCtx(() => _cache[21] || (_cache[21] = [
+                                      createTextVNode("mdi-chevron-left")
+                                    ])),
+                                    _: 1,
+                                    __: [21]
+                                  })
+                                ]),
+                                _: 1
+                              }, 8, ["disabled", "onClick"]),
+                              createVNode(_component_v_menu, {
+                                "close-on-content-click": false,
+                                modelValue: _ctx.datePickerMenu,
+                                "onUpdate:modelValue": _cache[11] || (_cache[11] = ($event) => _ctx.datePickerMenu = $event),
+                                transition: "scale-transition",
+                                location: "bottom",
+                                "min-width": "auto"
+                              }, {
+                                activator: withCtx(({ props }) => [
+                                  createVNode(_component_v_btn, mergeProps({
+                                    color: _ctx.dateFilterEnabled ? "success" : "primary"
+                                  }, props, {
+                                    size: "default",
+                                    variant: "elevated",
+                                    minHeight: "35px",
+                                    minWidth: "35px",
+                                    maxHeight: "35px",
+                                    maxWidth: "35px",
+                                    style: { "position": "relative" }
+                                  }), {
+                                    default: withCtx(() => [
+                                      createVNode(_component_v_icon, null, {
+                                        default: withCtx(() => _cache[22] || (_cache[22] = [
+                                          createTextVNode("mdi-calendar")
+                                        ])),
+                                        _: 1,
+                                        __: [22]
+                                      }),
+                                      _ctx.dateFilterEnabled ? (openBlock(), createBlock(_component_v_icon, {
+                                        key: 0,
+                                        size: "x-small",
+                                        style: { "position": "absolute", "top": "2px", "right": "2px" }
+                                      }, {
+                                        default: withCtx(() => _cache[23] || (_cache[23] = [
+                                          createTextVNode("mdi-check-circle")
+                                        ])),
+                                        _: 1,
+                                        __: [23]
+                                      })) : createCommentVNode("", true)
+                                    ]),
+                                    _: 2
+                                  }, 1040, ["color"])
+                                ]),
+                                default: withCtx(() => [
+                                  createVNode(_component_v_card, null, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_v_card_text, null, {
+                                        default: withCtx(() => [
+                                          createVNode(_component_v_date_picker, {
+                                            modelValue: _ctx.fromDate,
+                                            "onUpdate:modelValue": [
+                                              _cache[9] || (_cache[9] = ($event) => _ctx.fromDate = $event),
+                                              _ctx.onDateSelected
+                                            ]
+                                          }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                                        ]),
+                                        _: 1
+                                      }),
+                                      createVNode(_component_v_card_actions, null, {
+                                        default: withCtx(() => [
+                                          createVNode(_component_v_spacer),
+                                          _ctx.dateFilterEnabled ? (openBlock(), createBlock(_component_v_btn, {
+                                            key: 0,
+                                            color: "error",
+                                            variant: "text",
+                                            onClick: _ctx.clearDateFilter
+                                          }, {
+                                            default: withCtx(() => _cache[24] || (_cache[24] = [
+                                              createTextVNode("Clear")
+                                            ])),
+                                            _: 1,
+                                            __: [24]
+                                          }, 8, ["onClick"])) : createCommentVNode("", true),
+                                          createVNode(_component_v_btn, {
+                                            color: "primary",
+                                            variant: "text",
+                                            onClick: _cache[10] || (_cache[10] = ($event) => _ctx.datePickerMenu = false)
+                                          }, {
+                                            default: withCtx(() => _cache[25] || (_cache[25] = [
+                                              createTextVNode("Close")
+                                            ])),
+                                            _: 1,
+                                            __: [25]
+                                          })
+                                        ]),
+                                        _: 1
+                                      })
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 1
+                              }, 8, ["modelValue"]),
+                              createVNode(_component_v_btn, {
+                                disabled: !_ctx.canGoBackward,
+                                color: "primary",
+                                size: "default",
+                                variant: "elevated",
+                                minHeight: "35px",
+                                minWidth: "35px",
+                                maxHeight: "35px",
+                                maxWidth: "35px",
+                                onClick: _ctx.nextDay
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_v_icon, null, {
+                                    default: withCtx(() => _cache[26] || (_cache[26] = [
+                                      createTextVNode("mdi-chevron-right")
+                                    ])),
+                                    _: 1,
+                                    __: [26]
+                                  })
+                                ]),
+                                _: 1
+                              }, 8, ["disabled", "onClick"])
+                            ])
                           ]),
                           _: 1
                         })) : createCommentVNode("", true)
@@ -43267,16 +43381,16 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
               ])
             ]),
             "item.suite": withCtx(({ item }) => [
-              withDirectives((openBlock(), createElementBlock("span", _hoisted_3, [
-                item.submittedBy == "root" ? (openBlock(), createElementBlock("span", _hoisted_4, " N ")) : createCommentVNode("", true),
+              withDirectives((openBlock(), createElementBlock("span", _hoisted_4, [
+                item.submittedBy == "root" ? (openBlock(), createElementBlock("span", _hoisted_5, " N ")) : createCommentVNode("", true),
                 createTextVNode(" " + toDisplayString(item.suite.name), 1)
               ])), [
                 [_directive_tooltip, _ctx.getTooltipConfig(item.suite.name)]
               ])
             ]),
             "item.jdk": withCtx(({ item }) => [
-              createBaseVNode("div", _hoisted_5, [
-                withDirectives((openBlock(), createElementBlock("span", _hoisted_6, [
+              createBaseVNode("div", _hoisted_6, [
+                withDirectives((openBlock(), createElementBlock("span", _hoisted_7, [
                   createVNode(_component_v_chip, {
                     "prepend-icon": "mdi-language-java",
                     variant: "tonal",
@@ -43292,16 +43406,16 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
               ])
             ]),
             "item.duration": withCtx(({ item }) => [
-              createBaseVNode("div", _hoisted_7, toDisplayString(item.duration), 1)
+              createBaseVNode("div", _hoisted_8, toDisplayString(item.duration), 1)
             ]),
             "item.submittedBy": withCtx(({ item }) => [
-              createBaseVNode("div", _hoisted_8, toDisplayString(item.submittedBy), 1)
+              createBaseVNode("div", _hoisted_9, toDisplayString(item.submittedBy), 1)
             ]),
             "item.agentsNum": withCtx(({ item }) => [
-              createBaseVNode("div", _hoisted_9, toDisplayString(item.agentsNum), 1)
+              createBaseVNode("div", _hoisted_10, toDisplayString(item.agentsNum), 1)
             ]),
             "item.submittedAt": withCtx(({ item }) => [
-              withDirectives((openBlock(), createElementBlock("span", _hoisted_10, [
+              withDirectives((openBlock(), createElementBlock("span", _hoisted_11, [
                 createTextVNode(toDisplayString(item.submittedAt.ago), 1)
               ])), [
                 [_directive_tooltip, _ctx.getTooltipConfig(item.submittedAt.dateTime)]
@@ -43323,14 +43437,14 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
               ])
             ]),
             "item.agentGroups": withCtx(({ item }) => [
-              withDirectives((openBlock(), createElementBlock("span", _hoisted_11, [
+              withDirectives((openBlock(), createElementBlock("span", _hoisted_12, [
                 createTextVNode(toDisplayString(_ctx.agentGroupsFormatted(item.agentGroups)), 1)
               ])), [
                 [_directive_tooltip, _ctx.getTooltipConfig(_ctx.agentGroupsFormatted(item.agentGroups))]
               ])
             ]),
             "item.priority": withCtx(({ item }) => [
-              createBaseVNode("div", _hoisted_12, toDisplayString(item.priority), 1)
+              createBaseVNode("div", _hoisted_13, toDisplayString(item.priority), 1)
             ]),
             "item.status": withCtx(({ item }) => [
               createVNode(JobStatus, {
@@ -43339,7 +43453,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
               }, null, 8, ["item"])
             ]),
             "item.config": withCtx(({ item }) => [
-              createBaseVNode("div", _hoisted_13, [
+              createBaseVNode("div", _hoisted_14, [
                 createVNode(_component_v_btn, {
                   tile: "",
                   class: "mr-1 text-white",
@@ -43386,11 +43500,11 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
             createVNode(_component_v_list, { density: "compact" }, {
               default: withCtx(() => [
                 createVNode(_component_v_list_item_title, { class: "list-header" }, {
-                  default: withCtx(() => _cache[25] || (_cache[25] = [
+                  default: withCtx(() => _cache[27] || (_cache[27] = [
                     createTextVNode("Columns")
                   ])),
                   _: 1,
-                  __: [25]
+                  __: [27]
                 }),
                 createVNode(_component_v_divider),
                 (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.headers.length - 2, (i) => {
@@ -43456,7 +43570,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-9112bb9a"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-75911927"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -46404,4 +46518,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-CxQ_AEUj.js.map
+//# sourceMappingURL=index-D6SAOn4w.js.map
