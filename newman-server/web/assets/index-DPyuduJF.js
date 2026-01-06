@@ -42853,6 +42853,7 @@ const __default__$1 = {
       const target = e.target;
       const isHeader = target.closest("thead") !== null;
       if (isHeader) {
+        e.preventDefault();
         this.columnMenuVisible = false;
         this.columnMenuX = e.clientX;
         this.columnMenuY = e.clientY;
@@ -43315,7 +43316,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
           _: 1
         }),
         createBaseVNode("div", {
-          onContextmenu: _cache[13] || (_cache[13] = withModifiers((...args) => _ctx.openColumnMenu && _ctx.openColumnMenu(...args), ["prevent"]))
+          onContextmenu: _cache[13] || (_cache[13] = (...args) => _ctx.openColumnMenu && _ctx.openColumnMenu(...args))
         }, [
           createVNode(_component_v_data_table, {
             search: _ctx.search,
@@ -43570,7 +43571,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-75911927"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-d0c36418"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -46518,4 +46519,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-D6SAOn4w.js.map
+//# sourceMappingURL=index-DPyuduJF.js.map

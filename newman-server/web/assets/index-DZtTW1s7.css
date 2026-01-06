@@ -57432,25 +57432,25 @@ textarea.v-field__input::placeholder {
   color: white !important;
 }
 
-[data-v-75911927] .chip-button {
+[data-v-d0c36418] .chip-button {
   color: white !important;
   width: 38px;
   height: 30px !important;
 }
-.nightly-label[data-v-75911927] {
+.nightly-label[data-v-d0c36418] {
   font-size: 0.75rem;
   background-color: hsl(0, 100%, 77%);
   transition: background-color 0.2s ease;
 }
-.select-list-item[data-v-75911927]:hover {
+.select-list-item[data-v-d0c36418]:hover {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.select-list-item[data-v-75911927]:selected {
+.select-list-item[data-v-d0c36418]:selected {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.list-header[data-v-75911927] {
+.list-header[data-v-d0c36418] {
   cursor: default;
   text-align: center;
   font-weight: bolder;
