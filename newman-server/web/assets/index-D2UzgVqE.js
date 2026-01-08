@@ -37573,8 +37573,8 @@ const _sfc_main$o = {
   }
 };
 const _hoisted_1$k = { style: { "width": "95%" } };
-const _hoisted_2$d = { class: "d-flex align-center justify-space-between" };
-const _hoisted_3$d = { class: "elevation-2 text-center col-header" };
+const _hoisted_2$e = { class: "d-flex align-center justify-space-between" };
+const _hoisted_3$e = { class: "elevation-2 text-center col-header" };
 const _hoisted_4$c = { class: "d-flex align-center justify-space-between" };
 const _hoisted_5$7 = { class: "elevation-2 text-center col-header" };
 const _hoisted_6$7 = { key: 0 };
@@ -37630,14 +37630,14 @@ function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2;
                     return [
-                      createBaseVNode("div", _hoisted_2$d, [
+                      createBaseVNode("div", _hoisted_2$e, [
                         ((_a2 = $data.headers.left) == null ? void 0 : _a2.name) ? (openBlock(), createBlock(_component_router_link, {
                           key: 0,
                           class: "font-bold flex-grow-1",
                           to: $data.headers.left.id ? { name: "BuildDetails", params: { id: $data.headers.left.id } } : ""
                         }, {
                           default: withCtx(() => [
-                            createBaseVNode("h3", _hoisted_3$d, toDisplayString($data.headers.left.name), 1)
+                            createBaseVNode("h3", _hoisted_3$e, toDisplayString($data.headers.left.name), 1)
                           ]),
                           _: 1
                         }, 8, ["to"])) : createCommentVNode("", true),
@@ -37914,8 +37914,30 @@ const _sfc_main$n = {
     this.initAgentGroups();
   },
   computed: {
+    user() {
+      var _a2;
+      return (_a2 = this.$userState) == null ? void 0 : _a2.userName;
+    },
+    isNightlyBuildNotRunnable() {
+      var _a2;
+      if (this.user === "root") {
+        return false;
+      }
+      if (this.buildValue && this.buildByIdDetails) {
+        const isNightly = this.buildByIdDetails.tags && Array.isArray(this.buildByIdDetails.tags) && this.buildByIdDetails.tags.includes("NIGHTLY");
+        const totalTests = ((_a2 = this.buildByIdDetails.buildStatus) == null ? void 0 : _a2.totalTests) || 0;
+        return isNightly && totalTests === 0;
+      }
+      return false;
+    },
+    nightlyBuildTooltipText() {
+      return `This build cannot be run until it is automatically started according to its schedule.
+              <br/>Use 'root' user if it's necessary to operate with this build.
+              <br/><br/>🔓 The build will be unlocked automatically after its scheduled run.
+              <br/><br/>⚠️ Note: Operating with the build before its scheduled run will cause it to be skipped from the upcoming NIGHTLY process.`;
+    },
     submitBtnActive() {
-      return !this.jobSubmissionInProgress && this.agents.length > 0 && this.configs.length > 0 && this.builds.length > 0 && this.suites.length > 0;
+      return !this.submitDisabled && this.agents.length > 0 && this.configs.length > 0 && this.builds.length > 0 && this.suites.length > 0;
     },
     required() {
       return (v) => {
@@ -37954,6 +37976,10 @@ const _sfc_main$n = {
       buildType: "buildBySelect",
       buildValue: null,
       builds: [],
+      buildByIdDetails: null,
+      // Store fetched build details for manual ID entry
+      submitDisabled: true,
+      // Track when submit should be disabled - disabled by default until build is selected and validated
       suitesValues: [],
       suites: [],
       priorities: [
@@ -37963,11 +37989,40 @@ const _sfc_main$n = {
         { id: 3, subtitle: "release-default" },
         { id: 4, subtitle: "urgent" }
       ],
-      priorityValue: 1,
-      jobSubmissionInProgress: false
+      priorityValue: 1
     };
   },
+  watch: {
+    buildValue(newVal) {
+      if (newVal) {
+        this.buildByIdDetails = null;
+        this.fetchBuildById(newVal);
+      } else {
+        this.buildByIdDetails = null;
+      }
+    },
+    buildType() {
+      this.buildByIdDetails = null;
+      if (this.buildValue) {
+        this.fetchBuildById(this.buildValue);
+      }
+    }
+  },
   methods: {
+    fetchBuildById(buildId) {
+      this.submitDisabled = true;
+      this.$axios.get(`/api/newman/build/${buildId}`).then((response) => {
+        this.buildByIdDetails = response.data;
+        if (this.user === "root") {
+          this.submitDisabled = false;
+        } else {
+          this.submitDisabled = this.isNightlyBuildNotRunnable;
+        }
+      }).catch((error) => {
+        console.error("Error fetching build details:", error);
+        this.buildByIdDetails = null;
+      });
+    },
     submitJob() {
       this.$refs.suite.validate();
       this.$refs.buildBySelect.validate();
@@ -37982,14 +38037,14 @@ const _sfc_main$n = {
         agentGroups: this.agentsValues,
         priority: this.priorityValue
       };
-      this.jobSubmissionInProgress = true;
+      this.submitDisabled = true;
       this.$axios.post("/api/newman/futureJob", requestBody).then((response) => {
-        this.jobSubmissionInProgress = false;
+        this.submitDisabled = false;
         this.snackbarMessage = `Job(s) submitted successfully! ${this.suitesValues.length} job(s) created.`;
         this.snackbarColor = "success";
         this.snackbar = true;
       }).catch((error) => {
-        this.jobSubmissionInProgress = false;
+        this.submitDisabled = false;
         this.snackbarMessage = "Error submitting job(s). Check console for more details.";
         this.snackbarColor = "error";
         this.snackbar = true;
@@ -38065,7 +38120,9 @@ const _sfc_main$n = {
     }
   }
 };
-const _hoisted_1$j = { class: "text-h6" };
+const _hoisted_1$j = ["innerHTML"];
+const _hoisted_2$d = ["innerHTML"];
+const _hoisted_3$d = { class: "text-h6" };
 function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_chip = resolveComponent("v-chip");
   const _component_v_autocomplete = resolveComponent("v-autocomplete");
@@ -38073,6 +38130,8 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_row = resolveComponent("v-row");
   const _component_v_radio = resolveComponent("v-radio");
   const _component_v_list_item = resolveComponent("v-list-item");
+  const _component_v_icon = resolveComponent("v-icon");
+  const _component_v_tooltip = resolveComponent("v-tooltip");
   const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_radio_group = resolveComponent("v-radio-group");
   const _component_v_select = resolveComponent("v-select");
@@ -38176,7 +38235,8 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
                 default: withCtx(() => [
                   createVNode(_component_v_col, {
                     cols: "12",
-                    class: "pb-0"
+                    class: "pb-0",
+                    style: { "position": "relative" }
                   }, {
                     default: withCtx(() => [
                       createVNode(_component_v_autocomplete, {
@@ -38200,7 +38260,32 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
                           }), null, 16, ["class"])
                         ]),
                         _: 1
-                      }, 8, ["modelValue", "items", "rules", "disabled"])
+                      }, 8, ["modelValue", "items", "rules", "disabled"]),
+                      $options.isNightlyBuildNotRunnable ? (openBlock(), createBlock(_component_v_tooltip, {
+                        key: 0,
+                        location: "right"
+                      }, {
+                        activator: withCtx(({ props }) => [
+                          createVNode(_component_v_icon, mergeProps(props, {
+                            color: "warning",
+                            class: "warning-icon",
+                            size: "large"
+                          }), {
+                            default: withCtx(() => _cache[11] || (_cache[11] = [
+                              createTextVNode(" mdi-alert-circle ")
+                            ])),
+                            _: 2,
+                            __: [11]
+                          }, 1040)
+                        ]),
+                        default: withCtx(() => [
+                          createBaseVNode("span", {
+                            class: "tooltip-text",
+                            innerHTML: $options.nightlyBuildTooltipText
+                          }, null, 8, _hoisted_1$j)
+                        ]),
+                        _: 1
+                      })) : createCommentVNode("", true)
                     ]),
                     _: 1
                   })
@@ -38216,7 +38301,8 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
                 default: withCtx(() => [
                   createVNode(_component_v_col, {
                     cols: "12",
-                    class: "pb-0"
+                    class: "pb-0",
+                    style: { "position": "relative" }
                   }, {
                     default: withCtx(() => [
                       createVNode(_component_v_text_field, {
@@ -38231,7 +38317,32 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
                         "item-value": "id",
                         required: "",
                         ref: "buildById"
-                      }, null, 8, ["modelValue", "rules", "disabled"])
+                      }, null, 8, ["modelValue", "rules", "disabled"]),
+                      $options.isNightlyBuildNotRunnable ? (openBlock(), createBlock(_component_v_tooltip, {
+                        key: 0,
+                        location: "right"
+                      }, {
+                        activator: withCtx(({ props }) => [
+                          createVNode(_component_v_icon, mergeProps(props, {
+                            color: "warning",
+                            class: "warning-icon",
+                            size: "large"
+                          }), {
+                            default: withCtx(() => _cache[12] || (_cache[12] = [
+                              createTextVNode(" mdi-alert-circle ")
+                            ])),
+                            _: 2,
+                            __: [12]
+                          }, 1040)
+                        ]),
+                        default: withCtx(() => [
+                          createBaseVNode("span", {
+                            class: "tooltip-text",
+                            innerHTML: $options.nightlyBuildTooltipText
+                          }, null, 8, _hoisted_2$d)
+                        ]),
+                        _: 1
+                      })) : createCommentVNode("", true)
                     ]),
                     _: 1
                   })
@@ -38321,11 +38432,11 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
                     height: "50",
                     color: "blue"
                   }, {
-                    default: withCtx(() => _cache[11] || (_cache[11] = [
+                    default: withCtx(() => _cache[13] || (_cache[13] = [
                       createTextVNode("Submit")
                     ])),
                     _: 1,
-                    __: [11]
+                    __: [13]
                   }, 8, ["disabled", "onClick"])
                 ]),
                 _: 1
@@ -38342,11 +38453,11 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
                     height: "50",
                     color: "grey"
                   }, {
-                    default: withCtx(() => _cache[12] || (_cache[12] = [
+                    default: withCtx(() => _cache[14] || (_cache[14] = [
                       createTextVNode("SELECT NIGHTLY")
                     ])),
                     _: 1,
-                    __: [12]
+                    __: [14]
                   }, 8, ["onClick"])
                 ]),
                 _: 1
@@ -38366,15 +38477,15 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
                 variant: "text",
                 onClick: _cache[9] || (_cache[9] = ($event) => $data.snackbar = false)
               }, {
-                default: withCtx(() => _cache[13] || (_cache[13] = [
+                default: withCtx(() => _cache[15] || (_cache[15] = [
                   createTextVNode(" Close ")
                 ])),
                 _: 1,
-                __: [13]
+                __: [15]
               })
             ]),
             default: withCtx(() => [
-              createBaseVNode("div", _hoisted_1$j, toDisplayString($data.snackbarMessage), 1)
+              createBaseVNode("div", _hoisted_3$d, toDisplayString($data.snackbarMessage), 1)
             ]),
             _: 1
           }, 8, ["modelValue", "color"])
@@ -38385,7 +38496,7 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-1dec12cd"]]);
+const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-d657c101"]]);
 function countAgentsNum(item) {
   if (item.preparingAgents && item.preparingAgents.length > 0) {
     return item.preparingAgents.length;
@@ -46290,7 +46401,6 @@ const __default__ = /* @__PURE__ */ defineComponent$1({
   },
   data() {
     return {
-      user: null,
       logSize: 0,
       totalAgents: 0,
       failingAgents: 0,
@@ -46298,6 +46408,10 @@ const __default__ = /* @__PURE__ */ defineComponent$1({
     };
   },
   computed: {
+    user() {
+      var _a2;
+      return (_a2 = this.$userState) == null ? void 0 : _a2.userName;
+    },
     pageTitle() {
       return this.$route.meta.title || "NO";
     },
@@ -46321,7 +46435,7 @@ const __default__ = /* @__PURE__ */ defineComponent$1({
     async fetchData() {
       try {
         await this.$axios.get("/api/newman/user").then((response) => {
-          this.user = response.data.userName;
+          this.$userState.userName = response.data.userName;
         }).catch((error) => {
           console.error("Error fetching data:", error);
         });
@@ -46351,6 +46465,12 @@ const _sfc_main = /* @__PURE__ */ Object.assign(__default__, {
   setup(__props) {
     const webSocketState = reactive({ isActive: false });
     provide("webSocketState", webSocketState);
+    const userState = reactive({ userName: null });
+    provide("userState", userState);
+    const instance = getCurrentInstance$1();
+    if (instance) {
+      instance.appContext.config.globalProperties.$userState = userState;
+    }
     const theme = useTheme();
     let isDarkTheme;
     function toggleTheme() {
@@ -46493,7 +46613,7 @@ const _sfc_main = /* @__PURE__ */ Object.assign(__default__, {
     };
   }
 });
-const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-3c2012a1"]]);
+const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-507e7f68"]]);
 const vuetify = createVuetify({
   components,
   directives,
@@ -46519,4 +46639,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-DPyuduJF.js.map
+//# sourceMappingURL=index-D2UzgVqE.js.map
