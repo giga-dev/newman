@@ -10,6 +10,9 @@ import com.gigaspaces.newman.entities.*;
 import com.gigaspaces.newman.utils.EnvUtils;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -363,12 +366,35 @@ public class NewmanSubmitter {
         }
     }
 
-    //"DEFAULT"- defines the default configuration
+    //"DEFAULT"- defines the default configuration, "SCHEDULED" - defines scheduled configuration based on the day of the week
     private JobConfig getConfigToSubmit() {
-        String jobConfigFromFile = properties.get("main").fetch("JOB_CONFIG_DEFAULT");
+        String jdkConfigToday = null;
+        String jdkConfigScheduledFromFile = properties.get("main").fetch("JOB_CONFIG_SCHEDULED");
+        if (jdkConfigScheduledFromFile != null && !jdkConfigScheduledFromFile.isEmpty()) {
+            try {
+                // Parse JSON structure (e.g. {"1":"JDK_8","2":"JDK_11",...})
+                JSONParser parser = new JSONParser();
+                JSONObject scheduleMap = (JSONObject) parser.parse(jdkConfigScheduledFromFile);
+
+                // Get current day of week (1=Monday, 7=Sunday)
+                String dayKey = String.valueOf(LocalDate.now().getDayOfWeek().getValue());
+
+                // Get JDK version for current day
+                jdkConfigToday = (String) scheduleMap.get(dayKey);
+                logger.info("Selected JDK according to schedule for day {}: {}", dayKey, jdkConfigToday);
+            } catch (ParseException e) {
+                logger.error("Failed to parse JOB_CONFIG_SCHEDULED JSON", e);
+            } catch (Exception e) {
+                logger.error("Failed to get scheduled configuration from DB", e);
+            }
+        }
+
+        // Fall back to default configuration
+        String jdkConfigDefault = properties.get("main").fetch("JOB_CONFIG_DEFAULT");
         JobConfig jobConfig;
         try {
-            jobConfig = newmanClient.getConfig(jobConfigFromFile).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            jdkConfigToday = (jdkConfigToday != null) ? jdkConfigToday : jdkConfigDefault;
+            jobConfig = newmanClient.getConfig(jdkConfigToday).toCompletableFuture().get(NewmanClientUtil.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if(jobConfig != null) {
                 return jobConfig;
             }
