@@ -28,7 +28,7 @@ public interface BuildRepository extends CrudRepository<Build, String>, JpaRepos
     @Query("SELECT b FROM Build b WHERE b.branch = :branch ORDER BY b.buildTime DESC")
     Build findLatestBuildByBranch(@Param("branch") String branch);
 
-    Build findByName(String name);
+    Build findTopByNameOrderByBuildTimeDesc(String name);
 
     @Query("SELECT b FROM Build b " +
             "WHERE :tag1 MEMBER OF b.tags AND " +

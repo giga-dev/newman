@@ -2531,7 +2531,7 @@ public class NewmanResource {
             throw new BadRequestException("can't append to build " + build + " without a name");
         }
 
-        Build found = buildRepository.findByName(build.getName());
+        Build found = buildRepository.findTopByNameOrderByBuildTimeDesc(build.getName());
         if (found == null) {
             throw new BadRequestException("can't append to build " + build + " since it does not exists");
         }
