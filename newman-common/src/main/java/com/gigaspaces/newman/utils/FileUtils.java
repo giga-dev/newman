@@ -116,8 +116,8 @@ public class FileUtils {
         } else {
             connection = (HttpURLConnection) url.openConnection();
         }
-        connection.setReadTimeout(60000);
-        connection.setReadTimeout(60000);
+        connection.setConnectTimeout(60000);  // 60 seconds to establish connection
+        connection.setReadTimeout(60000);     // 60 seconds to read data
         return connection;
     }
 
@@ -221,7 +221,8 @@ public class FileUtils {
                 if (uri.toURL().getProtocol().equalsIgnoreCase("https")){
                     connection = getHttpsConnection(uri.toURL());
                     inputStream = connection.getInputStream();
-                    return;
+                    logger.info("able to connect to URI: " + uri);
+                    continue;  // Continue validating remaining URIs
                 }
                 inputStream = uri.toURL().openStream();
                 logger.info("able to connect to URI: " + uri);

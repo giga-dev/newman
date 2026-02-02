@@ -33,6 +33,7 @@ public class NewmanAgent {
     private final Timer timer = new Timer(true);
     private static final int DEFAULT_TIMEOUT_SECONDS = 60;
     private static final int MILLISECONDS_IN_SECOND = 1000;
+    private static final int SETUP_TIMEOUT_MINS = 20;
     private volatile boolean workerShouldStop = false;
     private volatile long lastPriorityCheckedTime;
 
@@ -219,7 +220,25 @@ public class NewmanAgent {
                 // ping server during job setup and execution
                 keepAliveTask = startKeepAliveTask(job.getId(), keepAliveTask);
                 jobExecutor = new JobExecutor(job, config.getNewmanHome());
-                boolean setupFinished = jobExecutor.setup();
+
+                // Wrap setup in timeout protection to prevent agent from hanging the main thread
+                boolean setupFinished;
+                ExecutorService setupExecutor = Executors.newSingleThreadExecutor();
+                try {
+                    JobExecutor jobExecutorSetupIndication = jobExecutor;
+                    Future<Boolean> setupFuture = setupExecutor.submit(() -> jobExecutorSetupIndication.setup());
+                    // Timeout: 30 minutes for setup (can be adjusted based on expected download sizes)
+                    setupFinished = setupFuture.get(SETUP_TIMEOUT_MINS, TimeUnit.MINUTES);
+                } catch (TimeoutException e) {
+                    logger.error("Setup of job {} timed out after {} minutes, agent would have hung", job.getId(), SETUP_TIMEOUT_MINS);
+                    setupFinished = false;
+                } catch (Exception e) {
+                    logger.error("Setup of job {} failed with exception: {}", job.getId(), e);
+                    setupFinished = false;
+                } finally {
+                    setupExecutor.shutdownNow(); // Force shutdown to interrupt hung threads
+                }
+
                 reportJobSetup(job.getId(), name, jobExecutor.getJobFolder());
 
                 if (!setupFinished) {
