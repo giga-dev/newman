@@ -9,3 +9,4 @@ mkdir $KEYSTORE_DIR
 ./gen-certificate-autority-keys.sh
 ./gen-key-and-certificate.sh server
 ./gen-key-and-certificate.sh client
+./export-public-key.sh

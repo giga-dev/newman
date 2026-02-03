@@ -2840,6 +2840,171 @@ public class NewmanResource {
         return Response.ok(Entity.json(agentId)).build();
     }
 
+    @GET
+    @Path("crypto/public-key")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getPublicKey() {
+        try {
+            String keysDir = System.getProperty("newman.keys.dir", "../keys");
+            java.nio.file.Path publicKeyPath = Paths.get(keysDir, "server-public.pem");
+
+            if (!Files.exists(publicKeyPath)) {
+                logger.error("Public key file not found: " + publicKeyPath);
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Public key not found. Run export-public-key.sh first.").build();
+            }
+
+            String publicKey = new String(Files.readAllBytes(publicKeyPath));
+            return Response.ok(publicKey).build();
+        } catch (IOException e) {
+            logger.error("Failed to read public key", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Failed to read public key: " + e.getMessage()).build();
+        }
+    }
+
+    @POST
+    @Path("console")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getConsole(Map<String, Object> request) {
+        String host = (String) request.get("host");
+        String encryptedKey = (String) request.get("encryptedKey");
+        String encryptedPem = (String) request.get("encryptedPem");
+        String iv = (String) request.get("iv");
+        int lines = request.get("lines") != null ? ((Number) request.get("lines")).intValue() : 100;
+        String since = (String) request.get("since");
+        String user = request.get("user") != null ? (String) request.get("user") : "root";
+        String service = request.get("service") != null ? (String) request.get("service") : "newman-agent";
+        String logFile = (String) request.get("logFile");
+
+        // Validate required fields
+        if (host == null || host.trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Host is required").build();
+        }
+        if (encryptedKey == null || encryptedPem == null || iv == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Encrypted PEM data is required").build();
+        }
+
+        java.nio.file.Path tempPemFile = null;
+        try {
+            // Decrypt the PEM content
+            String pemContent = decryptPemContent(encryptedKey, encryptedPem, iv);
+
+            // Write to temporary file
+            tempPemFile = Files.createTempFile("newman-ssh-", ".pem");
+            Files.write(tempPemFile, pemContent.getBytes());
+            // Set proper permissions (owner read only)
+            tempPemFile.toFile().setReadable(false, false);
+            tempPemFile.toFile().setReadable(true, true);
+            tempPemFile.toFile().setWritable(false, false);
+
+            // Build remote command
+            String remoteCmd;
+            if (logFile != null && !logFile.trim().isEmpty()) {
+                // Use tail for file-based logs
+                remoteCmd = "tail -n " + lines + " " + logFile;
+            } else {
+                // Use journalctl for service logs
+                StringBuilder journalCmd = new StringBuilder();
+                journalCmd.append("journalctl -u ").append(service).append(" -n ").append(lines);
+                if (since != null && !since.trim().isEmpty()) {
+                    journalCmd.append(" --since '").append(since.replace("'", "\\'")).append("'");
+                }
+                remoteCmd = journalCmd.toString();
+            }
+
+            // Build SSH command: ssh <host> -l <user> -i <pem> -o StrictHostKeyChecking=no -o ConnectTimeout=10 "<command>"
+            List<String> command = new ArrayList<>();
+            command.add("ssh");
+            command.add(host);
+            command.add("-l");
+            command.add(user);
+            command.add("-i");
+            command.add(tempPemFile.toString());
+            command.add("-o");
+            command.add("StrictHostKeyChecking=no");
+            command.add("-o");
+            command.add("ConnectTimeout=10");
+            command.add(remoteCmd);
+
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+            }
+
+            boolean finished = process.waitFor(30, TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                return Response.status(Response.Status.REQUEST_TIMEOUT)
+                        .entity("SSH command timed out after 30 seconds").build();
+            }
+
+            int exitCode = process.exitValue();
+            if (exitCode != 0 && output.length() == 0) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity("SSH command failed with exit code: " + exitCode).build();
+            }
+
+            return Response.ok(output.toString()).build();
+
+        } catch (Exception e) {
+            logger.error("Failed to execute SSH command for host " + host, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Failed to execute SSH command: " + e.getMessage()).build();
+        } finally {
+            // Always delete the temp PEM file
+            if (tempPemFile != null) {
+                try {
+                    Files.deleteIfExists(tempPemFile);
+                } catch (IOException e) {
+                    logger.warn("Failed to delete temp PEM file: " + tempPemFile, e);
+                }
+            }
+        }
+    }
+
+    private String decryptPemContent(String encryptedKeyBase64, String encryptedPemBase64, String ivBase64) throws Exception {
+        String keysDir = System.getProperty("newman.keys.dir", "../keys");
+        java.nio.file.Path keystorePath = Paths.get(keysDir, "server.keystore");
+        String keystorePassword = System.getProperty("newman.keystore.password", "password");
+
+        // Load private key from keystore
+        java.security.KeyStore keyStore = java.security.KeyStore.getInstance("JKS");
+        try (FileInputStream fis = new FileInputStream(keystorePath.toFile())) {
+            keyStore.load(fis, keystorePassword.toCharArray());
+        }
+        java.security.PrivateKey privateKey = (java.security.PrivateKey) keyStore.getKey("server", keystorePassword.toCharArray());
+
+        // Decrypt AES key with RSA-OAEP (SHA-256 for both hash and MGF1 to match JavaScript Web Crypto)
+        javax.crypto.Cipher rsaCipher = javax.crypto.Cipher.getInstance("RSA/ECB/OAEPPadding");
+        java.security.spec.MGF1ParameterSpec mgf1Spec = java.security.spec.MGF1ParameterSpec.SHA256;
+        javax.crypto.spec.OAEPParameterSpec oaepSpec = new javax.crypto.spec.OAEPParameterSpec(
+                "SHA-256", "MGF1", mgf1Spec, javax.crypto.spec.PSource.PSpecified.DEFAULT);
+        rsaCipher.init(javax.crypto.Cipher.DECRYPT_MODE, privateKey, oaepSpec);
+        byte[] aesKeyBytes = rsaCipher.doFinal(Base64.getDecoder().decode(encryptedKeyBase64));
+
+        // Decrypt PEM content with AES-GCM
+        javax.crypto.spec.SecretKeySpec aesKey = new javax.crypto.spec.SecretKeySpec(aesKeyBytes, "AES");
+        byte[] ivBytes = Base64.getDecoder().decode(ivBase64);
+        javax.crypto.spec.GCMParameterSpec gcmSpec = new javax.crypto.spec.GCMParameterSpec(128, ivBytes);
+
+        javax.crypto.Cipher aesCipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding");
+        aesCipher.init(javax.crypto.Cipher.DECRYPT_MODE, aesKey, gcmSpec);
+        byte[] pemBytes = aesCipher.doFinal(Base64.getDecoder().decode(encryptedPemBase64));
+
+        return new String(pemBytes, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
     @DELETE
     @Path("offlineAgent/{agentName}")
     @Produces(MediaType.APPLICATION_JSON)

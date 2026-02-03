@@ -37460,7 +37460,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const _sfc_main$p = {
+const _sfc_main$q = {
   props: {
     filter: {
       type: String,
@@ -37470,7 +37470,7 @@ const _sfc_main$p = {
   setup() {
   }
 };
-function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$i(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_JobsGrid = resolveComponent("JobsGrid");
   const _component_v_card = resolveComponent("v-card");
   return openBlock(), createBlock(_component_v_card, null, {
@@ -37480,8 +37480,8 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobsTable = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$h]]);
-const _sfc_main$o = {
+const JobsTable = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["render", _sfc_render$i]]);
+const _sfc_main$p = {
   data() {
     return {
       loading: true,
@@ -37572,8 +37572,8 @@ const _sfc_main$o = {
     }
   }
 };
-const _hoisted_1$k = { style: { "width": "95%" } };
-const _hoisted_2$e = { class: "d-flex align-center justify-space-between" };
+const _hoisted_1$l = { style: { "width": "95%" } };
+const _hoisted_2$f = { class: "d-flex align-center justify-space-between" };
 const _hoisted_3$e = { class: "elevation-2 text-center col-header" };
 const _hoisted_4$c = { class: "d-flex align-center justify-space-between" };
 const _hoisted_5$7 = { class: "elevation-2 text-center col-header" };
@@ -37581,7 +37581,7 @@ const _hoisted_6$7 = { key: 0 };
 const _hoisted_7$6 = { key: 1 };
 const _hoisted_8$5 = { key: 0 };
 const _hoisted_9$5 = { key: 1 };
-function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_router_link = resolveComponent("router-link");
   const _component_v_icon = resolveComponent("v-icon");
@@ -37594,7 +37594,7 @@ function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card = resolveComponent("v-card");
   return openBlock(), createBlock(_component_v_card, { align: "center" }, {
     default: withCtx(() => [
-      createBaseVNode("div", _hoisted_1$k, [
+      createBaseVNode("div", _hoisted_1$l, [
         createVNode(_component_v_card_title, {
           align: "start",
           class: "text-wrap"
@@ -37630,7 +37630,7 @@ function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2;
                     return [
-                      createBaseVNode("div", _hoisted_2$e, [
+                      createBaseVNode("div", _hoisted_2$f, [
                         ((_a2 = $data.headers.left) == null ? void 0 : _a2.name) ? (openBlock(), createBlock(_component_router_link, {
                           key: 0,
                           class: "font-bold flex-grow-1",
@@ -37906,8 +37906,8 @@ function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$g], ["__scopeId", "data-v-e65060be"]]);
-const _sfc_main$n = {
+const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$h], ["__scopeId", "data-v-7f23634f"]]);
+const _sfc_main$o = {
   beforeMount() {
     this.initBuildsAndSuites();
     this.initJobConfigs();
@@ -38120,10 +38120,10 @@ const _sfc_main$n = {
     }
   }
 };
-const _hoisted_1$j = ["innerHTML"];
-const _hoisted_2$d = ["innerHTML"];
+const _hoisted_1$k = ["innerHTML"];
+const _hoisted_2$e = ["innerHTML"];
 const _hoisted_3$d = { class: "text-h6" };
-function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_chip = resolveComponent("v-chip");
   const _component_v_autocomplete = resolveComponent("v-autocomplete");
   const _component_v_col = resolveComponent("v-col");
@@ -38282,7 +38282,7 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
                           createBaseVNode("span", {
                             class: "tooltip-text",
                             innerHTML: $options.nightlyBuildTooltipText
-                          }, null, 8, _hoisted_1$j)
+                          }, null, 8, _hoisted_1$k)
                         ]),
                         _: 1
                       })) : createCommentVNode("", true)
@@ -38339,7 +38339,7 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
                           createBaseVNode("span", {
                             class: "tooltip-text",
                             innerHTML: $options.nightlyBuildTooltipText
-                          }, null, 8, _hoisted_2$d)
+                          }, null, 8, _hoisted_2$e)
                         ]),
                         _: 1
                       })) : createCommentVNode("", true)
@@ -38496,7 +38496,7 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-d657c101"]]);
+const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$g], ["__scopeId", "data-v-d657c101"]]);
 function countAgentsNum(item) {
   if (item.preparingAgents && item.preparingAgents.length > 0) {
     return item.preparingAgents.length;
@@ -38760,7 +38760,7 @@ function coloredHistoryStats(stats, isSquare) {
   let circlesCount = result.length / 2;
   return result.padEnd(circlesCount + 10, isSquare ? "⬜" : "⚪");
 }
-const _sfc_main$m = /* @__PURE__ */ defineComponent$1({
+const _sfc_main$n = /* @__PURE__ */ defineComponent$1({
   props: {
     item: { type: Object, required: true, default: () => ({ status: [0, 0, 0, 0, 0], jobId: null }) },
     toggle: { type: Boolean, default: () => {
@@ -38803,11 +38803,11 @@ const _sfc_main$m = /* @__PURE__ */ defineComponent$1({
     }
   }
 });
-const _hoisted_1$i = { key: 1 };
-const _hoisted_2$c = { key: 2 };
+const _hoisted_1$j = { key: 1 };
+const _hoisted_2$d = { key: 2 };
 const _hoisted_3$c = { key: 3 };
 const _hoisted_4$b = { key: 4 };
-function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_btn = resolveComponent("v-btn");
   return openBlock(), createElementBlock("div", null, [
     (openBlock(), createBlock(resolveDynamicComponent(_ctx.toggle ? "v-btn-toggle" : "div"), normalizeProps(guardReactiveProps(_ctx.toggle ? { vModel: _ctx.selectedButton, group: true, variant: "outlined", divided: true } : {})), {
@@ -38825,7 +38825,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
             to: _ctx.noLinks ? null : _ctx.setRoute("RUNNING"),
             onClick: _cache[0] || (_cache[0] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("RUNNING"))
           }, null, 8, ["text", "class", "to"])) : createCommentVNode("", true),
-          !(_ctx.toggle || _ctx.hideRunning) ? (openBlock(), createElementBlock("span", _hoisted_1$i, "/ ")) : createCommentVNode("", true),
+          !(_ctx.toggle || _ctx.hideRunning) ? (openBlock(), createElementBlock("span", _hoisted_1$j, "/ ")) : createCommentVNode("", true),
           createVNode(_component_v_btn, {
             variant: "elevated",
             value: "SUCCESS",
@@ -38836,7 +38836,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
             to: _ctx.noLinks ? null : _ctx.setRoute("SUCCESS"),
             onClick: _cache[1] || (_cache[1] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("SUCCESS"))
           }, null, 8, ["text", "class", "to"]),
-          !_ctx.toggle ? (openBlock(), createElementBlock("span", _hoisted_2$c, "/ ")) : createCommentVNode("", true),
+          !_ctx.toggle ? (openBlock(), createElementBlock("span", _hoisted_2$d, "/ ")) : createCommentVNode("", true),
           createVNode(_component_v_btn, {
             variant: "elevated",
             value: "FAIL",
@@ -38876,8 +38876,8 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
     }, 16))
   ]);
 }
-const JobStatus = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$e], ["__scopeId", "data-v-6a0c4c4e"]]);
-const _sfc_main$l = {
+const JobStatus = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-6a0c4c4e"]]);
+const _sfc_main$m = {
   components: {
     JobStatus
   },
@@ -38968,8 +38968,8 @@ const _sfc_main$l = {
     }
   }
 };
-const _hoisted_1$h = { class: "builds-wrapper" };
-const _hoisted_2$b = {
+const _hoisted_1$i = { class: "builds-wrapper" };
+const _hoisted_2$c = {
   class: "d-flex align-center justify-end",
   style: { "gap": "8px" }
 };
@@ -38978,7 +38978,7 @@ const _hoisted_4$a = {
   key: 0,
   class: "pl-1 mr-1 font-weight-bold border rounded nightly-label"
 };
-function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_col = resolveComponent("v-col");
   const _component_v_spacer = resolveComponent("v-spacer");
@@ -38991,7 +38991,7 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card = resolveComponent("v-card");
   return openBlock(), createBlock(_component_v_card, { align: "center" }, {
     default: withCtx(() => [
-      createBaseVNode("div", _hoisted_1$h, [
+      createBaseVNode("div", _hoisted_1$i, [
         createVNode(_component_v_card_title, null, {
           default: withCtx(() => [
             createVNode(_component_v_row, {
@@ -39028,7 +39028,7 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
                   class: "ml-auto"
                 }, {
                   default: withCtx(() => [
-                    createBaseVNode("div", _hoisted_2$b, [
+                    createBaseVNode("div", _hoisted_2$c, [
                       _cache[5] || (_cache[5] = createBaseVNode("div", null, "Builds count:", -1)),
                       createVNode(_component_v_text_field, {
                         counter: "",
@@ -39105,8 +39105,8 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Builds = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-5fe19820"]]);
-const _sfc_main$k = {
+const Builds = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$e], ["__scopeId", "data-v-5fe19820"]]);
+const _sfc_main$l = {
   name: "PromptDialog",
   props: {
     modelValue: { type: Boolean },
@@ -39152,8 +39152,8 @@ const _sfc_main$k = {
     }
   }
 };
-const _hoisted_1$g = ["innerHTML"];
-function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
+const _hoisted_1$h = ["innerHTML"];
+function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_icon = resolveComponent("v-icon");
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_v_divider = resolveComponent("v-divider");
@@ -39188,7 +39188,7 @@ function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
               createBaseVNode("span", {
                 innerHTML: $props.title,
                 class: "ml-2"
-              }, null, 8, _hoisted_1$g)
+              }, null, 8, _hoisted_1$h)
             ]),
             _: 1
           }),
@@ -39224,8 +39224,8 @@ function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
     _: 3
   }, 8, ["modelValue"]);
 }
-const PromptDialog = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$c], ["__scopeId", "data-v-4d26336b"]]);
-const _sfc_main$j = {
+const PromptDialog = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-4d26336b"]]);
+const _sfc_main$k = {
   components: {
     PromptDialog
   },
@@ -39259,7 +39259,7 @@ const _sfc_main$j = {
     }
   }
 };
-function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_row = resolveComponent("v-row");
   const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_container = resolveComponent("v-container");
@@ -39313,9 +39313,9 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   }, 8, ["modelValue", "onPromptDialog:onConfirm"]);
 }
-const DialogCreateSuite = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$b]]);
-const _hoisted_1$f = { name: "grid" };
-const _hoisted_2$a = { class: "d-flex" };
+const DialogCreateSuite = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$c]]);
+const _hoisted_1$g = { name: "grid" };
+const _hoisted_2$b = { class: "d-flex" };
 const _hoisted_3$a = {
   class: "d-block",
   style: { "position": "relative" }
@@ -39502,7 +39502,7 @@ const __default__$6 = {
     }
   }
 };
-const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$6, {
+const _sfc_main$j = /* @__PURE__ */ Object.assign(__default__$6, {
   __name: "TestsGrid",
   setup(__props) {
     const TOOLTIP_SHOWUP_DELAY = 500;
@@ -39532,7 +39532,7 @@ const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$6, {
       const _component_v_data_table = resolveComponent("v-data-table");
       const _component_v_snackbar = resolveComponent("v-snackbar");
       return openBlock(), createElementBlock(Fragment, null, [
-        createBaseVNode("div", _hoisted_1$f, [
+        createBaseVNode("div", _hoisted_1$g, [
           createVNode(_component_v_card_title, null, {
             default: withCtx(() => [
               createVNode(_component_v_row, {
@@ -39558,7 +39558,7 @@ const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$6, {
                   }),
                   createVNode(_component_v_col, { cols: "4" }, {
                     default: withCtx(() => [
-                      createBaseVNode("div", _hoisted_2$a, [
+                      createBaseVNode("div", _hoisted_2$b, [
                         createBaseVNode("div", _hoisted_3$a, [
                           createVNode(JobStatus, {
                             item: _ctx.computedJobDetails,
@@ -39732,8 +39732,8 @@ const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$6, {
     };
   }
 });
-const _hoisted_1$e = { style: { "font-size": "1.3em", "font-weight": "bold" } };
-const _hoisted_2$9 = {
+const _hoisted_1$f = { style: { "font-size": "1.3em", "font-weight": "bold" } };
+const _hoisted_2$a = {
   key: 0,
   style: { "font-size": "1em", "font-weight": "bold" }
 };
@@ -39746,7 +39746,7 @@ const _hoisted_8$3 = { class: "d-flex align-center" };
 const _hoisted_9$3 = { class: "ml-3" };
 const __default__$5 = {
   components: {
-    TestsGrid: _sfc_main$i
+    TestsGrid: _sfc_main$j
   },
   props: {
     id: String,
@@ -39802,7 +39802,7 @@ const __default__$5 = {
     }
   }
 };
-const _sfc_main$h = /* @__PURE__ */ Object.assign(__default__$5, {
+const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$5, {
   __name: "JobDetails",
   setup(__props) {
     return (_ctx, _cache) => {
@@ -39842,8 +39842,8 @@ const _sfc_main$h = /* @__PURE__ */ Object.assign(__default__$5, {
                             default: withCtx(() => {
                               var _a2;
                               return [
-                                createBaseVNode("div", _hoisted_1$e, "Job: " + toDisplayString(__props.id), 1),
-                                _ctx.jobDetails ? (openBlock(), createElementBlock("div", _hoisted_2$9, "( " + toDisplayString((_a2 = _ctx.jobDetails) == null ? void 0 : _a2.suite.name) + " )", 1)) : createCommentVNode("", true)
+                                createBaseVNode("div", _hoisted_1$f, "Job: " + toDisplayString(__props.id), 1),
+                                _ctx.jobDetails ? (openBlock(), createElementBlock("div", _hoisted_2$a, "( " + toDisplayString((_a2 = _ctx.jobDetails) == null ? void 0 : _a2.suite.name) + " )", 1)) : createCommentVNode("", true)
                               ];
                             }),
                             _: 1
@@ -39990,7 +39990,7 @@ const _sfc_main$h = /* @__PURE__ */ Object.assign(__default__$5, {
             ]),
             _: 1
           }),
-          createVNode(_sfc_main$i, {
+          createVNode(_sfc_main$j, {
             id: __props.id,
             status: __props.status,
             jobDetails: _ctx.jobDetails,
@@ -40035,8 +40035,8 @@ const _sfc_main$h = /* @__PURE__ */ Object.assign(__default__$5, {
     };
   }
 });
-const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["__scopeId", "data-v-09e1654d"]]);
-const _sfc_main$g = {
+const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["__scopeId", "data-v-09e1654d"]]);
+const _sfc_main$h = {
   props: {
     id: String
   },
@@ -40072,8 +40072,8 @@ const _sfc_main$g = {
     }
   }
 };
-const _hoisted_1$d = { style: { "font-size": "1.3em", "font-weight": "bold" } };
-const _hoisted_2$8 = {
+const _hoisted_1$e = { style: { "font-size": "1.3em", "font-weight": "bold" } };
+const _hoisted_2$9 = {
   key: 0,
   style: { "font-size": "1em", "font-weight": "bold" }
 };
@@ -40098,7 +40098,7 @@ const _hoisted_11$1 = ["href"];
 const _hoisted_12$1 = { class: "ml-2" };
 const _hoisted_13$1 = { key: 3 };
 const _hoisted_14$1 = { key: 4 };
-function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_expansion_panel_title = resolveComponent("v-expansion-panel-title");
   const _component_v_col = resolveComponent("v-col");
   const _component_v_row = resolveComponent("v-row");
@@ -40122,8 +40122,8 @@ function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
                 default: withCtx(() => {
                   var _a2, _b;
                   return [
-                    createBaseVNode("div", _hoisted_1$d, "Build: " + toDisplayString((_a2 = $data.buildDetails) == null ? void 0 : _a2.name), 1),
-                    $data.buildDetails ? (openBlock(), createElementBlock("div", _hoisted_2$8, "( branch: " + toDisplayString((_b = $data.buildDetails) == null ? void 0 : _b.branch) + " )", 1)) : createCommentVNode("", true)
+                    createBaseVNode("div", _hoisted_1$e, "Build: " + toDisplayString((_a2 = $data.buildDetails) == null ? void 0 : _a2.name), 1),
+                    $data.buildDetails ? (openBlock(), createElementBlock("div", _hoisted_2$9, "( branch: " + toDisplayString((_b = $data.buildDetails) == null ? void 0 : _b.branch) + " )", 1)) : createCommentVNode("", true)
                   ];
                 }),
                 _: 1
@@ -40209,9 +40209,9 @@ function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const BuildDetails = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["render", _sfc_render$a]]);
-const _hoisted_1$c = { class: "ml-10" };
-const _hoisted_2$7 = { key: 0 };
+const BuildDetails = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$b]]);
+const _hoisted_1$d = { class: "ml-10" };
+const _hoisted_2$8 = { key: 0 };
 const _hoisted_3$7 = {
   key: 1,
   class: "my-2"
@@ -40289,7 +40289,7 @@ const __default__$4 = {
     }
   }
 };
-const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$4, {
+const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$4, {
   __name: "TestDetails",
   setup(__props) {
     return (_ctx, _cache) => {
@@ -40317,7 +40317,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$4, {
           }),
           createVNode(_component_v_container, { style: { "width": "100%", "max-width": "unset" } }, {
             default: withCtx(() => [
-              createBaseVNode("div", _hoisted_1$c, [
+              createBaseVNode("div", _hoisted_1$d, [
                 (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.info, (item, index) => {
                   return openBlock(), createBlock(_component_v_row, {
                     class: "my-0 mr-0",
@@ -40341,7 +40341,7 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$4, {
                         align: "start"
                       }, {
                         default: withCtx(() => [
-                          item.key == "status" ? (openBlock(), createElementBlock("div", _hoisted_2$7, [
+                          item.key == "status" ? (openBlock(), createElementBlock("div", _hoisted_2$8, [
                             createVNode(_component_v_chip, {
                               variant: "elevated",
                               class: "text-uppercase font-weight-bold text-body-2 text-mono",
@@ -40394,8 +40394,8 @@ const _sfc_main$f = /* @__PURE__ */ Object.assign(__default__$4, {
     };
   }
 });
-const TestDetails = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-88a6a502"]]);
-const _sfc_main$e = {
+const TestDetails = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["__scopeId", "data-v-88a6a502"]]);
+const _sfc_main$f = {
   components: {
     PromptDialog
   },
@@ -40435,8 +40435,8 @@ const _sfc_main$e = {
     }
   }
 };
-const _hoisted_1$b = ["innerHTML"];
-function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
+const _hoisted_1$c = ["innerHTML"];
+function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_text = resolveComponent("v-card-text");
   const _component_v_row = resolveComponent("v-row");
   const _component_v_text_field = resolveComponent("v-text-field");
@@ -40458,7 +40458,7 @@ function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
             class: "mt-5"
           }, {
             default: withCtx(() => [
-              createBaseVNode("div", { innerHTML: $options.formattedText }, null, 8, _hoisted_1$b)
+              createBaseVNode("div", { innerHTML: $options.formattedText }, null, 8, _hoisted_1$c)
             ]),
             _: 1
           })) : createCommentVNode("", true),
@@ -40502,8 +40502,8 @@ function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   }, 8, ["modelValue", "onPromptDialog:onConfirm"]);
 }
-const DialogCopySuite = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$9]]);
-const _sfc_main$d = /* @__PURE__ */ defineComponent$1({
+const DialogCopySuite = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["render", _sfc_render$a]]);
+const _sfc_main$e = /* @__PURE__ */ defineComponent$1({
   props: {
     text: { type: String }
   },
@@ -40513,21 +40513,21 @@ const _sfc_main$d = /* @__PURE__ */ defineComponent$1({
     }
   }
 });
-const _hoisted_1$a = ["innerHTML"];
-function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
+const _hoisted_1$b = ["innerHTML"];
+function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_text = resolveComponent("v-card-text");
   return _ctx.text ? (openBlock(), createBlock(_component_v_card_text, {
     key: 0,
     class: "mt-5"
   }, {
     default: withCtx(() => [
-      createBaseVNode("div", { innerHTML: _ctx.formattedText }, null, 8, _hoisted_1$a)
+      createBaseVNode("div", { innerHTML: _ctx.formattedText }, null, 8, _hoisted_1$b)
     ]),
     _: 1
   })) : createCommentVNode("", true);
 }
-const DialogPromptBody = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$8]]);
-const _sfc_main$c = {
+const DialogPromptBody = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$9]]);
+const _sfc_main$d = {
   components: {
     PromptDialog,
     DialogPromptBody,
@@ -40612,8 +40612,8 @@ const _sfc_main$c = {
     }
   }
 };
-const _hoisted_1$9 = { class: "suites-wrapper" };
-const _hoisted_2$6 = { key: 0 };
+const _hoisted_1$a = { class: "suites-wrapper" };
+const _hoisted_2$7 = { key: 0 };
 const _hoisted_3$6 = {
   key: 0,
   class: "text-h6"
@@ -40622,7 +40622,7 @@ const _hoisted_4$5 = {
   key: 1,
   class: "text-h6"
 };
-function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_text_field = resolveComponent("v-text-field");
   const _component_v_col = resolveComponent("v-col");
   const _component_v_row = resolveComponent("v-row");
@@ -40638,7 +40638,7 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock(Fragment, null, [
     createVNode(_component_v_card, { align: "center" }, {
       default: withCtx(() => [
-        createBaseVNode("div", _hoisted_1$9, [
+        createBaseVNode("div", _hoisted_1$a, [
           createVNode(_component_v_card_title, null, {
             default: withCtx(() => [
               createVNode(_component_v_row, {
@@ -40686,7 +40686,7 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
                 to: { name: "SuiteDetails", params: { id: item.id } }
               }, {
                 default: withCtx(() => [
-                  item.hasSchedule ? (openBlock(), createElementBlock("span", _hoisted_2$6, "🕑")) : createCommentVNode("", true),
+                  item.hasSchedule ? (openBlock(), createElementBlock("span", _hoisted_2$7, "🕑")) : createCommentVNode("", true),
                   createTextVNode(" " + toDisplayString(item.name), 1)
                 ]),
                 _: 2
@@ -40776,8 +40776,8 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
     }, 8, ["modelValue", "onClick:close"])
   ], 64);
 }
-const Suites = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$7], ["__scopeId", "data-v-461752a0"]]);
-const _sfc_main$b = {
+const Suites = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$8], ["__scopeId", "data-v-461752a0"]]);
+const _sfc_main$c = {
   components: {
     PromptDialog,
     DialogPromptBody
@@ -40842,11 +40842,11 @@ const _sfc_main$b = {
     }
   }
 };
-const _hoisted_1$8 = {
+const _hoisted_1$9 = {
   class: "ml-10",
   align: "left"
 };
-const _hoisted_2$5 = {
+const _hoisted_2$6 = {
   class: "mb-2",
   align: "start"
 };
@@ -40855,7 +40855,7 @@ const _hoisted_4$4 = { key: 1 };
 const _hoisted_5$2 = ["onUpdate:modelValue"];
 const _hoisted_6$2 = { key: 2 };
 const _hoisted_7$1 = { class: "text-h6" };
-function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
+function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_v_icon = resolveComponent("v-icon");
   const _component_v_btn = resolveComponent("v-btn");
@@ -40936,7 +40936,7 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
           style: { "width": "90%", "max-width": "unset" }
         }, {
           default: withCtx(() => [
-            createBaseVNode("div", _hoisted_1$8, [
+            createBaseVNode("div", _hoisted_1$9, [
               (openBlock(true), createElementBlock(Fragment, null, renderList($data.info, (item, index) => {
                 return openBlock(), createBlock(_component_v_row, {
                   align: "start",
@@ -40960,7 +40960,7 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
                       cols: "11"
                     }, {
                       default: withCtx(() => [
-                        createBaseVNode("div", _hoisted_2$5, [
+                        createBaseVNode("div", _hoisted_2$6, [
                           item.key == "name" || item.key == "customVariables" || item.key == "requirements" ? (openBlock(), createElementBlock("div", _hoisted_3$5, [
                             createVNode(_component_v_text_field, {
                               color: "primary",
@@ -41058,9 +41058,9 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
     }, 8, ["modelValue"])
   ], 64);
 }
-const SuiteDetails = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$6]]);
-const _hoisted_1$7 = { style: { "width": "80%" } };
-const _hoisted_2$4 = { class: "ml-5 font-weight-regular" };
+const SuiteDetails = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$7]]);
+const _hoisted_1$8 = { style: { "width": "80%" } };
+const _hoisted_2$5 = { class: "ml-5 font-weight-regular" };
 const _hoisted_3$4 = {
   key: 0,
   class: "position-absolute pl-1 pr-1 font-weight-bold border rounded nightly-label"
@@ -41111,7 +41111,7 @@ const __default__$3 = {
     }
   }
 };
-const _sfc_main$a = /* @__PURE__ */ Object.assign(__default__$3, {
+const _sfc_main$b = /* @__PURE__ */ Object.assign(__default__$3, {
   __name: "History",
   setup(__props) {
     return (_ctx, _cache) => {
@@ -41125,7 +41125,7 @@ const _sfc_main$a = /* @__PURE__ */ Object.assign(__default__$3, {
       const _component_v_card = resolveComponent("v-card");
       return openBlock(), createBlock(_component_v_card, { align: "center" }, {
         default: withCtx(() => [
-          createBaseVNode("div", _hoisted_1$7, [
+          createBaseVNode("div", _hoisted_1$8, [
             createVNode(_component_v_card_title, {
               align: "start",
               class: "text-wrap"
@@ -41133,7 +41133,7 @@ const _sfc_main$a = /* @__PURE__ */ Object.assign(__default__$3, {
               default: withCtx(() => [
                 createBaseVNode("div", null, [
                   _cache[1] || (_cache[1] = createBaseVNode("h3", null, " History: ", -1)),
-                  createBaseVNode("h3", _hoisted_2$4, toDisplayString(_ctx.test), 1)
+                  createBaseVNode("h3", _hoisted_2$5, toDisplayString(_ctx.test), 1)
                 ]),
                 createVNode(_component_v_row, {
                   dense: "",
@@ -41229,6 +41229,611 @@ const _sfc_main$a = /* @__PURE__ */ Object.assign(__default__$3, {
     };
   }
 });
+const LOCAL_STORAGE_PEM_KEY = "newman-ssh-pem-encrypted";
+const LOCAL_STORAGE_SERVER_HOST = "newman-server-host";
+const _sfc_main$a = {
+  name: "ConsoleOutputDialog",
+  data() {
+    return {
+      showDialog: false,
+      mode: "agent",
+      // 'agent' or 'server'
+      agent: null,
+      serverHost: "",
+      loading: false,
+      loadingKey: false,
+      error: null,
+      consoleOutput: "",
+      pemFile: null,
+      pemContent: null,
+      pemLoaded: false,
+      publicKey: null,
+      lines: 100,
+      since: "",
+      autoRefresh: false,
+      refreshInterval: 5,
+      refreshIntervalOptions: [5, 10, 15, 30, 60],
+      autoRefreshTimer: null
+    };
+  },
+  computed: {
+    isServerMode() {
+      return this.mode === "server";
+    },
+    dialogTitle() {
+      var _a2;
+      if (this.isServerMode) {
+        return "Newman Server Logs" + (this.serverHost ? ` - ${this.serverHost}` : "");
+      }
+      return "Console Output - " + (((_a2 = this.agent) == null ? void 0 : _a2.name) || "Unknown");
+    },
+    placeholderText() {
+      if (this.isServerMode) {
+        return 'Select PEM file, enter server host, and click "Refresh" to load server logs...';
+      }
+      return 'Select PEM file and click "Refresh" to load console output...';
+    },
+    targetHost() {
+      var _a2, _b, _c;
+      if (this.isServerMode) {
+        return this.serverHost;
+      }
+      if ((_a2 = this.agent) == null ? void 0 : _a2.name) {
+        const firstDashIndex = this.agent.name.indexOf("-");
+        if (firstDashIndex > 0) {
+          return this.agent.name.substring(0, firstDashIndex);
+        }
+      }
+      return ((_b = this.agent) == null ? void 0 : _b.hostAddress) || ((_c = this.agent) == null ? void 0 : _c.host) || "";
+    },
+    canRefresh() {
+      if (!this.pemLoaded) return false;
+      if (this.isServerMode && !this.serverHost) return false;
+      if (!this.isServerMode && !this.targetHost) return false;
+      return true;
+    }
+  },
+  watch: {
+    autoRefresh(newValue) {
+      if (newValue) {
+        this.startAutoRefresh();
+      } else {
+        this.stopAutoRefresh();
+      }
+    },
+    refreshInterval() {
+      if (this.autoRefresh) {
+        this.stopAutoRefresh();
+        this.startAutoRefresh();
+      }
+    },
+    showDialog(newValue) {
+      if (!newValue) {
+        this.stopAutoRefresh();
+      }
+    }
+  },
+  async mounted() {
+    await this.loadCachedPem();
+    this.loadServerHost();
+  },
+  beforeUnmount() {
+    this.stopAutoRefresh();
+  },
+  methods: {
+    async openDialog(agent) {
+      this.mode = "agent";
+      this.agent = agent;
+      this.consoleOutput = "";
+      this.error = null;
+      this.showDialog = true;
+      if (!this.publicKey) {
+        await this.fetchPublicKey();
+      }
+    },
+    async openServerDialog() {
+      this.mode = "server";
+      this.agent = null;
+      this.consoleOutput = "";
+      this.error = null;
+      this.showDialog = true;
+      if (!this.publicKey) {
+        await this.fetchPublicKey();
+      }
+    },
+    closeDialog() {
+      this.stopAutoRefresh();
+      this.showDialog = false;
+      this.agent = null;
+      this.consoleOutput = "";
+      this.error = null;
+    },
+    saveServerHost() {
+      if (this.serverHost) {
+        localStorage.setItem(LOCAL_STORAGE_SERVER_HOST, this.serverHost);
+      } else {
+        localStorage.removeItem(LOCAL_STORAGE_SERVER_HOST);
+      }
+    },
+    loadServerHost() {
+      const saved2 = localStorage.getItem(LOCAL_STORAGE_SERVER_HOST);
+      if (saved2) {
+        this.serverHost = saved2;
+      }
+    },
+    async fetchPublicKey() {
+      try {
+        const response = await this.$axios.get("/api/newman/crypto/public-key", {
+          responseType: "text"
+        });
+        this.publicKey = response.data;
+      } catch (err) {
+        console.error("Failed to fetch public key:", err);
+        this.error = "Failed to fetch encryption key. Make sure export-public-key.sh was run on the server.";
+      }
+    },
+    async onPemFileSelected(file) {
+      if (!file) {
+        this.pemContent = null;
+        this.pemLoaded = false;
+        return;
+      }
+      this.loadingKey = true;
+      this.error = null;
+      try {
+        const content = await this.readFileAsText(file);
+        this.pemContent = content;
+        this.pemLoaded = true;
+        await this.cachePem(content);
+      } catch (err) {
+        console.error("Failed to read PEM file:", err);
+        this.error = "Failed to read PEM file: " + err.message;
+        this.pemLoaded = false;
+      } finally {
+        this.loadingKey = false;
+      }
+    },
+    readFileAsText(file) {
+      return new Promise((resolve2, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve2(e.target.result);
+        reader.onerror = (e) => reject(new Error("Failed to read file"));
+        reader.readAsText(file);
+      });
+    },
+    async cachePem(content) {
+      try {
+        const encoded = btoa(content);
+        localStorage.setItem(LOCAL_STORAGE_PEM_KEY, encoded);
+      } catch (err) {
+        console.warn("Failed to cache PEM:", err);
+      }
+    },
+    async loadCachedPem() {
+      try {
+        const encoded = localStorage.getItem(LOCAL_STORAGE_PEM_KEY);
+        if (encoded) {
+          this.pemContent = atob(encoded);
+          this.pemLoaded = true;
+        }
+      } catch (err) {
+        console.warn("Failed to load cached PEM:", err);
+        localStorage.removeItem(LOCAL_STORAGE_PEM_KEY);
+      }
+    },
+    async encryptPemContent() {
+      if (!this.publicKey || !this.pemContent) {
+        throw new Error("Public key or PEM content not available");
+      }
+      const publicKeyPem = this.publicKey;
+      const pemHeader = "-----BEGIN PUBLIC KEY-----";
+      const pemFooter = "-----END PUBLIC KEY-----";
+      const pemContents = publicKeyPem.replace(pemHeader, "").replace(pemFooter, "").replace(/\s/g, "");
+      const binaryDer = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+      const publicKey = await crypto.subtle.importKey(
+        "spki",
+        binaryDer,
+        { name: "RSA-OAEP", hash: "SHA-256" },
+        false,
+        ["encrypt"]
+      );
+      const aesKey = await crypto.subtle.generateKey(
+        { name: "AES-GCM", length: 256 },
+        true,
+        ["encrypt"]
+      );
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const pemBytes = new TextEncoder().encode(this.pemContent);
+      const encryptedPem = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        aesKey,
+        pemBytes
+      );
+      const aesKeyBytes = await crypto.subtle.exportKey("raw", aesKey);
+      const encryptedKey = await crypto.subtle.encrypt(
+        { name: "RSA-OAEP" },
+        publicKey,
+        aesKeyBytes
+      );
+      return {
+        encryptedKey: btoa(String.fromCharCode(...new Uint8Array(encryptedKey))),
+        encryptedPem: btoa(String.fromCharCode(...new Uint8Array(encryptedPem))),
+        iv: btoa(String.fromCharCode(...iv))
+      };
+    },
+    async fetchConsoleOutput() {
+      var _a2;
+      if (!this.pemLoaded) {
+        this.error = "Please select a PEM file first";
+        return;
+      }
+      if (!this.targetHost) {
+        this.error = this.isServerMode ? "Please enter server host" : "No agent host available";
+        return;
+      }
+      if (!this.publicKey) {
+        this.error = "Encryption key not loaded. Please reopen the dialog.";
+        return;
+      }
+      this.loading = true;
+      this.error = null;
+      try {
+        const encrypted = await this.encryptPemContent();
+        const requestBody = {
+          host: this.targetHost,
+          encryptedKey: encrypted.encryptedKey,
+          encryptedPem: encrypted.encryptedPem,
+          iv: encrypted.iv,
+          lines: this.lines,
+          since: this.since || null
+        };
+        if (this.isServerMode) {
+          requestBody.logFile = "/data/newman/service/newman-server/bin/logs/newman.log";
+        } else {
+          requestBody.service = "newman-agent";
+        }
+        const response = await this.$axios.post(
+          "/api/newman/console",
+          requestBody,
+          { responseType: "text" }
+        );
+        this.consoleOutput = response.data;
+        this.$nextTick(() => {
+          if (this.$refs.consoleOutput) {
+            this.$refs.consoleOutput.scrollTop = this.$refs.consoleOutput.scrollHeight;
+          }
+        });
+      } catch (err) {
+        console.error("Failed to fetch console output:", err);
+        this.error = ((_a2 = err.response) == null ? void 0 : _a2.data) || err.message || "Failed to fetch console output";
+      } finally {
+        this.loading = false;
+      }
+    },
+    startAutoRefresh() {
+      this.stopAutoRefresh();
+      this.autoRefreshTimer = setInterval(() => {
+        this.fetchConsoleOutput();
+      }, this.refreshInterval * 1e3);
+    },
+    stopAutoRefresh() {
+      if (this.autoRefreshTimer) {
+        clearInterval(this.autoRefreshTimer);
+        this.autoRefreshTimer = null;
+      }
+    },
+    async copyToClipboard() {
+      if (this.consoleOutput) {
+        try {
+          await navigator.clipboard.writeText(this.consoleOutput);
+        } catch (err) {
+          console.error("Failed to copy:", err);
+        }
+      }
+    }
+  }
+};
+const _hoisted_1$7 = { key: 1 };
+const _hoisted_2$4 = { class: "console-container" };
+function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_v_icon = resolveComponent("v-icon");
+  const _component_v_spacer = resolveComponent("v-spacer");
+  const _component_v_chip = resolveComponent("v-chip");
+  const _component_v_card_title = resolveComponent("v-card-title");
+  const _component_v_divider = resolveComponent("v-divider");
+  const _component_v_file_input = resolveComponent("v-file-input");
+  const _component_v_col = resolveComponent("v-col");
+  const _component_v_text_field = resolveComponent("v-text-field");
+  const _component_v_row = resolveComponent("v-row");
+  const _component_v_checkbox = resolveComponent("v-checkbox");
+  const _component_v_select = resolveComponent("v-select");
+  const _component_v_progress_linear = resolveComponent("v-progress-linear");
+  const _component_v_alert = resolveComponent("v-alert");
+  const _component_v_card_text = resolveComponent("v-card-text");
+  const _component_v_btn = resolveComponent("v-btn");
+  const _component_v_card_actions = resolveComponent("v-card-actions");
+  const _component_v_card = resolveComponent("v-card");
+  const _component_v_dialog = resolveComponent("v-dialog");
+  return openBlock(), createBlock(_component_v_dialog, {
+    modelValue: $data.showDialog,
+    "onUpdate:modelValue": _cache[7] || (_cache[7] = ($event) => $data.showDialog = $event),
+    width: "95vw",
+    "max-width": "1400",
+    height: "85vh",
+    persistent: ""
+  }, {
+    default: withCtx(() => [
+      createVNode(_component_v_card, { class: "console-dialog-card" }, {
+        default: withCtx(() => [
+          createVNode(_component_v_card_title, { class: "d-flex align-center" }, {
+            default: withCtx(() => [
+              createVNode(_component_v_icon, { class: "mr-2" }, {
+                default: withCtx(() => _cache[8] || (_cache[8] = [
+                  createTextVNode("mdi-console")
+                ])),
+                _: 1,
+                __: [8]
+              }),
+              createBaseVNode("span", null, toDisplayString($options.dialogTitle), 1),
+              createVNode(_component_v_spacer),
+              $data.autoRefresh ? (openBlock(), createBlock(_component_v_chip, {
+                key: 0,
+                color: "success",
+                size: "small",
+                variant: "elevated",
+                class: "mr-2"
+              }, {
+                default: withCtx(() => [
+                  createVNode(_component_v_icon, {
+                    start: "",
+                    size: "small"
+                  }, {
+                    default: withCtx(() => _cache[9] || (_cache[9] = [
+                      createTextVNode("mdi-sync")
+                    ])),
+                    _: 1,
+                    __: [9]
+                  }),
+                  createTextVNode(" Auto-refresh: " + toDisplayString($data.refreshInterval) + "s ", 1)
+                ]),
+                _: 1
+              })) : createCommentVNode("", true)
+            ]),
+            _: 1
+          }),
+          createVNode(_component_v_divider),
+          createVNode(_component_v_card_text, null, {
+            default: withCtx(() => [
+              createVNode(_component_v_row, {
+                dense: "",
+                class: "mb-3"
+              }, {
+                default: withCtx(() => [
+                  createVNode(_component_v_col, {
+                    cols: $options.isServerMode ? 6 : 12
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_file_input, {
+                        modelValue: $data.pemFile,
+                        "onUpdate:modelValue": [
+                          _cache[0] || (_cache[0] = ($event) => $data.pemFile = $event),
+                          $options.onPemFileSelected
+                        ],
+                        label: "SSH Private Key (PEM file)",
+                        placeholder: "Select your .pem file",
+                        hint: "File is encrypted before sending to server",
+                        "persistent-hint": "",
+                        density: "compact",
+                        variant: "outlined",
+                        "prepend-icon": "",
+                        "prepend-inner-icon": "mdi-key",
+                        accept: ".pem",
+                        loading: $data.loadingKey
+                      }, {
+                        selection: withCtx(({ fileNames }) => [
+                          $data.pemLoaded ? (openBlock(), createBlock(_component_v_chip, {
+                            key: 0,
+                            color: "success",
+                            size: "small",
+                            class: "me-2"
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_v_icon, {
+                                start: "",
+                                size: "small"
+                              }, {
+                                default: withCtx(() => _cache[10] || (_cache[10] = [
+                                  createTextVNode("mdi-check")
+                                ])),
+                                _: 1,
+                                __: [10]
+                              }),
+                              createTextVNode(" " + toDisplayString(fileNames[0]), 1)
+                            ]),
+                            _: 2
+                          }, 1024)) : (openBlock(), createElementBlock("span", _hoisted_1$7, toDisplayString(fileNames[0]), 1))
+                        ]),
+                        _: 1
+                      }, 8, ["modelValue", "loading", "onUpdate:modelValue"])
+                    ]),
+                    _: 1
+                  }, 8, ["cols"]),
+                  $options.isServerMode ? (openBlock(), createBlock(_component_v_col, {
+                    key: 0,
+                    cols: "6"
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_text_field, {
+                        modelValue: $data.serverHost,
+                        "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $data.serverHost = $event),
+                        label: "Server Host",
+                        placeholder: "192.168.80.1",
+                        hint: "Newman server IP address",
+                        "persistent-hint": "",
+                        density: "compact",
+                        variant: "outlined",
+                        "prepend-inner-icon": "mdi-server",
+                        onChange: $options.saveServerHost
+                      }, null, 8, ["modelValue", "onChange"])
+                    ]),
+                    _: 1
+                  })) : createCommentVNode("", true)
+                ]),
+                _: 1
+              }),
+              createVNode(_component_v_row, {
+                dense: "",
+                class: "mb-3"
+              }, {
+                default: withCtx(() => [
+                  createVNode(_component_v_col, {
+                    cols: $options.isServerMode ? 4 : 3
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_text_field, {
+                        modelValue: $data.lines,
+                        "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $data.lines = $event),
+                        modelModifiers: { number: true },
+                        label: "Lines to show",
+                        type: "number",
+                        min: "1",
+                        max: "10000",
+                        density: "compact",
+                        variant: "outlined"
+                      }, null, 8, ["modelValue"])
+                    ]),
+                    _: 1
+                  }, 8, ["cols"]),
+                  !$options.isServerMode ? (openBlock(), createBlock(_component_v_col, {
+                    key: 0,
+                    cols: "4"
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_text_field, {
+                        modelValue: $data.since,
+                        "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $data.since = $event),
+                        label: "Show since",
+                        placeholder: "Feb 03 14:00:00",
+                        hint: "e.g., Feb 03 14:00:00",
+                        "persistent-hint": "",
+                        density: "compact",
+                        variant: "outlined",
+                        clearable: ""
+                      }, null, 8, ["modelValue"])
+                    ]),
+                    _: 1
+                  })) : createCommentVNode("", true),
+                  createVNode(_component_v_col, {
+                    cols: $options.isServerMode ? 4 : 2,
+                    class: "d-flex align-center"
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_checkbox, {
+                        modelValue: $data.autoRefresh,
+                        "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $data.autoRefresh = $event),
+                        label: "Auto-refresh",
+                        density: "compact",
+                        "hide-details": ""
+                      }, null, 8, ["modelValue"])
+                    ]),
+                    _: 1
+                  }, 8, ["cols"]),
+                  createVNode(_component_v_col, {
+                    cols: $options.isServerMode ? 4 : 3
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_select, {
+                        modelValue: $data.refreshInterval,
+                        "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $data.refreshInterval = $event),
+                        items: $data.refreshIntervalOptions,
+                        label: "Interval (sec)",
+                        density: "compact",
+                        variant: "outlined",
+                        disabled: !$data.autoRefresh
+                      }, null, 8, ["modelValue", "items", "disabled"])
+                    ]),
+                    _: 1
+                  }, 8, ["cols"])
+                ]),
+                _: 1
+              }),
+              createBaseVNode("div", _hoisted_2$4, [
+                $data.loading ? (openBlock(), createBlock(_component_v_progress_linear, {
+                  key: 0,
+                  indeterminate: "",
+                  color: "primary"
+                })) : createCommentVNode("", true),
+                createBaseVNode("pre", {
+                  class: "console-output",
+                  ref: "consoleOutput"
+                }, toDisplayString($data.consoleOutput || $options.placeholderText), 513)
+              ]),
+              $data.error ? (openBlock(), createBlock(_component_v_alert, {
+                key: 0,
+                type: "error",
+                density: "compact",
+                class: "mt-3",
+                closable: "",
+                "onClick:close": _cache[6] || (_cache[6] = ($event) => $data.error = null)
+              }, {
+                default: withCtx(() => [
+                  createTextVNode(toDisplayString($data.error), 1)
+                ]),
+                _: 1
+              })) : createCommentVNode("", true)
+            ]),
+            _: 1
+          }),
+          createVNode(_component_v_card_actions, { class: "pa-4 pt-0" }, {
+            default: withCtx(() => [
+              createVNode(_component_v_btn, {
+                color: "primary",
+                variant: "elevated",
+                "prepend-icon": "mdi-refresh",
+                loading: $data.loading,
+                disabled: !$options.canRefresh,
+                onClick: $options.fetchConsoleOutput
+              }, {
+                default: withCtx(() => _cache[11] || (_cache[11] = [
+                  createTextVNode(" Refresh ")
+                ])),
+                _: 1,
+                __: [11]
+              }, 8, ["loading", "disabled", "onClick"]),
+              createVNode(_component_v_btn, {
+                variant: "outlined",
+                "prepend-icon": "mdi-content-copy",
+                disabled: !$data.consoleOutput,
+                onClick: $options.copyToClipboard
+              }, {
+                default: withCtx(() => _cache[12] || (_cache[12] = [
+                  createTextVNode(" Copy ")
+                ])),
+                _: 1,
+                __: [12]
+              }, 8, ["disabled", "onClick"]),
+              createVNode(_component_v_spacer),
+              createVNode(_component_v_btn, {
+                variant: "outlined",
+                onClick: $options.closeDialog
+              }, {
+                default: withCtx(() => _cache[13] || (_cache[13] = [
+                  createTextVNode(" Close ")
+                ])),
+                _: 1,
+                __: [13]
+              }, 8, ["onClick"])
+            ]),
+            _: 1
+          })
+        ]),
+        _: 1
+      })
+    ]),
+    _: 1
+  }, 8, ["modelValue"]);
+}
+const ConsoleOutputDialog = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$6], ["__scopeId", "data-v-232389f1"]]);
 const _hoisted_1$6 = { style: { "width": "100%" } };
 const _hoisted_2$3 = ["innerHTML"];
 const _hoisted_3$3 = { class: "capabilities-container" };
@@ -41238,7 +41843,8 @@ const _hoisted_6$1 = { align: "center" };
 const __default__$2 = {
   components: {
     PromptDialog,
-    DialogPromptBody
+    DialogPromptBody,
+    ConsoleOutputDialog
   },
   data() {
     return {
@@ -41246,7 +41852,6 @@ const __default__$2 = {
       agentUpdate: null,
       itemsPerPage: 20,
       deleteAgent: null,
-      agentsInfo: null,
       agents: [],
       search: null,
       headers: [
@@ -41261,14 +41866,13 @@ const __default__$2 = {
         { key: "suite", title: "Suite", width: "10%" },
         { key: "tests", title: "Tests", width: "3%" },
         { key: "lastSeen", title: "Last Seen", width: "10%" },
-        { key: "actions", title: "Actions", width: "3%" }
+        { key: "actions", title: "Actions", width: "5%" }
       ]
     };
   },
   beforeMount() {
     this.agentUpdate = inject$1("modified-agent");
     this.initTable();
-    this.initAgentsInfo();
   },
   computed: {
     deleteAgentDialogBody() {
@@ -41305,13 +41909,6 @@ const __default__$2 = {
       }).catch((error) => {
         console.error("Error fetching data:", error);
         this.loading = false;
-      });
-    },
-    initAgentsInfo() {
-      this.$axios.get("/api/spotinst/elasticgroup").then((response) => {
-        this.agentsInfo = JSON.stringify(response.data, null, 4);
-      }).catch((error) => {
-        console.error("Error fetching data:", error);
       });
     },
     deleteAgentPrompt(item) {
@@ -41359,6 +41956,16 @@ const __default__$2 = {
     },
     cancelDeleteAgent() {
       this.deleteAgent = null;
+    },
+    openConsoleDialog(item) {
+      this.$refs.consoleOutputDialog.openDialog(item);
+    },
+    openServerLogsDialog() {
+      this.$refs.consoleOutputDialog.openServerDialog();
+    },
+    isWindowsAgent(item) {
+      if (!item.capabilities) return false;
+      return item.capabilities.toUpperCase().includes("WINDOWS");
     }
   }
 };
@@ -41370,18 +41977,14 @@ const _sfc_main$9 = /* @__PURE__ */ Object.assign(__default__$2, {
       const _component_v_col = resolveComponent("v-col");
       const _component_v_spacer = resolveComponent("v-spacer");
       const _component_v_btn = resolveComponent("v-btn");
-      const _component_v_textarea = resolveComponent("v-textarea");
-      const _component_v_card_text = resolveComponent("v-card-text");
-      const _component_v_card_actions = resolveComponent("v-card-actions");
-      const _component_v_card = resolveComponent("v-card");
-      const _component_v_dialog = resolveComponent("v-dialog");
+      const _component_v_tooltip = resolveComponent("v-tooltip");
       const _component_v_row = resolveComponent("v-row");
       const _component_v_card_title = resolveComponent("v-card-title");
       const _component_v_icon = resolveComponent("v-icon");
-      const _component_v_tooltip = resolveComponent("v-tooltip");
       const _component_router_link = resolveComponent("router-link");
       const _component_v_chip = resolveComponent("v-chip");
       const _component_v_data_table = resolveComponent("v-data-table");
+      const _component_v_card = resolveComponent("v-card");
       return openBlock(), createElementBlock(Fragment, null, [
         createVNode(_component_v_card, { align: "center" }, {
           default: withCtx(() => [
@@ -41418,51 +42021,20 @@ const _sfc_main$9 = /* @__PURE__ */ Object.assign(__default__$2, {
                         align: "end"
                       }, {
                         default: withCtx(() => [
-                          createVNode(_component_v_dialog, { "max-width": "700" }, {
-                            activator: withCtx(({ props: activatorProps }) => [
-                              createVNode(_component_v_btn, mergeProps({ value: "info" }, activatorProps, {
+                          createVNode(_component_v_tooltip, {
+                            text: "Server Logs",
+                            location: "top"
+                          }, {
+                            activator: withCtx(({ props }) => [
+                              createVNode(_component_v_btn, mergeProps(props, {
+                                tile: "",
+                                icon: "mdi-console",
+                                height: "26px",
+                                width: "26px",
                                 rounded: "",
-                                icon: "mdi-information-box",
-                                size: "default",
                                 color: "primary",
-                                "max-height": "32px",
-                                "max-width": "32px"
-                              }), null, 16)
-                            ]),
-                            default: withCtx(({ isActive }) => [
-                              createVNode(_component_v_card, { title: "Agents info" }, {
-                                default: withCtx(() => [
-                                  createVNode(_component_v_card_text, null, {
-                                    default: withCtx(() => [
-                                      createVNode(_component_v_textarea, {
-                                        readonly: "",
-                                        density: "compact",
-                                        modelValue: _ctx.agentsInfo,
-                                        "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => _ctx.agentsInfo = $event),
-                                        variant: "outlined",
-                                        style: { "font-family": "'Trebuchet MS', monospace" },
-                                        rows: "20"
-                                      }, null, 8, ["modelValue"])
-                                    ]),
-                                    _: 1
-                                  }),
-                                  createVNode(_component_v_card_actions, null, {
-                                    default: withCtx(() => [
-                                      createVNode(_component_v_spacer),
-                                      createVNode(_component_v_btn, {
-                                        class: "btn-confirm",
-                                        width: "120",
-                                        elevation: "5",
-                                        variant: "outlined",
-                                        text: "CLOSE",
-                                        onClick: ($event) => isActive.value = false
-                                      }, null, 8, ["onClick"])
-                                    ]),
-                                    _: 2
-                                  }, 1024)
-                                ]),
-                                _: 2
-                              }, 1024)
+                                onClick: _ctx.openServerLogsDialog
+                              }), null, 16, ["onClick"])
                             ]),
                             _: 1
                           })
@@ -41547,6 +42119,17 @@ const _sfc_main$9 = /* @__PURE__ */ Object.assign(__default__$2, {
                   ])
                 ]),
                 "item.actions": withCtx(({ item }) => [
+                  !_ctx.isWindowsAgent(item) ? (openBlock(), createBlock(_component_v_btn, {
+                    key: 0,
+                    tile: "",
+                    icon: "mdi-console",
+                    height: "26px",
+                    width: "26px",
+                    rounded: "",
+                    color: "primary",
+                    class: "mr-1",
+                    onClick: ($event) => _ctx.openConsoleDialog(item)
+                  }, null, 8, ["onClick"])) : createCommentVNode("", true),
                   createVNode(_component_v_btn, {
                     tile: "",
                     icon: "mdi-delete",
@@ -41576,7 +42159,8 @@ const _sfc_main$9 = /* @__PURE__ */ Object.assign(__default__$2, {
             createVNode(DialogPromptBody, { text: _ctx.deleteAgentDialogBody }, null, 8, ["text"])
           ]),
           _: 1
-        }, 8, ["onPromptDialog:onConfirm", "onPromptDialog:onCancel"])
+        }, 8, ["onPromptDialog:onConfirm", "onPromptDialog:onCancel"]),
+        createVNode(ConsoleOutputDialog, { ref: "consoleOutputDialog" }, null, 512)
       ], 64);
     };
   }
@@ -42196,7 +42780,7 @@ const routes = [
   { path: "/test/:id", name: "TestDetails", component: TestDetails, meta: { title: "Test Details", icon: "mdi-text-box-search-outline" }, props: true },
   { path: "/build/:id", name: "BuildDetails", component: BuildDetails, meta: { title: "Build Details", icon: "mdi-text-box-search-outline" }, props: true },
   { path: "/suite/:id", name: "SuiteDetails", component: SuiteDetails, meta: { title: "Suite Details", icon: "mdi-text-box-search-outline" }, props: true },
-  { path: "/test-history/:id", name: "History", component: _sfc_main$a, meta: { title: "Test History", icon: "mdi-history" }, props: true },
+  { path: "/test-history/:id", name: "History", component: _sfc_main$b, meta: { title: "Test History", icon: "mdi-history" }, props: true },
   {
     path: "/:pathMatch(.*)*",
     // Catch-all for undefined routes
@@ -46639,4 +47223,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-D2UzgVqE.js.map
+//# sourceMappingURL=index-xwun4HQf.js.map
