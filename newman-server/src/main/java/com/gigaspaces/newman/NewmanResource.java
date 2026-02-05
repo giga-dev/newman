@@ -2875,18 +2875,21 @@ public class NewmanResource {
                 }
             }
 
-            int updated = buildStatusUpdater.whereId(build.getBuildStatus().getId()).execute();
-            if (updated == 0) {
-                logger.error("Build {} cannot be updated", build.getId());
-                return;
+            try {
+                int updated = buildStatusUpdater.whereId(build.getBuildStatus().getId()).execute();
+                if (updated == 0) {
+                    logger.error("Build {} cannot be updated", build.getId());
+                    return;
+                }
+            } catch (IllegalStateException ex) {
+                logger.error("[OK] Failed to update build status for build {}. Reason: {}", build.getId(), ex.getMessage());
             }
 
             build = buildRepository.findById(build.getId()).get();
 
             Suite suite = deletedJob.getSuite();
             if (suite != null) {
-                build.getBuildStatus().getSuites()
-                        .remove(new BuildStatusSuite(suite.getId(), suite.getName()));
+                build.getBuildStatus().getSuites().remove(new BuildStatusSuite(suite.getId(), suite.getName()));
             }
 
             build = buildRepository.saveAndFlush(build);
