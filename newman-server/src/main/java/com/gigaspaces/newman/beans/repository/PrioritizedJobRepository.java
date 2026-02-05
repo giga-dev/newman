@@ -18,7 +18,6 @@ public interface PrioritizedJobRepository extends CrudRepository<PrioritizedJob,
     List<PrioritizedJob> findByIsPausedFalseOrderByPriorityDesc();
 
     @Transactional
-    @Modifying
     Long deleteByJobId(String jobId);
 
     Optional<PrioritizedJob> findByJobId(String jobId);

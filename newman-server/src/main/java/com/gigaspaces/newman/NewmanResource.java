@@ -2726,16 +2726,40 @@ public class NewmanResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         Job deleteCandidate = opJob.get();
+
+        // Delete job from repository immediately
         jobRepository.deleteById(deleteCandidate.getId());
+        jobRepository.flush(); // Ensure deletion is committed
 
-        if (deleteCandidate.getPriority() > 0) {
-            deletePrioritizedJob(deleteCandidate);
-        }
-        performDeleteTestsLogs(jobId);
-        performDeleteJobSetupLogs(jobId);
-        updateBuildWithDeletedJob(deleteCandidate);
+        // Broadcast deletion immediately so UI updates
+        broadcastMessage(MODIFIED_JOB, deleteCandidate);
 
-        testRepository.deleteByJobId(jobId);
+        // Perform cleanup asynchronously to avoid blocking the UI
+        executor.submit(() -> {
+            try {
+                logger.info("Starting async cleanup for job {}", jobId);
+
+                // Delete tests from database
+                testRepository.deleteByJobId(jobId);
+                logger.info("Deleted tests for job {}", jobId);
+
+                // Update build status
+                updateBuildWithDeletedJob(deleteCandidate);
+
+                // Delete prioritized job if needed
+                if (deleteCandidate.getPriority() > 0) {
+                    deletePrioritizedJob(deleteCandidate);
+                }
+
+                // Delete log files (can be slow for large directories)
+                performDeleteTestsLogs(jobId);
+                performDeleteJobSetupLogs(jobId);
+
+                logger.info("Completed async cleanup for job {}", jobId);
+            } catch (Exception e) {
+                logger.error("ERROR during async cleanup of job " + jobId, e);
+            }
+        });
 
         return Response.ok(Entity.json(jobId)).build();
     }

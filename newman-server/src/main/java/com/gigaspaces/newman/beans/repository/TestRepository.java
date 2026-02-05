@@ -24,7 +24,6 @@ public interface TestRepository extends CrudRepository<Test, String>, JpaSpecifi
     Set<String> findDistinctAssignedAgentByJobId(@Param("jobId") String jobId);
 
     @Transactional
-    @Modifying
     void deleteByJobId(String jobId);
 
     List<Test> findByJobIdAndStatusAndRunNumber(String jobId, Test.Status status, int runNumber);

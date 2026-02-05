@@ -2,6 +2,8 @@ package com.gigaspaces.newman.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -19,6 +21,7 @@ public class TestLog {
     @JsonIgnore
     @OneToOne
     @JoinColumn(name = "test_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Test test;
 
     @Type(type = "com.gigaspaces.newman.types.MapJsonType")
