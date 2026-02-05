@@ -2731,6 +2731,14 @@ public class NewmanResource {
         jobRepository.deleteById(deleteCandidate.getId());
         jobRepository.flush(); // Ensure deletion is committed
 
+        // Delete prioritized job if needed (must be done immediately)
+        if (deleteCandidate.getPriority() > 0) {
+            deletePrioritizedJob(deleteCandidate);
+        }
+
+        // Update build status immediately so UI shows correct counts
+        updateBuildWithDeletedJob(deleteCandidate);
+
         // Broadcast deletion immediately so UI updates
         broadcastMessage(MODIFIED_JOB, deleteCandidate);
 
@@ -2743,21 +2751,13 @@ public class NewmanResource {
                 testRepository.deleteByJobId(jobId);
                 logger.info("Deleted tests for job {}", jobId);
 
-                // Update build status
-                updateBuildWithDeletedJob(deleteCandidate);
-
-                // Delete prioritized job if needed
-                if (deleteCandidate.getPriority() > 0) {
-                    deletePrioritizedJob(deleteCandidate);
-                }
-
                 // Delete log files (can be slow for large directories)
                 performDeleteTestsLogs(jobId);
                 performDeleteJobSetupLogs(jobId);
 
                 logger.info("Completed async cleanup for job {}", jobId);
             } catch (Exception e) {
-                logger.error("ERROR during async cleanup of job " + jobId, e);
+                logger.error("Error during async cleanup of job " + jobId, e);
             }
         });
 
@@ -2769,18 +2769,57 @@ public class NewmanResource {
     @Produces(MediaType.APPLICATION_JSON)
     public synchronized Iterable<Job> deletejobs(final List<String> ids) {
         Iterable<Job> jobs = jobRepository.findAllById(ids);
+        List<Job> deletedJobs = new ArrayList<>();
+
+        // Delete all jobs from repository immediately and perform immediate updates
         for (Job deleteJobCandidate : jobs) {
             jobRepository.deleteById(deleteJobCandidate.getId());
+            deletedJobs.add(deleteJobCandidate);
+
+            // Delete prioritized job if needed (must be done immediately)
             if (deleteJobCandidate.getPriority() > 0) {
                 deletePrioritizedJob(deleteJobCandidate);
             }
-            performDeleteTestsLogs(deleteJobCandidate.getId());
-            performDeleteJobSetupLogs(deleteJobCandidate.getId());
+
+            // Update build status immediately so UI shows correct counts
             updateBuildWithDeletedJob(deleteJobCandidate);
-            testRepository.deleteByJobId(deleteJobCandidate.getId());
+
+            // Broadcast message for each job
             broadcastMessage(MODIFIED_JOB, deleteJobCandidate);
         }
-        return jobs;
+
+        // Flush to ensure all deletions are committed
+        jobRepository.flush();
+
+        // Perform cleanup asynchronously to avoid blocking the UI
+        executor.submit(() -> {
+            try {
+                logger.info("Starting async cleanup for {} jobs", deletedJobs.size());
+
+                for (Job deleteJobCandidate : deletedJobs) {
+                    try {
+                        String jobId = deleteJobCandidate.getId();
+
+                        // Delete tests from database
+                        testRepository.deleteByJobId(jobId);
+
+                        // Delete log files (can be slow for large directories)
+                        performDeleteTestsLogs(jobId);
+                        performDeleteJobSetupLogs(jobId);
+
+                        logger.info("Completed async cleanup for job {}", jobId);
+                    } catch (Exception e) {
+                        logger.error("Error during async cleanup of job " + deleteJobCandidate.getId(), e);
+                    }
+                }
+
+                logger.info("Completed async cleanup for all {} jobs", deletedJobs.size());
+            } catch (Exception e) {
+                logger.error("Error during async cleanup of jobs", e);
+            }
+        });
+
+        return deletedJobs;
     }
 
     private void deletePrioritizedJob(Job job) {
