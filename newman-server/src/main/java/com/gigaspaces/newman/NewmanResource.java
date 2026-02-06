@@ -1809,7 +1809,10 @@ public class NewmanResource {
 
         // If cache is fresh (less than 3 hours old) AND has been initialized, return cached value immediately
         if (lastLogSizeCheckTime.get() > 0 && cachedAge < TimeUnit.HOURS.toMillis(3)) {
-            return Response.ok(String.valueOf(latestLogSize.get())).build();
+            long cachedValue = latestLogSize.get();
+            logger.info("Log size request - returning cached value: {} bytes (cache age: {} minutes)",
+                cachedValue, TimeUnit.MILLISECONDS.toMinutes(cachedAge));
+            return Response.ok(String.valueOf(cachedValue)).build();
         }
 
         // Cache is stale or never initialized - trigger async refresh if not already in progress
@@ -1817,28 +1820,49 @@ public class NewmanResource {
             // Double-check if another thread already started refresh
             cachedAge = System.currentTimeMillis() - lastLogSizeCheckTime.get();
             if (lastLogSizeCheckTime.get() == 0 || cachedAge >= TimeUnit.HOURS.toMillis(3)) {
+                boolean isFirstCalculation = (lastLogSizeCheckTime.get() == 0);
+
+                if (isFirstCalculation) {
+                    logger.info("Log size request - first calculation ever, triggering async calculation");
+                } else {
+                    logger.info("Log size request - cache is stale (age: {} hours), triggering async refresh",
+                        TimeUnit.MILLISECONDS.toHours(cachedAge));
+                }
+
                 // Mark that we're refreshing (prevent multiple concurrent refreshes)
                 lastLogSizeCheckTime.set(System.currentTimeMillis());
 
                 // Trigger async calculation
                 executor.execute(() -> {
+                    long calculationStart = System.currentTimeMillis();
+                    logger.info("Starting async log directory size calculation for: {}",
+                        SERVER_TESTS_UPLOAD_LOCATION_FOLDER);
+
                     try {
                         long size = calculateLogDirSize();
+                        long calculationDuration = System.currentTimeMillis() - calculationStart;
                         latestLogSize.set(size);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Log directory size refreshed: {} bytes", size);
-                        }
+                        logger.info("Log directory size calculation completed successfully: {} bytes ({} GB) in {} seconds",
+                            size, String.format("%.2f", size / 1024.0 / 1024.0 / 1024.0), calculationDuration / 1000.0);
                     } catch (Exception e) {
-                        logger.error("Failed to compute log directory size", e);
+                        long calculationDuration = System.currentTimeMillis() - calculationStart;
+                        logger.error("Failed to compute log directory size after {} seconds: {}",
+                            calculationDuration / 1000.0, e.getMessage(), e);
                         // Roll back the timestamp so next request can retry
                         lastLogSizeCheckTime.set(System.currentTimeMillis() - TimeUnit.HOURS.toMillis(3));
                     }
                 });
+            } else {
+                logger.info("Log size request - calculation already in progress (started {} seconds ago), returning current value",
+                    TimeUnit.MILLISECONDS.toSeconds(cachedAge));
             }
         }
 
         // Return last known value immediately (0 on first request, while refresh happens in background)
-        return Response.ok(String.valueOf(latestLogSize.get())).build();
+        long currentValue = latestLogSize.get();
+        logger.info("Log size request - returning current value: {} bytes (calculation in progress: {})",
+            currentValue, lastLogSizeCheckTime.get() > 0 && currentValue == 0);
+        return Response.ok(String.valueOf(currentValue)).build();
     }
 
     /**
@@ -1856,8 +1880,11 @@ public class NewmanResource {
 
         // If directory doesn't exist, return 0
         if (!testsDir.exists()) {
+            logger.warn("Log directory does not exist: {}, returning size 0", SERVER_TESTS_UPLOAD_LOCATION_FOLDER);
             return 0;
         }
+
+        logger.info("Executing 'du -sb {}' command to calculate directory size", SERVER_TESTS_UPLOAD_LOCATION_FOLDER);
 
         try {
             // Use 'du -sb' command: -s (summary), -b (bytes)
@@ -1866,29 +1893,36 @@ public class NewmanResource {
             Process process = pb.start();
 
             long size = 0;
+            String rawOutput = null;
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()))) {
                 String line = reader.readLine();
+                rawOutput = line;
                 if (line != null) {
                     // Format: "12345678\t/path/to/dir"
                     String[] parts = line.split("\\s+");
                     if (parts.length > 0) {
                         size = Long.parseLong(parts[0]);
+                        logger.info("Parsed size from du output: {} bytes", size);
                     }
                 }
             }
 
             int exitCode = process.waitFor();
             if (exitCode != 0) {
+                logger.error("du command failed with exit code: {}, output: {}", exitCode, rawOutput);
                 throw new IOException("du command failed with exit code: " + exitCode);
             }
 
+            logger.info("du command completed successfully, returning size: {} bytes", size);
             return size;
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            logger.error("Interrupted while executing du command", e);
             throw new IOException("Interrupted while calculating directory size", e);
         } catch (NumberFormatException e) {
+            logger.error("Failed to parse du command output as number", e);
             throw new IOException("Failed to parse du command output", e);
         }
     }
