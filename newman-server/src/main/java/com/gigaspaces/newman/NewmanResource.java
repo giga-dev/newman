@@ -1804,25 +1804,103 @@ public class NewmanResource {
     @GET
     @Path("log/size")
     public Response computeLogDirSize() {
+        // Calculate cache age
+        long cachedAge = System.currentTimeMillis() - lastLogSizeCheckTime.get();
+
+        // If cache is fresh (less than 60 minutes old), return cached value immediately
+        if (cachedAge < TimeUnit.MINUTES.toMillis(60)) {
+            return Response.ok(String.valueOf(latestLogSize.get())).build();
+        }
+
+        // Cache is stale - trigger async refresh if not already in progress
         synchronized (lastLogSizeCheckTime) {
-            if (System.currentTimeMillis() - lastLogSizeCheckTime.get() < TimeUnit.MINUTES.toMillis(60)) {
-                return Response.ok(String.valueOf(latestLogSize)).build();
+            // Double-check if another thread already started refresh
+            cachedAge = System.currentTimeMillis() - lastLogSizeCheckTime.get();
+            if (cachedAge >= TimeUnit.MINUTES.toMillis(60)) {
+                // Mark that we're refreshing (prevent multiple concurrent refreshes)
+                lastLogSizeCheckTime.set(System.currentTimeMillis());
+
+                // Trigger async calculation
+                executor.execute(() -> {
+                    try {
+                        long size = calculateLogDirSize();
+                        latestLogSize.set(size);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Log directory size refreshed: {} bytes", size);
+                        }
+                    } catch (Exception e) {
+                        logger.error("Failed to compute log directory size", e);
+                        // Roll back the timestamp so next request can retry
+                        lastLogSizeCheckTime.set(System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(60));
+                    }
+                });
             }
-            lastLogSizeCheckTime.set(System.currentTimeMillis());
         }
-        try {
-            if (!new File(SERVER_TESTS_UPLOAD_LOCATION_FOLDER).exists() || !new File(SERVER_JOBS_UPLOAD_LOCATION_FOLDER).exists()) {
-                return Response.ok("0").build();
+
+        // Return last known value immediately (while refresh happens in background)
+        return Response.ok(String.valueOf(latestLogSize.get())).build();
+    }
+
+    /**
+     * Calculate the total size of log directories.
+     * Uses parallel streams for better performance on large directory trees.
+     *
+     * @return total size in bytes
+     * @throws IOException if directory traversal fails
+     */
+    private long calculateLogDirSize() throws IOException {
+        long testLogsSize = 0;
+        long jobsSetupLogSize = 0;
+
+        // Check if directories exist
+        File testsDir = new File(SERVER_TESTS_UPLOAD_LOCATION_FOLDER);
+        File jobsDir = new File(SERVER_JOBS_UPLOAD_LOCATION_FOLDER);
+
+        if (!testsDir.exists() && !jobsDir.exists()) {
+            return 0;
+        }
+
+        // Calculate test logs size using parallel stream for better performance
+        if (testsDir.exists()) {
+            try (java.util.stream.Stream<java.nio.file.Path> stream = Files.find(Paths.get(SERVER_TESTS_UPLOAD_LOCATION_FOLDER),
+                    Integer.MAX_VALUE,
+                    (path, attrs) -> attrs.isRegularFile())) {
+                testLogsSize = stream
+                        .parallel()
+                        .mapToLong(path -> {
+                            try {
+                                return path.toFile().length();
+                            } catch (Exception e) {
+                                // Skip files that become inaccessible during traversal
+                                logger.warn("Unable to get size of file: {}", path, e);
+                                return 0;
+                            }
+                        })
+                        .sum();
             }
-            long testLogsSize = Files.walk(Paths.get(SERVER_TESTS_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum();
-            long jobsSetupLogSize = Files.walk(Paths.get(SERVER_JOBS_UPLOAD_LOCATION_FOLDER)).mapToLong(p -> p.toFile().length()).sum();
-            latestLogSize.set(testLogsSize + jobsSetupLogSize);
-            String sum = String.valueOf(latestLogSize.get());
-            return Response.ok(sum, MediaType.TEXT_PLAIN_TYPE).build();
-        } catch (Exception e) {
-            logger.error(e.toString(), e);
-            return Response.status(Response.Status.EXPECTATION_FAILED).build();
         }
+
+        // Calculate jobs setup logs size
+        if (jobsDir.exists()) {
+            try (java.util.stream.Stream<java.nio.file.Path> stream = Files.find(Paths.get(SERVER_JOBS_UPLOAD_LOCATION_FOLDER),
+                    Integer.MAX_VALUE,
+                    (path, attrs) -> attrs.isRegularFile())) {
+                jobsSetupLogSize = stream
+                        .parallel()
+                        .mapToLong(path -> {
+                            try {
+                                return path.toFile().length();
+                            } catch (Exception e) {
+                                // Skip files that become inaccessible during traversal
+                                logger.warn("Unable to get size of file: {}", path, e);
+                                return 0;
+                            }
+                        })
+                        .sum();
+            }
+        }
+
+        return testLogsSize + jobsSetupLogSize;
     }
 
     @GET
