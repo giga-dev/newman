@@ -1807,16 +1807,16 @@ public class NewmanResource {
         // Calculate cache age
         long cachedAge = System.currentTimeMillis() - lastLogSizeCheckTime.get();
 
-        // If cache is fresh (less than 60 minutes old), return cached value immediately
-        if (cachedAge < TimeUnit.MINUTES.toMillis(60)) {
+        // If cache is fresh (less than 3 hours old) AND has been initialized, return cached value immediately
+        if (lastLogSizeCheckTime.get() > 0 && cachedAge < TimeUnit.HOURS.toMillis(3)) {
             return Response.ok(String.valueOf(latestLogSize.get())).build();
         }
 
-        // Cache is stale - trigger async refresh if not already in progress
+        // Cache is stale or never initialized - trigger async refresh if not already in progress
         synchronized (lastLogSizeCheckTime) {
             // Double-check if another thread already started refresh
             cachedAge = System.currentTimeMillis() - lastLogSizeCheckTime.get();
-            if (cachedAge >= TimeUnit.MINUTES.toMillis(60)) {
+            if (lastLogSizeCheckTime.get() == 0 || cachedAge >= TimeUnit.HOURS.toMillis(3)) {
                 // Mark that we're refreshing (prevent multiple concurrent refreshes)
                 lastLogSizeCheckTime.set(System.currentTimeMillis());
 
@@ -1831,76 +1831,66 @@ public class NewmanResource {
                     } catch (Exception e) {
                         logger.error("Failed to compute log directory size", e);
                         // Roll back the timestamp so next request can retry
-                        lastLogSizeCheckTime.set(System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(60));
+                        lastLogSizeCheckTime.set(System.currentTimeMillis() - TimeUnit.HOURS.toMillis(3));
                     }
                 });
             }
         }
 
-        // Return last known value immediately (while refresh happens in background)
+        // Return last known value immediately (0 on first request, while refresh happens in background)
         return Response.ok(String.valueOf(latestLogSize.get())).build();
     }
 
     /**
-     * Calculate the total size of log directories.
-     * Uses parallel streams for better performance on large directory trees.
+     * Calculate the total size of log directories using 'du' command.
+     * This is much faster than Java file walking, especially for S3-mounted directories.
+     *
+     * Note: Only calculates SERVER_TESTS_UPLOAD_LOCATION_FOLDER size.
+     * SERVER_JOBS_UPLOAD_LOCATION_FOLDER is not uploaded to S3 and is omitted from calculation.
      *
      * @return total size in bytes
-     * @throws IOException if directory traversal fails
+     * @throws IOException if command execution fails
      */
     private long calculateLogDirSize() throws IOException {
-        long testLogsSize = 0;
-        long jobsSetupLogSize = 0;
-
-        // Check if directories exist
         File testsDir = new File(SERVER_TESTS_UPLOAD_LOCATION_FOLDER);
-        File jobsDir = new File(SERVER_JOBS_UPLOAD_LOCATION_FOLDER);
 
-        if (!testsDir.exists() && !jobsDir.exists()) {
+        // If directory doesn't exist, return 0
+        if (!testsDir.exists()) {
             return 0;
         }
 
-        // Calculate test logs size using parallel stream for better performance
-        if (testsDir.exists()) {
-            try (java.util.stream.Stream<java.nio.file.Path> stream = Files.find(Paths.get(SERVER_TESTS_UPLOAD_LOCATION_FOLDER),
-                    Integer.MAX_VALUE,
-                    (path, attrs) -> attrs.isRegularFile())) {
-                testLogsSize = stream
-                        .parallel()
-                        .mapToLong(path -> {
-                            try {
-                                return path.toFile().length();
-                            } catch (Exception e) {
-                                // Skip files that become inaccessible during traversal
-                                logger.warn("Unable to get size of file: {}", path, e);
-                                return 0;
-                            }
-                        })
-                        .sum();
-            }
-        }
+        try {
+            // Use 'du -sb' command: -s (summary), -b (bytes)
+            ProcessBuilder pb = new ProcessBuilder("du", "-sb", SERVER_TESTS_UPLOAD_LOCATION_FOLDER);
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
 
-        // Calculate jobs setup logs size
-        if (jobsDir.exists()) {
-            try (java.util.stream.Stream<java.nio.file.Path> stream = Files.find(Paths.get(SERVER_JOBS_UPLOAD_LOCATION_FOLDER),
-                    Integer.MAX_VALUE,
-                    (path, attrs) -> attrs.isRegularFile())) {
-                jobsSetupLogSize = stream
-                        .parallel()
-                        .mapToLong(path -> {
-                            try {
-                                return path.toFile().length();
-                            } catch (Exception e) {
-                                // Skip files that become inaccessible during traversal
-                                logger.warn("Unable to get size of file: {}", path, e);
-                                return 0;
-                            }
-                        })
-                        .sum();
+            long size = 0;
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()))) {
+                String line = reader.readLine();
+                if (line != null) {
+                    // Format: "12345678\t/path/to/dir"
+                    String[] parts = line.split("\\s+");
+                    if (parts.length > 0) {
+                        size = Long.parseLong(parts[0]);
+                    }
+                }
             }
-        }
 
-        return testLogsSize + jobsSetupLogSize;
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new IOException("du command failed with exit code: " + exitCode);
+            }
+
+            return size;
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while calculating directory size", e);
+        } catch (NumberFormatException e) {
+            throw new IOException("Failed to parse du command output", e);
+        }
     }
 
     @GET
