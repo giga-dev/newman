@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: newman-server
+spec:
+  serviceName: newman-server-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: newman-server
+  template:
+    metadata:
+      labels:
+        app: newman
+    spec:
+      containers:
+        - name: newman-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              /newman/newman-server/bin/newman-server.sh
+          env:
+            - name: MONGODB_HOST
+              value: {{ .Values.mongodb.host | quote }}
+            - name: MONGODB_PORT
+              value: {{ .Values.mongodb.port | quote }}
+            - name: MONGODB_DATABASE
+              value: {{ .Values.mongodb.database | quote }}
+            - name: MONGODB_USERNAME
+              value: {{ .Values.mongodb.username | quote }}
+            - name: MONGODB_PASSWORD
+              value: {{ .Values.mongodb.password | quote }}
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data/newman-server
+  volumeClaimTemplates:
+    - metadata:
+        name: data-volume
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi            

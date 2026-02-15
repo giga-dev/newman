@@ -1,6 +1,6 @@
 #!/bin/bash
 DIRNAME=`cd $(dirname ${BASH_SOURCE[0]}) && pwd`
-
+echo $DIRNAME
 MODE="-d"
 if [[ -n "$1" ]]; then
         if [[ "$1" == "-iii" ]]; then
@@ -9,7 +9,6 @@ if [[ -n "$1" ]]; then
                 MODE="$1"
         fi
 fi
-
 
 docker stop newman-server
 docker rm newman-server

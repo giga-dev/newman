@@ -1,0 +1,35 @@
+replicaCount: 1
+
+image:
+  repository: 573366771204.dkr.ecr.us-east-1.amazonaws.com/xap-newman/server
+  tag: 0.1.16
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  annotations: {}
+  hosts:
+    - host: newman-server.gigaspaces.net
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+persistence:
+  enabled: true
+  size: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClass: gp3
+
+mongodb:
+  host: mongo-server
+  port: 27017
+  username: newman
+  password: newman
+  database: newman-db

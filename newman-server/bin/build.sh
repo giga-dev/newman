@@ -7,6 +7,6 @@ cd ${DIRNAME}/../
 #echo "running elm make"
 #./elm-make.sh
 
-echo "Running mvn package "
+echo "Running mvn package"
 cd ${DIRNAME}/../../
 mvn clean install
