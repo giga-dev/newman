@@ -2,8 +2,7 @@ package com.gigaspaces.newman.dto;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Barak Bar Orion
@@ -52,9 +51,9 @@ public class BuildsComparisonDTO {
         getBuildResults().compute(suiteName, (key, value) -> {
             JobStatsDTO jobStats = new JobStatsDTO(jobId, total, passed, failed, failed3);
             if (value == null) {
-                return new ResultsLeftRightDTO().setLeft(jobStats);
+                return new ResultsLeftRightDTO().addLeft(jobStats);
             } else {
-                return value.setLeft(jobStats);
+                return value.addLeft(jobStats);
             }
         });
     }
@@ -63,9 +62,9 @@ public class BuildsComparisonDTO {
         getBuildResults().compute(suiteName, (key, value) -> {
             JobStatsDTO jobStats = new JobStatsDTO(jobId, total, passed, failed, failed3);
             if (value == null) {
-                return new ResultsLeftRightDTO().setRight(jobStats);
+                return new ResultsLeftRightDTO().addRight(jobStats);
             } else {
-                return value.setRight(jobStats);
+                return value.addRight(jobStats);
             }
         });
     }
@@ -142,27 +141,39 @@ public class BuildsComparisonDTO {
     }
 
     private static class ResultsLeftRightDTO {
-        JobStatsDTO left;
-        JobStatsDTO right;
+        List<JobStatsDTO> left;
+        List<JobStatsDTO> right;
 
         public ResultsLeftRightDTO() {
+            this.left = new LinkedList<>();
+            this.right = new LinkedList<>();
         }
 
-        public JobStatsDTO getLeft() {
+        public List<JobStatsDTO> getLeft() {
             return left;
         }
 
-        public ResultsLeftRightDTO setLeft(JobStatsDTO left) {
+        public ResultsLeftRightDTO setLeft(List<JobStatsDTO> left) {
             this.left = left;
             return this;
         }
 
-        public JobStatsDTO getRight() {
+        public ResultsLeftRightDTO addLeft(JobStatsDTO jobStats) {
+            this.left.add(jobStats);
+            return this;
+        }
+
+        public List<JobStatsDTO> getRight() {
             return right;
         }
 
-        public ResultsLeftRightDTO setRight(JobStatsDTO right) {
+        public ResultsLeftRightDTO setRight(List<JobStatsDTO> right) {
             this.right = right;
+            return this;
+        }
+
+        public ResultsLeftRightDTO addRight(JobStatsDTO jobStats) {
+            this.right.add(jobStats);
             return this;
         }
     }

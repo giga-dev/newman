@@ -55,4 +55,7 @@ public interface BuildRepository extends CrudRepository<Build, String>, JpaRepos
             "AND (b.buildStatus.doneJobs + b.buildStatus.brokenJobs) = b.buildStatus.totalJobs " +
             "ORDER BY b.buildTime DESC")
     List<Build> findRecentlyCompletedBuildsDescByBuildTime(Pageable pageable);
+
+    @Query("SELECT b FROM Build b WHERE FUNCTION('DATE', b.buildTime) = :requestedDate ORDER BY b.buildTime DESC")
+    Page<PBuildThin> findThinBuildsByDate(@Param("requestedDate") Date requestedDate, Pageable pageable);
 }

@@ -409,6 +409,32 @@ public class NewmanResource {
         return new AllSuitesAndBuildsView(buildViews, suiteViews);
     }
 
+    @GET
+    @Path("builds-by-date")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<BuildView> getBuildsByDate(@QueryParam("date") String dateStr) {
+        if (dateStr == null || dateStr.isEmpty()) {
+            throw new WebApplicationException("Date parameter is required in format yyyy-MM-dd", Response.Status.BAD_REQUEST);
+        }
+
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date requestedDate = dateFormat.parse(dateStr);
+
+            Pageable pageable = PageRequest.of(0, 1000, Sort.by(Sort.Order.desc("buildTime")));
+            List<PBuildThin> buildProjections = buildRepository.findThinBuildsByDate(requestedDate, pageable).getContent();
+
+            List<BuildView> buildViews = new ArrayList<>(buildProjections.size());
+            for (PBuildThin buildProjection : buildProjections) {
+                buildViews.add(new BuildView(buildProjection));
+            }
+
+            return buildViews;
+        } catch (ParseException e) {
+            throw new WebApplicationException("Invalid date format. Expected yyyy-MM-dd", Response.Status.BAD_REQUEST);
+        }
+    }
+
     private List<PBuildThin> getThinBuilds() {
         final int buildsLimit = 30;
         Pageable pageable = PageRequest.of(0, buildsLimit, Sort.by(Sort.Order.desc("buildTime")));
@@ -865,34 +891,35 @@ public class NewmanResource {
     }
 
     @GET
-    @Path("build/{build1Date}/compare/{build2Date}")
+    @Path("build/{buildId1}/compare/{buildId2}")
     @Produces(MediaType.APPLICATION_JSON)
-    public BuildsComparisonDTO getJobRunsComparison(@PathParam("build1Date") String build1DateStr, @PathParam("build2Date") String build2DateStr ) throws ParseException {
-
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        Date dateLeft = formatter.parse(build1DateStr);
-        Date dateRight = formatter.parse(build2DateStr);
+    public BuildsComparisonDTO getJobRunsComparison(@PathParam("buildId1") String buildId1, @PathParam("buildId2") String buildId2) {
 
         BuildsComparisonDTO buildsComparisonDTO = new BuildsComparisonDTO();
 
-        List<Job> jobsLeft = jobRepository.findBySubmittedByAndSubmitTime("root", dateLeft);
-        List<Job> jobsRight = jobRepository.findBySubmittedByAndSubmitTime("root", dateRight);
-
-        if (!jobsLeft.isEmpty()) {
-            Build buildLeft = jobsLeft.get(0).getBuild();
-            buildsComparisonDTO.setBuildLeftDetails(new String[]{buildLeft.getId(), buildLeft.getName()});
-            for (Job job : jobsLeft) {
-                buildsComparisonDTO.addSuiteLeft(job.getSuite().getName(), job.getId(),
-                        job.getTotalTests(), job.getPassedTests(), job.getFailedTests(), job.getFailed3TimesTests());
+        // Handle left build - only fetch if buildId1 is selected (not empty and not "--")
+        if (!"--".equals(buildId1.trim())) {
+            List<Job> jobsLeft = jobRepository.findAllByBuildId(buildId1);
+            if (!jobsLeft.isEmpty()) {
+                Build buildLeft = jobsLeft.get(0).getBuild();
+                buildsComparisonDTO.setBuildLeftDetails(new String[]{buildLeft.getId(), buildLeft.getName()});
+                for (Job job : jobsLeft) {
+                    buildsComparisonDTO.addSuiteLeft(job.getSuite().getName(), job.getId(),
+                            job.getTotalTests(), job.getPassedTests(), job.getFailedTests(), job.getFailed3TimesTests());
+                }
             }
         }
 
-        if (!jobsRight.isEmpty()) {
-            Build buildRight = jobsRight.get(0).getBuild();
-            buildsComparisonDTO.setBuildRightDetails(new String[]{buildRight.getId(), buildRight.getName()});
-            for (Job job : jobsRight) {
-                buildsComparisonDTO.addSuiteRight(job.getSuite().getName(), job.getId(),
-                        job.getTotalTests(), job.getPassedTests(), job.getFailedTests(), job.getFailed3TimesTests());
+        // Handle right build - only fetch if buildId2 is selected (not empty and not "--")
+        if (!"--".equals(buildId2.trim())) {
+            List<Job> jobsRight = jobRepository.findAllByBuildId(buildId2);
+            if (!jobsRight.isEmpty()) {
+                Build buildRight = jobsRight.get(0).getBuild();
+                buildsComparisonDTO.setBuildRightDetails(new String[]{buildRight.getId(), buildRight.getName()});
+                for (Job job : jobsRight) {
+                    buildsComparisonDTO.addSuiteRight(job.getSuite().getName(), job.getId(),
+                            job.getTotalTests(), job.getPassedTests(), job.getFailedTests(), job.getFailed3TimesTests());
+                }
             }
         }
 

@@ -37482,6 +37482,9 @@ function _sfc_render$i(_ctx, _cache, $props, $setup, $data, $options) {
 }
 const JobsTable = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["render", _sfc_render$i]]);
 const _sfc_main$p = {
+  props: {
+    buildId: String
+  },
   data() {
     return {
       loading: true,
@@ -37493,6 +37496,12 @@ const _sfc_main$p = {
       rightMenu: false,
       leftDate: "",
       rightDate: "",
+      leftBuilds: [],
+      rightBuilds: [],
+      leftSelectedBuild: null,
+      rightSelectedBuild: null,
+      selectedSuiteIndices: {},
+      // Track selected index for each suite with multiple items
       colors: {
         "success": "92, 184, 92",
         "fail": "217, 83, 79",
@@ -37508,22 +37517,28 @@ const _sfc_main$p = {
     const previousBuildDate = new Date(todaysBuildDate);
     previousBuildDate.setDate(previousBuildDate.getDate() - 1);
     this.rightDate = previousBuildDate;
-    this.initTable();
+    Promise.all([
+      this.fetchLeftBuilds(true),
+      this.fetchRightBuilds(true)
+    ]).then(() => {
+      this.initTable();
+    });
   },
   methods: {
     initTable() {
-      const lDate = this.formatDate(this.leftDate);
-      const rDate = this.formatDate(this.rightDate);
-      this.$axios.get(`/api/newman/build/${lDate}/compare/${rDate}`, {}).then((response) => {
+      const leftBuildId = this.leftSelectedBuild || "--";
+      const rightBuildId = this.rightSelectedBuild || "--";
+      this.loading = true;
+      this.$axios.get(`/api/newman/build/${leftBuildId}/compare/${rightBuildId}`, {}).then((response) => {
         this.loading = false;
         const values = response.data;
         const headerLeft = {
           id: values.buildLeftDetails && values.buildLeftDetails[0] || null,
-          name: (values.buildLeftDetails && values.buildLeftDetails[1] || "No build found") + " (" + lDate + ")"
+          name: values.buildLeftDetails && values.buildLeftDetails[1] || "No build found"
         };
         const headerRight = {
           id: values.buildRightDetails && values.buildRightDetails[0] || null,
-          name: (values.buildRightDetails && values.buildRightDetails[1] || "No build found") + " (" + rDate + ")"
+          name: values.buildRightDetails && values.buildRightDetails[1] || "No build found"
         };
         this.headers = {
           left: headerLeft,
@@ -37534,11 +37549,25 @@ const _sfc_main$p = {
           const suiteData = values.buildResults[key];
           const left = suiteData.left;
           const right = suiteData.right;
+          if (!this.selectedSuiteIndices[key]) {
+            this.selectedSuiteIndices[key] = { left: 0, right: 0 };
+          }
+          const leftIsArray = Array.isArray(left);
+          const rightIsArray = Array.isArray(right);
+          const leftIndex = this.selectedSuiteIndices[key].left;
+          const rightIndex = this.selectedSuiteIndices[key].right;
+          const leftData = leftIsArray ? left[leftIndex] || null : left;
+          const rightData = rightIsArray ? right[rightIndex] || null : right;
           return {
-            suiteLeft: { name: key, jobId: (left == null ? void 0 : left.jobId) || null },
-            colLeft: left && [left.totalTests, left.passedTests, left.failedTests, left.failed3TimesTests] || null,
-            suiteRight: { name: key, jobId: (right == null ? void 0 : right.jobId) || null },
-            colRight: right && [right.totalTests, right.passedTests, right.failedTests, right.failed3TimesTests] || null
+            suiteName: key,
+            suiteLeft: leftData ? { name: key, jobId: leftData.jobId || null } : null,
+            colLeft: leftData ? [leftData.totalTests, leftData.passedTests, leftData.failedTests, leftData.failed3TimesTests] : null,
+            suiteRight: rightData ? { name: key, jobId: rightData.jobId || null } : null,
+            colRight: rightData ? [rightData.totalTests, rightData.passedTests, rightData.failedTests, rightData.failed3TimesTests] : null,
+            leftIsArray,
+            rightIsArray,
+            leftOptions: leftIsArray ? left : [],
+            rightOptions: rightIsArray ? right : []
           };
         });
       }).catch((error) => {
@@ -37569,27 +37598,157 @@ const _sfc_main$p = {
       const defaultAlpha = 0.1;
       const highlightAlpha = 1;
       return `rgba(${baseColor}, ${predicate ? highlightAlpha : defaultAlpha})`;
+    },
+    onLeftBuildSelected(buildId) {
+      console.log("Left build selected:", buildId);
+      this.initTable();
+    },
+    onRightBuildSelected(buildId) {
+      console.log("Right build selected:", buildId);
+      this.initTable();
+    },
+    openLeftBuildDetails() {
+      if (this.leftSelectedBuild) {
+        const route = this.$router.resolve({
+          name: "BuildDetails",
+          params: { id: this.leftSelectedBuild }
+        });
+        window.open(route.href, "_blank");
+      }
+    },
+    openRightBuildDetails() {
+      if (this.rightSelectedBuild) {
+        const route = this.$router.resolve({
+          name: "BuildDetails",
+          params: { id: this.rightSelectedBuild }
+        });
+        window.open(route.href, "_blank");
+      }
+    },
+    onLeftSuiteSelect(suiteName, index) {
+      this.selectedSuiteIndices[suiteName].left = index;
+      this.selectedSuiteIndices = { ...this.selectedSuiteIndices };
+      this.updateSuiteItem(suiteName);
+    },
+    onRightSuiteSelect(suiteName, index) {
+      this.selectedSuiteIndices[suiteName].right = index;
+      this.selectedSuiteIndices = { ...this.selectedSuiteIndices };
+      this.updateSuiteItem(suiteName);
+    },
+    updateSuiteItem(suiteName) {
+      const itemIndex = this.items.findIndex((item) => item.suiteName === suiteName);
+      if (itemIndex !== -1) {
+        const item = this.items[itemIndex];
+        const leftIndex = this.selectedSuiteIndices[suiteName].left;
+        const rightIndex = this.selectedSuiteIndices[suiteName].right;
+        const leftData = item.leftIsArray ? item.leftOptions[leftIndex] : item.leftOptions;
+        const rightData = item.rightIsArray ? item.rightOptions[rightIndex] : item.rightOptions;
+        this.items[itemIndex] = {
+          ...item,
+          suiteLeft: leftData ? { name: suiteName, jobId: leftData.jobId || null } : null,
+          colLeft: leftData ? [leftData.totalTests, leftData.passedTests, leftData.failedTests, leftData.failed3TimesTests] : null,
+          suiteRight: rightData ? { name: suiteName, jobId: rightData.jobId || null } : null,
+          colRight: rightData ? [rightData.totalTests, rightData.passedTests, rightData.failedTests, rightData.failed3TimesTests] : null
+        };
+      }
+    },
+    fetchLeftBuilds(selectDefault = true) {
+      const dateStr = this.formatDate(this.leftDate);
+      if (!dateStr) return Promise.resolve();
+      return this.$axios.get("/api/newman/builds-by-date", {
+        params: { date: dateStr }
+      }).then((response) => {
+        this.leftBuilds = response.data.map((build) => ({
+          id: build.id,
+          name: build.name || build.id,
+          branch: build.branch || "",
+          displayName: `${build.name || build.id} (${build.branch || ""})`,
+          tags: build.tags || []
+        }));
+        if (selectDefault) {
+          if (this.leftBuilds.length > 0) {
+            const nightlyBuild = this.leftBuilds.find(
+              (build) => build.tags && build.tags.includes("NIGHTLY")
+            );
+            this.leftSelectedBuild = nightlyBuild ? nightlyBuild.id : this.leftBuilds[0].id;
+          } else {
+            this.leftSelectedBuild = null;
+          }
+          this.initTable();
+        }
+      }).catch((error) => {
+        console.error("Error fetching left builds:", error);
+        this.leftBuilds = [];
+        this.leftSelectedBuild = null;
+        if (selectDefault) {
+          this.initTable();
+        }
+      });
+    },
+    fetchRightBuilds(selectDefault = true) {
+      const dateStr = this.formatDate(this.rightDate);
+      if (!dateStr) return Promise.resolve();
+      return this.$axios.get("/api/newman/builds-by-date", {
+        params: { date: dateStr }
+      }).then((response) => {
+        this.rightBuilds = response.data.map((build) => ({
+          id: build.id,
+          name: build.name || build.id,
+          branch: build.branch || "",
+          displayName: `${build.name || build.id} (${build.branch || ""})`,
+          tags: build.tags || []
+        }));
+        if (selectDefault) {
+          if (this.rightBuilds.length > 0) {
+            const nightlyBuild = this.rightBuilds.find(
+              (build) => build.tags && build.tags.includes("NIGHTLY")
+            );
+            this.rightSelectedBuild = nightlyBuild ? nightlyBuild.id : this.rightBuilds[0].id;
+          } else {
+            this.rightSelectedBuild = null;
+          }
+          this.initTable();
+        }
+      }).catch((error) => {
+        console.error("Error fetching right builds:", error);
+        this.rightBuilds = [];
+        this.rightSelectedBuild = null;
+        if (selectDefault) {
+          this.initTable();
+        }
+      });
     }
   }
 };
 const _hoisted_1$l = { style: { "width": "95%" } };
 const _hoisted_2$g = { class: "d-flex align-center justify-space-between" };
-const _hoisted_3$e = { class: "elevation-2 text-center col-header" };
+const _hoisted_3$e = { style: { "flex-shrink": "0" } };
 const _hoisted_4$c = { class: "d-flex align-center justify-space-between" };
-const _hoisted_5$7 = { class: "elevation-2 text-center col-header" };
-const _hoisted_6$7 = { key: 0 };
-const _hoisted_7$6 = { key: 1 };
-const _hoisted_8$5 = { key: 0 };
-const _hoisted_9$5 = { key: 1 };
+const _hoisted_5$7 = { style: { "flex-shrink": "0" } };
+const _hoisted_6$7 = {
+  key: 0,
+  class: "mr-2"
+};
+const _hoisted_7$6 = { key: 0 };
+const _hoisted_8$5 = { key: 1 };
+const _hoisted_9$5 = { key: 0 };
+const _hoisted_10$4 = { key: 1 };
+const _hoisted_11$3 = {
+  key: 1,
+  class: "ml-2"
+};
 function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
-  const _component_router_link = resolveComponent("router-link");
   const _component_v_icon = resolveComponent("v-icon");
   const _component_v_btn = resolveComponent("v-btn");
+  const _component_v_list_item = resolveComponent("v-list-item");
+  const _component_v_autocomplete = resolveComponent("v-autocomplete");
   const _component_v_date_picker = resolveComponent("v-date-picker");
   const _component_v_menu = resolveComponent("v-menu");
   const _component_v_col = resolveComponent("v-col");
   const _component_v_row = resolveComponent("v-row");
+  const _component_v_select = resolveComponent("v-select");
+  const _component_router_link = resolveComponent("router-link");
   const _component_v_data_table = resolveComponent("v-data-table");
   const _component_v_card = resolveComponent("v-card");
   return openBlock(), createBlock(_component_v_card, { align: "center" }, {
@@ -37599,13 +37758,13 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
           align: "start",
           class: "text-wrap"
         }, {
-          default: withCtx(() => _cache[6] || (_cache[6] = [
+          default: withCtx(() => _cache[8] || (_cache[8] = [
             createBaseVNode("div", null, [
               createBaseVNode("h3", null, " Compare: ")
             ], -1)
           ])),
           _: 1,
-          __: [6]
+          __: [8]
         }),
         createVNode(_component_v_data_table, {
           hover: "",
@@ -37627,49 +37786,92 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   cols: "6",
                   class: "mt-2 mb-2 pl-2 pr-2"
                 }, {
-                  default: withCtx(() => {
-                    var _a2;
-                    return [
-                      createBaseVNode("div", _hoisted_2$g, [
-                        ((_a2 = $data.headers.left) == null ? void 0 : _a2.name) ? (openBlock(), createBlock(_component_router_link, {
-                          key: 0,
-                          class: "font-bold flex-grow-1",
-                          to: $data.headers.left.id ? { name: "BuildDetails", params: { id: $data.headers.left.id } } : ""
-                        }, {
-                          default: withCtx(() => [
-                            createBaseVNode("h3", _hoisted_3$e, toDisplayString($data.headers.left.name), 1)
-                          ]),
-                          _: 1
-                        }, 8, ["to"])) : createCommentVNode("", true),
+                  default: withCtx(() => [
+                    createBaseVNode("div", _hoisted_2$g, [
+                      createVNode(_component_v_autocomplete, {
+                        modelValue: $data.leftSelectedBuild,
+                        "onUpdate:modelValue": [
+                          _cache[0] || (_cache[0] = ($event) => $data.leftSelectedBuild = $event),
+                          $options.onLeftBuildSelected
+                        ],
+                        items: $data.leftBuilds,
+                        "item-title": "displayName",
+                        "item-value": "id",
+                        density: "compact",
+                        variant: "outlined",
+                        "hide-details": "",
+                        class: "flex-grow-1 mirrored-dropdown"
+                      }, {
+                        "prepend-inner": withCtx(() => [
+                          createVNode(_component_v_icon, null, {
+                            default: withCtx(() => _cache[9] || (_cache[9] = [
+                              createTextVNode("mdi-menu-down")
+                            ])),
+                            _: 1,
+                            __: [9]
+                          }),
+                          createVNode(_component_v_btn, {
+                            icon: "",
+                            size: "small",
+                            variant: "plain",
+                            disabled: !$data.leftSelectedBuild,
+                            class: "ml-1 transparent-btn",
+                            onClick: withModifiers($options.openLeftBuildDetails, ["stop"])
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_v_icon, {
+                                size: "default",
+                                color: "primary"
+                              }, {
+                                default: withCtx(() => _cache[10] || (_cache[10] = [
+                                  createTextVNode("mdi-open-in-new")
+                                ])),
+                                _: 1,
+                                __: [10]
+                              })
+                            ]),
+                            _: 1
+                          }, 8, ["disabled", "onClick"])
+                        ]),
+                        item: withCtx(({ props, item }) => [
+                          createVNode(_component_v_list_item, mergeProps(props, {
+                            class: { "nightly-build": item.raw.tags && item.raw.tags.includes("NIGHTLY") }
+                          }), null, 16, ["class"])
+                        ]),
+                        _: 1
+                      }, 8, ["modelValue", "items", "onUpdate:modelValue"]),
+                      createBaseVNode("div", _hoisted_3$e, [
                         createVNode(_component_v_menu, {
                           modelValue: $data.leftMenu,
-                          "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $data.leftMenu = $event),
+                          "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $data.leftMenu = $event),
                           "close-on-content-click": false,
                           transition: "scale-transition",
                           location: "start",
                           "min-width": "auto"
                         }, {
                           activator: withCtx(({ props }) => [
-                            createVNode(_component_v_btn, mergeProps({ color: "primary" }, props), {
-                              default: withCtx(() => [
-                                createVNode(_component_v_icon, null, {
-                                  default: withCtx(() => _cache[7] || (_cache[7] = [
-                                    createTextVNode("mdi-calendar")
-                                  ])),
-                                  _: 1,
-                                  __: [7]
-                                })
-                              ]),
-                              _: 2
-                            }, 1040)
+                            createBaseVNode("span", mergeProps({ class: "date-display date-button" }, props), [
+                              createVNode(_component_v_icon, {
+                                size: "small",
+                                class: "mr-1"
+                              }, {
+                                default: withCtx(() => _cache[11] || (_cache[11] = [
+                                  createTextVNode("mdi-calendar")
+                                ])),
+                                _: 1,
+                                __: [11]
+                              }),
+                              createTextVNode(" " + toDisplayString($options.formatDate($data.leftDate)), 1)
+                            ], 16)
                           ]),
                           default: withCtx(() => [
                             createVNode(_component_v_date_picker, {
                               modelValue: $data.leftDate,
                               "onUpdate:modelValue": [
-                                _cache[0] || (_cache[0] = ($event) => $data.leftDate = $event),
-                                _cache[1] || (_cache[1] = (date2) => {
-                                  $options.initTable();
+                                _cache[1] || (_cache[1] = ($event) => $data.leftDate = $event),
+                                _cache[2] || (_cache[2] = (date2) => {
+                                  $data.leftSelectedBuild = null;
+                                  $options.fetchLeftBuilds(true);
                                   $data.leftMenu = false;
                                 })
                               ]
@@ -37678,67 +37880,103 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                           _: 1
                         }, 8, ["modelValue"])
                       ])
-                    ];
-                  }),
+                    ])
+                  ]),
                   _: 1
                 }),
                 createVNode(_component_v_col, {
                   cols: "6",
                   class: "mt-2 mb-2 pr-2 pl-2"
                 }, {
-                  default: withCtx(() => {
-                    var _a2;
-                    return [
-                      createBaseVNode("div", _hoisted_4$c, [
+                  default: withCtx(() => [
+                    createBaseVNode("div", _hoisted_4$c, [
+                      createBaseVNode("div", _hoisted_5$7, [
                         createVNode(_component_v_menu, {
                           modelValue: $data.rightMenu,
-                          "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $data.rightMenu = $event),
+                          "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $data.rightMenu = $event),
                           "close-on-content-click": false,
                           transition: "scale-transition",
                           location: "end",
                           "min-width": "auto"
                         }, {
                           activator: withCtx(({ props }) => [
-                            createVNode(_component_v_btn, mergeProps({ color: "primary" }, props), {
-                              default: withCtx(() => [
-                                createVNode(_component_v_icon, null, {
-                                  default: withCtx(() => _cache[8] || (_cache[8] = [
-                                    createTextVNode("mdi-calendar")
-                                  ])),
-                                  _: 1,
-                                  __: [8]
-                                })
-                              ]),
-                              _: 2
-                            }, 1040)
+                            createBaseVNode("span", mergeProps({ class: "date-display date-button" }, props), [
+                              createVNode(_component_v_icon, {
+                                size: "small",
+                                class: "mr-1"
+                              }, {
+                                default: withCtx(() => _cache[12] || (_cache[12] = [
+                                  createTextVNode("mdi-calendar")
+                                ])),
+                                _: 1,
+                                __: [12]
+                              }),
+                              createTextVNode(" " + toDisplayString($options.formatDate($data.rightDate)), 1)
+                            ], 16)
                           ]),
                           default: withCtx(() => [
                             createVNode(_component_v_date_picker, {
                               modelValue: $data.rightDate,
                               "onUpdate:modelValue": [
-                                _cache[3] || (_cache[3] = ($event) => $data.rightDate = $event),
-                                _cache[4] || (_cache[4] = (date2) => {
-                                  $options.initTable();
+                                _cache[4] || (_cache[4] = ($event) => $data.rightDate = $event),
+                                _cache[5] || (_cache[5] = (date2) => {
+                                  $data.rightSelectedBuild = null;
+                                  $options.fetchRightBuilds(true);
                                   $data.rightMenu = false;
                                 })
                               ]
                             }, null, 8, ["modelValue"])
                           ]),
                           _: 1
-                        }, 8, ["modelValue"]),
-                        ((_a2 = $data.headers.right) == null ? void 0 : _a2.name) ? (openBlock(), createBlock(_component_router_link, {
-                          key: 0,
-                          class: "font-bold flex-grow-1",
-                          to: $data.headers.right.id ? { name: "BuildDetails", params: { id: $data.headers.right.id || null } } : ""
-                        }, {
-                          default: withCtx(() => [
-                            createBaseVNode("h3", _hoisted_5$7, toDisplayString($data.headers.right.name), 1)
-                          ]),
-                          _: 1
-                        }, 8, ["to"])) : createCommentVNode("", true)
-                      ])
-                    ];
-                  }),
+                        }, 8, ["modelValue"])
+                      ]),
+                      createVNode(_component_v_autocomplete, {
+                        modelValue: $data.rightSelectedBuild,
+                        "onUpdate:modelValue": [
+                          _cache[7] || (_cache[7] = ($event) => $data.rightSelectedBuild = $event),
+                          $options.onRightBuildSelected
+                        ],
+                        items: $data.rightBuilds,
+                        "item-title": "displayName",
+                        "item-value": "id",
+                        density: "compact",
+                        variant: "outlined",
+                        "hide-details": "",
+                        class: "flex-grow-1"
+                      }, {
+                        "append-inner": withCtx(() => [
+                          createVNode(_component_v_btn, {
+                            icon: "",
+                            size: "small",
+                            variant: "plain",
+                            disabled: !$data.rightSelectedBuild,
+                            class: "mr-1 transparent-btn",
+                            onClick: withModifiers($options.openRightBuildDetails, ["stop"])
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_v_icon, {
+                                size: "default",
+                                color: "primary"
+                              }, {
+                                default: withCtx(() => _cache[13] || (_cache[13] = [
+                                  createTextVNode("mdi-open-in-new")
+                                ])),
+                                _: 1,
+                                __: [13]
+                              })
+                            ]),
+                            _: 1
+                          }, 8, ["disabled", "onClick"])
+                        ]),
+                        item: withCtx(({ props, item }) => [
+                          createVNode(_component_v_list_item, mergeProps(props, {
+                            class: { "nightly-build": item.raw.tags && item.raw.tags.includes("NIGHTLY") }
+                          }), null, 16, ["class"])
+                        ]),
+                        _: 1
+                      }, 8, ["modelValue", "items", "onUpdate:modelValue"])
+                    ])
+                  ]),
                   _: 1
                 })
               ]),
@@ -37752,14 +37990,25 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
             }, {
               default: withCtx(() => [
                 createVNode(_component_v_col, {
-                  cols: "3",
-                  class: "d-flex justify-end pr-2"
+                  cols: "4",
+                  class: "d-flex justify-end pr-2 align-center"
                 }, {
                   default: withCtx(() => {
                     var _a2, _b;
                     return [
+                      item.leftIsArray && item.leftOptions.length > 1 ? (openBlock(), createElementBlock("div", _hoisted_6$7, [
+                        createVNode(_component_v_select, {
+                          "model-value": $data.selectedSuiteIndices[item.suiteName].left,
+                          items: item.leftOptions.map((opt, idx) => ({ title: `#${idx + 1}`, value: idx })),
+                          density: "compact",
+                          variant: "outlined",
+                          "hide-details": "",
+                          style: { "width": "100px" },
+                          "onUpdate:modelValue": (val) => $options.onLeftSuiteSelect(item.suiteName, val)
+                        }, null, 8, ["model-value", "items", "onUpdate:modelValue"])
+                      ])) : createCommentVNode("", true),
                       ((_a2 = item.suiteLeft) == null ? void 0 : _a2.jobId) ? (openBlock(), createBlock(_component_router_link, {
-                        key: 0,
+                        key: 1,
                         class: "font-weight-bold font-medium",
                         to: { name: "JobDetails", params: { id: (_b = item.suiteLeft) == null ? void 0 : _b.jobId, status: "ALL" } }
                       }, {
@@ -37778,12 +38027,12 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                 createVNode(_component_v_col, {
                   cols: "auto",
                   class: "d-flex justify-end pr-3",
-                  style: { "width": "230px" }
+                  style: { "width": "240px" }
                 }, {
                   default: withCtx(() => {
                     var _a2, _b, _c, _d, _e, _f, _g, _h;
                     return [
-                      item.colLeft != null ? (openBlock(), createElementBlock("div", _hoisted_6$7, [
+                      item.colLeft != null ? (openBlock(), createElementBlock("div", _hoisted_7$6, [
                         createVNode(_component_v_btn, {
                           variant: "elevated",
                           value: "TOTAL",
@@ -37816,7 +38065,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                           class: normalizeClass($options.getButtonClass("fail3")),
                           size: "small"
                         }, null, 8, ["color", "text", "class"])
-                      ])) : (openBlock(), createElementBlock("div", _hoisted_7$6, _cache[9] || (_cache[9] = [
+                      ])) : (openBlock(), createElementBlock("div", _hoisted_8$5, _cache[14] || (_cache[14] = [
                         createBaseVNode("span", null, "--", -1)
                       ])))
                     ];
@@ -37826,12 +38075,12 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                 createVNode(_component_v_col, {
                   cols: "auto",
                   class: "d-flex justify-start pl-3",
-                  style: { "width": "230px" }
+                  style: { "width": "240px" }
                 }, {
                   default: withCtx(() => {
                     var _a2, _b, _c, _d, _e, _f, _g, _h;
                     return [
-                      item.colRight != null ? (openBlock(), createElementBlock("div", _hoisted_8$5, [
+                      item.colRight != null ? (openBlock(), createElementBlock("div", _hoisted_9$5, [
                         createVNode(_component_v_btn, {
                           variant: "elevated",
                           value: "FAILED3TIMES",
@@ -37864,7 +38113,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                           class: normalizeClass($options.getButtonClass("total")),
                           size: "small"
                         }, null, 8, ["color", "text", "class"])
-                      ])) : (openBlock(), createElementBlock("div", _hoisted_9$5, _cache[10] || (_cache[10] = [
+                      ])) : (openBlock(), createElementBlock("div", _hoisted_10$4, _cache[15] || (_cache[15] = [
                         createBaseVNode("span", null, "--", -1)
                       ])))
                     ];
@@ -37872,8 +38121,8 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   _: 2
                 }, 1024),
                 createVNode(_component_v_col, {
-                  cols: "3",
-                  class: "d-flex justify-start pl-2"
+                  cols: "4",
+                  class: "d-flex justify-start pl-2 align-center"
                 }, {
                   default: withCtx(() => {
                     var _a2, _b;
@@ -37890,7 +38139,18 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                           ];
                         }),
                         _: 2
-                      }, 1032, ["to"])) : createCommentVNode("", true)
+                      }, 1032, ["to"])) : createCommentVNode("", true),
+                      item.rightIsArray && item.rightOptions.length > 1 ? (openBlock(), createElementBlock("div", _hoisted_11$3, [
+                        createVNode(_component_v_select, {
+                          "model-value": $data.selectedSuiteIndices[item.suiteName].right,
+                          items: item.rightOptions.map((opt, idx) => ({ title: `#${idx + 1}`, value: idx })),
+                          density: "compact",
+                          variant: "outlined",
+                          "hide-details": "",
+                          style: { "width": "100px" },
+                          "onUpdate:modelValue": (val) => $options.onRightSuiteSelect(item.suiteName, val)
+                        }, null, 8, ["model-value", "items", "onUpdate:modelValue"])
+                      ])) : createCommentVNode("", true)
                     ];
                   }),
                   _: 2
@@ -37906,7 +38166,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$h], ["__scopeId", "data-v-7f23634f"]]);
+const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$h], ["__scopeId", "data-v-8fdb445e"]]);
 const _sfc_main$o = {
   beforeMount() {
     this.initBuildsAndSuites();
@@ -39164,7 +39424,8 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createBlock(_component_v_dialog, {
     modelValue: $data.showDialogValue,
     "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $data.showDialogValue = $event),
-    width: "auto"
+    width: "auto",
+    onKeydown: withKeys($options.confirm, ["enter"])
   }, {
     default: withCtx(() => [
       createVNode(_component_v_card, {
@@ -39222,9 +39483,9 @@ function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
       }, 8, ["width", "min-width", "max-width"])
     ]),
     _: 3
-  }, 8, ["modelValue"]);
+  }, 8, ["modelValue", "onKeydown"]);
 }
-const PromptDialog = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-4d26336b"]]);
+const PromptDialog = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$d], ["__scopeId", "data-v-98c1ffc7"]]);
 const _sfc_main$k = {
   components: {
     PromptDialog
@@ -47229,4 +47490,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-D6lX-z2N.js.map
+//# sourceMappingURL=index-uYfiVCkG.js.map
