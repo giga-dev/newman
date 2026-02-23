@@ -37723,8 +37723,8 @@ const _sfc_main$p = {
 const _hoisted_1$l = { style: { "width": "95%" } };
 const _hoisted_2$g = { class: "d-flex align-center justify-space-between" };
 const _hoisted_3$e = { style: { "flex-shrink": "0" } };
-const _hoisted_4$c = { class: "d-flex align-center justify-space-between" };
-const _hoisted_5$7 = { style: { "flex-shrink": "0" } };
+const _hoisted_4$d = { class: "d-flex align-center justify-space-between" };
+const _hoisted_5$8 = { style: { "flex-shrink": "0" } };
 const _hoisted_6$7 = {
   key: 0,
   class: "mr-2"
@@ -37889,8 +37889,8 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   class: "mt-2 mb-2 pr-2 pl-2"
                 }, {
                   default: withCtx(() => [
-                    createBaseVNode("div", _hoisted_4$c, [
-                      createBaseVNode("div", _hoisted_5$7, [
+                    createBaseVNode("div", _hoisted_4$d, [
+                      createBaseVNode("div", _hoisted_5$8, [
                         createVNode(_component_v_menu, {
                           modelValue: $data.rightMenu,
                           "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $data.rightMenu = $event),
@@ -38968,7 +38968,8 @@ function parseTestHistoryEntry(item) {
     agentId: item.test.assignedAgent,
     agentGroup: item.test.agentGroup,
     state: item.test.status,
-    submittedBy: item.job.submittedBy
+    submittedBy: item.job.submittedBy,
+    jdk: item.job.jobConfigName
   };
 }
 function parseAgentEntry(item) {
@@ -39066,7 +39067,7 @@ const _sfc_main$n = /* @__PURE__ */ defineComponent$1({
 const _hoisted_1$j = { key: 1 };
 const _hoisted_2$e = { key: 2 };
 const _hoisted_3$c = { key: 3 };
-const _hoisted_4$b = { key: 4 };
+const _hoisted_4$c = { key: 4 };
 function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_btn = resolveComponent("v-btn");
   return openBlock(), createElementBlock("div", null, [
@@ -39118,7 +39119,7 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
             to: _ctx.noLinks ? null : _ctx.setRoute("FAILED3TIMES"),
             onClick: _cache[3] || (_cache[3] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("FAILED3TIMES"))
           }, null, 8, ["text", "class", "to"]),
-          !(_ctx.toggle || _ctx.hideTotal) ? (openBlock(), createElementBlock("span", _hoisted_4$b, "/ ")) : createCommentVNode("", true),
+          !(_ctx.toggle || _ctx.hideTotal) ? (openBlock(), createElementBlock("span", _hoisted_4$c, "/ ")) : createCommentVNode("", true),
           !_ctx.hideTotal ? (openBlock(), createBlock(_component_v_btn, {
             key: 5,
             variant: "elevated",
@@ -39234,7 +39235,7 @@ const _hoisted_2$d = {
   style: { "gap": "8px" }
 };
 const _hoisted_3$b = { class: "font-bold flex items-center gap-2" };
-const _hoisted_4$a = {
+const _hoisted_4$b = {
   key: 0,
   class: "pl-1 mr-1 font-weight-bold border rounded nightly-label"
 };
@@ -39337,7 +39338,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
         }, {
           "item.name": withCtx(({ item }) => [
             createBaseVNode("span", _hoisted_3$b, [
-              $options.hasNightlyTag(item) ? (openBlock(), createElementBlock("span", _hoisted_4$a, " N ")) : createCommentVNode("", true),
+              $options.hasNightlyTag(item) ? (openBlock(), createElementBlock("span", _hoisted_4$b, " N ")) : createCommentVNode("", true),
               createVNode(_component_router_link, {
                 class: "font-bold",
                 to: { name: "BuildDetails", params: { id: item.id } }
@@ -39581,8 +39582,8 @@ const _hoisted_3$a = {
   class: "d-block",
   style: { "position": "relative" }
 };
-const _hoisted_4$9 = { class: "d-block" };
-const _hoisted_5$6 = {
+const _hoisted_4$a = { class: "d-block" };
+const _hoisted_5$7 = {
   key: 0,
   style: { "position": "absolute", "top": "0", "left": "0", "width": "0", "height": "0", "border-top": "8px solid orange", "border-right": "8px solid transparent", "pointer-events": "none" }
 };
@@ -39842,7 +39843,7 @@ const _sfc_main$j = /* @__PURE__ */ Object.assign(__default__$6, {
                             _: 1
                           }, 8, ["modelValue"])
                         ]),
-                        createBaseVNode("div", _hoisted_4$9, [
+                        createBaseVNode("div", _hoisted_4$a, [
                           createVNode(_component_v_btn, {
                             class: "ml-2 font-weight-bold",
                             style: { "height": "100%" },
@@ -39886,7 +39887,7 @@ const _sfc_main$j = /* @__PURE__ */ Object.assign(__default__$6, {
               "open-delay": TOOLTIP_SHOWUP_DELAY
             }, {
               activator: withCtx(({ props }) => [
-                item.hasLogs ? (openBlock(), createElementBlock("span", _hoisted_5$6)) : createCommentVNode("", true),
+                item.hasLogs ? (openBlock(), createElementBlock("span", _hoisted_5$7)) : createCommentVNode("", true),
                 createVNode(_component_router_link, mergeProps(props, {
                   class: "font-bold",
                   to: { name: "TestDetails", params: { id: item.id } }
@@ -39999,8 +40000,8 @@ const _hoisted_2$b = {
   style: { "font-size": "1em", "font-weight": "bold" }
 };
 const _hoisted_3$9 = { class: "ml-6" };
-const _hoisted_4$8 = { key: 0 };
-const _hoisted_5$5 = { key: 1 };
+const _hoisted_4$9 = { key: 0 };
+const _hoisted_5$6 = { key: 1 };
 const _hoisted_6$5 = { key: 2 };
 const _hoisted_7$4 = { key: 3 };
 const _hoisted_8$3 = { class: "d-flex align-center" };
@@ -40138,7 +40139,7 @@ const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$5, {
                                             class: "ml-6"
                                           }, {
                                             default: withCtx(() => [
-                                              item.key == "build" ? (openBlock(), createElementBlock("div", _hoisted_4$8, [
+                                              item.key == "build" ? (openBlock(), createElementBlock("div", _hoisted_4$9, [
                                                 createVNode(_component_router_link, {
                                                   to: { name: "BuildDetails", params: { id: _ctx.jobDetails.buildId } }
                                                 }, {
@@ -40147,7 +40148,7 @@ const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$5, {
                                                   ]),
                                                   _: 2
                                                 }, 1032, ["to"])
-                                              ])) : item.key == "suite" ? (openBlock(), createElementBlock("div", _hoisted_5$5, [
+                                              ])) : item.key == "suite" ? (openBlock(), createElementBlock("div", _hoisted_5$6, [
                                                 createVNode(_component_router_link, {
                                                   to: { name: "SuiteDetails", params: { id: _ctx.jobDetails.suite.id } }
                                                 }, {
@@ -40339,11 +40340,11 @@ const _hoisted_2$a = {
   style: { "font-size": "1em", "font-weight": "bold" }
 };
 const _hoisted_3$8 = { class: "ml-3" };
-const _hoisted_4$7 = {
+const _hoisted_4$8 = {
   key: 0,
   class: "d-block text-right mr-16"
 };
-const _hoisted_5$4 = { key: 1 };
+const _hoisted_5$5 = { key: 1 };
 const _hoisted_6$4 = { key: 0 };
 const _hoisted_7$3 = {
   key: 1,
@@ -40407,7 +40408,7 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
                                 class: "font-weight-bold"
                               }, {
                                 default: withCtx(() => [
-                                  item.key == "xap" || item.key == "xappremium" ? (openBlock(), createElementBlock("div", _hoisted_4$7, toDisplayString(item.title), 1)) : (openBlock(), createElementBlock("div", _hoisted_5$4, toDisplayString(item.title) + ": ", 1))
+                                  item.key == "xap" || item.key == "xappremium" ? (openBlock(), createElementBlock("div", _hoisted_4$8, toDisplayString(item.title), 1)) : (openBlock(), createElementBlock("div", _hoisted_5$5, toDisplayString(item.title) + ": ", 1))
                                 ]),
                                 _: 2
                               }, 1024),
@@ -40477,8 +40478,8 @@ const _hoisted_3$7 = {
   key: 1,
   class: "my-2"
 };
-const _hoisted_4$6 = ["href"];
-const _hoisted_5$3 = { class: "ml-2" };
+const _hoisted_4$7 = ["href"];
+const _hoisted_5$4 = { class: "ml-2" };
 const _hoisted_6$3 = {
   key: 2,
   class: "my-0"
@@ -40622,8 +40623,8 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$4, {
                                   target: "_blank"
                                 }, [
                                   _cache[0] || (_cache[0] = createTextVNode(" 🔗 ")),
-                                  createBaseVNode("span", _hoisted_5$3, toDisplayString(key), 1)
-                                ], 8, _hoisted_4$6)
+                                  createBaseVNode("span", _hoisted_5$4, toDisplayString(key), 1)
+                                ], 8, _hoisted_4$7)
                               ]);
                             }), 128))
                           ])) : item.key == "statsBranch" && _ctx.testDetails[item.key] ? (openBlock(), createElementBlock("div", _hoisted_6$3, toDisplayString(unref(coloredHistoryStats)(_ctx.testDetails[item.key])), 1)) : item.key == "statsMaster" && _ctx.testDetails[item.key] ? (openBlock(), createElementBlock("div", _hoisted_7$2, toDisplayString(unref(coloredHistoryStats)(_ctx.testDetails[item.key], true)), 1)) : item.key == "history" ? (openBlock(), createElementBlock("div", _hoisted_8$1, [
@@ -40879,7 +40880,7 @@ const _hoisted_3$6 = {
   key: 0,
   class: "text-h6"
 };
-const _hoisted_4$5 = {
+const _hoisted_4$6 = {
   key: 1,
   class: "text-h6"
 };
@@ -41028,7 +41029,7 @@ function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
         $data.copiedSuiteName != null ? (openBlock(), createElementBlock("div", _hoisted_3$6, [
           _cache[3] || (_cache[3] = createTextVNode("Suite copied: ")),
           createBaseVNode("strong", null, toDisplayString($data.copiedSuiteName), 1)
-        ])) : $data.deletedSuiteName != null ? (openBlock(), createElementBlock("div", _hoisted_4$5, [
+        ])) : $data.deletedSuiteName != null ? (openBlock(), createElementBlock("div", _hoisted_4$6, [
           _cache[4] || (_cache[4] = createTextVNode("Suite deleted: ")),
           createBaseVNode("strong", null, toDisplayString($data.deletedSuiteName), 1)
         ])) : createCommentVNode("", true)
@@ -41112,8 +41113,8 @@ const _hoisted_2$7 = {
   align: "start"
 };
 const _hoisted_3$5 = { key: 0 };
-const _hoisted_4$4 = { key: 1 };
-const _hoisted_5$2 = ["onUpdate:modelValue"];
+const _hoisted_4$5 = { key: 1 };
+const _hoisted_5$3 = ["onUpdate:modelValue"];
 const _hoisted_6$2 = { key: 2 };
 const _hoisted_7$1 = { class: "text-h6" };
 function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
@@ -41232,12 +41233,12 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
                               density: "compact",
                               width: "75%"
                             }, null, 8, ["modelValue", "onUpdate:modelValue"])
-                          ])) : item.key == "criteria" ? (openBlock(), createElementBlock("div", _hoisted_4$4, [
+                          ])) : item.key == "criteria" ? (openBlock(), createElementBlock("div", _hoisted_4$5, [
                             withDirectives(createBaseVNode("textarea", {
                               class: "custom-textarea",
                               "onUpdate:modelValue": ($event) => $data.suiteDetails[item.key] = $event,
                               rows: 20
-                            }, null, 8, _hoisted_5$2), [
+                            }, null, 8, _hoisted_5$3), [
                               [vModelText, $data.suiteDetails[item.key]]
                             ])
                           ])) : (openBlock(), createElementBlock("div", _hoisted_6$2, toDisplayString($data.suiteDetails[item.key]), 1))
@@ -41320,12 +41321,14 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
   ], 64);
 }
 const SuiteDetails = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$7]]);
-const _hoisted_1$8 = { style: { "width": "80%" } };
+const _hoisted_1$8 = { style: { "width": "90%" } };
 const _hoisted_2$6 = { class: "ml-5 font-weight-regular" };
 const _hoisted_3$4 = {
   key: 0,
   class: "position-absolute pl-1 pr-1 font-weight-bold border rounded nightly-label"
 };
+const _hoisted_4$4 = { align: "center" };
+const _hoisted_5$2 = { class: "font-bold" };
 const __default__$3 = {
   props: {
     id: String
@@ -41347,6 +41350,7 @@ const __default__$3 = {
         { key: "runNum", title: "Run #", width: "5%", minWidth: "50px", maxWidth: "50px" },
         { key: "agentId", title: "Agent Id", width: "15%", minWidth: "100px", maxWidth: "100px" },
         { key: "agentGroup", title: "Agent Group", width: "10%", minWidth: "100px", maxWidth: "100px" },
+        { key: "jdk", title: "JDK", width: "30px" },
         { key: "state", title: "State", width: "5%", minWidth: "100px", maxWidth: "100px" }
       ]
     };
@@ -41355,6 +41359,13 @@ const __default__$3 = {
     this.initTable();
   },
   methods: {
+    getTooltipConfig(item_field) {
+      return {
+        location: "bottom",
+        text: item_field,
+        openDelay: 1e3
+      };
+    },
     initTable() {
       this.$axios.get("/api/newman/test-history", {
         params: {
@@ -41384,6 +41395,7 @@ const _sfc_main$b = /* @__PURE__ */ Object.assign(__default__$3, {
       const _component_v_chip = resolveComponent("v-chip");
       const _component_v_data_table = resolveComponent("v-data-table");
       const _component_v_card = resolveComponent("v-card");
+      const _directive_tooltip = resolveDirective("tooltip");
       return openBlock(), createBlock(_component_v_card, { align: "center" }, {
         default: withCtx(() => [
           createBaseVNode("div", _hoisted_1$8, [
@@ -41468,6 +41480,23 @@ const _sfc_main$b = /* @__PURE__ */ Object.assign(__default__$3, {
                   ]),
                   _: 2
                 }, 1032, ["to"])
+              ]),
+              "item.jdk": withCtx(({ item }) => [
+                createBaseVNode("div", _hoisted_4$4, [
+                  withDirectives((openBlock(), createElementBlock("span", _hoisted_5$2, [
+                    createVNode(_component_v_chip, {
+                      "prepend-icon": "mdi-language-java",
+                      variant: "tonal",
+                      class: "text-uppercase font-weight-bold",
+                      text: item.jdk.replace(/\D/g, ""),
+                      size: "small",
+                      label: "",
+                      outlined: ""
+                    }, null, 8, ["text"])
+                  ])), [
+                    [_directive_tooltip, _ctx.getTooltipConfig(item.jdk), "bottom"]
+                  ])
+                ])
               ]),
               "item.state": withCtx(({ item }) => [
                 createBaseVNode("div", null, [
@@ -47490,4 +47519,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-uYfiVCkG.js.map
+//# sourceMappingURL=index-C5lPHgMZ.js.map
