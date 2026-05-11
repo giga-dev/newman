@@ -3,6 +3,7 @@ package com.gigaspaces.newman.beans;
 import com.gigaspaces.newman.projections.PBuildThin;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -14,12 +15,14 @@ public class BuildView {
     private String name;
     private String branch;
     private Set<String> tags;
+    private Map<String, String> shas;
 
     public BuildView( PBuildThin build ) {
         this.id = build.getId();
         this.name = build.getName();
         this.branch = build.getBranch();
         this.tags = build.getTags();
+        this.shas = build.getShas();
     }
 
     public String getId() {
@@ -60,5 +63,9 @@ public class BuildView {
 
     public void setTags( Set<String> tags ) {
         this.tags = tags;
+    }
+
+    public Map<String, String> getShas() {
+        return shas;
     }
 }
