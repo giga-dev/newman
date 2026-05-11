@@ -37485,6 +37485,25 @@ const _sfc_main$p = {
   props: {
     buildId: String
   },
+  computed: {
+    githubCompareLinks() {
+      const leftBuild = this.leftBuilds.find((b) => b.id === this.leftSelectedBuild);
+      const rightBuild = this.rightBuilds.find((b) => b.id === this.rightSelectedBuild);
+      if (!(leftBuild == null ? void 0 : leftBuild.shas) || !(rightBuild == null ? void 0 : rightBuild.shas)) return [];
+      const repoUrls = {
+        "xap-open": { url: "https://github.com/xap/xap", label: "xap" },
+        "xap": { url: "https://github.com/Gigaspaces/xap-premium", label: "xap-premium" }
+      };
+      return Object.entries(repoUrls).flatMap(([key, repo]) => {
+        const oldShaUrl = leftBuild.shas[key];
+        const newShaUrl = rightBuild.shas[key];
+        if (!oldShaUrl || !newShaUrl) return [];
+        const oldSha = oldShaUrl.split("/").pop();
+        const newSha = newShaUrl.split("/").pop();
+        return [{ label: repo.label, url: `${repo.url}/compare/${oldSha}...${newSha}` }];
+      });
+    }
+  },
   data() {
     return {
       loading: true,
@@ -37663,7 +37682,8 @@ const _sfc_main$p = {
           name: build.name || build.id,
           branch: build.branch || "",
           displayName: `${build.name || build.id} (${build.branch || ""})`,
-          tags: build.tags || []
+          tags: build.tags || [],
+          shas: build.shas || {}
         }));
         if (selectDefault) {
           if (this.leftBuilds.length > 0) {
@@ -37696,7 +37716,8 @@ const _sfc_main$p = {
           name: build.name || build.id,
           branch: build.branch || "",
           displayName: `${build.name || build.id} (${build.branch || ""})`,
-          tags: build.tags || []
+          tags: build.tags || [],
+          shas: build.shas || {}
         }));
         if (selectDefault) {
           if (this.rightBuilds.length > 0) {
@@ -37721,26 +37742,30 @@ const _sfc_main$p = {
   }
 };
 const _hoisted_1$l = { style: { "width": "95%" } };
-const _hoisted_2$g = { class: "d-flex align-center justify-space-between" };
-const _hoisted_3$e = { style: { "flex-shrink": "0" } };
-const _hoisted_4$d = { class: "d-flex align-center justify-space-between" };
-const _hoisted_5$8 = { style: { "flex-shrink": "0" } };
-const _hoisted_6$7 = {
+const _hoisted_2$g = {
+  key: 0,
+  class: "d-flex align-center"
+};
+const _hoisted_3$e = { class: "d-flex align-center justify-space-between" };
+const _hoisted_4$d = { style: { "flex-shrink": "0" } };
+const _hoisted_5$8 = { class: "d-flex align-center justify-space-between" };
+const _hoisted_6$7 = { style: { "flex-shrink": "0" } };
+const _hoisted_7$6 = {
   key: 0,
   class: "mr-2"
 };
-const _hoisted_7$6 = { key: 0 };
-const _hoisted_8$5 = { key: 1 };
-const _hoisted_9$5 = { key: 0 };
-const _hoisted_10$4 = { key: 1 };
-const _hoisted_11$3 = {
+const _hoisted_8$5 = { key: 0 };
+const _hoisted_9$5 = { key: 1 };
+const _hoisted_10$4 = { key: 0 };
+const _hoisted_11$4 = { key: 1 };
+const _hoisted_12$3 = {
   key: 1,
   class: "ml-2"
 };
 function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_v_btn = resolveComponent("v-btn");
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_v_icon = resolveComponent("v-icon");
-  const _component_v_btn = resolveComponent("v-btn");
   const _component_v_list_item = resolveComponent("v-list-item");
   const _component_v_autocomplete = resolveComponent("v-autocomplete");
   const _component_v_date_picker = resolveComponent("v-date-picker");
@@ -37754,17 +37779,31 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createBlock(_component_v_card, { align: "center" }, {
     default: withCtx(() => [
       createBaseVNode("div", _hoisted_1$l, [
-        createVNode(_component_v_card_title, {
-          align: "start",
-          class: "text-wrap"
-        }, {
-          default: withCtx(() => _cache[8] || (_cache[8] = [
-            createBaseVNode("div", null, [
-              createBaseVNode("h3", null, " Compare: ")
-            ], -1)
-          ])),
+        createVNode(_component_v_card_title, { class: "text-wrap d-flex align-center justify-space-between" }, {
+          default: withCtx(() => [
+            _cache[9] || (_cache[9] = createBaseVNode("h3", null, "Compare:", -1)),
+            $options.githubCompareLinks.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_2$g, [
+              _cache[8] || (_cache[8] = createBaseVNode("span", { class: "text-caption text-medium-emphasis mr-2" }, "GitHub diff", -1)),
+              (openBlock(true), createElementBlock(Fragment, null, renderList($options.githubCompareLinks, (link) => {
+                return openBlock(), createBlock(_component_v_btn, {
+                  key: link.label,
+                  "prepend-icon": "mdi-github",
+                  href: link.url,
+                  target: "_blank",
+                  variant: "outlined",
+                  size: "small",
+                  class: "mr-2"
+                }, {
+                  default: withCtx(() => [
+                    createTextVNode(toDisplayString(link.label), 1)
+                  ]),
+                  _: 2
+                }, 1032, ["href"]);
+              }), 128))
+            ])) : createCommentVNode("", true)
+          ]),
           _: 1,
-          __: [8]
+          __: [9]
         }),
         createVNode(_component_v_data_table, {
           hover: "",
@@ -37787,7 +37826,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   class: "mt-2 mb-2 pl-2 pr-2"
                 }, {
                   default: withCtx(() => [
-                    createBaseVNode("div", _hoisted_2$g, [
+                    createBaseVNode("div", _hoisted_3$e, [
                       createVNode(_component_v_autocomplete, {
                         modelValue: $data.leftSelectedBuild,
                         "onUpdate:modelValue": [
@@ -37804,11 +37843,11 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                       }, {
                         "prepend-inner": withCtx(() => [
                           createVNode(_component_v_icon, null, {
-                            default: withCtx(() => _cache[9] || (_cache[9] = [
+                            default: withCtx(() => _cache[10] || (_cache[10] = [
                               createTextVNode("mdi-menu-down")
                             ])),
                             _: 1,
-                            __: [9]
+                            __: [10]
                           }),
                           createVNode(_component_v_btn, {
                             icon: "",
@@ -37823,11 +37862,11 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                                 size: "default",
                                 color: "primary"
                               }, {
-                                default: withCtx(() => _cache[10] || (_cache[10] = [
+                                default: withCtx(() => _cache[11] || (_cache[11] = [
                                   createTextVNode("mdi-open-in-new")
                                 ])),
                                 _: 1,
-                                __: [10]
+                                __: [11]
                               })
                             ]),
                             _: 1
@@ -37840,7 +37879,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                         ]),
                         _: 1
                       }, 8, ["modelValue", "items", "onUpdate:modelValue"]),
-                      createBaseVNode("div", _hoisted_3$e, [
+                      createBaseVNode("div", _hoisted_4$d, [
                         createVNode(_component_v_menu, {
                           modelValue: $data.leftMenu,
                           "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $data.leftMenu = $event),
@@ -37855,11 +37894,11 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                                 size: "small",
                                 class: "mr-1"
                               }, {
-                                default: withCtx(() => _cache[11] || (_cache[11] = [
+                                default: withCtx(() => _cache[12] || (_cache[12] = [
                                   createTextVNode("mdi-calendar")
                                 ])),
                                 _: 1,
-                                __: [11]
+                                __: [12]
                               }),
                               createTextVNode(" " + toDisplayString($options.formatDate($data.leftDate)), 1)
                             ], 16)
@@ -37889,8 +37928,8 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   class: "mt-2 mb-2 pr-2 pl-2"
                 }, {
                   default: withCtx(() => [
-                    createBaseVNode("div", _hoisted_4$d, [
-                      createBaseVNode("div", _hoisted_5$8, [
+                    createBaseVNode("div", _hoisted_5$8, [
+                      createBaseVNode("div", _hoisted_6$7, [
                         createVNode(_component_v_menu, {
                           modelValue: $data.rightMenu,
                           "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $data.rightMenu = $event),
@@ -37905,11 +37944,11 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                                 size: "small",
                                 class: "mr-1"
                               }, {
-                                default: withCtx(() => _cache[12] || (_cache[12] = [
+                                default: withCtx(() => _cache[13] || (_cache[13] = [
                                   createTextVNode("mdi-calendar")
                                 ])),
                                 _: 1,
-                                __: [12]
+                                __: [13]
                               }),
                               createTextVNode(" " + toDisplayString($options.formatDate($data.rightDate)), 1)
                             ], 16)
@@ -37958,11 +37997,11 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                                 size: "default",
                                 color: "primary"
                               }, {
-                                default: withCtx(() => _cache[13] || (_cache[13] = [
+                                default: withCtx(() => _cache[14] || (_cache[14] = [
                                   createTextVNode("mdi-open-in-new")
                                 ])),
                                 _: 1,
-                                __: [13]
+                                __: [14]
                               })
                             ]),
                             _: 1
@@ -37996,7 +38035,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2, _b;
                     return [
-                      item.leftIsArray && item.leftOptions.length > 1 ? (openBlock(), createElementBlock("div", _hoisted_6$7, [
+                      item.leftIsArray && item.leftOptions.length > 1 ? (openBlock(), createElementBlock("div", _hoisted_7$6, [
                         createVNode(_component_v_select, {
                           "model-value": $data.selectedSuiteIndices[item.suiteName].left,
                           items: item.leftOptions.map((opt, idx) => ({ title: `#${idx + 1}`, value: idx })),
@@ -38032,7 +38071,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2, _b, _c, _d, _e, _f, _g, _h;
                     return [
-                      item.colLeft != null ? (openBlock(), createElementBlock("div", _hoisted_7$6, [
+                      item.colLeft != null ? (openBlock(), createElementBlock("div", _hoisted_8$5, [
                         createVNode(_component_v_btn, {
                           variant: "elevated",
                           value: "TOTAL",
@@ -38065,7 +38104,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                           class: normalizeClass($options.getButtonClass("fail3")),
                           size: "small"
                         }, null, 8, ["color", "text", "class"])
-                      ])) : (openBlock(), createElementBlock("div", _hoisted_8$5, _cache[14] || (_cache[14] = [
+                      ])) : (openBlock(), createElementBlock("div", _hoisted_9$5, _cache[15] || (_cache[15] = [
                         createBaseVNode("span", null, "--", -1)
                       ])))
                     ];
@@ -38080,7 +38119,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2, _b, _c, _d, _e, _f, _g, _h;
                     return [
-                      item.colRight != null ? (openBlock(), createElementBlock("div", _hoisted_9$5, [
+                      item.colRight != null ? (openBlock(), createElementBlock("div", _hoisted_10$4, [
                         createVNode(_component_v_btn, {
                           variant: "elevated",
                           value: "FAILED3TIMES",
@@ -38113,7 +38152,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                           class: normalizeClass($options.getButtonClass("total")),
                           size: "small"
                         }, null, 8, ["color", "text", "class"])
-                      ])) : (openBlock(), createElementBlock("div", _hoisted_10$4, _cache[15] || (_cache[15] = [
+                      ])) : (openBlock(), createElementBlock("div", _hoisted_11$4, _cache[16] || (_cache[16] = [
                         createBaseVNode("span", null, "--", -1)
                       ])))
                     ];
@@ -38140,7 +38179,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                         }),
                         _: 2
                       }, 1032, ["to"])) : createCommentVNode("", true),
-                      item.rightIsArray && item.rightOptions.length > 1 ? (openBlock(), createElementBlock("div", _hoisted_11$3, [
+                      item.rightIsArray && item.rightOptions.length > 1 ? (openBlock(), createElementBlock("div", _hoisted_12$3, [
                         createVNode(_component_v_select, {
                           "model-value": $data.selectedSuiteIndices[item.suiteName].right,
                           items: item.rightOptions.map((opt, idx) => ({ title: `#${idx + 1}`, value: idx })),
@@ -38166,7 +38205,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$h], ["__scopeId", "data-v-8fdb445e"]]);
+const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$h], ["__scopeId", "data-v-0fd76d70"]]);
 const _sfc_main$o = {
   beforeMount() {
     this.initBuildsAndSuites();
@@ -39030,9 +39069,14 @@ const _sfc_main$n = /* @__PURE__ */ defineComponent$1({
     hideRunning: Boolean,
     noLinks: Boolean
   },
+  emits: ["copy-as-list"],
   data() {
     return {
-      selectedButton: "empty"
+      selectedButton: "empty",
+      contextMenu: false,
+      contextMenuStatus: null,
+      menuX: 0,
+      menuY: 0
     };
   },
   methods: {
@@ -39049,6 +39093,15 @@ const _sfc_main$n = /* @__PURE__ */ defineComponent$1({
     setRoute(path) {
       var _a2;
       return { name: "JobDetails", params: { id: (_a2 = this.item) == null ? void 0 : _a2.jobId, status: path } };
+    },
+    openContextMenu(event, status) {
+      this.contextMenuStatus = status;
+      this.menuX = event.clientX;
+      this.menuY = event.clientY;
+      this.contextMenu = true;
+    },
+    emitCopy() {
+      this.$emit("copy-as-list", this.contextMenuStatus);
     },
     replaceRoute(path) {
       var _a2;
@@ -39070,6 +39123,9 @@ const _hoisted_3$c = { key: 3 };
 const _hoisted_4$c = { key: 4 };
 function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_btn = resolveComponent("v-btn");
+  const _component_v_list_item = resolveComponent("v-list-item");
+  const _component_v_list = resolveComponent("v-list");
+  const _component_v_menu = resolveComponent("v-menu");
   return openBlock(), createElementBlock("div", null, [
     (openBlock(), createBlock(resolveDynamicComponent(_ctx.toggle ? "v-btn-toggle" : "div"), normalizeProps(guardReactiveProps(_ctx.toggle ? { vModel: _ctx.selectedButton, group: true, variant: "outlined", divided: true } : {})), {
       default: withCtx(() => {
@@ -39084,7 +39140,8 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
             class: normalizeClass(_ctx.getButtonClass("running")),
             size: "small",
             to: _ctx.noLinks ? null : _ctx.setRoute("RUNNING"),
-            onClick: _cache[0] || (_cache[0] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("RUNNING"))
+            onClick: _cache[0] || (_cache[0] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("RUNNING")),
+            onContextmenu: _cache[1] || (_cache[1] = withModifiers(($event) => _ctx.openContextMenu($event, "RUNNING"), ["prevent"]))
           }, null, 8, ["text", "class", "to"])) : createCommentVNode("", true),
           !(_ctx.toggle || _ctx.hideRunning) ? (openBlock(), createElementBlock("span", _hoisted_1$j, "/ ")) : createCommentVNode("", true),
           createVNode(_component_v_btn, {
@@ -39095,7 +39152,8 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
             class: normalizeClass(_ctx.getButtonClass("success")),
             size: "small",
             to: _ctx.noLinks ? null : _ctx.setRoute("SUCCESS"),
-            onClick: _cache[1] || (_cache[1] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("SUCCESS"))
+            onClick: _cache[2] || (_cache[2] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("SUCCESS")),
+            onContextmenu: _cache[3] || (_cache[3] = withModifiers(($event) => _ctx.openContextMenu($event, "SUCCESS"), ["prevent"]))
           }, null, 8, ["text", "class", "to"]),
           !_ctx.toggle ? (openBlock(), createElementBlock("span", _hoisted_2$e, "/ ")) : createCommentVNode("", true),
           createVNode(_component_v_btn, {
@@ -39106,7 +39164,8 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
             class: normalizeClass(_ctx.getButtonClass("fail")),
             size: "small",
             to: _ctx.noLinks ? null : _ctx.setRoute("FAIL"),
-            onClick: _cache[2] || (_cache[2] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("FAIL"))
+            onClick: _cache[4] || (_cache[4] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("FAIL")),
+            onContextmenu: _cache[5] || (_cache[5] = withModifiers(($event) => _ctx.openContextMenu($event, "FAIL"), ["prevent"]))
           }, null, 8, ["text", "class", "to"]),
           !_ctx.toggle ? (openBlock(), createElementBlock("span", _hoisted_3$c, "/ ")) : createCommentVNode("", true),
           createVNode(_component_v_btn, {
@@ -39117,7 +39176,8 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
             class: normalizeClass(_ctx.getButtonClass("fail3")),
             size: "small",
             to: _ctx.noLinks ? null : _ctx.setRoute("FAILED3TIMES"),
-            onClick: _cache[3] || (_cache[3] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("FAILED3TIMES"))
+            onClick: _cache[6] || (_cache[6] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("FAILED3TIMES")),
+            onContextmenu: _cache[7] || (_cache[7] = withModifiers(($event) => _ctx.openContextMenu($event, "FAILED3TIMES"), ["prevent"]))
           }, null, 8, ["text", "class", "to"]),
           !(_ctx.toggle || _ctx.hideTotal) ? (openBlock(), createElementBlock("span", _hoisted_4$c, "/ ")) : createCommentVNode("", true),
           !_ctx.hideTotal ? (openBlock(), createBlock(_component_v_btn, {
@@ -39129,15 +39189,38 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
             class: normalizeClass(_ctx.getButtonClass("total")),
             size: "small",
             to: _ctx.noLinks ? null : _ctx.setRoute("ALL"),
-            onClick: _cache[4] || (_cache[4] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("ALL"))
+            onClick: _cache[8] || (_cache[8] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("ALL")),
+            onContextmenu: _cache[9] || (_cache[9] = withModifiers(($event) => _ctx.openContextMenu($event, "ALL"), ["prevent"]))
           }, null, 8, ["text", "class", "to"])) : createCommentVNode("", true)
         ];
       }),
       _: 1
-    }, 16))
+    }, 16)),
+    createVNode(_component_v_menu, {
+      modelValue: _ctx.contextMenu,
+      "onUpdate:modelValue": _cache[10] || (_cache[10] = ($event) => _ctx.contextMenu = $event),
+      target: [_ctx.menuX, _ctx.menuY]
+    }, {
+      default: withCtx(() => [
+        createVNode(_component_v_list, { class: "py-1" }, {
+          default: withCtx(() => [
+            createVNode(_component_v_list_item, {
+              class: "context-menu-item py-0",
+              slim: "",
+              density: "compact",
+              "prepend-icon": "mdi-content-copy",
+              title: "Copy as list",
+              onClick: _ctx.emitCopy
+            }, null, 8, ["onClick"])
+          ]),
+          _: 1
+        })
+      ]),
+      _: 1
+    }, 8, ["modelValue", "target"])
   ]);
 }
-const JobStatus = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-6a0c4c4e"]]);
+const JobStatus = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$f], ["__scopeId", "data-v-04885c84"]]);
 const _sfc_main$m = {
   components: {
     JobStatus
@@ -39595,7 +39678,7 @@ const _hoisted_9$4 = {
   align: "center"
 };
 const _hoisted_10$3 = { class: "d-block" };
-const _hoisted_11$2 = {
+const _hoisted_11$3 = {
   key: 1,
   align: "center",
   style: { "height": "1px" }
@@ -39692,7 +39775,8 @@ const __default__$6 = {
       ],
       loading: true,
       dialogDisabled: true,
-      snackbar: false
+      snackbar: false,
+      snackbarMessage: ""
     };
   },
   computed: {
@@ -39757,9 +39841,29 @@ const __default__$6 = {
           suiteName: this.createSuiteName
         }
       }).then((response) => {
+        this.snackbarMessage = `Suite created: ${this.createSuiteName}`;
         this.snackbar = true;
       }).catch((error) => {
         console.error("Error fetching data:", error);
+      });
+    },
+    copyAsList(status) {
+      let tests;
+      if (status === "FAILED3TIMES") {
+        tests = this.tests.filter((t) => t.status === "FAIL" && t.runNumber === 3);
+      } else if (status === "ALL") {
+        tests = this.tests;
+      } else {
+        tests = this.tests.filter((t) => t.status === status);
+      }
+      const uniqueNames = [...new Set(tests.map((t) => t.name))];
+      const resolved = this.$router.resolve({ name: "JobDetails", params: { id: this.id, status } });
+      const url = window.location.origin + resolved.href;
+      const header = `-- ${status} (${url}) --`;
+      const text = [header, ...uniqueNames].join("\n");
+      navigator.clipboard.writeText(text).then(() => {
+        this.snackbarMessage = `Copied ${uniqueNames.length} tests to clipboard`;
+        this.snackbar = true;
       });
     }
   }
@@ -39824,8 +39928,9 @@ const _sfc_main$j = /* @__PURE__ */ Object.assign(__default__$6, {
                         createBaseVNode("div", _hoisted_3$a, [
                           createVNode(JobStatus, {
                             item: _ctx.computedJobDetails,
-                            toggle: ""
-                          }, null, 8, ["item"]),
+                            toggle: "",
+                            onCopyAsList: _ctx.copyAsList
+                          }, null, 8, ["item", "onCopyAsList"]),
                           createVNode(_component_v_overlay, {
                             class: "align-center justify-center",
                             contained: "",
@@ -39924,7 +40029,7 @@ const _sfc_main$j = /* @__PURE__ */ Object.assign(__default__$6, {
             item.historyStats.statsBranch ? (openBlock(), createElementBlock("div", _hoisted_9$4, [
               createBaseVNode("div", _hoisted_10$3, toDisplayString(unref(coloredHistoryStats)(item.historyStats.statsBranch, false)), 1)
             ])) : createCommentVNode("", true),
-            item.historyStats.statsMaster != null ? (openBlock(), createElementBlock("div", _hoisted_11$2, [
+            item.historyStats.statsMaster != null ? (openBlock(), createElementBlock("div", _hoisted_11$3, [
               createBaseVNode("div", _hoisted_12$2, toDisplayString(unref(coloredHistoryStats)(item.historyStats.statsMaster, true)), 1)
             ])) : createCommentVNode("", true)
           ]),
@@ -39975,18 +40080,15 @@ const _sfc_main$j = /* @__PURE__ */ Object.assign(__default__$6, {
               variant: "text",
               onClick: _cache[3] || (_cache[3] = ($event) => _ctx.snackbar = false)
             }, {
-              default: withCtx(() => _cache[6] || (_cache[6] = [
+              default: withCtx(() => _cache[5] || (_cache[5] = [
                 createTextVNode(" Close ")
               ])),
               _: 1,
-              __: [6]
+              __: [5]
             })
           ]),
           default: withCtx(() => [
-            createBaseVNode("div", _hoisted_15, [
-              _cache[5] || (_cache[5] = createTextVNode("Suite created: ")),
-              createBaseVNode("strong", null, toDisplayString(_ctx.createSuiteName), 1)
-            ])
+            createBaseVNode("div", _hoisted_15, toDisplayString(_ctx.snackbarMessage), 1)
           ]),
           _: 1
         }, 8, ["modelValue"])
@@ -40297,7 +40399,7 @@ const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$5, {
     };
   }
 });
-const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["__scopeId", "data-v-09e1654d"]]);
+const JobDetails = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["__scopeId", "data-v-67849cf6"]]);
 const _sfc_main$h = {
   props: {
     id: String
@@ -40356,7 +40458,7 @@ const _hoisted_10$2 = {
   key: 2,
   class: "log-tab"
 };
-const _hoisted_11$1 = ["href"];
+const _hoisted_11$2 = ["href"];
 const _hoisted_12$1 = { class: "ml-2" };
 const _hoisted_13$1 = { key: 3 };
 const _hoisted_14$1 = { key: 4 };
@@ -40441,7 +40543,7 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
                                     }, [
                                       _cache[1] || (_cache[1] = createTextVNode(" 🔗 ")),
                                       createBaseVNode("span", _hoisted_12$1, toDisplayString($data.buildDetails[item.key]), 1)
-                                    ], 8, _hoisted_11$1)
+                                    ], 8, _hoisted_11$2)
                                   ])) : item.key == "commits" ? (openBlock(), createElementBlock("div", _hoisted_13$1)) : (openBlock(), createElementBlock("div", _hoisted_14$1, toDisplayString($data.buildDetails && $data.buildDetails[item.key] || "N/A"), 1))
                                 ]),
                                 _: 2
@@ -40492,11 +40594,12 @@ const _hoisted_8$1 = {
   key: 4,
   class: "my-0"
 };
-const _hoisted_9$1 = {
-  key: 5,
+const _hoisted_9$1 = { key: 5 };
+const _hoisted_10$1 = {
+  key: 6,
   class: "my-0 preserve-whitespace"
 };
-const _hoisted_10$1 = { key: 6 };
+const _hoisted_11$1 = { key: 7 };
 const __default__$4 = {
   props: {
     id: String
@@ -40559,6 +40662,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$4, {
       const _component_v_col = resolveComponent("v-col");
       const _component_v_chip = resolveComponent("v-chip");
       const _component_v_btn = resolveComponent("v-btn");
+      const _component_router_link = resolveComponent("router-link");
       const _component_v_row = resolveComponent("v-row");
       const _component_v_container = resolveComponent("v-container");
       const _component_v_card = resolveComponent("v-card");
@@ -40638,7 +40742,16 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$4, {
                               class: "font-bold",
                               to: { name: "History", params: { id: item.id } }
                             }, null, 8, ["to"])
-                          ])) : item.key == "errorMessage" ? (openBlock(), createElementBlock("div", _hoisted_9$1, toDisplayString(_ctx.testDetails && _ctx.testDetails[item.key] || "N/A"), 1)) : (openBlock(), createElementBlock("div", _hoisted_10$1, toDisplayString(_ctx.testDetails && _ctx.testDetails[item.key] || "N/A"), 1))
+                          ])) : item.key == "jobId" ? (openBlock(), createElementBlock("div", _hoisted_9$1, [
+                            createVNode(_component_router_link, {
+                              to: { name: "JobDetails", params: { id: _ctx.testDetails.jobId, status: "ALL" } }
+                            }, {
+                              default: withCtx(() => [
+                                createTextVNode(toDisplayString(_ctx.testDetails[item.key]), 1)
+                              ]),
+                              _: 2
+                            }, 1032, ["to"])
+                          ])) : item.key == "errorMessage" ? (openBlock(), createElementBlock("div", _hoisted_10$1, toDisplayString(_ctx.testDetails && _ctx.testDetails[item.key] || "N/A"), 1)) : (openBlock(), createElementBlock("div", _hoisted_11$1, toDisplayString(_ctx.testDetails && _ctx.testDetails[item.key] || "N/A"), 1))
                         ]),
                         _: 2
                       }, 1024)) : createCommentVNode("", true)
@@ -40656,7 +40769,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$4, {
     };
   }
 });
-const TestDetails = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["__scopeId", "data-v-88a6a502"]]);
+const TestDetails = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["__scopeId", "data-v-b51b521a"]]);
 const _sfc_main$f = {
   components: {
     PromptDialog
@@ -47519,4 +47632,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-C5lPHgMZ.js.map
+//# sourceMappingURL=index-CJCYaivS.js.map
