@@ -62,6 +62,8 @@ public class Job {
     private int failed3TimesTests = 0;
     private int runningTests;
     private int numOfTestRetries = 0;
+    // how many agents failed during prepare phase for this job
+    private int prepareFailCount = 0;
     // first agent start prepare on job
     private Date startPrepareTime;
     // last time job seen as zombie
@@ -253,6 +255,14 @@ public class Job {
 
     public void setNumOfTestRetries(int numOfTestRetries) {
         this.numOfTestRetries = numOfTestRetries;
+    }
+
+    public int getPrepareFailCount() {
+        return prepareFailCount;
+    }
+
+    public void setPrepareFailCount(int prepareFailCount) {
+        this.prepareFailCount = prepareFailCount;
     }
 
     public String getSuiteId() {

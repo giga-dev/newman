@@ -110,9 +110,11 @@ public class NewmanResource {
     private final Timer timer = new Timer(true);
 
     private final ConcurrentHashMap<String, Object> agentLocks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Object> jobBreakLocks = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, OfflineAgent> offlineAgents = new ConcurrentHashMap<>();
 
     private static final int maxJobsPerSuite = 5;
+    private static final int PREPARE_FAIL_THRESHOLD = 5;
 
     private final static String CRITERIA_PROP_NAME = "criteria";
 
@@ -211,10 +213,10 @@ public class NewmanResource {
     }
 
     private boolean handleSetupProblem(Job potentialJob) {
-        int maxPrepareTimeHours = 1;
-        if (tooLongPrepareTime(potentialJob, maxPrepareTimeHours) && potentialJob.getState().equals(State.READY)) {
-            logger.info("Job state is BROKEN because it had setup problem for {} hours. job - id:[{}], name: [{}], build:[{}], startPrepareTime: [{}].",
-                    maxPrepareTimeHours, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName(), potentialJob.getStartPrepareTime());
+        int maxPrepareTimeMinutes = 20;
+        if (tooLongPrepareTime(potentialJob, maxPrepareTimeMinutes) && potentialJob.getState().equals(State.READY)) {
+            logger.info("Job state is BROKEN because it had setup problem for {} minutes. job - id:[{}], name: [{}], build:[{}], startPrepareTime: [{}].",
+                    maxPrepareTimeMinutes, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName(), potentialJob.getStartPrepareTime());
             updateBrokenJob(potentialJob);
             return true;
         }
@@ -244,10 +246,10 @@ public class NewmanResource {
                 return true;
             }
         } else { // already seen as zombie
-            int hoursToWaitBeforeDelete = 1;
-            if (isTimeExpired(potentialJob.getLastTimeZombie().getTime(), hoursToWaitBeforeDelete, TimeUnit.HOURS)) {
-                logger.info("Job state is BROKEN because it became zombie (no match agents) for {} hours. job: [id:{}, name: {}, build:{}].",
-                        hoursToWaitBeforeDelete, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
+            int minutesToWaitBeforeDelete = 30;
+            if (isTimeExpired(potentialJob.getLastTimeZombie().getTime(), minutesToWaitBeforeDelete, TimeUnit.MINUTES)) {
+                logger.info("Job state is BROKEN because it became zombie (no match agents) for {} minutes. job: [id:{}, name: {}, build:{}].",
+                        minutesToWaitBeforeDelete, potentialJob.getId(), potentialJob.getSuite().getName(), potentialJob.getBuild().getName());
                 updateBrokenJob(potentialJob);
                 return true;
             }
@@ -281,18 +283,18 @@ public class NewmanResource {
         return allRequirements;
     }
 
-    private boolean tooLongPrepareTime(Job potentialJob, int maxPrepareTimeHours) {
+    private boolean tooLongPrepareTime(Job potentialJob, int maxPrepareTimeMinutes) {
         if (potentialJob.getStartPrepareTime() != null) {
             long firstTimePrepare = potentialJob.getStartPrepareTime().getTime();
             long currentTime = System.currentTimeMillis();
             long timePassSinceFirstPrepare = currentTime - firstTimePrepare;
-            int hoursPassed = (int) (timePassSinceFirstPrepare / (1000 * 60 * 60));
+            int minutesPassed = (int) (timePassSinceFirstPrepare / (1000 * 60));
 
-            if (hoursPassed >= maxPrepareTimeHours) {
+            if (minutesPassed >= maxPrepareTimeMinutes) {
                 return true;
             }
 
-            if (isTimeExpired(potentialJob.getStartPrepareTime().getTime(), maxPrepareTimeHours, TimeUnit.HOURS)) {
+            if (isTimeExpired(potentialJob.getStartPrepareTime().getTime(), maxPrepareTimeMinutes, TimeUnit.MINUTES)) {
                 return true;
             }
         }
@@ -500,6 +502,25 @@ public class NewmanResource {
         }
 
         return null;
+    }
+
+    @GET
+    @Path("futureJobs")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<FutureJob> getPendingFutureJobs() {
+        return futureJobRepository.findAll();
+    }
+
+    @DELETE
+    @Path("futureJobs")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteAllFutureJobs() {
+        List<FutureJob> all = futureJobRepository.findAll();
+        futureJobRepository.deleteAll();
+        for (FutureJob futureJob : all) {
+            broadcastMessage(DELETED_FUTURE_JOB, futureJob);
+        }
+        return Response.ok().build();
     }
 
     @DELETE
@@ -1235,6 +1256,7 @@ public class NewmanResource {
                 if (testJob.getPriority() > 0) {
                     deletePrioritizedJob(testJob);
                 }
+                jobBreakLocks.remove(existingTest.getJobId());
             }
 
             updated = jobUpdater.whereId(existingTest.getJobId()).execute();     // SAVE Job
@@ -2242,7 +2264,8 @@ public class NewmanResource {
                 AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
                 jobUpdater
                         .inc("runningTests")
-                        .set("state", State.RUNNING);
+                        .set("state", State.RUNNING)
+                        .set("prepareFailCount", 0);
 
                 // BUILD
                 AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
@@ -2859,6 +2882,7 @@ public class NewmanResource {
         // Delete job from repository immediately
         jobRepository.deleteById(deleteCandidate.getId());
         jobRepository.flush(); // Ensure deletion is committed
+        jobBreakLocks.remove(deleteCandidate.getId());
 
         // Delete prioritized job if needed (must be done immediately)
         if (deleteCandidate.getPriority() > 0) {
@@ -2903,6 +2927,7 @@ public class NewmanResource {
         // Delete all jobs from repository immediately and perform immediate updates
         for (Job deleteJobCandidate : jobs) {
             jobRepository.deleteById(deleteJobCandidate.getId());
+            jobBreakLocks.remove(deleteJobCandidate.getId());
             deletedJobs.add(deleteJobCandidate);
 
             // Delete prioritized job if needed (must be done immediately)
@@ -3062,7 +3087,7 @@ public class NewmanResource {
         String host = (String) request.get("host");
         String encryptedKey = (String) request.get("encryptedKey");
         String encryptedPem = (String) request.get("encryptedPem");
-        String iv = (String) request.get("iv");
+        String iv = (String) request.get("iv"); // AES-GCM initialization vector, generated fresh by the browser per encryption — required for PEM decryption
         int lines = request.get("lines") != null ? ((Number) request.get("lines")).intValue() : 100;
         String since = (String) request.get("since");
         String user = request.get("user") != null ? (String) request.get("user") : "root";
@@ -3070,51 +3095,58 @@ public class NewmanResource {
         String logFile = (String) request.get("logFile");
         String sinceDate = (String) request.get("sinceDate");
 
-        // Validate required fields
-        if (host == null || host.trim().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Host is required").build();
-        }
-        if (encryptedKey == null || encryptedPem == null || iv == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Encrypted PEM data is required").build();
+        if (host == null || host.trim().isEmpty())
+            return Response.status(Response.Status.BAD_REQUEST).entity("Host is required").build();
+        if (encryptedKey == null || encryptedPem == null || iv == null)
+            return Response.status(Response.Status.BAD_REQUEST).entity("Encrypted PEM data is required").build();
+
+        String remoteCmd;
+        if (logFile != null && !logFile.trim().isEmpty()) {
+            remoteCmd = SSHUtils.buildLogFileCommand(logFile, sinceDate, lines);
+        } else {
+            remoteCmd = SSHUtils.buildJournalctlCommand(service, since, lines);
         }
 
+        return executeSSHRequest(host, user, encryptedKey, encryptedPem, iv, remoteCmd);
+    }
+
+    @POST
+    @Path("submitter/restart")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response restartSubmitter(Map<String, Object> request) {
+        String host = (String) request.get("host");
+        String encryptedKey = (String) request.get("encryptedKey");
+        String encryptedPem = (String) request.get("encryptedPem");
+        String iv = (String) request.get("iv"); // AES-GCM initialization vector, generated fresh by the browser per encryption — required for PEM decryption
+        String user = request.get("user") != null ? (String) request.get("user") : "root";
+
+        if (host == null || host.trim().isEmpty())
+            return Response.status(Response.Status.BAD_REQUEST).entity("Host is required").build();
+        if (encryptedKey == null || encryptedPem == null || iv == null)
+            return Response.status(Response.Status.BAD_REQUEST).entity("Encrypted PEM data is required").build();
+
+        return executeSSHRequest(host, user, encryptedKey, encryptedPem, iv, "systemctl restart newman-submitter");
+    }
+
+    private Response executeSSHRequest(String host, String user, String encryptedKey, String encryptedPem, String iv, String remoteCmd) {
         String keysDir = System.getProperty("newman.keys.dir", "../keys");
         String keystorePassword = System.getProperty("newman.keystore.password", "password");
 
         java.nio.file.Path tempPemFile = null;
         try {
-            // Decrypt the PEM content
             String pemContent = SSHUtils.decryptPemContent(encryptedKey, encryptedPem, iv, keysDir, keystorePassword);
-
-            // Write to temporary file
             tempPemFile = SSHUtils.createTempPemFile(pemContent);
-
-            // Build remote command
-            String remoteCmd;
-            if (logFile != null && !logFile.trim().isEmpty()) {
-                remoteCmd = SSHUtils.buildLogFileCommand(logFile, sinceDate, lines);
-            } else {
-                remoteCmd = SSHUtils.buildJournalctlCommand(service, since, lines);
-            }
-
-            // Execute SSH command
             SSHUtils.SSHResult result = SSHUtils.executeSSHCommand(host, user, tempPemFile, remoteCmd, 30);
 
-            if (result.isSuccess()) {
+            if (result.isSuccess())
                 return Response.ok(result.getOutput()).build();
-            } else {
-                if (result.getError().contains("timed out")) {
-                    return Response.status(Response.Status.REQUEST_TIMEOUT)
-                            .entity(result.getError()).build();
-                }
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(result.getError()).build();
-            }
+            if (result.getError().contains("timed out"))
+                return Response.status(Response.Status.REQUEST_TIMEOUT).entity(result.getError()).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result.getError()).build();
 
         } catch (Exception e) {
-            logger.error("Failed to execute SSH command for host " + host, e);
+            logger.error("Failed to execute SSH command for host {}", host, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("Failed to execute SSH command: " + e.getMessage()).build();
         } finally {
@@ -3805,6 +3837,27 @@ public class NewmanResource {
             if (agent.getState() == Agent.State.PREPARING) {
                 jobUpdated = jobUpdater
                         .remove("preparing_agents", agent.getName()).execute();
+
+                String jobId = agent.getJobId();
+                getUpdater(Job.class).inc("prepareFailCount").whereId(jobId).execute();
+
+                // Per-job lock ensures exactly one thread marks the job BROKEN when the threshold is reached.
+                // Multiple agents can fail preparation concurrently — each atomically increments prepareFailCount
+                // in the DB above, then enters this lock sequentially. The first thread to see count >= threshold
+                // marks the job BROKEN and aborts remaining preparing agents. Subsequent threads re-read state = BROKEN
+                // and skip. The lock entry is removed immediately after to keep the map bounded.
+                Object breakLock = jobBreakLocks.computeIfAbsent(jobId, k -> new Object());
+                synchronized (breakLock) {
+                    Job failedJob = jobRepository.findById(jobId).orElse(null);
+                    if (failedJob != null && failedJob.getState() != State.BROKEN
+                            && failedJob.getPrepareFailCount() >= PREPARE_FAIL_THRESHOLD) {
+                        logger.warn("Job [{}] marked BROKEN after {} failed prepare attempts",
+                                jobId, failedJob.getPrepareFailCount());
+                        updateBrokenJob(failedJob);
+                        abortPreparingAgents(failedJob, agent.getName());
+                        jobBreakLocks.remove(jobId);
+                    }
+                }
             } else if (agent.getState() == Agent.State.RUNNING && testsActuallyReset > 0) {
                 logger.info("returnTests for agent [{}], jobId [{}], amount of tests actually reset [{}]", agent.getName(), agent.getJobId(), testsActuallyReset);
                 jobUpdated = jobUpdater
@@ -3833,6 +3886,24 @@ public class NewmanResource {
 
         existingAgent.setJob(job);  // add job for the broadcasting
         broadcastMessage(MODIFIED_AGENT, existingAgent);
+    }
+
+    private void abortPreparingAgents(Job brokenJob, String excludeAgentName) {
+        Set<String> preparing = brokenJob.getPreparingAgents();
+        if (preparing == null || preparing.isEmpty()) return;
+        for (String agentName : new HashSet<>(preparing)) {
+            if (agentName.equals(excludeAgentName)) continue;
+            agentRepository.findByName(agentName).ifPresent(a -> {
+                if (a.getState() == Agent.State.PREPARING) {
+                    logger.info("Aborting agent [{}] still preparing broken job [{}]", agentName, brokenJob.getId());
+                    a.setState(Agent.State.IDLING);
+                    a.setJobId(null);
+                    a.setCurrentTests(new HashSet<>());
+                    agentRepository.save(a);
+                    broadcastMessage(MODIFIED_AGENT, a);
+                }
+            });
+        }
     }
 
     private void checkServerStatus() {
