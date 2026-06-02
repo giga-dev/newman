@@ -37746,7 +37746,7 @@ const _hoisted_2$g = {
   key: 0,
   class: "d-flex align-center"
 };
-const _hoisted_3$e = { class: "d-flex align-center justify-space-between" };
+const _hoisted_3$g = { class: "d-flex align-center justify-space-between" };
 const _hoisted_4$d = { style: { "flex-shrink": "0" } };
 const _hoisted_5$8 = { class: "d-flex align-center justify-space-between" };
 const _hoisted_6$7 = { style: { "flex-shrink": "0" } };
@@ -37826,7 +37826,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   class: "mt-2 mb-2 pl-2 pr-2"
                 }, {
                   default: withCtx(() => [
-                    createBaseVNode("div", _hoisted_3$e, [
+                    createBaseVNode("div", _hoisted_3$g, [
                       createVNode(_component_v_autocomplete, {
                         modelValue: $data.leftSelectedBuild,
                         "onUpdate:modelValue": [
@@ -38265,6 +38265,7 @@ const _sfc_main$o = {
   },
   data() {
     return {
+      activeTab: "submission",
       snackbar: false,
       snackbarMessage: "",
       snackbarColor: "success",
@@ -38276,9 +38277,7 @@ const _sfc_main$o = {
       buildValue: null,
       builds: [],
       buildByIdDetails: null,
-      // Store fetched build details for manual ID entry
       submitDisabled: true,
-      // Track when submit should be disabled - disabled by default until build is selected and validated
       suitesValues: [],
       suites: [],
       priorities: [
@@ -38288,7 +38287,18 @@ const _sfc_main$o = {
         { id: 3, subtitle: "release-default" },
         { id: 4, subtitle: "urgent" }
       ],
-      priorityValue: 1
+      priorityValue: 1,
+      pendingJobs: [],
+      pendingLoading: false,
+      confirmCleanup: false,
+      cleanupLoading: false,
+      pendingHeaders: [
+        { title: "Suite Name", key: "suiteName", sortable: true },
+        { title: "Build Name", key: "buildName", sortable: true },
+        { title: "Submit Time", key: "submitTime", sortable: true },
+        { title: "Priority", key: "priority", sortable: true },
+        { title: "Author", key: "author", sortable: true }
+      ]
     };
   },
   watch: {
@@ -38349,6 +38359,35 @@ const _sfc_main$o = {
         this.snackbar = true;
         console.error("Error:", error);
       });
+    },
+    fetchPendingJobs() {
+      this.pendingLoading = true;
+      this.$axios.get("/api/newman/futureJobs").then((response) => {
+        this.pendingJobs = response.data;
+      }).catch((error) => {
+        console.error("Error fetching pending jobs:", error);
+      }).finally(() => {
+        this.pendingLoading = false;
+      });
+    },
+    cleanupQueue() {
+      this.cleanupLoading = true;
+      this.$axios.delete("/api/newman/futureJobs").then(() => {
+        this.pendingJobs = [];
+        this.confirmCleanup = false;
+      }).catch((error) => {
+        console.error("Error deleting pending jobs:", error);
+      }).finally(() => {
+        this.cleanupLoading = false;
+      });
+    },
+    formatDate(dateVal) {
+      if (!dateVal) return "";
+      return new Date(dateVal).toLocaleString();
+    },
+    formatPriority(priority) {
+      const map = { 0: "0 - daily-default", 1: "1 - low", 2: "2 - high", 3: "3 - release-default", 4: "4 - urgent" };
+      return map[priority] ?? priority;
     },
     selectNightly() {
       this.$axios.get("/api/newman/latest-builds?limit=1&tags=NIGHTLY&with-all-jobs-completed=true").then((response) => {
@@ -38421,8 +38460,11 @@ const _sfc_main$o = {
 };
 const _hoisted_1$k = ["innerHTML"];
 const _hoisted_2$f = ["innerHTML"];
-const _hoisted_3$d = { class: "text-h6" };
+const _hoisted_3$f = { class: "text-h6" };
 function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_v_tab = resolveComponent("v-tab");
+  const _component_v_tabs = resolveComponent("v-tabs");
+  const _component_v_divider = resolveComponent("v-divider");
   const _component_v_chip = resolveComponent("v-chip");
   const _component_v_autocomplete = resolveComponent("v-autocomplete");
   const _component_v_col = resolveComponent("v-col");
@@ -38437,365 +38479,544 @@ function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_btn = resolveComponent("v-btn");
   const _component_v_snackbar = resolveComponent("v-snackbar");
   const _component_v_container = resolveComponent("v-container");
+  const _component_v_tabs_window_item = resolveComponent("v-tabs-window-item");
+  const _component_v_card_title = resolveComponent("v-card-title");
+  const _component_v_card_text = resolveComponent("v-card-text");
+  const _component_v_card_actions = resolveComponent("v-card-actions");
   const _component_v_card = resolveComponent("v-card");
-  return openBlock(), createBlock(_component_v_card, { align: "center" }, {
+  const _component_v_dialog = resolveComponent("v-dialog");
+  const _component_v_data_table = resolveComponent("v-data-table");
+  const _component_v_tabs_window = resolveComponent("v-tabs-window");
+  return openBlock(), createBlock(_component_v_card, null, {
     default: withCtx(() => [
-      createVNode(_component_v_container, {
-        fluid: "",
-        class: "m-16 mt-5 job-submit-container"
+      createVNode(_component_v_tabs, {
+        modelValue: $data.activeTab,
+        "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $data.activeTab = $event),
+        color: "blue",
+        "align-tabs": "start"
       }, {
         default: withCtx(() => [
-          createVNode(_component_v_row, null, {
-            default: withCtx(() => [
-              createVNode(_component_v_col, {
-                cols: "12",
-                class: "pb-0"
-              }, {
-                default: withCtx(() => [
-                  createVNode(_component_v_autocomplete, {
-                    variant: "outlined",
-                    density: "compact",
-                    color: "blue",
-                    modelValue: $data.suitesValues,
-                    "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $data.suitesValues = $event),
-                    items: $data.suites,
-                    "item-title": "name",
-                    "item-value": "id",
-                    chips: "",
-                    multiple: "",
-                    clearable: "",
-                    rules: [$options.required],
-                    required: "",
-                    label: "Select suites",
-                    ref: "suite",
-                    "menu-props": { maxHeight: "600" }
-                  }, {
-                    chip: withCtx(({ item }) => [
-                      createVNode(_component_v_chip, {
-                        color: "blue",
-                        closable: "",
-                        size: "large",
-                        onMousedown: _cache[0] || (_cache[0] = withModifiers(() => {
-                        }, ["stop"])),
-                        "onClick:close": ($event) => $options.deselectSuite("suites", item.value)
-                      }, {
-                        default: withCtx(() => [
-                          createTextVNode(toDisplayString(item.title), 1)
-                        ]),
-                        _: 2
-                      }, 1032, ["onClick:close"])
-                    ]),
-                    _: 1
-                  }, 8, ["modelValue", "items", "rules"])
-                ]),
-                _: 1
-              })
-            ]),
-            _: 1
+          createVNode(_component_v_tab, { value: "submission" }, {
+            default: withCtx(() => _cache[16] || (_cache[16] = [
+              createTextVNode("Submission")
+            ])),
+            _: 1,
+            __: [16]
           }),
-          createVNode(_component_v_row, null, {
-            default: withCtx(() => [
-              createVNode(_component_v_col, {
-                cols: "12",
-                class: "pb-0"
-              }, {
-                default: withCtx(() => [
-                  createVNode(_component_v_autocomplete, {
-                    variant: "outlined",
-                    density: "compact",
-                    color: "blue",
-                    modelValue: $data.configValue,
-                    "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $data.configValue = $event),
-                    items: $data.configs,
-                    "item-title": "name",
-                    "item-value": "id",
-                    label: "Select Job Configuration",
-                    "return-object": ""
-                  }, null, 8, ["modelValue", "items"])
-                ]),
-                _: 1
-              })
-            ]),
-            _: 1
-          }),
-          createVNode(_component_v_radio_group, {
-            modelValue: $data.buildType,
-            "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $data.buildType = $event),
-            column: "",
-            ref: "build"
+          createVNode(_component_v_tab, {
+            value: "pending",
+            onClick: $options.fetchPendingJobs
           }, {
-            default: withCtx(() => [
-              createVNode(_component_v_radio, {
-                density: "compact",
-                label: "Select Build",
-                value: "buildBySelect"
-              }),
-              createVNode(_component_v_row, null, {
-                default: withCtx(() => [
-                  createVNode(_component_v_col, {
-                    cols: "12",
-                    class: "pb-0",
-                    style: { "position": "relative" }
-                  }, {
-                    default: withCtx(() => [
-                      createVNode(_component_v_autocomplete, {
-                        variant: "outlined",
-                        density: "compact",
-                        color: "blue",
-                        modelValue: $data.buildValue,
-                        "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $data.buildValue = $event),
-                        items: $options.formattedBuilds,
-                        rules: $data.buildType === "buildBySelect" ? [$options.required] : [],
-                        disabled: $data.buildType != "buildBySelect",
-                        "menu-props": { maxHeight: "600", contentClass: "autocomplete-overlay" },
-                        "item-title": "label",
-                        "item-value": "id",
-                        required: "",
-                        ref: "buildBySelect"
-                      }, {
-                        item: withCtx(({ props, item }) => [
-                          createVNode(_component_v_list_item, mergeProps(props, {
-                            class: { "nightly-build": item.raw.nightly }
-                          }), null, 16, ["class"])
-                        ]),
-                        _: 1
-                      }, 8, ["modelValue", "items", "rules", "disabled"]),
-                      $options.isNightlyBuildNotRunnable ? (openBlock(), createBlock(_component_v_tooltip, {
-                        key: 0,
-                        location: "right"
-                      }, {
-                        activator: withCtx(({ props }) => [
-                          createVNode(_component_v_icon, mergeProps(props, {
-                            color: "warning",
-                            class: "warning-icon",
-                            size: "large"
-                          }), {
-                            default: withCtx(() => _cache[11] || (_cache[11] = [
-                              createTextVNode(" mdi-alert-circle ")
-                            ])),
-                            _: 2,
-                            __: [11]
-                          }, 1040)
-                        ]),
-                        default: withCtx(() => [
-                          createBaseVNode("span", {
-                            class: "tooltip-text",
-                            innerHTML: $options.nightlyBuildTooltipText
-                          }, null, 8, _hoisted_1$k)
-                        ]),
-                        _: 1
-                      })) : createCommentVNode("", true)
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }),
-              createVNode(_component_v_radio, {
-                density: "compact",
-                label: "Select Build by ID",
-                value: "buildById"
-              }),
-              createVNode(_component_v_row, null, {
-                default: withCtx(() => [
-                  createVNode(_component_v_col, {
-                    cols: "12",
-                    class: "pb-0",
-                    style: { "position": "relative" }
-                  }, {
-                    default: withCtx(() => [
-                      createVNode(_component_v_text_field, {
-                        variant: "outlined",
-                        density: "compact",
-                        color: "blue",
-                        modelValue: $data.buildValue,
-                        "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $data.buildValue = $event),
-                        rules: $data.buildType === "buildById" ? [$options.required] : [],
-                        disabled: $data.buildType != "buildById",
-                        "item-title": "label",
-                        "item-value": "id",
-                        required: "",
-                        ref: "buildById"
-                      }, null, 8, ["modelValue", "rules", "disabled"]),
-                      $options.isNightlyBuildNotRunnable ? (openBlock(), createBlock(_component_v_tooltip, {
-                        key: 0,
-                        location: "right"
-                      }, {
-                        activator: withCtx(({ props }) => [
-                          createVNode(_component_v_icon, mergeProps(props, {
-                            color: "warning",
-                            class: "warning-icon",
-                            size: "large"
-                          }), {
-                            default: withCtx(() => _cache[12] || (_cache[12] = [
-                              createTextVNode(" mdi-alert-circle ")
-                            ])),
-                            _: 2,
-                            __: [12]
-                          }, 1040)
-                        ]),
-                        default: withCtx(() => [
-                          createBaseVNode("span", {
-                            class: "tooltip-text",
-                            innerHTML: $options.nightlyBuildTooltipText
-                          }, null, 8, _hoisted_2$f)
-                        ]),
-                        _: 1
-                      })) : createCommentVNode("", true)
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              })
-            ]),
-            _: 1
-          }, 8, ["modelValue"]),
-          createVNode(_component_v_row, null, {
-            default: withCtx(() => [
-              createVNode(_component_v_col, {
-                cols: "12",
-                class: "pb-0"
-              }, {
-                default: withCtx(() => [
-                  createVNode(_component_v_select, {
-                    variant: "outlined",
-                    density: "compact",
-                    color: "blue",
-                    modelValue: $data.agentsValues,
-                    "onUpdate:modelValue": _cache[7] || (_cache[7] = ($event) => $data.agentsValues = $event),
-                    items: $data.agents,
-                    label: "Select Agent Groups",
-                    chips: "",
-                    multiple: "",
-                    clearable: ""
-                  }, {
-                    chip: withCtx(({ item }) => [
-                      createVNode(_component_v_chip, {
-                        color: "blue",
-                        closable: "",
-                        size: "large",
-                        onMousedown: _cache[6] || (_cache[6] = withModifiers(() => {
-                        }, ["stop"])),
-                        "onClick:close": ($event) => $options.deselectSuite("agents", item.title)
-                      }, {
-                        default: withCtx(() => [
-                          createTextVNode(toDisplayString(item.title), 1)
-                        ]),
-                        _: 2
-                      }, 1032, ["onClick:close"])
-                    ]),
-                    _: 1
-                  }, 8, ["modelValue", "items"])
-                ]),
-                _: 1
-              })
-            ]),
-            _: 1
-          }),
-          createVNode(_component_v_row, null, {
-            default: withCtx(() => [
-              createVNode(_component_v_col, { cols: "12" }, {
-                default: withCtx(() => [
-                  createVNode(_component_v_select, {
-                    variant: "outlined",
-                    density: "compact",
-                    color: "blue",
-                    modelValue: $data.priorityValue,
-                    "onUpdate:modelValue": [
-                      _cache[8] || (_cache[8] = ($event) => $data.priorityValue = $event),
-                      $options.selectChange
-                    ],
-                    items: $options.formattedPriorities,
-                    "item-value": "id",
-                    "item-title": "label",
-                    label: "Select Priority"
-                  }, null, 8, ["modelValue", "items", "onUpdate:modelValue"])
-                ]),
-                _: 1
-              })
-            ]),
-            _: 1
-          }),
-          createVNode(_component_v_row, null, {
-            default: withCtx(() => [
-              createVNode(_component_v_col, {
-                cols: "6",
-                class: "pt-0"
-              }, {
-                default: withCtx(() => [
-                  createVNode(_component_v_btn, {
-                    disabled: !$options.submitBtnActive,
-                    onClick: $options.submitJob,
-                    width: "150",
-                    height: "50",
-                    color: "blue"
-                  }, {
-                    default: withCtx(() => _cache[13] || (_cache[13] = [
-                      createTextVNode("Submit")
-                    ])),
-                    _: 1,
-                    __: [13]
-                  }, 8, ["disabled", "onClick"])
-                ]),
-                _: 1
-              }),
-              createVNode(_component_v_col, {
-                cols: "6",
-                class: "pt-0"
-              }, {
-                default: withCtx(() => [
-                  createVNode(_component_v_btn, {
-                    onClick: $options.selectNightly,
-                    elevated: "",
-                    width: "170",
-                    height: "50",
-                    color: "grey"
-                  }, {
-                    default: withCtx(() => _cache[14] || (_cache[14] = [
-                      createTextVNode("SELECT NIGHTLY")
-                    ])),
-                    _: 1,
-                    __: [14]
-                  }, 8, ["onClick"])
-                ]),
-                _: 1
-              })
-            ]),
-            _: 1
-          }),
-          createVNode(_component_v_snackbar, {
-            modelValue: $data.snackbar,
-            "onUpdate:modelValue": _cache[10] || (_cache[10] = ($event) => $data.snackbar = $event),
-            color: $data.snackbarColor,
-            timeout: "5000"
-          }, {
-            actions: withCtx(() => [
-              createVNode(_component_v_btn, {
-                color: "white",
-                variant: "text",
-                onClick: _cache[9] || (_cache[9] = ($event) => $data.snackbar = false)
-              }, {
-                default: withCtx(() => _cache[15] || (_cache[15] = [
-                  createTextVNode(" Close ")
-                ])),
-                _: 1,
-                __: [15]
-              })
-            ]),
-            default: withCtx(() => [
-              createBaseVNode("div", _hoisted_3$d, toDisplayString($data.snackbarMessage), 1)
-            ]),
-            _: 1
-          }, 8, ["modelValue", "color"])
+            default: withCtx(() => _cache[17] || (_cache[17] = [
+              createTextVNode("Pending Submissions")
+            ])),
+            _: 1,
+            __: [17]
+          }, 8, ["onClick"])
         ]),
         _: 1
-      })
+      }, 8, ["modelValue"]),
+      createVNode(_component_v_divider),
+      createVNode(_component_v_tabs_window, {
+        modelValue: $data.activeTab,
+        "onUpdate:modelValue": _cache[15] || (_cache[15] = ($event) => $data.activeTab = $event)
+      }, {
+        default: withCtx(() => [
+          createVNode(_component_v_tabs_window_item, { value: "submission" }, {
+            default: withCtx(() => [
+              createVNode(_component_v_container, {
+                fluid: "",
+                class: "m-16 mt-5 job-submit-container",
+                style: { "margin": "auto" }
+              }, {
+                default: withCtx(() => [
+                  createVNode(_component_v_row, null, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_col, {
+                        cols: "12",
+                        class: "pb-0"
+                      }, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_autocomplete, {
+                            variant: "outlined",
+                            density: "compact",
+                            color: "blue",
+                            modelValue: $data.suitesValues,
+                            "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $data.suitesValues = $event),
+                            items: $data.suites,
+                            "item-title": "name",
+                            "item-value": "id",
+                            chips: "",
+                            multiple: "",
+                            clearable: "",
+                            rules: [$options.required],
+                            required: "",
+                            label: "Select suites",
+                            ref: "suite",
+                            "menu-props": { maxHeight: "600" }
+                          }, {
+                            chip: withCtx(({ item }) => [
+                              createVNode(_component_v_chip, {
+                                color: "blue",
+                                closable: "",
+                                size: "large",
+                                onMousedown: _cache[1] || (_cache[1] = withModifiers(() => {
+                                }, ["stop"])),
+                                "onClick:close": ($event) => $options.deselectSuite("suites", item.value)
+                              }, {
+                                default: withCtx(() => [
+                                  createTextVNode(toDisplayString(item.title), 1)
+                                ]),
+                                _: 2
+                              }, 1032, ["onClick:close"])
+                            ]),
+                            _: 1
+                          }, 8, ["modelValue", "items", "rules"])
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  }),
+                  createVNode(_component_v_row, null, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_col, {
+                        cols: "12",
+                        class: "pb-0"
+                      }, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_autocomplete, {
+                            variant: "outlined",
+                            density: "compact",
+                            color: "blue",
+                            modelValue: $data.configValue,
+                            "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $data.configValue = $event),
+                            items: $data.configs,
+                            "item-title": "name",
+                            "item-value": "id",
+                            label: "Select Job Configuration",
+                            "return-object": ""
+                          }, null, 8, ["modelValue", "items"])
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  }),
+                  createVNode(_component_v_radio_group, {
+                    modelValue: $data.buildType,
+                    "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $data.buildType = $event),
+                    column: "",
+                    ref: "build"
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_radio, {
+                        density: "compact",
+                        label: "Select Build",
+                        value: "buildBySelect"
+                      }),
+                      createVNode(_component_v_row, null, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_col, {
+                            cols: "12",
+                            class: "pb-0",
+                            style: { "position": "relative" }
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_v_autocomplete, {
+                                variant: "outlined",
+                                density: "compact",
+                                color: "blue",
+                                modelValue: $data.buildValue,
+                                "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $data.buildValue = $event),
+                                items: $options.formattedBuilds,
+                                rules: $data.buildType === "buildBySelect" ? [$options.required] : [],
+                                disabled: $data.buildType != "buildBySelect",
+                                "menu-props": { maxHeight: "600", contentClass: "autocomplete-overlay" },
+                                "item-title": "label",
+                                "item-value": "id",
+                                required: "",
+                                ref: "buildBySelect"
+                              }, {
+                                item: withCtx(({ props, item }) => [
+                                  createVNode(_component_v_list_item, mergeProps(props, {
+                                    class: { "nightly-build": item.raw.nightly }
+                                  }), null, 16, ["class"])
+                                ]),
+                                _: 1
+                              }, 8, ["modelValue", "items", "rules", "disabled"]),
+                              $options.isNightlyBuildNotRunnable ? (openBlock(), createBlock(_component_v_tooltip, {
+                                key: 0,
+                                location: "right"
+                              }, {
+                                activator: withCtx(({ props }) => [
+                                  createVNode(_component_v_icon, mergeProps(props, {
+                                    color: "warning",
+                                    class: "warning-icon",
+                                    size: "large"
+                                  }), {
+                                    default: withCtx(() => _cache[18] || (_cache[18] = [
+                                      createTextVNode(" mdi-alert-circle ")
+                                    ])),
+                                    _: 2,
+                                    __: [18]
+                                  }, 1040)
+                                ]),
+                                default: withCtx(() => [
+                                  createBaseVNode("span", {
+                                    class: "tooltip-text",
+                                    innerHTML: $options.nightlyBuildTooltipText
+                                  }, null, 8, _hoisted_1$k)
+                                ]),
+                                _: 1
+                              })) : createCommentVNode("", true)
+                            ]),
+                            _: 1
+                          })
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_v_radio, {
+                        density: "compact",
+                        label: "Select Build by ID",
+                        value: "buildById"
+                      }),
+                      createVNode(_component_v_row, null, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_col, {
+                            cols: "12",
+                            class: "pb-0",
+                            style: { "position": "relative" }
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_v_text_field, {
+                                variant: "outlined",
+                                density: "compact",
+                                color: "blue",
+                                modelValue: $data.buildValue,
+                                "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $data.buildValue = $event),
+                                rules: $data.buildType === "buildById" ? [$options.required] : [],
+                                disabled: $data.buildType != "buildById",
+                                "item-title": "label",
+                                "item-value": "id",
+                                required: "",
+                                ref: "buildById"
+                              }, null, 8, ["modelValue", "rules", "disabled"]),
+                              $options.isNightlyBuildNotRunnable ? (openBlock(), createBlock(_component_v_tooltip, {
+                                key: 0,
+                                location: "right"
+                              }, {
+                                activator: withCtx(({ props }) => [
+                                  createVNode(_component_v_icon, mergeProps(props, {
+                                    color: "warning",
+                                    class: "warning-icon",
+                                    size: "large"
+                                  }), {
+                                    default: withCtx(() => _cache[19] || (_cache[19] = [
+                                      createTextVNode(" mdi-alert-circle ")
+                                    ])),
+                                    _: 2,
+                                    __: [19]
+                                  }, 1040)
+                                ]),
+                                default: withCtx(() => [
+                                  createBaseVNode("span", {
+                                    class: "tooltip-text",
+                                    innerHTML: $options.nightlyBuildTooltipText
+                                  }, null, 8, _hoisted_2$f)
+                                ]),
+                                _: 1
+                              })) : createCommentVNode("", true)
+                            ]),
+                            _: 1
+                          })
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  }, 8, ["modelValue"]),
+                  createVNode(_component_v_row, null, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_col, {
+                        cols: "12",
+                        class: "pb-0"
+                      }, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_select, {
+                            variant: "outlined",
+                            density: "compact",
+                            color: "blue",
+                            modelValue: $data.agentsValues,
+                            "onUpdate:modelValue": _cache[8] || (_cache[8] = ($event) => $data.agentsValues = $event),
+                            items: $data.agents,
+                            label: "Select Agent Groups",
+                            chips: "",
+                            multiple: "",
+                            clearable: ""
+                          }, {
+                            chip: withCtx(({ item }) => [
+                              createVNode(_component_v_chip, {
+                                color: "blue",
+                                closable: "",
+                                size: "large",
+                                onMousedown: _cache[7] || (_cache[7] = withModifiers(() => {
+                                }, ["stop"])),
+                                "onClick:close": ($event) => $options.deselectSuite("agents", item.title)
+                              }, {
+                                default: withCtx(() => [
+                                  createTextVNode(toDisplayString(item.title), 1)
+                                ]),
+                                _: 2
+                              }, 1032, ["onClick:close"])
+                            ]),
+                            _: 1
+                          }, 8, ["modelValue", "items"])
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  }),
+                  createVNode(_component_v_row, null, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_col, { cols: "12" }, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_select, {
+                            variant: "outlined",
+                            density: "compact",
+                            color: "blue",
+                            modelValue: $data.priorityValue,
+                            "onUpdate:modelValue": [
+                              _cache[9] || (_cache[9] = ($event) => $data.priorityValue = $event),
+                              $options.selectChange
+                            ],
+                            items: $options.formattedPriorities,
+                            "item-value": "id",
+                            "item-title": "label",
+                            label: "Select Priority"
+                          }, null, 8, ["modelValue", "items", "onUpdate:modelValue"])
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  }),
+                  createVNode(_component_v_row, null, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_col, {
+                        cols: "6",
+                        class: "pt-0"
+                      }, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_btn, {
+                            disabled: !$options.submitBtnActive,
+                            onClick: $options.submitJob,
+                            width: "150",
+                            height: "50",
+                            color: "blue"
+                          }, {
+                            default: withCtx(() => _cache[20] || (_cache[20] = [
+                              createTextVNode("Submit")
+                            ])),
+                            _: 1,
+                            __: [20]
+                          }, 8, ["disabled", "onClick"])
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_v_col, {
+                        cols: "6",
+                        class: "pt-0"
+                      }, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_btn, {
+                            onClick: $options.selectNightly,
+                            elevated: "",
+                            width: "170",
+                            height: "50",
+                            color: "grey"
+                          }, {
+                            default: withCtx(() => _cache[21] || (_cache[21] = [
+                              createTextVNode("SELECT NIGHTLY")
+                            ])),
+                            _: 1,
+                            __: [21]
+                          }, 8, ["onClick"])
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  }),
+                  createVNode(_component_v_snackbar, {
+                    modelValue: $data.snackbar,
+                    "onUpdate:modelValue": _cache[11] || (_cache[11] = ($event) => $data.snackbar = $event),
+                    color: $data.snackbarColor,
+                    timeout: "5000"
+                  }, {
+                    actions: withCtx(() => [
+                      createVNode(_component_v_btn, {
+                        color: "white",
+                        variant: "text",
+                        onClick: _cache[10] || (_cache[10] = ($event) => $data.snackbar = false)
+                      }, {
+                        default: withCtx(() => _cache[22] || (_cache[22] = [
+                          createTextVNode(" Close ")
+                        ])),
+                        _: 1,
+                        __: [22]
+                      })
+                    ]),
+                    default: withCtx(() => [
+                      createBaseVNode("div", _hoisted_3$f, toDisplayString($data.snackbarMessage), 1)
+                    ]),
+                    _: 1
+                  }, 8, ["modelValue", "color"])
+                ]),
+                _: 1
+              })
+            ]),
+            _: 1
+          }),
+          createVNode(_component_v_tabs_window_item, { value: "pending" }, {
+            default: withCtx(() => [
+              createVNode(_component_v_container, {
+                fluid: "",
+                class: "pa-4"
+              }, {
+                default: withCtx(() => [
+                  createVNode(_component_v_row, {
+                    class: "mb-2",
+                    align: "center",
+                    justify: "end"
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_col, { cols: "auto" }, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_btn, {
+                            color: "red",
+                            variant: "outlined",
+                            "prepend-icon": "mdi-delete-sweep",
+                            disabled: $data.pendingLoading || $data.pendingJobs.length === 0,
+                            onClick: _cache[12] || (_cache[12] = ($event) => $data.confirmCleanup = true)
+                          }, {
+                            default: withCtx(() => _cache[23] || (_cache[23] = [
+                              createTextVNode(" Clear Pending ")
+                            ])),
+                            _: 1,
+                            __: [23]
+                          }, 8, ["disabled"])
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_v_col, { cols: "auto" }, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_btn, {
+                            color: "blue",
+                            variant: "outlined",
+                            "prepend-icon": "mdi-refresh",
+                            loading: $data.pendingLoading,
+                            onClick: $options.fetchPendingJobs
+                          }, {
+                            default: withCtx(() => _cache[24] || (_cache[24] = [
+                              createTextVNode(" Refresh ")
+                            ])),
+                            _: 1,
+                            __: [24]
+                          }, 8, ["loading", "onClick"])
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  }),
+                  createVNode(_component_v_dialog, {
+                    modelValue: $data.confirmCleanup,
+                    "onUpdate:modelValue": _cache[14] || (_cache[14] = ($event) => $data.confirmCleanup = $event),
+                    "max-width": "420"
+                  }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_card, null, {
+                        default: withCtx(() => [
+                          createVNode(_component_v_card_title, { class: "text-h6" }, {
+                            default: withCtx(() => _cache[25] || (_cache[25] = [
+                              createTextVNode("Clear all pending jobs?")
+                            ])),
+                            _: 1,
+                            __: [25]
+                          }),
+                          createVNode(_component_v_card_text, null, {
+                            default: withCtx(() => [
+                              createTextVNode("This will permanently remove all " + toDisplayString($data.pendingJobs.length) + " pending job(s) from the queue.", 1)
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(_component_v_card_actions, { class: "justify-end" }, {
+                            default: withCtx(() => [
+                              createVNode(_component_v_btn, {
+                                variant: "text",
+                                onClick: _cache[13] || (_cache[13] = ($event) => $data.confirmCleanup = false)
+                              }, {
+                                default: withCtx(() => _cache[26] || (_cache[26] = [
+                                  createTextVNode("No")
+                                ])),
+                                _: 1,
+                                __: [26]
+                              }),
+                              createVNode(_component_v_btn, {
+                                color: "red",
+                                variant: "flat",
+                                loading: $data.cleanupLoading,
+                                onClick: $options.cleanupQueue
+                              }, {
+                                default: withCtx(() => _cache[27] || (_cache[27] = [
+                                  createTextVNode("Yes")
+                                ])),
+                                _: 1,
+                                __: [27]
+                              }, 8, ["loading", "onClick"])
+                            ]),
+                            _: 1
+                          })
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  }, 8, ["modelValue"]),
+                  createVNode(_component_v_data_table, {
+                    headers: $data.pendingHeaders,
+                    items: $data.pendingJobs,
+                    loading: $data.pendingLoading,
+                    density: "compact",
+                    class: "elevation-1",
+                    hover: "",
+                    "items-per-page": 25,
+                    "items-per-page-options": [15, 25, 50, 100]
+                  }, {
+                    "item.submitTime": withCtx(({ item }) => [
+                      createTextVNode(toDisplayString($options.formatDate(item.submitTime)), 1)
+                    ]),
+                    "item.priority": withCtx(({ item }) => [
+                      createTextVNode(toDisplayString($options.formatPriority(item.priority)), 1)
+                    ]),
+                    _: 1
+                  }, 8, ["headers", "items", "loading"])
+                ]),
+                _: 1
+              })
+            ]),
+            _: 1
+          })
+        ]),
+        _: 1
+      }, 8, ["modelValue"])
     ]),
     _: 1
   });
 }
-const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$g], ["__scopeId", "data-v-d657c101"]]);
+const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$g], ["__scopeId", "data-v-80d0d649"]]);
 function countAgentsNum(item) {
   if (item.preparingAgents && item.preparingAgents.length > 0) {
     return item.preparingAgents.length;
@@ -39119,7 +39340,7 @@ const _sfc_main$n = /* @__PURE__ */ defineComponent$1({
 });
 const _hoisted_1$j = { key: 1 };
 const _hoisted_2$e = { key: 2 };
-const _hoisted_3$c = { key: 3 };
+const _hoisted_3$e = { key: 3 };
 const _hoisted_4$c = { key: 4 };
 function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_btn = resolveComponent("v-btn");
@@ -39167,7 +39388,7 @@ function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
             onClick: _cache[4] || (_cache[4] = ($event) => _ctx.noLinks ? null : _ctx.replaceRoute("FAIL")),
             onContextmenu: _cache[5] || (_cache[5] = withModifiers(($event) => _ctx.openContextMenu($event, "FAIL"), ["prevent"]))
           }, null, 8, ["text", "class", "to"]),
-          !_ctx.toggle ? (openBlock(), createElementBlock("span", _hoisted_3$c, "/ ")) : createCommentVNode("", true),
+          !_ctx.toggle ? (openBlock(), createElementBlock("span", _hoisted_3$e, "/ ")) : createCommentVNode("", true),
           createVNode(_component_v_btn, {
             variant: "elevated",
             value: "FAILED3TIMES",
@@ -39317,7 +39538,7 @@ const _hoisted_2$d = {
   class: "d-flex align-center justify-end",
   style: { "gap": "8px" }
 };
-const _hoisted_3$b = { class: "font-bold flex items-center gap-2" };
+const _hoisted_3$d = { class: "font-bold flex items-center gap-2" };
 const _hoisted_4$b = {
   key: 0,
   class: "pl-1 mr-1 font-weight-bold border rounded nightly-label"
@@ -39420,7 +39641,7 @@ function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
           "items-per-page-options": [15, 20, 25, 50]
         }, {
           "item.name": withCtx(({ item }) => [
-            createBaseVNode("span", _hoisted_3$b, [
+            createBaseVNode("span", _hoisted_3$d, [
               $options.hasNightlyTag(item) ? (openBlock(), createElementBlock("span", _hoisted_4$b, " N ")) : createCommentVNode("", true),
               createVNode(_component_router_link, {
                 class: "font-bold",
@@ -39661,7 +39882,7 @@ function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
 const DialogCreateSuite = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$c]]);
 const _hoisted_1$g = { name: "grid" };
 const _hoisted_2$c = { class: "d-flex" };
-const _hoisted_3$a = {
+const _hoisted_3$c = {
   class: "d-block",
   style: { "position": "relative" }
 };
@@ -39925,7 +40146,7 @@ const _sfc_main$j = /* @__PURE__ */ Object.assign(__default__$6, {
                   createVNode(_component_v_col, { cols: "4" }, {
                     default: withCtx(() => [
                       createBaseVNode("div", _hoisted_2$c, [
-                        createBaseVNode("div", _hoisted_3$a, [
+                        createBaseVNode("div", _hoisted_3$c, [
                           createVNode(JobStatus, {
                             item: _ctx.computedJobDetails,
                             toggle: "",
@@ -40101,7 +40322,7 @@ const _hoisted_2$b = {
   key: 0,
   style: { "font-size": "1em", "font-weight": "bold" }
 };
-const _hoisted_3$9 = { class: "ml-6" };
+const _hoisted_3$b = { class: "ml-6" };
 const _hoisted_4$9 = { key: 0 };
 const _hoisted_5$6 = { key: 1 };
 const _hoisted_6$5 = { key: 2 };
@@ -40216,7 +40437,7 @@ const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$5, {
                             default: withCtx(() => [
                               createVNode(_component_v_container, { style: { "width": "100%" } }, {
                                 default: withCtx(() => [
-                                  createBaseVNode("div", _hoisted_3$9, [
+                                  createBaseVNode("div", _hoisted_3$b, [
                                     (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.info.slice(0, 12), (item, index) => {
                                       return openBlock(), createBlock(_component_v_row, {
                                         class: "my-0 mr-0",
@@ -40441,7 +40662,7 @@ const _hoisted_2$a = {
   key: 0,
   style: { "font-size": "1em", "font-weight": "bold" }
 };
-const _hoisted_3$8 = { class: "ml-3" };
+const _hoisted_3$a = { class: "ml-3" };
 const _hoisted_4$8 = {
   key: 0,
   class: "d-block text-right mr-16"
@@ -40496,7 +40717,7 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
                 default: withCtx(() => [
                   createVNode(_component_v_container, { style: { "width": "100%", "max-width": "unset" } }, {
                     default: withCtx(() => [
-                      createBaseVNode("div", _hoisted_3$8, [
+                      createBaseVNode("div", _hoisted_3$a, [
                         (openBlock(true), createElementBlock(Fragment, null, renderList($data.info, (item, index) => {
                           return openBlock(), createBlock(_component_v_row, {
                             class: "my-0 mr-0",
@@ -40576,7 +40797,7 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
 const BuildDetails = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$b]]);
 const _hoisted_1$d = { class: "ml-10" };
 const _hoisted_2$9 = { key: 0 };
-const _hoisted_3$7 = {
+const _hoisted_3$9 = {
   key: 1,
   class: "my-2"
 };
@@ -40716,7 +40937,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$4, {
                               size: "small",
                               label: ""
                             }, null, 8, ["color", "text"])
-                          ])) : item.key == "logs" ? (openBlock(), createElementBlock("div", _hoisted_3$7, [
+                          ])) : item.key == "logs" ? (openBlock(), createElementBlock("div", _hoisted_3$9, [
                             (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.sortedLogs(item.key), (path, key) => {
                               return openBlock(), createElementBlock("div", {
                                 key,
@@ -40989,7 +41210,7 @@ const _sfc_main$d = {
 };
 const _hoisted_1$a = { class: "suites-wrapper" };
 const _hoisted_2$8 = { key: 0 };
-const _hoisted_3$6 = {
+const _hoisted_3$8 = {
   key: 0,
   class: "text-h6"
 };
@@ -41139,7 +41360,7 @@ function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
         })
       ]),
       default: withCtx(() => [
-        $data.copiedSuiteName != null ? (openBlock(), createElementBlock("div", _hoisted_3$6, [
+        $data.copiedSuiteName != null ? (openBlock(), createElementBlock("div", _hoisted_3$8, [
           _cache[3] || (_cache[3] = createTextVNode("Suite copied: ")),
           createBaseVNode("strong", null, toDisplayString($data.copiedSuiteName), 1)
         ])) : $data.deletedSuiteName != null ? (openBlock(), createElementBlock("div", _hoisted_4$6, [
@@ -41225,7 +41446,7 @@ const _hoisted_2$7 = {
   class: "mb-2",
   align: "start"
 };
-const _hoisted_3$5 = { key: 0 };
+const _hoisted_3$7 = { key: 0 };
 const _hoisted_4$5 = { key: 1 };
 const _hoisted_5$3 = ["onUpdate:modelValue"];
 const _hoisted_6$2 = { key: 2 };
@@ -41336,7 +41557,7 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
                     }, {
                       default: withCtx(() => [
                         createBaseVNode("div", _hoisted_2$7, [
-                          item.key == "name" || item.key == "customVariables" || item.key == "requirements" ? (openBlock(), createElementBlock("div", _hoisted_3$5, [
+                          item.key == "name" || item.key == "customVariables" || item.key == "requirements" ? (openBlock(), createElementBlock("div", _hoisted_3$7, [
                             createVNode(_component_v_text_field, {
                               color: "primary",
                               modelValue: $data.suiteDetails[item.key],
@@ -41436,7 +41657,7 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
 const SuiteDetails = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$7]]);
 const _hoisted_1$8 = { style: { "width": "90%" } };
 const _hoisted_2$6 = { class: "ml-5 font-weight-regular" };
-const _hoisted_3$4 = {
+const _hoisted_3$6 = {
   key: 0,
   class: "position-absolute pl-1 pr-1 font-weight-bold border rounded nightly-label"
 };
@@ -41561,7 +41782,7 @@ const _sfc_main$b = /* @__PURE__ */ Object.assign(__default__$3, {
               "items-per-page-options": [15, 20, 25, 50]
             }, {
               "item.testId": withCtx(({ item }) => [
-                item.submittedBy == "root" ? (openBlock(), createElementBlock("span", _hoisted_3$4, " N ")) : createCommentVNode("", true),
+                item.submittedBy == "root" ? (openBlock(), createElementBlock("span", _hoisted_3$6, " N ")) : createCommentVNode("", true),
                 createVNode(_component_router_link, {
                   class: "font-bold pl-6",
                   to: { name: "TestDetails", params: { id: item.testId } }
@@ -41640,7 +41861,7 @@ const _sfc_main$a = {
     return {
       showDialog: false,
       mode: "agent",
-      // 'agent' or 'server'
+      // 'agent', 'server' or 'submitter'
       agent: null,
       serverHost: "",
       loading: false,
@@ -41657,17 +41878,28 @@ const _sfc_main$a = {
       autoRefresh: false,
       refreshInterval: 5,
       refreshIntervalOptions: [5, 10, 15, 30, 60],
-      autoRefreshTimer: null
+      autoRefreshTimer: null,
+      confirmRestart: false,
+      restarting: false,
+      restartSnackbar: false,
+      restartSnackbarMessage: "",
+      restartSnackbarColor: "success"
     };
   },
   computed: {
     isServerMode() {
       return this.mode === "server";
     },
+    isSubmitterMode() {
+      return this.mode === "submitter";
+    },
     dialogTitle() {
       var _a2;
       if (this.isServerMode) {
         return "Newman Server Logs" + (this.serverHost ? ` - ${this.serverHost}` : "");
+      }
+      if (this.isSubmitterMode) {
+        return "Newman Submitter Logs" + (this.serverHost ? ` - ${this.serverHost}` : "");
       }
       return "Console Output - " + (((_a2 = this.agent) == null ? void 0 : _a2.name) || "Unknown");
     },
@@ -41675,11 +41907,14 @@ const _sfc_main$a = {
       if (this.isServerMode) {
         return 'Select PEM file, enter server host, and click "Refresh" to load server logs...';
       }
+      if (this.isSubmitterMode) {
+        return 'Select PEM file, enter server host, and click "Refresh" to load submitter logs...';
+      }
       return 'Select PEM file and click "Refresh" to load console output...';
     },
     targetHost() {
       var _a2, _b, _c;
-      if (this.isServerMode) {
+      if (this.isServerMode || this.isSubmitterMode) {
         return this.serverHost;
       }
       if ((_a2 = this.agent) == null ? void 0 : _a2.name) {
@@ -41692,8 +41927,8 @@ const _sfc_main$a = {
     },
     canRefresh() {
       if (!this.pemLoaded) return false;
-      if (this.isServerMode && !this.serverHost) return false;
-      if (!this.isServerMode && !this.targetHost) return false;
+      if ((this.isServerMode || this.isSubmitterMode) && !this.serverHost) return false;
+      if (!this.isServerMode && !this.isSubmitterMode && !this.targetHost) return false;
       return true;
     }
   },
@@ -41737,6 +41972,16 @@ const _sfc_main$a = {
     },
     async openServerDialog() {
       this.mode = "server";
+      this.agent = null;
+      this.consoleOutput = "";
+      this.error = null;
+      this.showDialog = true;
+      if (!this.publicKey) {
+        await this.fetchPublicKey();
+      }
+    },
+    async openSubmitterDialog() {
+      this.mode = "submitter";
       this.agent = null;
       this.consoleOutput = "";
       this.error = null;
@@ -41896,6 +42141,8 @@ const _sfc_main$a = {
           if (this.sinceDate) {
             requestBody.sinceDate = this.sinceDate;
           }
+        } else if (this.isSubmitterMode) {
+          requestBody.service = "newman-submitter";
         } else {
           requestBody.service = "newman-agent";
         }
@@ -41929,6 +42176,28 @@ const _sfc_main$a = {
         this.autoRefreshTimer = null;
       }
     },
+    async doRestartSubmitter() {
+      var _a2;
+      this.confirmRestart = false;
+      this.restarting = true;
+      try {
+        const encrypted = await this.encryptPemContent();
+        await this.$axios.post("/api/newman/submitter/restart", {
+          host: this.serverHost,
+          encryptedKey: encrypted.encryptedKey,
+          encryptedPem: encrypted.encryptedPem,
+          iv: encrypted.iv
+        }, { responseType: "text" });
+        this.restartSnackbarMessage = "newman-submitter restarted successfully";
+        this.restartSnackbarColor = "success";
+      } catch (err) {
+        this.restartSnackbarMessage = ((_a2 = err.response) == null ? void 0 : _a2.data) || err.message || "Restart failed";
+        this.restartSnackbarColor = "error";
+      } finally {
+        this.restarting = false;
+        this.restartSnackbar = true;
+      }
+    },
     async copyToClipboard() {
       if (this.consoleOutput) {
         try {
@@ -41942,6 +42211,7 @@ const _sfc_main$a = {
 };
 const _hoisted_1$7 = { key: 1 };
 const _hoisted_2$5 = { class: "console-container" };
+const _hoisted_3$5 = { class: "text-h6" };
 function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_icon = resolveComponent("v-icon");
   const _component_v_spacer = resolveComponent("v-spacer");
@@ -41961,9 +42231,10 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_actions = resolveComponent("v-card-actions");
   const _component_v_card = resolveComponent("v-card");
   const _component_v_dialog = resolveComponent("v-dialog");
+  const _component_v_snackbar = resolveComponent("v-snackbar");
   return openBlock(), createBlock(_component_v_dialog, {
     modelValue: $data.showDialog,
-    "onUpdate:modelValue": _cache[8] || (_cache[8] = ($event) => $data.showDialog = $event),
+    "onUpdate:modelValue": _cache[13] || (_cache[13] = ($event) => $data.showDialog = $event),
     width: "95vw",
     "max-width": "1400",
     height: "85vh",
@@ -41975,11 +42246,11 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
           createVNode(_component_v_card_title, { class: "d-flex align-center" }, {
             default: withCtx(() => [
               createVNode(_component_v_icon, { class: "mr-2" }, {
-                default: withCtx(() => _cache[9] || (_cache[9] = [
+                default: withCtx(() => _cache[14] || (_cache[14] = [
                   createTextVNode("mdi-console")
                 ])),
                 _: 1,
-                __: [9]
+                __: [14]
               }),
               createBaseVNode("span", null, toDisplayString($options.dialogTitle), 1),
               createVNode(_component_v_spacer),
@@ -41995,11 +42266,11 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
                     start: "",
                     size: "small"
                   }, {
-                    default: withCtx(() => _cache[10] || (_cache[10] = [
+                    default: withCtx(() => _cache[15] || (_cache[15] = [
                       createTextVNode("mdi-sync")
                     ])),
                     _: 1,
-                    __: [10]
+                    __: [15]
                   }),
                   createTextVNode(" Auto-refresh: " + toDisplayString($data.refreshInterval) + "s ", 1)
                 ]),
@@ -42017,7 +42288,7 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
               }, {
                 default: withCtx(() => [
                   createVNode(_component_v_col, {
-                    cols: $options.isServerMode ? 6 : 12
+                    cols: $options.isServerMode || $options.isSubmitterMode ? 6 : 12
                   }, {
                     default: withCtx(() => [
                       createVNode(_component_v_file_input, {
@@ -42049,11 +42320,11 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
                                 start: "",
                                 size: "small"
                               }, {
-                                default: withCtx(() => _cache[11] || (_cache[11] = [
+                                default: withCtx(() => _cache[16] || (_cache[16] = [
                                   createTextVNode("mdi-check")
                                 ])),
                                 _: 1,
-                                __: [11]
+                                __: [16]
                               }),
                               createTextVNode(" " + toDisplayString(fileNames[0]), 1)
                             ]),
@@ -42065,7 +42336,7 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
                     ]),
                     _: 1
                   }, 8, ["cols"]),
-                  $options.isServerMode ? (openBlock(), createBlock(_component_v_col, {
+                  $options.isServerMode || $options.isSubmitterMode ? (openBlock(), createBlock(_component_v_col, {
                     key: 0,
                     cols: "6"
                   }, {
@@ -42214,11 +42485,11 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
                 disabled: !$options.canRefresh,
                 onClick: $options.fetchConsoleOutput
               }, {
-                default: withCtx(() => _cache[12] || (_cache[12] = [
+                default: withCtx(() => _cache[17] || (_cache[17] = [
                   createTextVNode(" Refresh ")
                 ])),
                 _: 1,
-                __: [12]
+                __: [17]
               }, 8, ["loading", "disabled", "onClick"]),
               createVNode(_component_v_btn, {
                 variant: "outlined",
@@ -42226,26 +42497,124 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
                 disabled: !$data.consoleOutput,
                 onClick: $options.copyToClipboard
               }, {
-                default: withCtx(() => _cache[13] || (_cache[13] = [
+                default: withCtx(() => _cache[18] || (_cache[18] = [
                   createTextVNode(" Copy ")
                 ])),
                 _: 1,
-                __: [13]
+                __: [18]
               }, 8, ["disabled", "onClick"]),
+              $options.isSubmitterMode ? (openBlock(), createBlock(_component_v_btn, {
+                key: 0,
+                color: "orange",
+                variant: "outlined",
+                "prepend-icon": "mdi-restart",
+                loading: $data.restarting,
+                disabled: !$options.canRefresh,
+                onClick: _cache[8] || (_cache[8] = ($event) => $data.confirmRestart = true)
+              }, {
+                default: withCtx(() => _cache[19] || (_cache[19] = [
+                  createTextVNode(" Restart Submitter ")
+                ])),
+                _: 1,
+                __: [19]
+              }, 8, ["loading", "disabled"])) : createCommentVNode("", true),
               createVNode(_component_v_spacer),
               createVNode(_component_v_btn, {
                 variant: "outlined",
                 onClick: $options.closeDialog
               }, {
-                default: withCtx(() => _cache[14] || (_cache[14] = [
-                  createTextVNode(" Close ")
+                default: withCtx(() => _cache[20] || (_cache[20] = [
+                  createTextVNode("Close")
                 ])),
                 _: 1,
-                __: [14]
+                __: [20]
               }, 8, ["onClick"])
             ]),
             _: 1
-          })
+          }),
+          createVNode(_component_v_dialog, {
+            modelValue: $data.confirmRestart,
+            "onUpdate:modelValue": _cache[10] || (_cache[10] = ($event) => $data.confirmRestart = $event),
+            "max-width": "420"
+          }, {
+            default: withCtx(() => [
+              createVNode(_component_v_card, null, {
+                default: withCtx(() => [
+                  createVNode(_component_v_card_title, { class: "text-h6" }, {
+                    default: withCtx(() => _cache[21] || (_cache[21] = [
+                      createTextVNode("Restart Newman Submitter?")
+                    ])),
+                    _: 1,
+                    __: [21]
+                  }),
+                  createVNode(_component_v_card_text, null, {
+                    default: withCtx(() => [
+                      _cache[22] || (_cache[22] = createTextVNode("This will run ")),
+                      _cache[23] || (_cache[23] = createBaseVNode("code", null, "systemctl restart newman-submitter", -1)),
+                      _cache[24] || (_cache[24] = createTextVNode(" on ")),
+                      createBaseVNode("strong", null, toDisplayString($data.serverHost), 1),
+                      _cache[25] || (_cache[25] = createTextVNode("."))
+                    ]),
+                    _: 1,
+                    __: [22, 23, 24, 25]
+                  }),
+                  createVNode(_component_v_card_actions, { class: "justify-end" }, {
+                    default: withCtx(() => [
+                      createVNode(_component_v_btn, {
+                        variant: "text",
+                        onClick: _cache[9] || (_cache[9] = ($event) => $data.confirmRestart = false)
+                      }, {
+                        default: withCtx(() => _cache[26] || (_cache[26] = [
+                          createTextVNode("No")
+                        ])),
+                        _: 1,
+                        __: [26]
+                      }),
+                      createVNode(_component_v_btn, {
+                        color: "orange",
+                        variant: "flat",
+                        loading: $data.restarting,
+                        onClick: $options.doRestartSubmitter
+                      }, {
+                        default: withCtx(() => _cache[27] || (_cache[27] = [
+                          createTextVNode("Yes")
+                        ])),
+                        _: 1,
+                        __: [27]
+                      }, 8, ["loading", "onClick"])
+                    ]),
+                    _: 1
+                  })
+                ]),
+                _: 1
+              })
+            ]),
+            _: 1
+          }, 8, ["modelValue"]),
+          createVNode(_component_v_snackbar, {
+            modelValue: $data.restartSnackbar,
+            "onUpdate:modelValue": _cache[12] || (_cache[12] = ($event) => $data.restartSnackbar = $event),
+            color: $data.restartSnackbarColor,
+            timeout: "5000"
+          }, {
+            actions: withCtx(() => [
+              createVNode(_component_v_btn, {
+                color: "white",
+                variant: "text",
+                onClick: _cache[11] || (_cache[11] = ($event) => $data.restartSnackbar = false)
+              }, {
+                default: withCtx(() => _cache[28] || (_cache[28] = [
+                  createTextVNode("Close")
+                ])),
+                _: 1,
+                __: [28]
+              })
+            ]),
+            default: withCtx(() => [
+              createBaseVNode("div", _hoisted_3$5, toDisplayString($data.restartSnackbarMessage), 1)
+            ]),
+            _: 1
+          }, 8, ["modelValue", "color"])
         ]),
         _: 1
       })
@@ -42253,10 +42622,10 @@ function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   }, 8, ["modelValue"]);
 }
-const ConsoleOutputDialog = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$6], ["__scopeId", "data-v-2b60f7d0"]]);
+const ConsoleOutputDialog = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$6], ["__scopeId", "data-v-90724bfe"]]);
 const _hoisted_1$6 = { style: { "width": "100%" } };
 const _hoisted_2$4 = ["innerHTML"];
-const _hoisted_3$3 = { class: "capabilities-container" };
+const _hoisted_3$4 = { class: "capabilities-container" };
 const _hoisted_4$3 = { align: "center" };
 const _hoisted_5$1 = { key: 0 };
 const _hoisted_6$1 = { align: "center" };
@@ -42455,7 +42824,7 @@ const _sfc_main$9 = /* @__PURE__ */ Object.assign(__default__$2, {
                   }, null, 8, _hoisted_2$4)
                 ]),
                 "item.capabilities": withCtx(({ item }) => [
-                  createBaseVNode("div", _hoisted_3$3, [
+                  createBaseVNode("div", _hoisted_3$4, [
                     (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.getCapabilities(item.capabilities), (cap) => {
                       return openBlock(), createBlock(_component_v_tooltip, {
                         key: cap.type,
@@ -42623,7 +42992,7 @@ const _sfc_main$8 = {
 };
 const _hoisted_1$5 = ["innerHTML"];
 const _hoisted_2$3 = ["innerHTML"];
-const _hoisted_3$2 = { class: "d-flex justify-end" };
+const _hoisted_3$3 = { class: "d-flex justify-end" };
 const _hoisted_4$2 = { class: "text-h6" };
 function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_icon = resolveComponent("v-icon");
@@ -42740,7 +43109,7 @@ function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
                       disabled: "",
                       color: "primary"
                     }, null, 8, ["modelValue"]),
-                    createBaseVNode("div", _hoisted_3$2, [
+                    createBaseVNode("div", _hoisted_3$3, [
                       createVNode(_component_v_btn, {
                         class: "mt-2",
                         color: "primary",
@@ -43011,7 +43380,7 @@ const _sfc_main$6 = {
 };
 const _hoisted_1$4 = { style: { "width": "80%" } };
 const _hoisted_2$2 = { class: "font-bold" };
-const _hoisted_3$1 = {
+const _hoisted_3$2 = {
   key: 0,
   class: "text-grey ml-1"
 };
@@ -43095,7 +43464,7 @@ function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
           }, {
             [`item.name`]: withCtx(({ item }) => [
               createBaseVNode("span", _hoisted_2$2, toDisplayString(item.name), 1),
-              item.javaVersion ? (openBlock(), createElementBlock("span", _hoisted_3$1, "(" + toDisplayString(item.javaVersion) + ")", 1)) : createCommentVNode("", true)
+              item.javaVersion ? (openBlock(), createElementBlock("span", _hoisted_3$2, "(" + toDisplayString(item.javaVersion) + ")", 1)) : createCommentVNode("", true)
             ]),
             [`item.actions`]: withCtx(({ item }) => [
               createVNode(_component_v_btn, {
@@ -43448,7 +43817,7 @@ const _hoisted_2$1 = {
   class: "d-flex align-center",
   style: { "gap": "8px", "flex-wrap": "nowrap" }
 };
-const _hoisted_3 = {
+const _hoisted_3$1 = {
   class: "d-flex align-center",
   style: { "gap": "4px" }
 };
@@ -44246,7 +44615,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                           style: { "flex-shrink": "0" }
                         }, {
                           default: withCtx(() => [
-                            createBaseVNode("div", _hoisted_3, [
+                            createBaseVNode("div", _hoisted_3$1, [
                               createVNode(_component_v_btn, {
                                 disabled: !_ctx.canGoForward,
                                 color: "primary",
@@ -47061,11 +47430,15 @@ const _sfc_main$2 = {
   methods: {
     openServerLogsDialog() {
       this.$refs.consoleOutputDialog.openServerDialog();
+    },
+    openSubmitterLogsDialog() {
+      this.$refs.consoleOutputDialog.openSubmitterDialog();
     }
   }
 };
 const _hoisted_1$2 = { class: "nav-link route" };
-const _hoisted_2 = {
+const _hoisted_2 = { class: "nav-link route" };
+const _hoisted_3 = {
   class: "pa-4 nav-link route",
   style: { "white-space": "nowrap", "overflow": "hidden", "text-overflow": "ellipsis" }
 };
@@ -47089,7 +47462,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
             permanent: ""
           }, {
             append: withCtx(() => [
-              createBaseVNode("div", _hoisted_2, " v. " + toDisplayString($data.version), 1)
+              createBaseVNode("div", _hoisted_3, " v. " + toDisplayString($data.version), 1)
             ]),
             default: withCtx(() => [
               createVNode(_component_console_output_dialog, { ref: "consoleOutputDialog" }, null, 512),
@@ -47221,6 +47594,14 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
                       title: "Server Logs",
                       onClick: $options.openServerLogsDialog
                     }, null, 8, ["onClick"])
+                  ]),
+                  createBaseVNode("div", _hoisted_2, [
+                    createVNode(_component_v_list_item, {
+                      "prepend-icon": "mdi-console-line",
+                      value: "submitter_logs",
+                      title: "Submitter Logs",
+                      onClick: $options.openSubmitterLogsDialog
+                    }, null, 8, ["onClick"])
                   ])
                 ]),
                 _: 1
@@ -47237,7 +47618,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const SidePanel = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-ba34f52e"]]);
+const SidePanel = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-20548534"]]);
 const eventBus = reactive({
   events: {},
   $on(event, callback) {
@@ -47632,4 +48013,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-CJCYaivS.js.map
+//# sourceMappingURL=index-CMsbxVUN.js.map
