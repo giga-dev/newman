@@ -7,7 +7,8 @@ public enum JavaVersion {
     OPENJDK_8("openjdk_8"),
     OPENJDK_11_0_1("openjdk_11_0_1"),
     OPENJDK_17_0_1("openjdk_17_0_1"),
-    OPENJDK_21_0_1("openjdk_21_0_1");
+    OPENJDK_21_0_1("openjdk_21_0_1"),
+    OPENJDK_25_0_3("openjdk_25_0_3");
 
     private String name;
 
