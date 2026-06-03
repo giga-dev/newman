@@ -483,6 +483,7 @@ public class NewmanAgent {
                     logger.warn("Agent failed while polling newman-server. Got status: " + ex.getResponse().getStatus() + ", message: " + responseText);
                     c = getClient();
                 } else {
+                    logger.warn("Agent {} encountered an exception while polling newman-server at {}: " + e, name, config.getNewmanServerHost());
                     c = onClientFailure(c);
                 }
             } catch (Exception e) {
@@ -534,6 +535,7 @@ public class NewmanAgent {
                 }
             }
         }
+        logger.info("agent {} has successfully restored connection with the server: {}, port: {}.", name, config.getNewmanServerHost(), config.getNewmanServerPort());
         return getClient();
     }
 
