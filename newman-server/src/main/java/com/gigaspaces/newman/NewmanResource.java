@@ -51,6 +51,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -90,6 +91,7 @@ public class NewmanResource {
     public static final String CREATE_FUTURE_JOB = "created-future-job";
     public static final String DELETED_FUTURE_JOB = "deleted-future-job";
     private static final String MODIFY_SERVER_STATUS = "modified-server-status";
+    public static final String CREATED_FAILED_PREPARING_AGENT = "created-failed-preparing-agent";
 
     private int highestPriorityJob;
 
@@ -112,9 +114,16 @@ public class NewmanResource {
     private final ConcurrentHashMap<String, Object> agentLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Object> jobBreakLocks = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, OfflineAgent> offlineAgents = new ConcurrentHashMap<>();
+    // Moving-window history of agents that failed job preparation, newest first, bounded to DEAD_AGENTS_WINDOW_SIZE.
+    private final Deque<FailedPreparingAgent> deadAgentsHistory = new ConcurrentLinkedDeque<>();
 
     private static final int maxJobsPerSuite = 5;
     private static final int PREPARE_FAIL_THRESHOLD = 5;
+    // Explicit setup-failure reports (unsubscribe) get a higher threshold than silent timeouts/shutdowns,
+    // since they're immediate and synchronous — 5 of them can happen far faster than 5 timeout cycles.
+    private static final int EXPLICIT_SETUP_FAIL_THRESHOLD = 10;
+    private static final int DEAD_AGENTS_WINDOW_SIZE = 100;
+    private static final long AGENT_UNSEEN_TIMEOUT_MS = 1000 * 60 * 5;
 
     private final static String CRITERIA_PROP_NAME = "criteria";
 
@@ -160,7 +169,7 @@ public class NewmanResource {
                 public void run() {
                     try {
                         logger.info("[Automated Task] Checking for not seen agents");
-                        getAgentsNotSeenInLastMillis(1000 * 60 * 5).forEach(NewmanResource.this::handleUnseenAgent);
+                        getAgentsNotSeenInLastMillis(AGENT_UNSEEN_TIMEOUT_MS).forEach(NewmanResource.this::handleUnseenAgent);
                     } catch (Exception e) {
                         logger.error("[Automated Task] Error checking for unseen agents", e);
                     }
@@ -960,12 +969,23 @@ public class NewmanResource {
 
         Job job = null;
         if (agent.getState() == Agent.State.PREPARING) {
-            AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
-            int updated = jobUpdater.remove("preparing_agents", agent.getName()).whereId(jobId).execute();
+            // array_remove() always matches the row regardless of whether the value was actually present,
+            // so the update's row-count can't tell us whether this agent was genuinely still preparing.
+            // Check membership up front instead, so a duplicate/retried unsubscribe call for an agent
+            // already removed from preparing_agents doesn't double-count the failure.
+            Job jobBeforeRemoval = jobRepository.findById(jobId).orElse(null);
+            boolean wasPreparing = jobBeforeRemoval != null && jobBeforeRemoval.getPreparingAgents() != null
+                    && jobBeforeRemoval.getPreparingAgents().contains(agent.getName());
 
-            if (updated != 0) {
-                job = jobRepository.findById(jobId).get();
+            AtomicUpdater<Job> jobUpdater = getUpdater(Job.class);
+            jobUpdater.remove("preparing_agents", agent.getName()).whereId(jobId).execute();
+
+            job = jobRepository.findById(jobId).orElse(null);
+            if (job != null) {
                 broadcastMessage(MODIFIED_JOB, job);
+            }
+            if (wasPreparing) {
+                handlePreparingAgentFailure(agent, jobId, "Agent reported job setup failure", EXPLICIT_SETUP_FAIL_THRESHOLD);
             }
         }
 
@@ -974,13 +994,20 @@ public class NewmanResource {
         return job;
     }
 
+    @GET
+    @Path("deadAgents")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<FailedPreparingAgent> getDeadAgents() {
+        return new ArrayList<>(deadAgentsHistory);
+    }
+
     @POST
     @Path("freeAgent/{agentName}")
     @Produces(MediaType.APPLICATION_JSON)
     public Agent freeAgent(@PathParam("agentName") final String agentName) {
         Optional<Agent> opAgent = agentRepository.findByName(agentName);
         if (opAgent.isPresent()) {
-            returnTests(opAgent.get());
+            returnTests(opAgent.get(), "Agent explicitly disconnected (freeAgent called by the agent process, typically during shutdown or restart)");
             handleZombieAgent(opAgent.get());
         }
         return opAgent.orElse(null);
@@ -2385,7 +2412,7 @@ public class NewmanResource {
                     broadcastMessage(MODIFIED_JOB, oldJob);
                 }
             } else if (foundAgent.getState() == Agent.State.RUNNING && !foundAgent.getCurrentTests().isEmpty() && foundAgent.getJobId() != null) {
-                returnTests(foundAgent);
+                returnTests(foundAgent, "Agent re-subscribed while its previous job's tests were still running");
             }
         }
 
@@ -3791,16 +3818,17 @@ public class NewmanResource {
 
     private void handleUnseenAgent(Agent agent) {
         logger.warn("Agent {} is did not report on time", agent.getName());
-        returnTests(agent);
-
+        returnTests(agent, "Agent stopped reporting and was presumed unresponsive");
     }
 
     /**
      * Return this agent job and test to the ool, update agent data.
      *
      * @param agent the agent in hand.
+     * @param reason human-readable explanation of why the agent's job/tests are being returned;
+     *               recorded when the agent was PREPARING (see {@link #recordFailedPreparingAgent}).
      */
-    private void returnTests(Agent agent) {
+    private void returnTests(Agent agent, String reason) {
         Set<Test> currentTestsOfAgent = new HashSet<>();
         int testsActuallyReset = 0;
 
@@ -3838,26 +3866,7 @@ public class NewmanResource {
                 jobUpdated = jobUpdater
                         .remove("preparing_agents", agent.getName()).execute();
 
-                String jobId = agent.getJobId();
-                getUpdater(Job.class).inc("prepareFailCount").whereId(jobId).execute();
-
-                // Per-job lock ensures exactly one thread marks the job BROKEN when the threshold is reached.
-                // Multiple agents can fail preparation concurrently — each atomically increments prepareFailCount
-                // in the DB above, then enters this lock sequentially. The first thread to see count >= threshold
-                // marks the job BROKEN and aborts remaining preparing agents. Subsequent threads re-read state = BROKEN
-                // and skip. The lock entry is removed immediately after to keep the map bounded.
-                Object breakLock = jobBreakLocks.computeIfAbsent(jobId, k -> new Object());
-                synchronized (breakLock) {
-                    Job failedJob = jobRepository.findById(jobId).orElse(null);
-                    if (failedJob != null && failedJob.getState() != State.BROKEN
-                            && failedJob.getPrepareFailCount() >= PREPARE_FAIL_THRESHOLD) {
-                        logger.warn("Job [{}] marked BROKEN after {} failed prepare attempts",
-                                jobId, failedJob.getPrepareFailCount());
-                        updateBrokenJob(failedJob);
-                        abortPreparingAgents(failedJob, agent.getName());
-                        jobBreakLocks.remove(jobId);
-                    }
-                }
+                handlePreparingAgentFailure(agent, agent.getJobId(), reason, PREPARE_FAIL_THRESHOLD);
             } else if (agent.getState() == Agent.State.RUNNING && testsActuallyReset > 0) {
                 logger.info("returnTests for agent [{}], jobId [{}], amount of tests actually reset [{}]", agent.getName(), agent.getJobId(), testsActuallyReset);
                 jobUpdated = jobUpdater
@@ -3886,6 +3895,63 @@ public class NewmanResource {
 
         existingAgent.setJob(job);  // add job for the broadcasting
         broadcastMessage(MODIFIED_AGENT, existingAgent);
+    }
+
+    /**
+     * Common handling for an agent that failed/aborted while PREPARING a job — increments the job's
+     * prepareFailCount, records the failure into the dead-agents history (always, regardless of threshold),
+     * and marks the job BROKEN (aborting the remaining preparing agents) once prepareFailCount reaches
+     * {@code threshold}.
+     *
+     * Called from every path where an agent fails job preparation: {@link #returnTests} (agent went
+     * unresponsive, or its process shut down via freeAgent — threshold {@link #PREPARE_FAIL_THRESHOLD})
+     * and {@link #unsubscribe} (agent explicitly reported a setup failure — threshold
+     * {@link #EXPLICIT_SETUP_FAIL_THRESHOLD}, higher since these are immediate/synchronous and can
+     * accumulate far faster than timeout-based failures).
+     */
+    private void handlePreparingAgentFailure(Agent agent, String jobId, String reason, int threshold) {
+        getUpdater(Job.class).inc("prepareFailCount").whereId(jobId).execute();
+
+        // Per-job lock ensures exactly one thread marks the job BROKEN when the threshold is reached.
+        // Multiple agents can fail preparation concurrently — each atomically increments prepareFailCount
+        // in the DB above, then enters this lock sequentially. The first thread to see count >= threshold
+        // marks the job BROKEN and aborts remaining preparing agents. Subsequent threads re-read state = BROKEN
+        // and skip. The lock entry is removed immediately after to keep the map bounded.
+        Object breakLock = jobBreakLocks.computeIfAbsent(jobId, k -> new Object());
+        synchronized (breakLock) {
+            Job failedJob = jobRepository.findById(jobId).orElse(null);
+            if (failedJob != null) {
+                recordFailedPreparingAgent(agent, failedJob, reason);
+            }
+            if (failedJob != null && failedJob.getState() != State.BROKEN
+                    && failedJob.getPrepareFailCount() >= threshold) {
+                logger.warn("Job [{}] marked BROKEN after {} failed prepare attempts",
+                        jobId, failedJob.getPrepareFailCount());
+                updateBrokenJob(failedJob);
+                abortPreparingAgents(failedJob, agent.getName());
+                jobBreakLocks.remove(jobId);
+            }
+        }
+    }
+
+    /**
+     * Records an agent's job-preparation failure into the bounded, moving-window history
+     * (last {@link #DEAD_AGENTS_WINDOW_SIZE} entries, newest first) and broadcasts it live.
+     */
+    private void recordFailedPreparingAgent(Agent agent, Job job, String reason) {
+        Date lastTouchTime = agent.getLastTouchTime();
+        Date failedAt = new Date();
+        Long activeDurationMs = lastTouchTime != null ? failedAt.getTime() - lastTouchTime.getTime() : null;
+
+        FailedPreparingAgent entry = new FailedPreparingAgent(
+                agent.getName(), job.getId(), job.getSuiteName(), job.getPrepareFailCount(),
+                lastTouchTime, activeDurationMs, failedAt, reason);
+
+        deadAgentsHistory.addFirst(entry);
+        while (deadAgentsHistory.size() > DEAD_AGENTS_WINDOW_SIZE) {
+            deadAgentsHistory.pollLast();
+        }
+        broadcastMessage(CREATED_FAILED_PREPARING_AGENT, entry);
     }
 
     private void abortPreparingAgents(Job brokenJob, String excludeAgentName) {
