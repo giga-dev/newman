@@ -37747,14 +37747,14 @@ const _hoisted_2$g = {
   class: "d-flex align-center"
 };
 const _hoisted_3$g = { class: "d-flex align-center justify-space-between" };
-const _hoisted_4$d = { style: { "flex-shrink": "0" } };
-const _hoisted_5$8 = { class: "d-flex align-center justify-space-between" };
-const _hoisted_6$7 = { style: { "flex-shrink": "0" } };
-const _hoisted_7$6 = {
+const _hoisted_4$e = { style: { "flex-shrink": "0" } };
+const _hoisted_5$9 = { class: "d-flex align-center justify-space-between" };
+const _hoisted_6$8 = { style: { "flex-shrink": "0" } };
+const _hoisted_7$7 = {
   key: 0,
   class: "mr-2"
 };
-const _hoisted_8$5 = { key: 0 };
+const _hoisted_8$6 = { key: 0 };
 const _hoisted_9$5 = { key: 1 };
 const _hoisted_10$4 = { key: 0 };
 const _hoisted_11$4 = { key: 1 };
@@ -37879,7 +37879,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                         ]),
                         _: 1
                       }, 8, ["modelValue", "items", "onUpdate:modelValue"]),
-                      createBaseVNode("div", _hoisted_4$d, [
+                      createBaseVNode("div", _hoisted_4$e, [
                         createVNode(_component_v_menu, {
                           modelValue: $data.leftMenu,
                           "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $data.leftMenu = $event),
@@ -37928,8 +37928,8 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   class: "mt-2 mb-2 pr-2 pl-2"
                 }, {
                   default: withCtx(() => [
-                    createBaseVNode("div", _hoisted_5$8, [
-                      createBaseVNode("div", _hoisted_6$7, [
+                    createBaseVNode("div", _hoisted_5$9, [
+                      createBaseVNode("div", _hoisted_6$8, [
                         createVNode(_component_v_menu, {
                           modelValue: $data.rightMenu,
                           "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $data.rightMenu = $event),
@@ -38035,7 +38035,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2, _b;
                     return [
-                      item.leftIsArray && item.leftOptions.length > 1 ? (openBlock(), createElementBlock("div", _hoisted_7$6, [
+                      item.leftIsArray && item.leftOptions.length > 1 ? (openBlock(), createElementBlock("div", _hoisted_7$7, [
                         createVNode(_component_v_select, {
                           "model-value": $data.selectedSuiteIndices[item.suiteName].left,
                           items: item.leftOptions.map((opt, idx) => ({ title: `#${idx + 1}`, value: idx })),
@@ -38071,7 +38071,7 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
                   default: withCtx(() => {
                     var _a2, _b, _c, _d, _e, _f, _g, _h;
                     return [
-                      item.colLeft != null ? (openBlock(), createElementBlock("div", _hoisted_8$5, [
+                      item.colLeft != null ? (openBlock(), createElementBlock("div", _hoisted_8$6, [
                         createVNode(_component_v_btn, {
                           variant: "elevated",
                           value: "TOTAL",
@@ -38206,6 +38206,280 @@ function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
   });
 }
 const Dashboard = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$h], ["__scopeId", "data-v-0fd76d70"]]);
+function countAgentsNum(item) {
+  if (item.preparingAgents && item.preparingAgents.length > 0) {
+    return item.preparingAgents.length;
+  } else if (item.agents && item.agents.length > 0) {
+    return item.agents.length;
+  } else {
+    return "-";
+  }
+}
+function consolidateBuildName(item) {
+  if (item.build) {
+    return `${item.build.name} (${item.build.branch})`;
+  } else {
+    return `${item.buildName} (${item.buildBranch})`;
+  }
+}
+function calculateSubmittedTime(timestamp) {
+  const currentTime = Date.now();
+  const timeDifference = currentTime - timestamp;
+  let result = "";
+  const minutesPassed = Math.floor(timeDifference / (1e3 * 60));
+  const hoursPassed = Math.floor(timeDifference / (1e3 * 60 * 60));
+  const daysPassed = Math.floor(timeDifference / (1e3 * 60 * 60 * 24));
+  if (daysPassed > 0) {
+    result = daysPassed + " days ago";
+  } else if (hoursPassed > 0) {
+    result = hoursPassed + " hours ago";
+  } else if (minutesPassed > 0) {
+    result = minutesPassed + " minutes ago";
+  } else {
+    result = "just now";
+  }
+  return { ago: result, dateTime: toLocaleFormatted(timestamp) };
+}
+function calculateDuration(startTime, endTime) {
+  if (!startTime) return "";
+  endTime = endTime || Date.now();
+  const durationMs = endTime - startTime;
+  const minutes = Math.floor(durationMs / (1e3 * 60)) % 60;
+  const hours = Math.floor(durationMs / (1e3 * 60 * 60)) % 24;
+  const days = Math.floor(durationMs / (1e3 * 60 * 60 * 24));
+  if (days > 0) {
+    return `${days}d, ${hours}h`;
+  } else {
+    return `${hours}h, ${minutes.toString().padStart(2, "0")}m`;
+  }
+}
+function calculateDurationMinsSecs(startTime, endTime) {
+  if (!startTime) return "";
+  endTime = endTime || Date.now();
+  const durationMs = endTime - startTime;
+  const minutes = Math.floor(durationMs / (1e3 * 60)) % 60;
+  const seconds = Math.floor(durationMs / 1e3);
+  if (minutes < 1) {
+    return `${seconds} seconds`;
+  } else if (minutes == 1) {
+    return `${minutes} minute`;
+  } else {
+    return `${minutes} minutes`;
+  }
+}
+function parseJobEntry(item) {
+  return {
+    state: item.state,
+    // Assign value or null if missing
+    progress: (item.passedTests + item.failedTests) / item.totalTests * 100,
+    // Set to null as per your requirement
+    jobId: item.id,
+    // Assign value or null if missing
+    buildId: item.buildId || item.build.id,
+    // Assign value or null if missing
+    build: item.buildName || item.build.name,
+    buildConsolidated: consolidateBuildName(item),
+    // Build string concatenation
+    suite: {
+      id: item.suiteId || item.suite.id,
+      name: item.suiteName || item.suite.name
+    },
+    // Assign value or null if missing
+    jdk: item.jobConfigName || item.jobConfig.name,
+    // Assign value or null if missing
+    duration: calculateDuration(item.startTime, item.endTime),
+    // Set to null as per your requirement
+    submittedAt: calculateSubmittedTime(item.submitTime),
+    // Set to null as per your requirement
+    submittedBy: item.submittedBy || null,
+    // Assign value or null if missing
+    agentsNum: countAgentsNum(item),
+    // Count of agent groups
+    agentGroups: item.agentGroups || null,
+    priority: item.priority,
+    // Assign value or null if missing
+    // runningTests: item.runningTests,
+    status: [
+      item.runningTests || 0,
+      item.passedTests || 0,
+      item.failedTests || 0,
+      item.failed3TimesTests || 0,
+      item.totalTests || 0
+    ]
+  };
+}
+function parseJobEntryExtra(item) {
+  var _a2, _b;
+  return {
+    startTime: item.startTime && toLocaleFormatted(item.startTime) || "N/A",
+    endTime: item.endTime && toLocaleFormatted(item.endTime) || "N/A",
+    preparingAgents: ((_a2 = item.preparingAgents) == null ? void 0 : _a2.length) || "0",
+    submittedAt: toLocaleFormatted(item.submitTime),
+    jobSetupLogs: (_b = item.jobSetupLog) == null ? void 0 : _b.agentLogs
+  };
+}
+function toLocaleFormatted(time) {
+  const formattedDate = new Date(time).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+    // 24-hour format
+  });
+  return formattedDate;
+}
+function parseJobTestEntry(item) {
+  let splitIndex = null;
+  let showMasterBranch = true;
+  if (item.historyStats) {
+    splitIndex = item.historyStats.indexOf("_");
+    if (splitIndex == -1) {
+      splitIndex = item.historyStats.length;
+      showMasterBranch = false;
+    }
+  }
+  return {
+    agentGroup: item.agentGroup,
+    arguments: item.arguments,
+    assignedAgent: item.assignedAgent,
+    errorMessage: item.errorMessage,
+    id: item.id,
+    jobId: item.jobId,
+    name: item.name,
+    progressPercent: item.progressPercent,
+    runNumber: item.runNumber,
+    startTime: toLocaleFormatted(item.startTime),
+    endTime: toLocaleFormatted(item.endTime),
+    scheduledAt: toLocaleFormatted(item.scheduledAt),
+    status: item.status,
+    testScore: item.testScore,
+    hasLogs: item.hasLogs,
+    historyStats: {
+      statsBranch: splitIndex ? item.historyStats.slice(0, splitIndex).trim() : null,
+      // show prior symbol '_' or full length
+      statsMaster: splitIndex && showMasterBranch ? item.historyStats.slice(splitIndex + 1).trim() : null
+      // show after '_' if exists
+    },
+    duration: calculateDurationMinsSecs(item.startTime, item.endTime)
+  };
+}
+function parseJobTestEntryExtra(item) {
+  var _a2;
+  return {
+    id: item.id,
+    timeout: item.timeout,
+    testType: item.testType,
+    logs: (_a2 = item.logs) == null ? void 0 : _a2.testLogs,
+    arguments: item.arguments.join(" ")
+  };
+}
+function parseBuildEntry(item) {
+  var _a2, _b;
+  return {
+    id: item.id,
+    name: item.name,
+    xap: item.shas && item.shas["xap-open"] || null,
+    xappremium: (_a2 = item.shas) == null ? void 0 : _a2.xap,
+    branch: item.branch || null,
+    resources: item.resources || null,
+    testsMetadata: item.testsMetadata || null,
+    tags: (_b = item.tags) == null ? void 0 : _b.filter((tag) => tag.length > 0).join(", "),
+    buildTime: toLocaleFormatted(item.buildTime),
+    status: [
+      item.buildStatus.runningTests || 0,
+      item.buildStatus.passedTests || 0,
+      item.buildStatus.failedTests || 0,
+      item.buildStatus.failed3TimesTests || 0,
+      item.buildStatus.totalTests || 0
+    ]
+  };
+}
+function parseSuiteEntry(item) {
+  return {
+    id: item.id,
+    name: item.name,
+    customVariables: item.customVariables,
+    requirements: item.requirements,
+    criteria: JSON.stringify(item.criteria, null, 4),
+    hasSchedule: item.customVariables.includes("SCHEDULE=")
+  };
+}
+function parseTestHistoryEntry(item) {
+  return {
+    testId: item.test.id,
+    jobId: item.job.id,
+    build: { id: item.job.buildId, name: item.job.buildName },
+    endTime: toLocaleFormatted(item.test.endTime),
+    duration: calculateDuration(item.test.startTime, item.test.endTime),
+    runNum: item.test.runNumber,
+    agentId: item.test.assignedAgent,
+    agentGroup: item.test.agentGroup,
+    state: item.test.status,
+    submittedBy: item.job.submittedBy,
+    jdk: item.job.jobConfigName
+  };
+}
+function parseAgentEntry(item) {
+  var _a2, _b;
+  return {
+    action: item.action,
+    capabilities: item.capabilities.join(", "),
+    currentTests: item.currentTests,
+    host: item.host,
+    hostAddress: item.hostAddress,
+    id: item.id,
+    job: item.job,
+    jobId: item.jobId,
+    lastSeen: toLocaleFormatted(item.lastTouchTime),
+    name: item.name,
+    pid: item.pid,
+    retries: item.setupRetries || 0,
+    state: item.state,
+    group: item.groupName,
+    suite: item.job ? item.job.suiteName || ((_a2 = item.job.suite) == null ? void 0 : _a2.name) || null : null,
+    build: item.job ? item.job.buildName || ((_b = item.job.build) == null ? void 0 : _b.name) || null : null,
+    tests: Array.isArray(item.currentTests) ? item.currentTests.length : 0
+  };
+}
+function parseFailedPreparingAgentEntry(item) {
+  return {
+    _key: `${item.agentName}|${item.jobId}|${item.failedAt}`,
+    agentName: item.agentName,
+    jobId: item.jobId,
+    suiteName: item.suiteName,
+    failedAt: item.failedAt ? calculateSubmittedTime(item.failedAt) : null,
+    reason: item.reason
+  };
+}
+function getStatusColor(status) {
+  switch (status) {
+    case "RUNNING":
+      return "blue";
+    case "FAIL":
+      return "#D30000";
+    case "READY":
+    case "PENDING":
+    case "IDLING":
+      return "grey";
+    case "BROKEN":
+      return "#D30000";
+    case "SUCCESS":
+    case "DONE":
+      return "green";
+    case "PAUSED":
+      return "orange";
+    default:
+      return "yellow";
+  }
+}
+function coloredHistoryStats(stats, isSquare) {
+  if (stats == null) return null;
+  let result = stats.replace(/\s/g, "").slice(0, 10).replace(/\./g, isSquare ? "🟩" : "🟢").replace(/\|/g, isSquare ? "🟥" : "🔴");
+  let circlesCount = result.length / 2;
+  return result.padEnd(circlesCount + 10, isSquare ? "⬜" : "⚪");
+}
 const _sfc_main$o = {
   beforeMount() {
     this.initBuildsAndSuites();
@@ -38385,6 +38659,12 @@ const _sfc_main$o = {
       if (!dateVal) return "";
       return new Date(dateVal).toLocaleString();
     },
+    submittedAgo(dateVal) {
+      return dateVal ? calculateSubmittedTime(new Date(dateVal).getTime()).ago : "";
+    },
+    getTooltipConfig(text) {
+      return { location: "bottom", text, openDelay: 1e3 };
+    },
     formatPriority(priority) {
       const map = { 0: "0 - daily-default", 1: "1 - low", 2: "2 - high", 3: "3 - release-default", 4: "4 - urgent" };
       return map[priority] ?? priority;
@@ -38461,6 +38741,9 @@ const _sfc_main$o = {
 const _hoisted_1$k = ["innerHTML"];
 const _hoisted_2$f = ["innerHTML"];
 const _hoisted_3$f = { class: "text-h6" };
+const _hoisted_4$d = { class: "font-bold" };
+const _hoisted_5$8 = { class: "font-bold" };
+const _hoisted_6$7 = { class: "font-bold" };
 function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_tab = resolveComponent("v-tab");
   const _component_v_tabs = resolveComponent("v-tabs");
@@ -38485,8 +38768,10 @@ function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_actions = resolveComponent("v-card-actions");
   const _component_v_card = resolveComponent("v-card");
   const _component_v_dialog = resolveComponent("v-dialog");
+  const _component_router_link = resolveComponent("router-link");
   const _component_v_data_table = resolveComponent("v-data-table");
   const _component_v_tabs_window = resolveComponent("v-tabs-window");
+  const _directive_tooltip = resolveDirective("tooltip");
   return openBlock(), createBlock(_component_v_card, null, {
     default: withCtx(() => [
       createVNode(_component_v_tabs, {
@@ -38990,16 +39275,53 @@ function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
                     items: $data.pendingJobs,
                     loading: $data.pendingLoading,
                     density: "compact",
-                    class: "elevation-1",
+                    class: "jobsTable elevation-1",
                     hover: "",
                     "items-per-page": 25,
-                    "items-per-page-options": [15, 25, 50, 100]
+                    "items-per-page-options": [15, 20, 25, 50]
                   }, {
+                    "item.suiteName": withCtx(({ item }) => [
+                      withDirectives((openBlock(), createElementBlock("span", null, [
+                        createVNode(_component_router_link, {
+                          class: "font-bold",
+                          to: { name: "SuiteDetails", params: { id: item.suiteID } }
+                        }, {
+                          default: withCtx(() => [
+                            createTextVNode(toDisplayString(item.suiteName), 1)
+                          ]),
+                          _: 2
+                        }, 1032, ["to"])
+                      ])), [
+                        [_directive_tooltip, $options.getTooltipConfig(item.suiteName)]
+                      ])
+                    ]),
+                    "item.buildName": withCtx(({ item }) => [
+                      withDirectives((openBlock(), createElementBlock("span", null, [
+                        createVNode(_component_router_link, {
+                          class: "font-bold",
+                          to: { name: "BuildDetails", params: { id: item.buildID } }
+                        }, {
+                          default: withCtx(() => [
+                            createTextVNode(toDisplayString(item.buildName), 1)
+                          ]),
+                          _: 2
+                        }, 1032, ["to"])
+                      ])), [
+                        [_directive_tooltip, $options.getTooltipConfig(item.buildName)]
+                      ])
+                    ]),
                     "item.submitTime": withCtx(({ item }) => [
-                      createTextVNode(toDisplayString($options.formatDate(item.submitTime)), 1)
+                      withDirectives((openBlock(), createElementBlock("span", _hoisted_4$d, [
+                        createTextVNode(toDisplayString($options.submittedAgo(item.submitTime)), 1)
+                      ])), [
+                        [_directive_tooltip, $options.getTooltipConfig($options.formatDate(item.submitTime))]
+                      ])
                     ]),
                     "item.priority": withCtx(({ item }) => [
-                      createTextVNode(toDisplayString($options.formatPriority(item.priority)), 1)
+                      createBaseVNode("div", _hoisted_5$8, toDisplayString($options.formatPriority(item.priority)), 1)
+                    ]),
+                    "item.author": withCtx(({ item }) => [
+                      createBaseVNode("div", _hoisted_6$7, toDisplayString(item.author), 1)
                     ]),
                     _: 1
                   }, 8, ["headers", "items", "loading"])
@@ -39016,271 +39338,7 @@ function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1
   });
 }
-const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$g], ["__scopeId", "data-v-80d0d649"]]);
-function countAgentsNum(item) {
-  if (item.preparingAgents && item.preparingAgents.length > 0) {
-    return item.preparingAgents.length;
-  } else if (item.agents && item.agents.length > 0) {
-    return item.agents.length;
-  } else {
-    return "-";
-  }
-}
-function consolidateBuildName(item) {
-  if (item.build) {
-    return `${item.build.name} (${item.build.branch})`;
-  } else {
-    return `${item.buildName} (${item.buildBranch})`;
-  }
-}
-function calculateSubmittedTime(timestamp) {
-  const currentTime = Date.now();
-  const timeDifference = currentTime - timestamp;
-  let result = "";
-  const minutesPassed = Math.floor(timeDifference / (1e3 * 60));
-  const hoursPassed = Math.floor(timeDifference / (1e3 * 60 * 60));
-  const daysPassed = Math.floor(timeDifference / (1e3 * 60 * 60 * 24));
-  if (daysPassed > 0) {
-    result = daysPassed + " days ago";
-  } else if (hoursPassed > 0) {
-    result = hoursPassed + " hours ago";
-  } else if (minutesPassed > 0) {
-    result = minutesPassed + " minutes ago";
-  } else {
-    result = "just now";
-  }
-  return { ago: result, dateTime: toLocaleFormatted(timestamp) };
-}
-function calculateDuration(startTime, endTime) {
-  if (!startTime) return "";
-  endTime = endTime || Date.now();
-  const durationMs = endTime - startTime;
-  const minutes = Math.floor(durationMs / (1e3 * 60)) % 60;
-  const hours = Math.floor(durationMs / (1e3 * 60 * 60)) % 24;
-  const days = Math.floor(durationMs / (1e3 * 60 * 60 * 24));
-  if (days > 0) {
-    return `${days}d, ${hours}h`;
-  } else {
-    return `${hours}h, ${minutes.toString().padStart(2, "0")}m`;
-  }
-}
-function calculateDurationMinsSecs(startTime, endTime) {
-  if (!startTime) return "";
-  endTime = endTime || Date.now();
-  const durationMs = endTime - startTime;
-  const minutes = Math.floor(durationMs / (1e3 * 60)) % 60;
-  const seconds = Math.floor(durationMs / 1e3);
-  if (minutes < 1) {
-    return `${seconds} seconds`;
-  } else if (minutes == 1) {
-    return `${minutes} minute`;
-  } else {
-    return `${minutes} minutes`;
-  }
-}
-function parseJobEntry(item) {
-  return {
-    state: item.state,
-    // Assign value or null if missing
-    progress: (item.passedTests + item.failedTests) / item.totalTests * 100,
-    // Set to null as per your requirement
-    jobId: item.id,
-    // Assign value or null if missing
-    buildId: item.buildId || item.build.id,
-    // Assign value or null if missing
-    build: item.buildName || item.build.name,
-    buildConsolidated: consolidateBuildName(item),
-    // Build string concatenation
-    suite: {
-      id: item.suiteId || item.suite.id,
-      name: item.suiteName || item.suite.name
-    },
-    // Assign value or null if missing
-    jdk: item.jobConfigName || item.jobConfig.name,
-    // Assign value or null if missing
-    duration: calculateDuration(item.startTime, item.endTime),
-    // Set to null as per your requirement
-    submittedAt: calculateSubmittedTime(item.submitTime),
-    // Set to null as per your requirement
-    submittedBy: item.submittedBy || null,
-    // Assign value or null if missing
-    agentsNum: countAgentsNum(item),
-    // Count of agent groups
-    agentGroups: item.agentGroups || null,
-    priority: item.priority,
-    // Assign value or null if missing
-    // runningTests: item.runningTests,
-    status: [
-      item.runningTests || 0,
-      item.passedTests || 0,
-      item.failedTests || 0,
-      item.failed3TimesTests || 0,
-      item.totalTests || 0
-    ]
-  };
-}
-function parseJobEntryExtra(item) {
-  var _a2, _b;
-  return {
-    startTime: item.startTime && toLocaleFormatted(item.startTime) || "N/A",
-    endTime: item.endTime && toLocaleFormatted(item.endTime) || "N/A",
-    preparingAgents: ((_a2 = item.preparingAgents) == null ? void 0 : _a2.length) || "0",
-    submittedAt: toLocaleFormatted(item.submitTime),
-    jobSetupLogs: (_b = item.jobSetupLog) == null ? void 0 : _b.agentLogs
-  };
-}
-function toLocaleFormatted(time) {
-  const formattedDate = new Date(time).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false
-    // 24-hour format
-  });
-  return formattedDate;
-}
-function parseJobTestEntry(item) {
-  let splitIndex = null;
-  let showMasterBranch = true;
-  if (item.historyStats) {
-    splitIndex = item.historyStats.indexOf("_");
-    if (splitIndex == -1) {
-      splitIndex = item.historyStats.length;
-      showMasterBranch = false;
-    }
-  }
-  return {
-    agentGroup: item.agentGroup,
-    arguments: item.arguments,
-    assignedAgent: item.assignedAgent,
-    errorMessage: item.errorMessage,
-    id: item.id,
-    jobId: item.jobId,
-    name: item.name,
-    progressPercent: item.progressPercent,
-    runNumber: item.runNumber,
-    startTime: toLocaleFormatted(item.startTime),
-    endTime: toLocaleFormatted(item.endTime),
-    scheduledAt: toLocaleFormatted(item.scheduledAt),
-    status: item.status,
-    testScore: item.testScore,
-    hasLogs: item.hasLogs,
-    historyStats: {
-      statsBranch: splitIndex ? item.historyStats.slice(0, splitIndex).trim() : null,
-      // show prior symbol '_' or full length
-      statsMaster: splitIndex && showMasterBranch ? item.historyStats.slice(splitIndex + 1).trim() : null
-      // show after '_' if exists
-    },
-    duration: calculateDurationMinsSecs(item.startTime, item.endTime)
-  };
-}
-function parseJobTestEntryExtra(item) {
-  var _a2;
-  return {
-    id: item.id,
-    timeout: item.timeout,
-    testType: item.testType,
-    logs: (_a2 = item.logs) == null ? void 0 : _a2.testLogs,
-    arguments: item.arguments.join(" ")
-  };
-}
-function parseBuildEntry(item) {
-  var _a2, _b;
-  return {
-    id: item.id,
-    name: item.name,
-    xap: item.shas && item.shas["xap-open"] || null,
-    xappremium: (_a2 = item.shas) == null ? void 0 : _a2.xap,
-    branch: item.branch || null,
-    resources: item.resources || null,
-    testsMetadata: item.testsMetadata || null,
-    tags: (_b = item.tags) == null ? void 0 : _b.filter((tag) => tag.length > 0).join(", "),
-    buildTime: toLocaleFormatted(item.buildTime),
-    status: [
-      item.buildStatus.runningTests || 0,
-      item.buildStatus.passedTests || 0,
-      item.buildStatus.failedTests || 0,
-      item.buildStatus.failed3TimesTests || 0,
-      item.buildStatus.totalTests || 0
-    ]
-  };
-}
-function parseSuiteEntry(item) {
-  return {
-    id: item.id,
-    name: item.name,
-    customVariables: item.customVariables,
-    requirements: item.requirements,
-    criteria: JSON.stringify(item.criteria, null, 4),
-    hasSchedule: item.customVariables.includes("SCHEDULE=")
-  };
-}
-function parseTestHistoryEntry(item) {
-  return {
-    testId: item.test.id,
-    jobId: item.job.id,
-    build: { id: item.job.buildId, name: item.job.buildName },
-    endTime: toLocaleFormatted(item.test.endTime),
-    duration: calculateDuration(item.test.startTime, item.test.endTime),
-    runNum: item.test.runNumber,
-    agentId: item.test.assignedAgent,
-    agentGroup: item.test.agentGroup,
-    state: item.test.status,
-    submittedBy: item.job.submittedBy,
-    jdk: item.job.jobConfigName
-  };
-}
-function parseAgentEntry(item) {
-  var _a2, _b;
-  return {
-    action: item.action,
-    capabilities: item.capabilities.join(", "),
-    currentTests: item.currentTests,
-    host: item.host,
-    hostAddress: item.hostAddress,
-    id: item.id,
-    job: item.job,
-    jobId: item.jobId,
-    lastSeen: toLocaleFormatted(item.lastTouchTime),
-    name: item.name,
-    pid: item.pid,
-    retries: item.setupRetries || 0,
-    state: item.state,
-    group: item.groupName,
-    suite: item.job ? item.job.suiteName || ((_a2 = item.job.suite) == null ? void 0 : _a2.name) || null : null,
-    build: item.job ? item.job.buildName || ((_b = item.job.build) == null ? void 0 : _b.name) || null : null,
-    tests: Array.isArray(item.currentTests) ? item.currentTests.length : 0
-  };
-}
-function getStatusColor(status) {
-  switch (status) {
-    case "RUNNING":
-      return "blue";
-    case "FAIL":
-      return "#D30000";
-    case "READY":
-    case "PENDING":
-    case "IDLING":
-      return "grey";
-    case "BROKEN":
-      return "#D30000";
-    case "SUCCESS":
-    case "DONE":
-      return "green";
-    case "PAUSED":
-      return "orange";
-    default:
-      return "yellow";
-  }
-}
-function coloredHistoryStats(stats, isSquare) {
-  if (stats == null) return null;
-  let result = stats.replace(/\s/g, "").slice(0, 10).replace(/\./g, isSquare ? "🟩" : "🟢").replace(/\|/g, isSquare ? "🟥" : "🔴");
-  let circlesCount = result.length / 2;
-  return result.padEnd(circlesCount + 10, isSquare ? "⬜" : "⚪");
-}
+const JobSubmit = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$g], ["__scopeId", "data-v-8081ebed"]]);
 const _sfc_main$n = /* @__PURE__ */ defineComponent$1({
   props: {
     item: { type: Object, required: true, default: () => ({ status: [0, 0, 0, 0, 0], jobId: null }) },
@@ -39892,8 +39950,8 @@ const _hoisted_5$7 = {
   style: { "position": "absolute", "top": "0", "left": "0", "width": "0", "height": "0", "border-top": "8px solid orange", "border-right": "8px solid transparent", "pointer-events": "none" }
 };
 const _hoisted_6$6 = ["innerHTML"];
-const _hoisted_7$5 = ["innerHTML"];
-const _hoisted_8$4 = { align: "center" };
+const _hoisted_7$6 = ["innerHTML"];
+const _hoisted_8$5 = { align: "center" };
 const _hoisted_9$4 = {
   key: 0,
   align: "center"
@@ -40229,13 +40287,13 @@ const _sfc_main$j = /* @__PURE__ */ Object.assign(__default__$6, {
               default: withCtx(() => [
                 createBaseVNode("span", {
                   innerHTML: _ctx.fullTaskName(item)
-                }, null, 8, _hoisted_7$5)
+                }, null, 8, _hoisted_7$6)
               ]),
               _: 2
             }, 1024)
           ]),
           "item.status": withCtx(({ item }) => [
-            createBaseVNode("div", _hoisted_8$4, [
+            createBaseVNode("div", _hoisted_8$5, [
               createVNode(_component_v_chip, {
                 variant: "elevated",
                 class: "text-uppercase font-weight-bold text-body-2 text-mono",
@@ -40326,8 +40384,8 @@ const _hoisted_3$b = { class: "ml-6" };
 const _hoisted_4$9 = { key: 0 };
 const _hoisted_5$6 = { key: 1 };
 const _hoisted_6$5 = { key: 2 };
-const _hoisted_7$4 = { key: 3 };
-const _hoisted_8$3 = { class: "d-flex align-center" };
+const _hoisted_7$5 = { key: 3 };
+const _hoisted_8$4 = { class: "d-flex align-center" };
 const _hoisted_9$3 = { class: "ml-3" };
 const __default__$5 = {
   components: {
@@ -40489,7 +40547,7 @@ const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$5, {
                                                   size: "small",
                                                   label: ""
                                                 }, null, 8, ["color", "text"])
-                                              ])) : (openBlock(), createElementBlock("div", _hoisted_7$4, toDisplayString(_ctx.jobDetails[item.key] || "N/A"), 1))
+                                              ])) : (openBlock(), createElementBlock("div", _hoisted_7$5, toDisplayString(_ctx.jobDetails[item.key] || "N/A"), 1))
                                             ]),
                                             _: 2
                                           }, 1024)) : createCommentVNode("", true)
@@ -40590,7 +40648,7 @@ const _sfc_main$i = /* @__PURE__ */ Object.assign(__default__$5, {
                 default: withCtx(() => {
                   var _a2, _b, _c;
                   return [
-                    createBaseVNode("div", _hoisted_8$3, [
+                    createBaseVNode("div", _hoisted_8$4, [
                       _ctx.jobDetails ? (openBlock(), createBlock(_component_v_progress_linear, {
                         key: 0,
                         color: "#5bc0de",
@@ -40669,11 +40727,11 @@ const _hoisted_4$8 = {
 };
 const _hoisted_5$5 = { key: 1 };
 const _hoisted_6$4 = { key: 0 };
-const _hoisted_7$3 = {
+const _hoisted_7$4 = {
   key: 1,
   class: "my-2"
 };
-const _hoisted_8$2 = ["href"];
+const _hoisted_8$3 = ["href"];
 const _hoisted_9$2 = { class: "ml-2" };
 const _hoisted_10$2 = {
   key: 2,
@@ -40742,7 +40800,7 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
                               }, {
                                 default: withCtx(() => [
                                   item.key == "id" ? (openBlock(), createElementBlock("div", _hoisted_6$4)) : createCommentVNode("", true),
-                                  item.key == "resources" ? (openBlock(), createElementBlock("div", _hoisted_7$3, [
+                                  item.key == "resources" ? (openBlock(), createElementBlock("div", _hoisted_7$4, [
                                     (openBlock(true), createElementBlock(Fragment, null, renderList($data.buildDetails[item.key], (path, key) => {
                                       return openBlock(), createElementBlock("div", {
                                         key,
@@ -40754,7 +40812,7 @@ function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
                                         }, [
                                           _cache[0] || (_cache[0] = createTextVNode(" 🔗 ")),
                                           createBaseVNode("span", _hoisted_9$2, toDisplayString(path), 1)
-                                        ], 8, _hoisted_8$2)
+                                        ], 8, _hoisted_8$3)
                                       ]);
                                     }), 128))
                                   ])) : item.key == "xap" || item.key == "xappremium" ? (openBlock(), createElementBlock("div", _hoisted_10$2, [
@@ -40807,11 +40865,11 @@ const _hoisted_6$3 = {
   key: 2,
   class: "my-0"
 };
-const _hoisted_7$2 = {
+const _hoisted_7$3 = {
   key: 3,
   class: "my-0"
 };
-const _hoisted_8$1 = {
+const _hoisted_8$2 = {
   key: 4,
   class: "my-0"
 };
@@ -40952,7 +41010,7 @@ const _sfc_main$g = /* @__PURE__ */ Object.assign(__default__$4, {
                                 ], 8, _hoisted_4$7)
                               ]);
                             }), 128))
-                          ])) : item.key == "statsBranch" && _ctx.testDetails[item.key] ? (openBlock(), createElementBlock("div", _hoisted_6$3, toDisplayString(unref(coloredHistoryStats)(_ctx.testDetails[item.key])), 1)) : item.key == "statsMaster" && _ctx.testDetails[item.key] ? (openBlock(), createElementBlock("div", _hoisted_7$2, toDisplayString(unref(coloredHistoryStats)(_ctx.testDetails[item.key], true)), 1)) : item.key == "history" ? (openBlock(), createElementBlock("div", _hoisted_8$1, [
+                          ])) : item.key == "statsBranch" && _ctx.testDetails[item.key] ? (openBlock(), createElementBlock("div", _hoisted_6$3, toDisplayString(unref(coloredHistoryStats)(_ctx.testDetails[item.key])), 1)) : item.key == "statsMaster" && _ctx.testDetails[item.key] ? (openBlock(), createElementBlock("div", _hoisted_7$3, toDisplayString(unref(coloredHistoryStats)(_ctx.testDetails[item.key], true)), 1)) : item.key == "history" ? (openBlock(), createElementBlock("div", _hoisted_8$2, [
                             createVNode(_component_v_btn, {
                               value: "history",
                               "prepend-icon": "mdi-eye",
@@ -41450,7 +41508,7 @@ const _hoisted_3$7 = { key: 0 };
 const _hoisted_4$5 = { key: 1 };
 const _hoisted_5$3 = ["onUpdate:modelValue"];
 const _hoisted_6$2 = { key: 2 };
-const _hoisted_7$1 = { class: "text-h6" };
+const _hoisted_7$2 = { class: "text-h6" };
 function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_v_card_title = resolveComponent("v-card-title");
   const _component_v_icon = resolveComponent("v-icon");
@@ -41645,7 +41703,7 @@ function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
         })
       ]),
       default: withCtx(() => [
-        createBaseVNode("div", _hoisted_7$1, [
+        createBaseVNode("div", _hoisted_7$2, [
           _cache[10] || (_cache[10] = createTextVNode("Suite updated: ")),
           createBaseVNode("strong", null, toDisplayString($data.suiteDetails.name), 1)
         ])
@@ -42629,6 +42687,8 @@ const _hoisted_3$4 = { class: "capabilities-container" };
 const _hoisted_4$3 = { align: "center" };
 const _hoisted_5$1 = { key: 0 };
 const _hoisted_6$1 = { align: "center" };
+const _hoisted_7$1 = { style: { "width": "100%" } };
+const _hoisted_8$1 = ["innerHTML"];
 const __default__$2 = {
   components: {
     PromptDialog,
@@ -42639,10 +42699,15 @@ const __default__$2 = {
     return {
       loading: true,
       agentUpdate: null,
+      failedAgentUpdate: null,
       itemsPerPage: 20,
       deleteAgent: null,
       agents: [],
       search: null,
+      activeTab: "all",
+      failedAgents: [],
+      failedAgentsLoading: false,
+      recentlyFailedKeys: /* @__PURE__ */ new Set(),
       headers: [
         { key: "name", title: "Name", width: "14%" },
         { key: "capabilities", title: "Type", width: "8%" },
@@ -42656,11 +42721,19 @@ const __default__$2 = {
         { key: "tests", title: "Tests", width: "3%" },
         { key: "lastSeen", title: "Last Seen", width: "10%" },
         { key: "actions", title: "Actions", width: "5%" }
+      ],
+      failedAgentHeaders: [
+        { key: "agentName", title: "Name", width: "16%" },
+        { key: "jobId", title: "Job", width: "14%" },
+        { key: "suiteName", title: "Suite", width: "16%" },
+        { key: "failedAt", title: "Failed At", width: "12%" },
+        { key: "reason", title: "Reason", width: "42%" }
       ]
     };
   },
   beforeMount() {
     this.agentUpdate = inject$1("modified-agent");
+    this.failedAgentUpdate = inject$1("failed-preparing-agent");
     this.initTable();
   },
   computed: {
@@ -42688,6 +42761,19 @@ const __default__$2 = {
           this.agents.unshift(udpdatedAgent);
         }
       }
+    },
+    failedAgentUpdate(failedAgent) {
+      if (failedAgent) {
+        const parsed = parseFailedPreparingAgentEntry(failedAgent);
+        this.failedAgents.unshift(parsed);
+        if (this.failedAgents.length > 100) {
+          this.failedAgents.pop();
+        }
+        this.recentlyFailedKeys.add(parsed._key);
+        setTimeout(() => {
+          this.recentlyFailedKeys.delete(parsed._key);
+        }, 3e3);
+      }
     }
   },
   methods: {
@@ -42698,6 +42784,19 @@ const __default__$2 = {
       }).catch((error) => {
         console.error("Error fetching data:", error);
         this.loading = false;
+      });
+    },
+    failedAgentRowProps({ item }) {
+      return { class: this.recentlyFailedKeys.has(item._key) ? "newly-failed-row" : "" };
+    },
+    fetchFailedAgents() {
+      this.failedAgentsLoading = true;
+      this.$axios.get("/api/newman/deadAgents").then((response) => {
+        this.failedAgents = response.data.map(parseFailedPreparingAgentEntry);
+      }).catch((error) => {
+        console.error("Error fetching failed agents:", error);
+      }).finally(() => {
+        this.failedAgentsLoading = false;
       });
     },
     deleteAgentPrompt(item) {
@@ -42759,6 +42858,9 @@ const _sfc_main$9 = /* @__PURE__ */ Object.assign(__default__$2, {
   __name: "Agents",
   setup(__props) {
     return (_ctx, _cache) => {
+      const _component_v_tab = resolveComponent("v-tab");
+      const _component_v_tabs = resolveComponent("v-tabs");
+      const _component_v_divider = resolveComponent("v-divider");
       const _component_v_text_field = resolveComponent("v-text-field");
       const _component_v_col = resolveComponent("v-col");
       const _component_v_row = resolveComponent("v-row");
@@ -42769,140 +42871,235 @@ const _sfc_main$9 = /* @__PURE__ */ Object.assign(__default__$2, {
       const _component_v_chip = resolveComponent("v-chip");
       const _component_v_btn = resolveComponent("v-btn");
       const _component_v_data_table = resolveComponent("v-data-table");
+      const _component_v_tabs_window_item = resolveComponent("v-tabs-window-item");
+      const _component_v_tabs_window = resolveComponent("v-tabs-window");
       const _component_v_card = resolveComponent("v-card");
       return openBlock(), createElementBlock(Fragment, null, [
-        createVNode(_component_v_card, { align: "center" }, {
+        createVNode(_component_v_card, null, {
           default: withCtx(() => [
-            createBaseVNode("div", _hoisted_1$6, [
-              createVNode(_component_v_card_title, null, {
-                default: withCtx(() => [
-                  createVNode(_component_v_row, {
-                    dense: "",
-                    class: "pa-0 ma-0"
-                  }, {
-                    default: withCtx(() => [
-                      createVNode(_component_v_col, {
-                        cols: "3",
-                        alogn: "start"
-                      }, {
+            createVNode(_component_v_tabs, {
+              modelValue: _ctx.activeTab,
+              "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => _ctx.activeTab = $event),
+              color: "blue",
+              "align-tabs": "start"
+            }, {
+              default: withCtx(() => [
+                createVNode(_component_v_tab, { value: "all" }, {
+                  default: withCtx(() => _cache[3] || (_cache[3] = [
+                    createTextVNode("All Agents")
+                  ])),
+                  _: 1,
+                  __: [3]
+                }),
+                createVNode(_component_v_tab, {
+                  value: "failing",
+                  onClick: _ctx.fetchFailedAgents
+                }, {
+                  default: withCtx(() => _cache[4] || (_cache[4] = [
+                    createTextVNode("Failing History")
+                  ])),
+                  _: 1,
+                  __: [4]
+                }, 8, ["onClick"])
+              ]),
+              _: 1
+            }, 8, ["modelValue"]),
+            createVNode(_component_v_divider),
+            createVNode(_component_v_tabs_window, {
+              modelValue: _ctx.activeTab,
+              "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => _ctx.activeTab = $event)
+            }, {
+              default: withCtx(() => [
+                createVNode(_component_v_tabs_window_item, { value: "all" }, {
+                  default: withCtx(() => [
+                    createBaseVNode("div", _hoisted_1$6, [
+                      createVNode(_component_v_card_title, null, {
                         default: withCtx(() => [
-                          createVNode(_component_v_text_field, {
-                            modelValue: _ctx.search,
-                            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => _ctx.search = $event),
-                            density: "compact",
-                            label: "Search",
-                            "prepend-inner-icon": "mdi-magnify",
-                            variant: "outlined",
-                            "hide-details": "",
-                            "single-line": "",
-                            clearable: ""
-                          }, null, 8, ["modelValue"])
+                          createVNode(_component_v_row, {
+                            dense: "",
+                            class: "pa-0 ma-0"
+                          }, {
+                            default: withCtx(() => [
+                              createVNode(_component_v_col, {
+                                cols: "3",
+                                alogn: "start"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_v_text_field, {
+                                    modelValue: _ctx.search,
+                                    "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => _ctx.search = $event),
+                                    density: "compact",
+                                    label: "Search",
+                                    "prepend-inner-icon": "mdi-magnify",
+                                    variant: "outlined",
+                                    "hide-details": "",
+                                    "single-line": "",
+                                    clearable: ""
+                                  }, null, 8, ["modelValue"])
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          })
                         ]),
                         _: 1
-                      })
-                    ]),
-                    _: 1
-                  })
-                ]),
-                _: 1
-              }),
-              createVNode(_component_v_data_table, {
-                search: _ctx.search,
-                density: "compact",
-                headers: _ctx.headers,
-                items: _ctx.agents,
-                class: "agentsTable elevation-1",
-                hover: "",
-                loading: _ctx.loading,
-                "items-per-page": _ctx.itemsPerPage,
-                "items-per-page-options": [15, 20, 25, 50],
-                "sort-by": [{ key: "state", order: "desc" }]
-              }, {
-                "item.name": withCtx(({ item }) => [
-                  createBaseVNode("span", {
-                    innerHTML: _ctx.agentName(item.name)
-                  }, null, 8, _hoisted_2$4)
-                ]),
-                "item.capabilities": withCtx(({ item }) => [
-                  createBaseVNode("div", _hoisted_3$4, [
-                    (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.getCapabilities(item.capabilities), (cap) => {
-                      return openBlock(), createBlock(_component_v_tooltip, {
-                        key: cap.type,
-                        text: cap.type,
-                        location: "top"
+                      }),
+                      createVNode(_component_v_data_table, {
+                        search: _ctx.search,
+                        density: "compact",
+                        headers: _ctx.headers,
+                        items: _ctx.agents,
+                        class: "agentsTable elevation-1",
+                        hover: "",
+                        loading: _ctx.loading,
+                        "items-per-page": _ctx.itemsPerPage,
+                        "items-per-page-options": [15, 20, 25, 50],
+                        "sort-by": [{ key: "state", order: "desc" }]
                       }, {
-                        activator: withCtx(({ props }) => [
-                          createVNode(_component_v_icon, mergeProps({ ref_for: true }, props, {
-                            icon: cap.icon,
-                            color: cap.color,
-                            size: "28",
-                            class: "capability-icon"
-                          }), null, 16, ["icon", "color"])
+                        "item.name": withCtx(({ item }) => [
+                          createBaseVNode("span", {
+                            innerHTML: _ctx.agentName(item.name)
+                          }, null, 8, _hoisted_2$4)
                         ]),
-                        _: 2
-                      }, 1032, ["text"]);
-                    }), 128))
-                  ])
-                ]),
-                "item.jobId": withCtx(({ item }) => [
-                  item.jobId ? (openBlock(), createBlock(_component_router_link, {
-                    key: 0,
-                    class: "font-bold",
-                    to: {
-                      name: "JobDetails",
-                      params: { id: item.jobId, status: "ALL" }
-                    }
-                  }, {
-                    default: withCtx(() => [
-                      createTextVNode(toDisplayString(item.jobId), 1)
-                    ]),
-                    _: 2
-                  }, 1032, ["to"])) : createCommentVNode("", true)
-                ]),
-                "item.retries": withCtx(({ item }) => [
-                  createBaseVNode("div", _hoisted_4$3, toDisplayString(item.retries), 1)
-                ]),
-                "item.suite": withCtx(({ item }) => [
-                  item.suite ? (openBlock(), createElementBlock("span", _hoisted_5$1, toDisplayString(item.suite), 1)) : createCommentVNode("", true)
-                ]),
-                "item.state": withCtx(({ item }) => [
-                  createBaseVNode("div", _hoisted_6$1, [
-                    createVNode(_component_v_chip, {
-                      variant: "elevated",
-                      class: "text-uppercase font-weight-bold text-body-2 text-mono",
-                      color: unref(getStatusColor)(item.state),
-                      text: item.state,
-                      size: "small",
-                      label: ""
-                    }, null, 8, ["color", "text"])
-                  ])
-                ]),
-                "item.actions": withCtx(({ item }) => [
-                  !_ctx.isWindowsAgent(item) ? (openBlock(), createBlock(_component_v_btn, {
-                    key: 0,
-                    tile: "",
-                    icon: "mdi-console",
-                    height: "26px",
-                    width: "26px",
-                    rounded: "",
-                    color: "primary",
-                    class: "mr-1",
-                    onClick: ($event) => _ctx.openConsoleDialog(item)
-                  }, null, 8, ["onClick"])) : createCommentVNode("", true),
-                  createVNode(_component_v_btn, {
-                    tile: "",
-                    icon: "mdi-delete",
-                    height: "26px",
-                    width: "26px",
-                    rounded: "",
-                    color: "#D30000",
-                    class: "mr-1",
-                    onClick: ($event) => _ctx.deleteAgentPrompt(item)
-                  }, null, 8, ["onClick"])
-                ]),
-                _: 1
-              }, 8, ["search", "headers", "items", "loading", "items-per-page"])
-            ])
+                        "item.capabilities": withCtx(({ item }) => [
+                          createBaseVNode("div", _hoisted_3$4, [
+                            (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.getCapabilities(item.capabilities), (cap) => {
+                              return openBlock(), createBlock(_component_v_tooltip, {
+                                key: cap.type,
+                                text: cap.type,
+                                location: "top"
+                              }, {
+                                activator: withCtx(({ props }) => [
+                                  createVNode(_component_v_icon, mergeProps({ ref_for: true }, props, {
+                                    icon: cap.icon,
+                                    color: cap.color,
+                                    size: "28",
+                                    class: "capability-icon"
+                                  }), null, 16, ["icon", "color"])
+                                ]),
+                                _: 2
+                              }, 1032, ["text"]);
+                            }), 128))
+                          ])
+                        ]),
+                        "item.jobId": withCtx(({ item }) => [
+                          item.jobId ? (openBlock(), createBlock(_component_router_link, {
+                            key: 0,
+                            class: "font-bold",
+                            to: {
+                              name: "JobDetails",
+                              params: { id: item.jobId, status: "ALL" }
+                            }
+                          }, {
+                            default: withCtx(() => [
+                              createTextVNode(toDisplayString(item.jobId), 1)
+                            ]),
+                            _: 2
+                          }, 1032, ["to"])) : createCommentVNode("", true)
+                        ]),
+                        "item.retries": withCtx(({ item }) => [
+                          createBaseVNode("div", _hoisted_4$3, toDisplayString(item.retries), 1)
+                        ]),
+                        "item.suite": withCtx(({ item }) => [
+                          item.suite ? (openBlock(), createElementBlock("span", _hoisted_5$1, toDisplayString(item.suite), 1)) : createCommentVNode("", true)
+                        ]),
+                        "item.state": withCtx(({ item }) => [
+                          createBaseVNode("div", _hoisted_6$1, [
+                            createVNode(_component_v_chip, {
+                              variant: "elevated",
+                              class: "text-uppercase font-weight-bold text-body-2 text-mono",
+                              color: unref(getStatusColor)(item.state),
+                              text: item.state,
+                              size: "small",
+                              label: ""
+                            }, null, 8, ["color", "text"])
+                          ])
+                        ]),
+                        "item.actions": withCtx(({ item }) => [
+                          !_ctx.isWindowsAgent(item) ? (openBlock(), createBlock(_component_v_btn, {
+                            key: 0,
+                            tile: "",
+                            icon: "mdi-console",
+                            height: "26px",
+                            width: "26px",
+                            rounded: "",
+                            color: "primary",
+                            class: "mr-1",
+                            onClick: ($event) => _ctx.openConsoleDialog(item)
+                          }, null, 8, ["onClick"])) : createCommentVNode("", true),
+                          createVNode(_component_v_btn, {
+                            tile: "",
+                            icon: "mdi-delete",
+                            height: "26px",
+                            width: "26px",
+                            rounded: "",
+                            color: "#D30000",
+                            class: "mr-1",
+                            onClick: ($event) => _ctx.deleteAgentPrompt(item)
+                          }, null, 8, ["onClick"])
+                        ]),
+                        _: 1
+                      }, 8, ["search", "headers", "items", "loading", "items-per-page"])
+                    ])
+                  ]),
+                  _: 1
+                }),
+                createVNode(_component_v_tabs_window_item, { value: "failing" }, {
+                  default: withCtx(() => [
+                    createBaseVNode("div", _hoisted_7$1, [
+                      createVNode(_component_v_data_table, {
+                        density: "compact",
+                        headers: _ctx.failedAgentHeaders,
+                        items: _ctx.failedAgents,
+                        class: "agentsTable elevation-1",
+                        hover: "",
+                        loading: _ctx.failedAgentsLoading,
+                        "items-per-page": _ctx.itemsPerPage,
+                        "items-per-page-options": [15, 20, 25, 50],
+                        "row-props": _ctx.failedAgentRowProps
+                      }, {
+                        "item.agentName": withCtx(({ item }) => [
+                          createBaseVNode("span", {
+                            innerHTML: _ctx.agentName(item.agentName)
+                          }, null, 8, _hoisted_8$1)
+                        ]),
+                        "item.jobId": withCtx(({ item }) => [
+                          item.jobId ? (openBlock(), createBlock(_component_router_link, {
+                            key: 0,
+                            class: "font-bold",
+                            to: {
+                              name: "JobDetails",
+                              params: { id: item.jobId, status: "ALL" }
+                            }
+                          }, {
+                            default: withCtx(() => [
+                              createTextVNode(toDisplayString(item.jobId), 1)
+                            ]),
+                            _: 2
+                          }, 1032, ["to"])) : createCommentVNode("", true)
+                        ]),
+                        "item.failedAt": withCtx(({ item }) => [
+                          item.failedAt ? (openBlock(), createBlock(_component_v_tooltip, {
+                            key: 0,
+                            text: item.failedAt.dateTime,
+                            location: "top"
+                          }, {
+                            activator: withCtx(({ props }) => [
+                              createBaseVNode("span", normalizeProps(guardReactiveProps(props)), toDisplayString(item.failedAt.ago), 17)
+                            ]),
+                            _: 2
+                          }, 1032, ["text"])) : createCommentVNode("", true)
+                        ]),
+                        _: 1
+                      }, 8, ["headers", "items", "loading", "items-per-page", "row-props"])
+                    ])
+                  ]),
+                  _: 1
+                })
+              ]),
+              _: 1
+            }, 8, ["modelValue"])
           ]),
           _: 1
         }),
@@ -47649,9 +47846,11 @@ const _sfc_main$1 = {
     const job = ref();
     const agent = ref();
     const test2 = ref();
+    const failedPreparingAgent = ref();
     provide("job-update", job);
     provide("modified-agent", agent);
     provide("test-update", test2);
+    provide("failed-preparing-agent", failedPreparingAgent);
     const wssHost = `${window.config.WEBSOCKET_PROTOCOL}://${window.config.HOST}:${window.config.WEBSOCKET_PORT}/events`;
     let ws = null;
     let connectionInterval = null;
@@ -47687,6 +47886,9 @@ const _sfc_main$1 = {
               case "modified-agent":
                 parsedData.content.action = parsedData.id;
                 agent.value = parsedData.content;
+                return;
+              case "created-failed-preparing-agent":
+                failedPreparingAgent.value = parsedData.content;
                 return;
             }
           } catch (t) {
@@ -48013,4 +48215,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-CMsbxVUN.js.map
+//# sourceMappingURL=index-D__Ga_CP.js.map

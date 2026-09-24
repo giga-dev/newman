@@ -27023,36 +27023,36 @@ textarea.v-field__input::placeholder {
   align-items: center;
 }
 
-.job-submit-container[data-v-80d0d649] {
+.job-submit-container[data-v-8081ebed] {
   width: 40%;
 }
 @media (max-width: 1200px) {
-.job-submit-container[data-v-80d0d649] {
+.job-submit-container[data-v-8081ebed] {
     width: 70% !important;
     margin: 1rem !important;
 }
 }
-.v-menu > .v-overlay__content > .v-list > .v-list-item[data-v-80d0d649] {
+.v-menu > .v-overlay__content > .v-list > .v-list-item[data-v-8081ebed] {
   display: flex;
   flex-direction: row;
   min-height: 30px;
   max-height: 30px;
 }
-.nightly-build[data-v-80d0d649] {
+.nightly-build[data-v-8081ebed] {
   font-weight: 500;
   color: rgb(33, 150, 243) !important;
 }
-.nightly-build[data-v-80d0d649] .v-list-item-title {
+.nightly-build[data-v-8081ebed] .v-list-item-title {
   font-weight: 500;
   color: rgb(33, 150, 243) !important;
 }
-.warning-icon[data-v-80d0d649] {
+.warning-icon[data-v-8081ebed] {
   position: absolute;
   right: -40px;
   top: 50%;
   transform: translateY(-50%);
 }
-.tooltip-text[data-v-80d0d649] {
+.tooltip-text[data-v-8081ebed] {
   font-size: 16px;
   line-height: 1.5;
 }
@@ -27290,6 +27290,16 @@ textarea.v-field__input::placeholder {
   word-wrap: break-word;
 }
 
+@keyframes newlyFailedFade {
+from { background-color: rgba(211, 0, 0, 0.35);
+}
+to { background-color: transparent;
+}
+}
+.newly-failed-row,
+.newly-failed-row > td {
+  animation: newlyFailedFade 3s ease-out;
+}
 .agentsTable > .v-table__wrapper > table > thead > tr > th > .v-data-table-header__content{
   font-weight: bold;
   text-align: center;
