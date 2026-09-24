@@ -54,6 +54,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -108,8 +109,11 @@ public class NewmanResource {
     private static final String SERVER_JOBS_UPLOAD_LOCATION_FOLDER = "job-setup-logs";
     private static final String SERVER_CACHE_BUILDS_FOLDER = "builds";
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private final Timer timer = new Timer(true);
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "newman-scheduler");
+        t.setDaemon(true);
+        return t;
+    });
 
     private final ConcurrentHashMap<String, Object> agentLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Object> jobBreakLocks = new ConcurrentHashMap<>();
@@ -164,45 +168,39 @@ public class NewmanResource {
         highestPriorityJob = getNotPausedHighestPriorityJob();
 
         if (Boolean.getBoolean("production")) { // This is set to true in the newman server
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    try {
-                        logger.info("[Automated Task] Checking for not seen agents");
-                        getAgentsNotSeenInLastMillis(AGENT_UNSEEN_TIMEOUT_MS).forEach(NewmanResource.this::handleUnseenAgent);
-                    } catch (Exception e) {
-                        logger.error("[Automated Task] Error checking for unseen agents", e);
-                    }
-                }
+            scheduleSafely("checking for unseen agents", () -> {
+                logger.info("[Automated Task] Checking for not seen agents");
+                getAgentsNotSeenInLastMillis(AGENT_UNSEEN_TIMEOUT_MS).forEach(NewmanResource.this::handleUnseenAgent);
             }, 1000 * 30, 1000 * 30);
 
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    try {
-                        logger.info("[Automated Task] Checking for zombie agents");
-                        getZombieAgents(1000 * 60 * 20).forEach(NewmanResource.this::handleZombieAgent);
-                    } catch (Exception e) {
-                        logger.error("[Automated Task] Error checking for zombie agents", e);
-                    }
-                }
+            scheduleSafely("checking for zombie agents", () -> {
+                logger.info("[Automated Task] Checking for zombie agents");
+                getZombieAgents(1000 * 60 * 20).forEach(NewmanResource.this::handleZombieAgent);
             }, 1000 * 30, 1000 * 30);
 
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    try {
-                        handleHangingJob();
-                    } catch (Exception e) {
-                        logger.error("[Automated Task] Error handling hanging jobs", e);
-                    }
-                }
-            }, 1000 * 10, 1000 * 10);
+            scheduleSafely("handling hanging jobs", this::handleHangingJob, 1000 * 10, 1000 * 10);
         }
 
         initBuildsCache();
 
         initWebRootsPath();
+    }
+
+    /**
+     * Schedules a periodic task that never lets a Throwable escape, since an escaped one would silently cancel all future runs.
+     */
+    private void scheduleSafely(String name, Runnable task, long initialDelayMs, long periodMs) {
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                task.run();
+            } catch (Throwable t) {
+                try {
+                    logger.error("[Automated Task] Error " + name, t);
+                } catch (Throwable ignored) {
+                    // logging itself may fail (e.g. on OutOfMemoryError) - swallow to keep the task scheduled
+                }
+            }
+        }, initialDelayMs, periodMs, TimeUnit.MILLISECONDS);
     }
 
     private <T> AtomicUpdater<T> getUpdater(Class<T> clazz) {
