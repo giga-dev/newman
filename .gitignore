@@ -269,3 +269,5 @@ logs
 elm-stuff
 *.keystore
 Main.js
+### macOS
+.DS_Store
