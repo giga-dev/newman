@@ -57549,25 +57549,25 @@ to { background-color: transparent;
   color: white !important;
 }
 
-[data-v-d0c36418] .chip-button {
+[data-v-2fe0141f] .chip-button {
   color: white !important;
   width: 38px;
   height: 30px !important;
 }
-.nightly-label[data-v-d0c36418] {
+.nightly-label[data-v-2fe0141f] {
   font-size: 0.75rem;
   background-color: hsl(0, 100%, 77%);
   transition: background-color 0.2s ease;
 }
-.select-list-item[data-v-d0c36418]:hover {
+.select-list-item[data-v-2fe0141f]:hover {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.select-list-item[data-v-d0c36418]:selected {
+.select-list-item[data-v-2fe0141f]:selected {
   background-color: hsla(207, 90%, 54%, 0.081);
   transition: background-color 0.2s ease;
 }
-.list-header[data-v-d0c36418] {
+.list-header[data-v-2fe0141f] {
   cursor: default;
   text-align: center;
   font-weight: bolder;

@@ -237,10 +237,11 @@ public class NewmanResource {
             deletePrioritizedJob(potentialJob);
         }
 
+        // a job that never started a test is still counted as pending (see subscribe), not running
         AtomicUpdater<BuildStatus> buildStatusUpdater = getUpdater(BuildStatus.class);
         buildStatusUpdater
                 .inc("brokenJobs")
-                .dec("runningJobs")
+                .dec(potentialJob.getStartTime() == null ? "pendingJobs" : "runningJobs")
                 .whereId(potentialJob.getBuild().getBuildStatus().getId()).execute();
     }
 
@@ -772,6 +773,56 @@ public class NewmanResource {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns a BROKEN job back to the pool (READY), reverting what {@link #updateBrokenJob} did:
+     * resets prepare-failure tracking, restores the build counters and the prioritized job entry.
+     */
+    @POST
+    @Path("job/{id}/restart")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Job restartBrokenJob(@PathParam("id") final String id) {
+        Optional<Job> opJob = jobRepository.findById(id);
+        if (!opJob.isPresent()) {
+            throw new NotFoundException("Job [" + id + "] does not exist");
+        }
+        Job job = opJob.get();
+        if (job.getState() != State.BROKEN) {
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN_TYPE)
+                    .entity("Only BROKEN jobs can be restarted, job [" + id + "] is " + job.getState()).build());
+        }
+
+        // the state condition makes the restart atomic - concurrent restart requests update the job only once
+        int updated = getUpdater(Job.class)
+                .set("state", State.READY)
+                .set("prepareFailCount", 0)
+                .set("startPrepareTime", null)
+                .set("lasttimezombie", null)
+                .set("preparing_agents", Collections.emptySet())
+                .where("id = ? AND state = ?", id, State.BROKEN)
+                .execute();
+        if (updated == 0) {
+            logger.info("Job [{}] was not restarted, it is no longer BROKEN", id);
+            return jobRepository.findById(id).orElse(null);
+        }
+
+        getUpdater(BuildStatus.class)
+                .dec("brokenJobs")
+                .inc(job.getStartTime() == null ? "pendingJobs" : "runningJobs")
+                .whereId(job.getBuild().getBuildStatus().getId()).execute();
+
+        if (job.getPriority() > 0 && !prioritizedJobRepository.findByJobId(id).isPresent()) {
+            createPrioritizedJob(job);
+        }
+
+        logger.info("Job [{}] name: [{}], build: [{}] restarted after being BROKEN (prepareFailCount was {})",
+                id, job.getSuiteName(), job.getBuild().getName(), job.getPrepareFailCount());
+
+        job = jobRepository.findById(id).get();
+        broadcastMessage(MODIFIED_JOB, job);
+        buildRepository.findById(job.getBuild().getId()).ifPresent(build -> broadcastMessage(MODIFIED_BUILD, build));
+        return job;
     }
 
     private void managePrioritizedJob(String jobId, int jobPriority, boolean isPaused) {

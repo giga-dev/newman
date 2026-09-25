@@ -44357,9 +44357,10 @@ const __default__$1 = {
     },
     getPlayBtnColor(state) {
       switch (state) {
+        case "BROKEN":
+          return "blue";
         case "RUNNING":
         case "DONE":
-        case "BROKEN":
         case "READY":
           return "orange";
         case "PAUSED":
@@ -44368,9 +44369,10 @@ const __default__$1 = {
     },
     getPlayBtnIcon(state) {
       switch (state) {
+        case "BROKEN":
+          return "mdi-restart";
         case "RUNNING":
         case "DONE":
-        case "BROKEN":
         case "READY":
           return "mdi-pause";
         case "PAUSED":
@@ -44390,6 +44392,20 @@ const __default__$1 = {
         }
       }).catch((error) => {
         console.error("Error fetching data:", error);
+      });
+    },
+    restartBrokenJob(item) {
+      this.$axios.post(`/api/newman/job/${item.jobId}/restart`).then((response) => {
+        const respItem = parseJobEntry(response.data);
+        const jobIndex = this.items.findIndex(
+          (i) => i.jobId === respItem.jobId
+        );
+        if (jobIndex !== -1) {
+          this.items[jobIndex] = respItem;
+        }
+      }).catch((error) => {
+        item.toggleRequested = false;
+        console.error("Error restarting job:", error);
       });
     },
     configureJobPrompt(item) {
@@ -45129,9 +45145,10 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
                   rounded: "",
                   icon: _ctx.getPlayBtnIcon(item.state),
                   color: _ctx.getPlayBtnColor(item.state),
-                  disabled: item.toggleRequested || _ctx.pauseBtnDisabledStates.includes(item.state),
-                  onClick: ($event) => (item.toggleRequested = true, _ctx.startPauseToggle(item.jobId))
-                }, null, 8, ["icon", "color", "disabled", "onClick"]),
+                  title: item.state === "BROKEN" ? "Restart broken job" : void 0,
+                  disabled: item.toggleRequested || item.state === "DONE",
+                  onClick: ($event) => (item.toggleRequested = true, item.state === "BROKEN" ? _ctx.restartBrokenJob(item) : _ctx.startPauseToggle(item.jobId))
+                }, null, 8, ["icon", "color", "title", "disabled", "onClick"]),
                 createVNode(_component_v_btn, {
                   tile: "",
                   icon: "mdi-delete",
@@ -45237,7 +45254,7 @@ const _sfc_main$3 = /* @__PURE__ */ Object.assign(__default__$1, {
     };
   }
 });
-const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-d0c36418"]]);
+const JobsGrid = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["__scopeId", "data-v-2fe0141f"]]);
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
@@ -48230,4 +48247,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-Cfcbk2b8.js.map
+//# sourceMappingURL=index-D68WwdDc.js.map
