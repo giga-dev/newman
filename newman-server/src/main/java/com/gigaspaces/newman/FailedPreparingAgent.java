@@ -7,6 +7,9 @@ public class FailedPreparingAgent {
     private String agentName;
     private String jobId;
     private String suiteName;
+    private String buildId;
+    private String buildName;
+    private String buildBranch;
     private int prepareFailCountAtFailure;
     private Date lastTouchTime;
     private Long activeDurationMs;
@@ -16,11 +19,14 @@ public class FailedPreparingAgent {
     public FailedPreparingAgent() {
     }
 
-    public FailedPreparingAgent(String agentName, String jobId, String suiteName, int prepareFailCountAtFailure,
-                                 Date lastTouchTime, Long activeDurationMs, Date failedAt, String reason) {
+    public FailedPreparingAgent(String agentName, String jobId, String suiteName, String buildId, String buildName, String buildBranch,
+                                 int prepareFailCountAtFailure, Date lastTouchTime, Long activeDurationMs, Date failedAt, String reason) {
         this.agentName = agentName;
         this.jobId = jobId;
         this.suiteName = suiteName;
+        this.buildId = buildId;
+        this.buildName = buildName;
+        this.buildBranch = buildBranch;
         this.prepareFailCountAtFailure = prepareFailCountAtFailure;
         this.lastTouchTime = lastTouchTime;
         this.activeDurationMs = activeDurationMs;
@@ -50,6 +56,30 @@ public class FailedPreparingAgent {
 
     public void setSuiteName(String suiteName) {
         this.suiteName = suiteName;
+    }
+
+    public String getBuildId() {
+        return buildId;
+    }
+
+    public void setBuildId(String buildId) {
+        this.buildId = buildId;
+    }
+
+    public String getBuildName() {
+        return buildName;
+    }
+
+    public void setBuildName(String buildName) {
+        this.buildName = buildName;
+    }
+
+    public String getBuildBranch() {
+        return buildBranch;
+    }
+
+    public void setBuildBranch(String buildBranch) {
+        this.buildBranch = buildBranch;
     }
 
     public int getPrepareFailCountAtFailure() {

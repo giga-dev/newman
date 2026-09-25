@@ -38449,6 +38449,8 @@ function parseFailedPreparingAgentEntry(item) {
     agentName: item.agentName,
     jobId: item.jobId,
     suiteName: item.suiteName,
+    buildId: item.buildId,
+    buildConsolidated: item.buildName ? consolidateBuildName(item) : null,
     failedAt: item.failedAt ? calculateSubmittedTime(item.failedAt) : null,
     reason: item.reason
   };
@@ -42725,9 +42727,10 @@ const __default__$2 = {
       failedAgentHeaders: [
         { key: "agentName", title: "Name", width: "16%" },
         { key: "jobId", title: "Job", width: "14%" },
+        { key: "buildConsolidated", title: "Build", width: "12%" },
         { key: "suiteName", title: "Suite", width: "16%" },
         { key: "failedAt", title: "Failed At", width: "12%" },
-        { key: "reason", title: "Reason", width: "42%" }
+        { key: "reason", title: "Reason", width: "30%" }
       ]
     };
   },
@@ -43075,6 +43078,18 @@ const _sfc_main$9 = /* @__PURE__ */ Object.assign(__default__$2, {
                           }, {
                             default: withCtx(() => [
                               createTextVNode(toDisplayString(item.jobId), 1)
+                            ]),
+                            _: 2
+                          }, 1032, ["to"])) : createCommentVNode("", true)
+                        ]),
+                        "item.buildConsolidated": withCtx(({ item }) => [
+                          item.buildId ? (openBlock(), createBlock(_component_router_link, {
+                            key: 0,
+                            class: "font-bold",
+                            to: { name: "BuildDetails", params: { id: item.buildId } }
+                          }, {
+                            default: withCtx(() => [
+                              createTextVNode(toDisplayString(item.buildConsolidated), 1)
                             ]),
                             _: 2
                           }, 1032, ["to"])) : createCommentVNode("", true)
@@ -48215,4 +48230,4 @@ async function loadConfig() {
 loadConfig().then(() => {
   app.mount("#app");
 });
-//# sourceMappingURL=index-D__Ga_CP.js.map
+//# sourceMappingURL=index-Cfcbk2b8.js.map

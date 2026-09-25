@@ -3941,9 +3941,11 @@ public class NewmanResource {
         Date failedAt = new Date();
         Long activeDurationMs = lastTouchTime != null ? failedAt.getTime() - lastTouchTime.getTime() : null;
 
+        Build build = job.getBuild();
         FailedPreparingAgent entry = new FailedPreparingAgent(
-                agent.getName(), job.getId(), job.getSuiteName(), job.getPrepareFailCount(),
-                lastTouchTime, activeDurationMs, failedAt, reason);
+                agent.getName(), job.getId(), job.getSuiteName(),
+                build != null ? build.getId() : null, build != null ? build.getName() : null, build != null ? build.getBranch() : null,
+                job.getPrepareFailCount(), lastTouchTime, activeDurationMs, failedAt, reason);
 
         deadAgentsHistory.addFirst(entry);
         while (deadAgentsHistory.size() > DEAD_AGENTS_WINDOW_SIZE) {
